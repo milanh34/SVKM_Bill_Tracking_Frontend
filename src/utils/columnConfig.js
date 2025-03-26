@@ -1,17 +1,22 @@
 export const getColumnsForRole = (role) => {
   const allColumns = [
-    { field: "srNo", headerName: "Sr No" },
+    { field: "srNo", headerName: "Sr. No" },
     { field: "srNoOld", headerName: "Sr No Old" },
-    { field: "typeOfInv", headerName: "Type of Inv" },
-    { field: "region", headerName: "Region" },
     { field: "projectDescription", headerName: "Project Description" },
-    { field: "vendorNo", headerName: "Vendor No" },
+    { field: "vendorNo", headerName: "Vendor No." },
     { field: "vendorName", headerName: "Vendor Name" },
+    { field: "region", headerName: "Region" },
+    { field: "taxInvNo", headerName: "Tax Invoice No." },
+    { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
+    { field: "taxInvDate", headerName: "Tax Invoice Date" },
+    { field: "poNo", headerName: "PO No." },
+    { field: "copDetails.amount", headerName: "COP Amount" },
+    { field: "accountsDept.status", headerName: "Payment Status" },
+    { field: "typeOfInv", headerName: "Type of Inv" },
     { field: "gstNumber", headerName: "GST Number" },
     { field: "compliance206AB", headerName: "206AB Compliance" },
     { field: "panStatus", headerName: "PAN Status" },
     { field: "poCreated", headerName: "If PO Created?" },
-    { field: "poNo", headerName: "PO No" },
     { field: "poDate", headerName: "PO Dt" },
     { field: "poAmt", headerName: "PO Amt" },
     { field: "proformaInvNo", headerName: "Proforma Inv No" },
@@ -19,10 +24,7 @@ export const getColumnsForRole = (role) => {
     { field: "proformaInvAmt", headerName: "Proforma Inv Amt" },
     { field: "proformaInvRecdAtSite", headerName: "Proforma Inv Recd at Site" },
     { field: "proformaInvRecdBy", headerName: "Proforma Inv Recd By" },
-    { field: "taxInvNo", headerName: "Tax Inv No" },
-    { field: "taxInvDate", headerName: "Tax Inv Dt" },
     { field: "currency", headerName: "Currency" },
-    { field: "taxInvAmt", headerName: "Tax Inv Amt" },
     { field: "taxInvRecdAtSite", headerName: "Tax Inv Recd at Site" },
     { field: "taxInvRecdBy", headerName: "Tax Inv Recd By" },
     { field: "department", headerName: "Department" },
@@ -43,7 +45,6 @@ export const getColumnsForRole = (role) => {
     },
     { field: "qsMumbai.name", headerName: "Name of QS" },
     { field: "copDetails.date", headerName: "COP Dt" },
-    { field: "copDetails.amount", headerName: "COP Amt" },
     { field: "migoDetails.dateGiven", headerName: "Dt Given for MIGO" },
     { field: "migoDetails.no", headerName: "MIGO No" },
     { field: "migoDetails.date", headerName: "MIGO Dt" },
@@ -129,7 +130,6 @@ export const getColumnsForRole = (role) => {
       field: "accountsDept.remarksAcctsDept",
       headerName: "Remarks Accts Dept",
     },
-    { field: "accountsDept.status", headerName: "Status" },
   ];
 
   const roleSpecificFields = {
@@ -480,5 +480,5 @@ export const getColumnsForRole = (role) => {
       roleSpecificFields[role].includes(column.field)
     );
   }
-  return allColumns.slice(0, 10);
+  return allColumns.slice(0, 12);
 };
