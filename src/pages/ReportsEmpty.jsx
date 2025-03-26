@@ -2,13 +2,14 @@ import React from "react";
 import Header from "../components/Header";
 import "../styles/ReportsBasic.css";
 import ReportBtns from "../components/ReportBtns";
+import Cookies from "js-cookie";
 
 const ReportsEmpty = () => {
   return (
     <div>
       <Header />
       <ReportBtns />
-      {localStorage.getItem("userRole") != "QS_Team" && (
+      {Cookies.get("userRole") != "qs_site" && (
         <p
           style={{
             paddingTop: "15vh",
@@ -21,7 +22,7 @@ const ReportsEmpty = () => {
           Click on any report to view the details
         </p>
       )}
-      {localStorage.getItem("userRole") == "QS_Team" && (
+      {Cookies.get("userRole") == "qs_site" && (
         <p
           style={{
             paddingTop: "15vh",

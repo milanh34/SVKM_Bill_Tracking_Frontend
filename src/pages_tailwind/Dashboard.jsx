@@ -378,6 +378,14 @@ const Dashboard = () => {
       );
       const allColumnsToExport = [...essentialColumns, ...additionalColumns];
       const workbook = XLSX.utils.book_new();
+      
+      // Create timestamp row
+      const now = new Date();
+      const timestamp = [
+        [`Report generated on: ${now.toLocaleDateString('en-IN')} ${now.toLocaleTimeString('en-IN')}`]
+      ];
+      
+      // First create the data worksheet
       const excelData = dataToExport.map((row) => {
         const formattedRow = {};
         allColumnsToExport.forEach((column) => {
@@ -406,7 +414,20 @@ const Dashboard = () => {
         });
         return formattedRow;
       });
-      const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+      // Create worksheet with timestamp
+      const worksheet = XLSX.utils.aoa_to_sheet(timestamp);
+      
+      // Merge cells for timestamp row
+      worksheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
+      
+      // Add data starting from row 2
+      XLSX.utils.sheet_add_json(worksheet, excelData, { 
+        origin: 'A2',
+        skipHeader: false
+      });
+
+      // Adjust column widths and styling
       const range = XLSX.utils.decode_range(worksheet["!ref"]);
       const colWidths = {};
       Object.keys(excelData[0] || {}).forEach((key, index) => {
@@ -459,6 +480,16 @@ const Dashboard = () => {
           }
         }
       }
+
+      // Adjust cell styles for timestamp row
+      const timestampCell = worksheet['A1'];
+      if (timestampCell) {
+        timestampCell.s = {
+          font: { bold: true, color: { rgb: "000000" }, sz: 12 },
+          alignment: { horizontal: "left" }
+        };
+      }
+
       XLSX.utils.book_append_sheet(workbook, worksheet, "Bills Report");
       const excelBuffer = XLSX.write(workbook, {
         bookType: "xlsx",
@@ -468,9 +499,11 @@ const Dashboard = () => {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
       const url = URL.createObjectURL(blob);
+      const now1 = new Date();
+      const filename = `${now1.getDate().toString().padStart(2, '0')}${(now1.getMonth() + 1).toString().padStart(2, '0')}${now1.getFullYear().toString().slice(-2)}_${now1.getHours().toString().padStart(2, '0')}${now1.getMinutes().toString().padStart(2, '0')}${now1.getSeconds().toString().padStart(2, '0')}.xlsx`;
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", "BillsReport.xlsx");
+      link.setAttribute("download", filename); // Changed from "BillsReport.xlsx" to dynamic filename
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
