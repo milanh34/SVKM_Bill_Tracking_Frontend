@@ -205,16 +205,16 @@ const RepBillOutstandingSubtotal = () => {
                                             checked={selectedRows.length === billsData.flatMap(group => group.billdets).length}
                                         />
                                     </th> */}
-                                    <th>Sr No</th>
-                                    <th>Region</th>
-                                    <th>Vendor No</th>
-                                    <th>Vendor Name</th>
-                                    <th>Tax Inv no</th>
-                                    <th>Tax Inv Date</th>
-                                    <th>Tax Inv Amt</th>
-                                    <th></th>  {/* Column for sum */}
-                                    <th>COP Amount</th>
-                                    <th>Dt recd in Accts Dept</th>
+                                    <th className='table-th'>Sr No</th>
+                                    <th className='table-th'>Region</th>
+                                    <th className='table-th'>Vendor No</th>
+                                    <th className='table-th'>Vendor Name</th>
+                                    <th className='table-th'>Tax Inv no</th>
+                                    <th className='table-th'>Tax Inv Date</th>
+                                    <th className='table-th'>Tax Inv Amt</th>
+                                    <th className='table-th'></th>  {/* Column for sum */}
+                                    <th className='table-th'>COP Amount</th>
+                                    <th className='table-th'>Dt recd in Accts Dept</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -222,23 +222,23 @@ const RepBillOutstandingSubtotal = () => {
                                     <React.Fragment key={groupIndex}>
                                         {group.billdets.map((bill, index) => (
                                             <tr key={bill._id}>
-                                                {/* <td>
+                                                {/* <td className='table-td'>
                                                     <input
                                                         type="checkbox"
                                                         checked={selectedRows.includes(bill._id)}
                                                         onChange={(e) => handleSelectRow(e, bill._id)}
                                                     />
                                                 </td> */}
-                                                <td>{bill.srNo}</td>
-                                                <td>{bill.region}</td>
-                                                <td>{bill.vendorNo}</td>
-                                                <td>{bill.vendorName}</td>
-                                                <td>{bill.taxInvNo}</td>
-                                                <td>{bill.taxInvDate}</td>
-                                                <td className='right-align'>{bill.taxInvAmt.toLocaleString('en-IN')}</td>
-                                                <td></td>  {/* Empty column for sum row */}
-                                                <td className='right-align'>{typeof bill.copAmount === 'number' ? bill.copAmount.toLocaleString('en-IN') : bill.copAmount}</td>
-                                                <td>{bill.dtRecdAccts}</td>
+                                                <td className='table-td'>{bill.srNo}</td>
+                                                <td className='table-td'>{bill.region}</td>
+                                                <td className='table-td'>{bill.vendorNo}</td>
+                                                <td className='table-td'>{bill.vendorName}</td>
+                                                <td className='table-td'>{bill.taxInvNo}</td>
+                                                <td className='table-td'>{bill.taxInvDate}</td>
+                                                <td className='right-align table-td'>{bill.taxInvAmt.toLocaleString('en-IN')}</td>
+                                                <td className='table-td'></td>  {/* Empty column for sum row */}
+                                                <td className='right-align table-td'>{typeof bill.copAmount === 'number' ? bill.copAmount.toLocaleString('en-IN') : bill.copAmount}</td>
+                                                <td className='table-td'>{bill.dtRecdAccts}</td>
                                             </tr>
                                         ))}
                                         <tr>

@@ -1,46 +1,46 @@
 .full-report-div {
-    margin-bottom: 12vh;
+  margin-bottom: 12vh;
 }
 
 .invoice-container {
-    padding: 2vh 2vw;
-    /* max-width: 90vw; */
-    margin: 2vh auto;
-    font-family: Arial, sans-serif;
-    height: 100vh;
-    background-color: #ffffff;
-    color: #000000;
+  padding: 2vh 2vw;
+  /* max-width: 90vw; */
+  margin: 2vh auto;
+  font-family: Arial, sans-serif;
+  height: 100vh;
+  background-color: #ffffff;
+  color: #000000;
 }
 
 /* Report Button Component */
 .report-btn-main {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: left;
-    align-items: center;
-    gap: 1.2vw;
-    margin-bottom: 3vh;
-    padding: 0 2vw;
-    max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: left;
+  align-items: center;
+  gap: 1.2vw;
+  margin-bottom: 3vh;
+  padding: 0 2vw;
+  max-width: 100%;
 }
 
 .report-btns {
-    background-color: #364CBB;
-    color: #ffffff;
-    padding: 0.75vw 1.4vw;
-    margin-bottom: 1vh;
-    border-radius: 1vw;
-    border: none;
-    cursor: pointer;
-    white-space: nowrap;
-    font-size: 0.9vw;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #364cbb;
+  color: #ffffff;
+  padding: 0.75vw 1.4vw;
+  margin-bottom: 1vh;
+  border-radius: 1vw;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 0.9vw;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .report-btns:hover {
-    background-color: #2a3c9e ;
-    transform: translateY(-2px);
+  background-color: #2a3c9e;
+  transform: translateY(-2px);
 }
 
 /* .report-btns:active {
@@ -48,146 +48,145 @@
 } */
 
 @media screen and (max-width: 1200px) {
-    .report-btns {
-        font-size: 1.1vw;
-        padding: 0.9vw 1.6vw;
-    }
+  .report-btns {
+    font-size: 1.1vw;
+    padding: 0.9vw 1.6vw;
+  }
 }
 
 @media screen and (max-width: 768px) {
-    .report-btn-main {
-        gap: 2vw;
-    }
-    
-    .report-btns {
-        font-size: 2vw;
-        padding: 1.2vw 2.2vw;
-        border-radius: 1vw;
-        margin-bottom: 1.5vh;
-    }
+  .report-btn-main {
+    gap: 2vw;
+  }
+
+  .report-btns {
+    font-size: 2vw;
+    padding: 1.2vw 2.2vw;
+    border-radius: 1vw;
+    margin-bottom: 1.5vh;
+  }
 }
 
 @media screen and (max-width: 480px) {
-    .report-btn-main {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 1.5vh;
-    }
-    
-    .report-btns {
-        font-size: 3.5vw;
-        padding: 2vh 4vw;
-        width: 100%;
-    }
+  .report-btn-main {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.5vh;
+  }
+
+  .report-btns {
+    font-size: 3.5vw;
+    padding: 2vh 4vw;
+    width: 100%;
+  }
 }
 
 /* Report Btn Header */
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2vh;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2vh;
 }
 
 .header-h2 {
-    font-size: 2vw;
-    color: #333;
-    margin: 0;
-    width: 77%;
+  font-size: 2vw;
+  color: #333;
+  margin: 0;
+  width: 77%;
 }
 
 .report-button-group {
-    display: flex;
-    gap: 1vw;
-    width: 30%;
+  display: flex;
+  gap: 1vw;
+  width: 30%;
 }
 
 .btn {
-    padding: 0.8vh 1.5vw;
-    border: none;
-    border-radius: 1vw;
-    cursor: pointer;
-    font-size: 18px;
-    color: #ffffff;
-    transition: background-color 0.2s ease;
+  padding: 0.8vh 1.5vw;
+  border: none;
+  border-radius: 1vw;
+  cursor: pointer;
+  font-size: 18px;
+  color: #ffffff;
+  transition: background-color 0.2s ease;
 }
 
 .btn.download {
-    width: 300px;
-    background-color: #ffd700;
+  width: 300px;
+  background-color: #ffd700;
 }
 
 .btn.download:hover {
-    background-color: #e6c200;
+  background-color: #e6c200;
 }
 
 .download-icon,
 .send-icon {
-    margin-left: 0.5vw;
-    width: 1vw;
-    background: transparent;
+  margin-left: 0.5vw;
+  width: 1vw;
+  background: transparent;
 }
 
 .send-icon {
-    transform: rotate(-45deg);
-    margin-bottom: 2px;
+  transform: rotate(-45deg);
+  margin-bottom: 2px;
 }
 
 .btn.send {
-    width: 300px;
-    background-color: #4CAF50;
+  width: 300px;
+  background-color: #4caf50;
 }
 
 .btn.send:hover {
-    background-color: #45a049;
+  background-color: #45a049;
 }
-
 
 /* Report Table */
 .table-container {
-    overflow-x: auto;
-    box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1);
-    /* border-radius: 0.8vw; */
-    max-height: 85vh;
-    /* padding: 8px; */
-    position: relative;
-    border: 1px solid #000000;
+  overflow-x: auto;
+  box-shadow: 0 0 1vw rgba(0, 0, 0, 0.1);
+  /* border-radius: 0.8vw; */
+  max-height: 85vh;
+  /* padding: 8px; */
+  position: relative;
+  border: 1px solid #000000;
 }
 
 .invoice-table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: #ffffff;
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ffffff;
 }
 
 .invoice-table th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background-color: #f8f9fa;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #f8f9fa;
 }
 
 .invoice-table th,
 .invoice-table td {
-    padding: 1.5vh 1vw;
-    text-align: left;
-    border-bottom: 0.1vh solid #ddd;
+  padding: 1.5vh 1vw;
+  text-align: left;
+  border-bottom: 0.1vh solid #ddd;
 }
 
 .invoice-table th {
-    font-weight: 700;
-    color: #333;
-    font-size: 16px;
-    border: 1px solid #000000;
-    border-top: 0px;
-    border-bottom-width: 2px;
+  font-weight: 700;
+  color: #333;
+  font-size: 16px;
+  border: 1px solid #000000;
+  border-top: 0px;
+  border-bottom-width: 2px;
 }
 
 .invoice-table td {
-    border: 1px solid #000000;
-    font-weight: 300;
-    font-size: 14px;
-    text-align: left;
+  border: 1px solid #000000;
+  font-weight: 300;
+  font-size: 14px;
+  text-align: left;
 }
 
 /* .invoice-table tr:nth-child(even) td {
@@ -195,150 +194,150 @@
 } */
 
 .invoice-table tr:hover td {
-    background-color: #f5f5f5 !important;
+  background-color: #f5f5f5 !important;
 }
 
 .invoice-table td.right-align {
-    text-align: right;
+  text-align: right;
 }
 
 .table-data-checkbox {
-    width: 40px;
-    text-align: center;
-    padding: 8px;
+  width: 40px;
+  text-align: center;
+  padding: 8px;
 }
 
 .table-data-checkbox input[type="checkbox"] {
-    cursor: pointer;
-    width: 16px;
-    height: 16px;
-    outline: none;
-    accent-color: white;
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  outline: none;
+  accent-color: white;
 }
 
 .select-all {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px;
-    background: #f8f9fa;
-    border-radius: 4px;
-    margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  margin-bottom: 8px;
 }
 
 .select-all input[type="checkbox"] {
-    cursor: pointer;
-    width: 16px;
-    height: 16px;
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
 }
 
 .download-container {
-    display: flex;
-    justify-content: flex-end;
-    padding: 16px 8px;
-    background: transparent;
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 8px;
+  background: transparent;
 }
 
 .download-button {
-    background-color: #4CAF50;
-    color: white;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  background-color: #4caf50;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .download-button:hover {
-    background-color: #45a049;
+  background-color: #45a049;
 }
 
 /* Responsive styles */
 @media screen and (max-width: 768px) {
-    .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 2vh;
-    }
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2vh;
+  }
 
-    .header h2 {
-        font-size: 4vw;
-    }
+  .header h2 {
+    font-size: 4vw;
+  }
 
-    .btn {
-        font-size: 3vw;
-        padding: 1.5vh 3vw;
-    }
+  .btn {
+    font-size: 3vw;
+    padding: 1.5vh 3vw;
+  }
 
-    th,
-    td {
-        padding: 1vh 2vw;
-        font-size: 3vw;
-    }
+  .table-th,
+  .table-td {
+    padding: 1vh 2vw;
+    font-size: 3vw;
+  }
 
-    .table-container {
-        height: 80vh;
-    }
+  .table-container {
+    height: 80vh;
+  }
 }
 
 /* For very large screens */
 @media screen and (min-width: 1920px) {
-    .header h2 {
-        font-size: 1.5vw;
-    }
+  .header h2 {
+    font-size: 1.5vw;
+  }
 
-    .btn {
-        font-size: 1vw;
-    }
+  .btn {
+    font-size: 1vw;
+  }
 
-    th,
-    td {
-        font-size: 0.9vw;
-    }
+  .table-th,
+  .table-td {
+    font-size: 0.9vw;
+  }
 }
 
 .invoices-table-checkbox {
-    width: 40px;
-    text-align: center;
-    padding: 8px;
+  width: 40px;
+  text-align: center;
+  padding: 8px;
 }
 
 .invoices-select-all {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px;
-    background-color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background-color: white;
 }
 
 .invoices-select-all label {
-    background-color: transparent;
+  background-color: transparent;
 }
 
 .invoice-table input[type="checkbox"],
 .invoices-select-all input[type="checkbox"] {
-    cursor: pointer;
-    width: 16px;
-    height: 16px;
-    outline: none;
-    border-radius: 3px;
-    border: 1px solid #cacaca;
-    accent-color: white;
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  outline: none;
+  border-radius: 3px;
+  border: 1px solid #cacaca;
+  accent-color: white;
 }
 
 .invoice-table input[type="checkbox"]:not(:checked),
 .invoices-select-all input[type="checkbox"]:not(:checked) {
-    opacity: 0.5;
-    filter: invert(100%);
+  opacity: 0.5;
+  filter: invert(100%);
 }
 
 .invoice-table input[type="checkbox"]:checked,
 .invoices-select-all input[type="checkbox"]:checked {
-    filter: invert(10%);
+  filter: invert(10%);
 }
 
 .download-container {
-    display: none;
+  display: none;
 }

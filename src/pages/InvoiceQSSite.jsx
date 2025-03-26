@@ -64,29 +64,29 @@ const InvoicesGivenToQSSite = () => {
                     <table className='invoice-table'>
                         <thead>
                             <tr>
-                                <th>Sr No</th>
-                                <th>Project Description</th>
-                                <th>Vendor Name</th>
-                                <th>Tax Inv no</th>
-                                <th>Tax Inv Date</th>
-                                <th>Tax Inv Amt</th>
-                                <th>Dt Tax Inv recd at Site</th>
-                                <th>Dt Tax Inv courier to Mumbai</th>
-                                <th>PO No</th>
+                                <th className='table-th'>Sr No</th>
+                                <th className='table-th'>Project Description</th>
+                                <th className='table-th'>Vendor Name</th>
+                                <th className='table-th'>Tax Inv no</th>
+                                <th className='table-th'>Tax Inv Date</th>
+                                <th className='table-th'>Tax Inv Amt</th>
+                                <th className='table-th'>Dt Tax Inv recd at Site</th>
+                                <th className='table-th'>Dt Tax Inv courier to Mumbai</th>
+                                <th className='table-th'>PO No</th>
                             </tr>
                         </thead>
                         <tbody>
                             {bills.map((bill, index) => (
                                 <tr key={index}>
-                                    <td>{bill.srNo}</td>
-                                    <td>{bill.projectDesc}</td>
-                                    <td>{bill.vendorName}</td>
-                                    <td>{bill.taxInvNo}</td>
-                                    <td>{bill.taxInvDate}</td>
-                                    <td className='right-align'>{bill.taxInvAmt}</td>
-                                    <td className='right-align'>{bill.dtTaxInvRecdAtSite}</td>
-                                    <td className='right-align'>{bill.dtTaxInvCourierToMumbai}</td>
-                                    <td>{bill.poNo}</td>
+                                    <td className='table-td'>{bill.srNo}</td>
+                                    <td className='table-td'>{bill.projectDesc}</td>
+                                    <td className='table-td'>{bill.vendorName}</td>
+                                    <td className='table-td'>{bill.taxInvNo}</td>
+                                    <td className='table-td'>{bill.taxInvDate}</td>
+                                    <td className='right-align table-td'>{bill.taxInvAmt}</td>
+                                    <td className='right-align table-td'>{bill.dtTaxInvRecdAtSite}</td>
+                                    <td className='right-align table-td'>{bill.dtTaxInvCourierToMumbai}</td>
+                                    <td className='table-td'>{bill.poNo}</td>
                                 </tr>
                             ))}
                         </tbody>

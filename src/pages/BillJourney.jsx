@@ -49,31 +49,31 @@ const BillJourney = () => {
                     <table className='invoice-table'>
                         <thead>
                             <tr>
-                                <th>Sr No</th>
-                                <th>Region</th>
-                                <th>Project Description</th>
-                                <th>Vendor Name</th>
-                                <th>Invoice Date</th>
-                                <th>Invoice Amount</th>
-                                <th>Delay for Receiving Invoice</th>
-                                <th>No. of Days at Site</th>
-                                <th>No. of Days at Mumbai</th>
-                                <th>No. of Days at A/c</th>
+                                <th className='table-th'>Sr No</th>
+                                <th className='table-th'>Region</th>
+                                <th className='table-th'>Project Description</th>
+                                <th className='table-th'>Vendor Name</th>
+                                <th className='table-th'>Invoice Date</th>
+                                <th className='table-th'>Invoice Amount</th>
+                                <th className='table-th'>Delay for Receiving Invoice</th>
+                                <th className='table-th'>No. of Days at Site</th>
+                                <th className='table-th'>No. of Days at Mumbai</th>
+                                <th className='table-th'>No. of Days at A/c</th>
                             </tr>
                         </thead>
                         <tbody>
                             {bills.map((bill, index) => (
                                 <tr key={index}>
-                                    <td>{bill.srNo}</td>
-                                    <td>{bill.region}</td>
-                                    <td>{bill.projectDesc}</td>
-                                    <td>{bill.vendorName}</td>
-                                    <td>{bill.invoiceDate}</td>
-                                    <td className='right-align'>{bill.invoiceAmount}</td>
-                                    <td className='right-align'>{bill.delayReceiving}</td>
-                                    <td className='right-align'>{bill.daysSite}</td>
-                                    <td className='right-align'>{bill.daysMumbai}</td>
-                                    <td className='right-align'>{bill.daysAccount}</td>
+                                    <td className='table-td'>{bill.srNo}</td>
+                                    <td className='table-td'>{bill.region}</td>
+                                    <td className='table-td'>{bill.projectDesc}</td>
+                                    <td className='table-td'>{bill.vendorName}</td>
+                                    <td className='table-td'>{bill.invoiceDate}</td>
+                                    <td className='right-align table-td'>{bill.invoiceAmount}</td>
+                                    <td className='right-align table-td'>{bill.delayReceiving}</td>
+                                    <td className='right-align table-td'>{bill.daysSite}</td>
+                                    <td className='right-align table-td'>{bill.daysMumbai}</td>
+                                    <td className='right-align table-td'>{bill.daysAccount}</td>
                                 </tr>
                             ))}
                         </tbody>

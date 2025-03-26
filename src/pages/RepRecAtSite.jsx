@@ -208,14 +208,14 @@ const RepRecAtSite = () => {
                                 <thead>
                                     <tr>
                                         {/* <th className="invoices-table-checkbox"></th> */}
-                                        <th>Sr No</th>
-                                        <th>Project Description</th>
-                                        <th>Vendor Name</th>
-                                        <th>Tax Inv no</th>
-                                        <th>Tax Inv Date</th>
-                                        <th>Tax Inv Amt</th>
-                                        <th>Dt Tax Inv recd at Site</th>
-                                        <th>PO No</th>
+                                        <th className='table-th'>Sr No</th>
+                                        <th className='table-th'>Project Description</th>
+                                        <th className='table-th'>Vendor Name</th>
+                                        <th className='table-th'>Tax Inv no</th>
+                                        <th className='table-th'>Tax Inv Date</th>
+                                        <th className='table-th'>Tax Inv Amt</th>
+                                        <th className='table-th'>Dt Tax Inv recd at Site</th>
+                                        <th className='table-th'>PO No</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -228,14 +228,14 @@ const RepRecAtSite = () => {
                                                     onChange={() => handleSelectRow(bill._id)}
                                                 />
                                             </td> */}
-                                            <td>{index + 1}</td>
-                                            <td>{bill.projectDesc}</td>
-                                            <td>{bill.vendorName}</td>
-                                            <td>{bill.taxInvNo}</td>
-                                            <td>{bill.taxInvDate}</td>
-                                            <td className='right-align'>{bill.taxInvAmt}</td>
-                                            <td className='right-align'>{bill.dtTaxInvRecdAtSite}</td>
-                                            <td>{bill.poNo}</td>
+                                            <td className='table-td'>{index + 1}</td>
+                                            <td className='table-td'>{bill.projectDesc}</td>
+                                            <td className='table-td'>{bill.vendorName}</td>
+                                            <td className='table-td'>{bill.taxInvNo}</td>
+                                            <td className='table-td'>{bill.taxInvDate}</td>
+                                            <td className='right-align table-td'>{bill.taxInvAmt}</td>
+                                            <td className='right-align table-td'>{bill.dtTaxInvRecdAtSite}</td>
+                                            <td className='table-td'>{bill.poNo}</td>
                                         </tr>
                                     ))}
                                 </tbody>

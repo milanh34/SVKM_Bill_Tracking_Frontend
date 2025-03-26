@@ -121,40 +121,40 @@ const InvoiceTable = () => {
                 </div>
 
                 <div className="invoice-table-container">
-                    <table>
+                    <table className='invoice-table-1'>
                         <thead>
                             <tr>
-                                <th>SR. NO.</th>
-                                <th>VENDOR NO</th>
-                                <th>PROJECT DESCRIPTION</th>
-                                <th>VENDOR NAME</th>
-                                <th>TAX INVOICE NO.</th>
-                                <th>TAX INVOICE AMOUNT</th>
-                                <th>TAX INVOICE RECEIVED AT SITE</th>
-                                <th>PO NO.</th>
-                                <th>REGION</th>
-                                <th>STATUS</th>
-                                <th>REMARKS</th>
+                                <th className='invoice-th'>SR. NO.</th>
+                                <th className='invoice-th'>VENDOR NO</th>
+                                <th className='invoice-th'>PROJECT DESCRIPTION</th>
+                                <th className='invoice-th'>VENDOR NAME</th>
+                                <th className='invoice-th'>TAX INVOICE NO.</th>
+                                <th className='invoice-th'>TAX INVOICE AMOUNT</th>
+                                <th className='invoice-th'>TAX INVOICE RECEIVED AT SITE</th>
+                                <th className='invoice-th'>PO NO.</th>
+                                <th className='invoice-th'>REGION</th>
+                                <th className='invoice-th'>STATUS</th>
+                                <th className='invoice-th'>REMARKS</th>
                             </tr>
                         </thead>
                         <tbody>
                             {invoiceData.map((row) => (
-                                <tr key={row.id}>
-                                    <td>{row.id}</td>
-                                    <td>{row.vendorNo}</td>
-                                    <td>{row.projectDescription}</td>
-                                    <td>{row.vendorName}</td>
-                                    <td>{row.taxInvoiceNo}</td>
-                                    <td>{row.taxInvoiceAmount.toFixed(2)}</td>
-                                    <td>{row.taxInvoiceDate}</td>
-                                    <td>{row.poNo}</td>
-                                    <td>{row.region}</td>
-                                    <td>
+                                <tr className='invoice-tr' key={row.id}>
+                                    <td className='invoice-td'>{row.id}</td>
+                                    <td className='invoice-td'>{row.vendorNo}</td>
+                                    <td className='invoice-td'>{row.projectDescription}</td>
+                                    <td className='invoice-td'>{row.vendorName}</td>
+                                    <td className='invoice-td'>{row.taxInvoiceNo}</td>
+                                    <td className='invoice-td'>{row.taxInvoiceAmount.toFixed(2)}</td>
+                                    <td className='invoice-td'>{row.taxInvoiceDate}</td>
+                                    <td className='invoice-td'>{row.poNo}</td>
+                                    <td className='invoice-td'>{row.region}</td>
+                                    <td className='invoice-td'>
                                         <span className={`status-badge ${row.status.toLowerCase()}`}>
                                             {row.status}
                                         </span>
                                     </td>
-                                    <td> <input readOnly /> </td>
+                                    <td className='invoice-td'> <input readOnly /> </td>
                                 </tr>
                             ))}
                         </tbody>
