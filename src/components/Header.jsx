@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import image from "../assets/svkmHeader.svg";
+import Cookies from 'js-cookie';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -25,6 +26,16 @@ const Header = () => {
     { value: "Admin", label: "Admin" }
   ];
 
+  const roleMap = {
+    Site_Officer: "site_officer",
+    QS_Team: "qs_site",
+    "PIMO_Mumbai_&_MIGO/SES_Team": "site_pimo",
+    "PIMO_Mumbai_for_Advance_&_FI_Entry": "pimo_mumbai",
+    Accounts_Team: "accounts",
+    "Trustee,_Advisor_&_Director": "director",
+    Admin: "admin",
+  };
+
   const getActiveClass = (path) => {
     if (path === "/") {
       return location.pathname === path 
@@ -37,13 +48,20 @@ const Header = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("userRole");
+    // Clear all cookies
+    Cookies.remove('token');
+    Cookies.remove('userRole');
+    Cookies.remove('userEmail');
+    Cookies.remove('userId');
     navigate("/login");
   };
 
   const handleRoleChange = (event) => {
     const newRole = event.target.value;
-    localStorage.setItem("userRole", newRole);
+    const mappedRole = roleMap[newRole];
+    const cookieExpiry = 0.333; // 8 hours
+    
+    Cookies.set('userRole', mappedRole, { expires: cookieExpiry });
     window.location.reload();
   };
 

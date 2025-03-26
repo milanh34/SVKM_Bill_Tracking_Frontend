@@ -2,14 +2,24 @@ import Header from '../components/Header'
 import { useState, useEffect } from 'react'
 import { importReport } from '../apis/bills.api'
 import axios from 'axios'
+import Cookies from 'js-cookie'
+import { useNavigate } from 'react-router-dom'
 
 const Admin = () => {
     const [isAdmin, setIsAdmin] = useState(false)
+    const navigate = useNavigate()
 
     useEffect(() => {
-        const role = localStorage.getItem('userRole')
-        setIsAdmin(role === 'Admin')
-    }, [])
+        const userRole = Cookies.get('userRole')
+        const token = Cookies.get('token')
+        
+        if (!userRole || !token) {
+            navigate('/login')
+            return
+        }
+
+        setIsAdmin(userRole === 'admin')
+    }, [navigate])
 
     const handleFileUpload = async (event) => {
         const file = event.target.files[0]

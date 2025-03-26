@@ -1,14 +1,24 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import email from "../assets/email.svg";
-import password from "../assets/password.svg";
-import eye from "../assets/eye.svg";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import emailIcon from "../assets/email.svg";
+import passwordIcon from "../assets/password.svg";
+import eyeIcon from "../assets/eye.svg";
 import LoginHeader from "../components_tailwind/login/LoginHeader";
 import { ChevronDown } from "lucide-react";
+import { login } from "../apis/user.apis";
+import axios from "axios";
+import Cookies from "js-cookie";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isTermsAgreed, setIsTermsAgreed] = useState(false);
+  const [emailError, setEmailError] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
   const navigate = useNavigate();
 
   const roles = [
@@ -38,18 +48,93 @@ const LoginPage = () => {
     setSelectedRole(event.target.value);
   };
 
-  const handleLogin = () => {
-    if (selectedRole) {
-      localStorage.setItem("userRole", selectedRole);
-      navigate("/");
-    } else {
-      alert("Please select a role before logging in.");
+  const validateRole = (selectedRole, userRole) => {
+    const roleMap = {
+      Site_Officer: "site_officer",
+      QS_Team: "qs_site",
+      "PIMO_Mumbai_&_MIGO/SES_Team": "site_pimo",
+      "PIMO_Mumbai_for_Advance_&_FI_Entry": "pimo_mumbai",
+      Accounts_Team: "accounts",
+      "Trustee,_Advisor_&_Director": "director",
+      Admin: "admin",
+    };
+
+    return roleMap[selectedRole] === userRole;
+  };
+
+  const handleLogin = async () => {
+    setEmailError(false);
+    setPasswordError(false);
+
+    let hasError = false;
+
+    if (!email.trim()) {
+      setEmailError(true);
+    }
+
+    if (!password.trim()) {
+      setPasswordError(true);
+    }
+
+    if (!email.trim()) {
+      toast.error("Please enter your email");
+      hasError = true;
+    } else if (!password.trim()) {
+      toast.error("Please enter your password");
+      hasError = true;
+    } else if (!selectedRole) {
+      toast.error("Please select a role");
+      hasError = true;
+    } else if (!isTermsAgreed) {
+      toast.error("Please agree to the terms and conditions");
+      hasError = true;
+    }
+
+    if (hasError) {
+      return;
+    }
+
+    try {
+      const response = await axios.post(login, {
+        email,
+        password,
+      });
+      console.log("Login response:", response.data);
+
+      if (!validateRole(selectedRole, response.data.user.role)) {
+        toast.error(
+          `You are not authorized as ${selectedRole.replace(/_/g, " ")}`
+        );
+        return;
+      }
+
+      const cookieExpiry = 0.333;
+      Cookies.set("token", response.data.token, { expires: cookieExpiry });
+      Cookies.set("userRole", response.data.user.role, {
+        expires: cookieExpiry,
+      });
+      Cookies.set("userEmail", response.data.user.email, {
+        expires: cookieExpiry,
+      });
+      Cookies.set("userId", response.data.user.id, { expires: cookieExpiry });
+
+      toast.success("Login successful!");
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "Login failed. Please check your credentials."
+      );
     }
   };
 
   return (
     <div className="w-full min-h-screen bg-white flex flex-col h-screen">
       <LoginHeader />
+      <ToastContainer />
       <div className="flex flex-row justify-center items-center gap-4 sm:gap-6 lg:gap-8 px-4 sm:px-6 pb-2 sm:pb-3 h-full">
         <div className="w-full lg:w-2/5 xl:w-1/2 bg-[#F3F3F3] rounded-xl p-3 sm:p-5 lg:p-8 mb-4 lg:mb-0 order-2 lg:order-1 h-[50vh]">
           <h2 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold text-[#01073F]">
@@ -99,34 +184,48 @@ const LoginPage = () => {
             <div className="w-full sm:w-11/12 lg:w-10/12 mx-auto">
               <div className="xl:mb-6 lg:mb-3 sm:mb-2 flex items-center">
                 <img
-                  src={email}
+                  src={emailIcon}
                   alt="email"
                   className="xl:w-6 xl:h-6 sm:h-4 sm:w-4 flex-shrink-0"
                 />
                 <input
                   type="email"
                   placeholder="Email"
-                  className="ml-3 w-full border-b border-[#011A99] focus:outline-none text-[#01073F] text-base xl:text-lg py-1"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setEmailError(false);
+                  }}
+                  className={`ml-3 w-full border-b border-[#011A99] focus:outline-none text-[#01073F] text-base xl:text-lg py-1 ${
+                    emailError ? "border-red-500" : ""
+                  }`}
                 />
               </div>
 
               <div className="flex items-center relative">
                 <img
-                  src={password}
+                  src={passwordIcon}
                   alt="password"
                   className="xl:w-6 xl:h-6 sm:h-4 sm:w-4 flex-shrink-0"
                 />
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
-                  className="ml-3 w-full border-b border-[#011A99] focus:outline-none text-[#01073F] text-base xl:text-lg py-1"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setPasswordError(false);
+                  }}
+                  className={`ml-3 w-full border-b border-[#011A99] focus:outline-none text-[#01073F] text-base xl:text-lg py-1 ${
+                    passwordError ? "border-red-500" : ""
+                  }`}
                 />
                 <div
                   onClick={togglePasswordVisibility}
                   className="absolute right-0 cursor-pointer"
                 >
                   <img
-                    src={eye}
+                    src={eyeIcon}
                     alt="toggle password visibility"
                     className="xl:w-5 xl:h-5 sm:h-4 sm:w-4"
                   />
@@ -144,6 +243,8 @@ const LoginPage = () => {
                   <input
                     type="checkbox"
                     id="terms"
+                    checked={isTermsAgreed}
+                    onChange={() => setIsTermsAgreed(!isTermsAgreed)}
                     className="appearance-none xl:w-4 xl:h-4 w-3 h-3 rounded-full border-2 border-[#011A99] checked:bg-[#011A99] mt-1 mr-2 flex-shrink-0"
                   />
                   <label
