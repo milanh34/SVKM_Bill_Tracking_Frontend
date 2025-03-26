@@ -5,6 +5,8 @@ import Reports3 from "./pages_tailwind/Reports3_old";
 import Dashboard from "./pages_tailwind/Dashboard";
 import Admin from "./pages_tailwind/Admin";
 import FullBillDetails from "./pages_tailwind/FullBill";
+import PaidBills from "./pages_tailwind/PaidBills";
+import Profile from "./pages_tailwind/Profile";
 
 import BillDetails from './pages/BillDetails'
 import RepRecAtSite from './pages/RepRecAtSite'
@@ -61,6 +63,8 @@ function App() {
         <Route path='/reportsbilljourney' element={<BillJourney />}/>
         <Route path='/checklist' element={<Checklist />} />
         <Route path='/create-bill' element={<CreateBill />} />
+        <Route path="/paid" element={<PaidBills />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </BrowserRouter>
   );

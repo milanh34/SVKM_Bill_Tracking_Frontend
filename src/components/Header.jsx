@@ -7,15 +7,21 @@ import profile from "../assets/profile.svg"
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const userRole = Cookies.get('userRole');
 
   const menuItems = [
-    { name: "Home", path: "/" },
-    { name: "Create Bill", path: "/create-bill" },
-    { name: "Checklist", path: "/checklist" },
-    { name: "Reports", path: "/reports" },
-    { name: "Admin", path: "/admin" },
-    { name: "Paid Bills", path: "/paidbills" },
+    { name: "Home", path: "/", allowedRoles: ['all'] },
+    { name: "Create Bill", path: "/create-bill", allowedRoles: ['site_officer', 'admin'] },
+    { name: "Checklist", path: "/checklist", allowedRoles: ['all'] },
+    { name: "Reports", path: "/reports", allowedRoles: ['all'] },
+    { name: "Paid Bills", path: "/paidbills", allowedRoles: ['admin', 'director', 'accounts'] },
+    { name: "Admin", path: "/admin", allowedRoles: ['admin'] },
   ];
+
+  const filteredMenuItems = menuItems.filter(item => {
+    if (item.allowedRoles.includes('all')) return true;
+    return item.allowedRoles.includes(userRole);
+  });
 
   const roles = [
     { value: "Site_Officer", label: "Site Officer" },
@@ -81,7 +87,7 @@ const Header = () => {
       <div className="absolute w-full top-[63%] max-xl:h-1/3 max-lg:h-1/4 flex justify-end">
       <div className="bg-[#364cbb] w-[91.2%] flex items-center justify-between overflow-x-auto">
           <div className="inline-flex items-center xl:gap-8 lg:gap-5 gap-1 px-2 sm:px-4 md:px-6 py-1 min-w-0">
-            {menuItems.map((item) => (
+            {filteredMenuItems.map((item) => (
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}

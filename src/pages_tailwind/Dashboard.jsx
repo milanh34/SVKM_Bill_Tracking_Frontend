@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import axios from "axios";
-import { bills, billWorkflow } from "../apis/bills.api";
+import { bills, billWorkflow, importReport } from "../apis/bills.api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import * as XLSX from "xlsx";
@@ -14,6 +14,7 @@ import {
   Send,
   AlertTriangle,
   CheckSquare,
+  Upload,
 } from "lucide-react";
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnConfig";
@@ -22,6 +23,7 @@ import { SendToModal } from "../components_tailwind/dashboard/SendToModal";
 import { SendBoxModal } from "../components_tailwind/dashboard/SendBoxModal";
 import Loader from "../components/Loader";
 import Cookies from "js-cookie";
+import ImportModal from "../components_tailwind/dashboard/ImportModal";
 
 const Dashboard = () => {
   const [billsData, setBillsData] = useState([]);
@@ -48,6 +50,7 @@ const Dashboard = () => {
   const [itemsPerPage, setItemsPerPage] = useState(30);
   const [pagesToShow, setPagesToShow] = useState(5);
   const [showDownloadValidation, setShowDownloadValidation] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const navigate = useNavigate();
 
@@ -639,6 +642,30 @@ const Dashboard = () => {
     setSelectedRegion(region ? [region] : []);
   };
 
+  const handleImportBills = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await axios.post(importReport, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      toast.success('Bills updated successfully');
+      fetchBills(); // Refresh the bills data
+    } catch (error) {
+      console.error('Error updating bills:', error);
+      toast.error(
+        <div className="flex items-center gap-2">
+          <AlertTriangle size={18} />
+          <span>Failed to update bills. Please try again.</span>
+        </div>
+      );
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <Header />
@@ -689,6 +716,14 @@ const Dashboard = () => {
                   <CheckSquare className="w-4 h-4" />
                   <span>Checklist</span>
                 </button>
+{/* 
+                <button
+                  className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  onClick={() => setIsImportModalOpen(true)}
+                >
+                  <Upload className="w-4 h-4" />
+                  <span>Update Bills</span>
+                </button> */}
 
                 <div className="relative" ref={columnSelectorRef}>
                   <button
@@ -945,6 +980,12 @@ const Dashboard = () => {
         billsData={billsData}
         singleRole={selectedRole}
         handleSend={handleSendBills}
+      />
+
+      <ImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImport={handleImportBills}
       />
     </div>
   );

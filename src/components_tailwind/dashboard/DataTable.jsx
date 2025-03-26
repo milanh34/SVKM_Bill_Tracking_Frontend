@@ -222,7 +222,7 @@ const DataTable = ({
   };
 
   return (
-    <div className="relative w-full flex flex-col border border-gray-200 rounded-lg">
+    <div className={`relative w-full flex flex-col border border-gray-200 rounded-lg ${data.length > 8 ? 'h-full' : ''}`}>
       <div className={`overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 scrollbar-thumb-rounded-full ${data.length < 10 ? 'h-fit' : 'flex-1'}`}>
         <style jsx>{`
           .scrollbar-thin::-webkit-scrollbar {
