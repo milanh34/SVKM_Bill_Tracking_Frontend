@@ -15,32 +15,34 @@ const Filters = ({
 }) => {
     return (
         <div className="top-bar">
-            <div className="filter-container">
-                <div className="filter">
-                    <img src={filterSvg} alt="" />
-                </div>
-                <div className="search-box">
-                    <div className="search">
-                        <img src={searchSvg} alt="" />
+            {(searchQuery && sortBy) ?
+                <div className="filter-container">
+                    <div className="filter">
+                        <img src={filterSvg} alt="" />
                     </div>
-                    <input
-                        type="text"
-                        className="bar-search-input"
-                        placeholder="Search..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
+                    <div className="search-box">
+                        <div className="search">
+                            <img src={searchSvg} alt="" />
+                        </div>
+                        <input
+                            type="text"
+                            className="bar-search-input"
+                            placeholder="Search..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                    <select
+                        className="sort"
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                    >
+                        <option value="">Sort based on..</option>
+                        <option value="date">Date</option>
+                        <option value="amount">Amount</option>
+                    </select>
                 </div>
-                <select
-                    className="sort"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                >
-                    <option value="">Sort based on..</option>
-                    <option value="date">Date</option>
-                    <option value="amount">Amount</option>
-                </select>
-            </div>
+                : <div />}
             <div className="date-container">
                 <div className="dates">
                     <label>From:</label>

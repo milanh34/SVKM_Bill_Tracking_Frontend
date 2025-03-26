@@ -14,10 +14,15 @@ const RepBillOutstandingSubtotal = () => {
         const day = String(today.getDate()).padStart(2, "0");
         const month = String(today.getMonth() + 1).padStart(2, "0");
         const year = today.getFullYear();
-        return `${year}-${month}-${day}`; 
+        return `${year}-${month}-${day}`;
     };
 
     const [billsData, setBillsData] = useState([]);
+    const [totals, setTotals] = useState({
+        totalSubtotal: 0,
+        totalSubtotalCopAmt: 0,
+        totalVendorCount: 0
+    });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
@@ -44,8 +49,24 @@ const RepBillOutstandingSubtotal = () => {
                     dtRecdAccts: bill.accountsDeptSubmission?.dateGivenToAccounts?.split('T')[0] || ''
                 }));
 
+                // Filter Data sccording to Data
+                const filteredData = rawData
+                    .filter(bill =>
+                        // Filter based on date range check (using the `isWithinDateRange` function)
+                        isWithinDateRange(bill.taxInvDate)
+                    )
+                    .sort((a, b) => {
+                        // Sort by amount or date based on `sortBy` prop
+                        if (sortBy === "amount") {
+                            return a.taxInvAmt - b.taxInvAmt; // Sort by taxInvAmt (amount)
+                        } else if (sortBy === "date") {
+                            return new Date(a.taxInvDate) - new Date(b.taxInvDate); // Sort by taxInvDate
+                        }
+                        return 0; // Default, no sorting
+                    });
+
                 // Group bills by vendor name
-                const groupedByVendor = rawData.reduce((acc, bill) => {
+                const groupedByVendor = filteredData.reduce((acc, bill) => {
                     if (!acc[bill.vendorName]) {
                         acc[bill.vendorName] = [];
                     }
@@ -53,21 +74,105 @@ const RepBillOutstandingSubtotal = () => {
                     return acc;
                 }, {});
 
-                // Create final data structure with subtotals
+                // Create final data structure with SUBTOTALS
                 const processedData = Object.entries(groupedByVendor).map(([vendorName, bills]) => ({
                     billdets: bills,
-                    subtotal: bills.reduce((sum, bill) => sum + bill.taxInvAmt, 0).toLocaleString('en-IN')
+                    subtotal: bills.reduce((sum, bill) => sum + bill.taxInvAmt, 0),
+                    subtotalCopAmt: bills.reduce((sums, bill) => sums + bill.copAmount, 0),
+                    vendorCount: bills.length
                 }));
 
+                // Calculate the total of subtotals, cop amounts and vendor counts
+                // const totals = processedData.reduce((acc, data) => {
+                //     // Parse the string-formatted numbers back to integers
+                //     const subtotal = parseFloat(data.subtotal.replace(/,/g, ''));
+                //     const subtotalCopAmt = parseFloat(data.subtotalCopAmt.replace(/,/g, ''));
+
+                //     console.log(acc)
+                //     // Accumulate totals
+                //     acc.totalSubtotal += subtotal;
+                //     acc.totalSubtotalCopAmt += subtotalCopAmt;
+                //     acc.totalVendorCount += data.vendorCount;
+                //     console.log(acc)
+
+                //     return acc;
+                // }, {
+                //     totalSubtotal: 0,
+                //     totalSubtotalCopAmt: 0,
+                //     totalVendorCount: 0
+                // });
+
+                // // Format the totals as needed
+                // totals.totalSubtotal = totals.totalSubtotal.toLocaleString('en-IN');
+                // totals.totalSubtotalCopAmt = totals.totalSubtotalCopAmt.toLocaleString('en-IN');
+
                 setBillsData(processedData);
+
+                const totals = processedData.reduce(
+                    (acc, { subtotal, subtotalCopAmt, vendorCount }) => {
+                        acc.totalSubtotal += subtotal
+                        acc.totalSubtotalCopAmt += subtotalCopAmt
+                        acc.totalVendorCount += vendorCount;
+                        return acc;
+                    },
+                    {
+                        totalSubtotal: 0,
+                        totalSubtotalCopAmt: 0,
+                        totalVendorCount: 0
+                    }
+                );
+
+                // Format totals with commas
+                setTotals({
+                    totalSubtotal: totals.totalSubtotal,
+                    totalSubtotalCopAmt: totals.totalSubtotalCopAmt,
+                    totalVendorCount: totals.totalVendorCount
+                });
+
+
+                console.log("total Subtotal: " + totals.totalSubtotal);
+
+
+
             } catch (error) {
                 setError("Failed to load data");
+                console.error(error);
             } finally {
                 setLoading(false);
             }
         };
         fetchBills();
-    }, []);
+    }, [fromDate]);
+
+    // useEffect(() => {
+
+    //     try {
+    //         const totals = filteredData.reduce(
+    //             (acc, { subtotal, subtotalCopAmt, vendorCount }) => {
+    //                 acc.totalSubtotal += subtotal
+    //                 acc.totalSubtotalCopAmt += subtotalCopAmt
+    //                 acc.totalVendorCount += vendorCount;
+    //                 return acc;
+    //             },
+    //             {
+    //                 totalSubtotal: 0,
+    //                 totalSubtotalCopAmt: 0,
+    //                 totalVendorCount: 0
+    //             }
+    //         );
+
+    //         // Format totals with commas
+    //         setTotals({
+    //             totalSubtotal: totals.totalSubtotal,
+    //             totalSubtotalCopAmt: totals.totalSubtotalCopAmt,
+    //             totalVendorCount: totals.totalVendorCount
+    //         });
+    //     }
+    //     catch (error) {
+    //         console.error(error);
+    //     }
+
+    // }, [filteredData])
 
     const handleSelectAll = (e) => {
         if (e.target.checked) {
@@ -98,7 +203,7 @@ const RepBillOutstandingSubtotal = () => {
 
         if (selectedRows.length === 0) {
             billIdsToDownload = billsData.flatMap(group => group.billdets.map(bill => bill._id));
-            
+
             if (billIdsToDownload.length > 0) {
                 if (!window.confirm(`No bills selected. Download all ${billIdsToDownload.length} filtered bills?`)) {
                     return;
@@ -117,7 +222,7 @@ const RepBillOutstandingSubtotal = () => {
                 { billIds: billIdsToDownload, format: "excel" },
                 { responseType: "blob" }
             );
-            
+
             const url = window.URL.createObjectURL(
                 new Blob([response.data], {
                     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -135,25 +240,25 @@ const RepBillOutstandingSubtotal = () => {
         }
     };
 
-    const filteredData = billsData
-        .filter(group => 
-            group.billdets.some(bill => 
-                Object.values(bill).some(value => 
-                    value && value.toString().toLowerCase().includes(searchQuery.toLowerCase())
-                )
-            )
-        )
-        .filter(group => 
-            group.billdets.some(bill => isWithinDateRange(bill.taxInvDate))
-        )
-        .sort((a, b) => {
-            if (sortBy === "amount") {
-                return parseFloat(a.subtotal.replace(/,/g, '')) - parseFloat(b.subtotal.replace(/,/g, ''));
-            } else if (sortBy === "date") {
-                return new Date(a.billdets[0].taxInvDate) - new Date(b.billdets[0].taxInvDate);
-            }
-            return 0;
-        });
+    // const filteredData = billsData
+    //     .filter(group =>
+    //         group.billdets.some(bill =>
+    //             Object.values(bill).some(value =>
+    //                 value && value.toString().toLowerCase().includes(searchQuery.toLowerCase())
+    //             )
+    //         )
+    //     )
+    //     .filter(group =>
+    //         group.billdets.some(bill => isWithinDateRange(bill.taxInvDate))
+    //     )
+    //     .sort((a, b) => {
+    //         if (sortBy === "amount") {
+    //             return parseFloat(a.subtotal.replace(/,/g, '')) - parseFloat(b.subtotal.replace(/,/g, ''));
+    //         } else if (sortBy === "date") {
+    //             return new Date(a.billdets[0].taxInvDate) - new Date(b.billdets[0].taxInvDate);
+    //         }
+    //         return 0;
+    //     });
 
     return (
         <div className='full-report-div'>
@@ -179,10 +284,10 @@ const RepBillOutstandingSubtotal = () => {
                 </div>
 
                 <Filters
-                    searchQuery={searchQuery}
-                    setSearchQuery={setSearchQuery}
-                    sortBy={sortBy}
-                    setSortBy={setSortBy}
+                    searchQuery={null}
+                    setSearchQuery={null}
+                    sortBy={null}
+                    setSortBy={null}
                     fromDate={fromDate}
                     setFromDate={setFromDate}
                     toDate={toDate}
@@ -212,13 +317,13 @@ const RepBillOutstandingSubtotal = () => {
                                     <th className='table-th'>Tax Inv no</th>
                                     <th className='table-th'>Tax Inv Date</th>
                                     <th className='table-th'>Tax Inv Amt</th>
-                                    <th className='table-th'></th>  {/* Column for sum */}
+                                    {/* <th className='table-th'></th>  Column for sum */}
                                     <th className='table-th'>COP Amount</th>
                                     <th className='table-th'>Dt recd in Accts Dept</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredData.map((group, groupIndex) => (
+                                {billsData.map((group, groupIndex) => (
                                     <React.Fragment key={groupIndex}>
                                         {group.billdets.map((bill, index) => (
                                             <tr key={bill._id}>
@@ -236,19 +341,29 @@ const RepBillOutstandingSubtotal = () => {
                                                 <td className='table-td'>{bill.taxInvNo}</td>
                                                 <td className='table-td'>{bill.taxInvDate}</td>
                                                 <td className='right-align table-td'>{bill.taxInvAmt.toLocaleString('en-IN')}</td>
-                                                <td className='table-td'></td>  {/* Empty column for sum row */}
+                                                {/* <td className='table-td'></td>  Empty column for sum row */}
                                                 <td className='right-align table-td'>{typeof bill.copAmount === 'number' ? bill.copAmount.toLocaleString('en-IN') : bill.copAmount}</td>
                                                 <td className='table-td'>{bill.dtRecdAccts}</td>
                                             </tr>
                                         ))}
                                         <tr>
-                                            <td colSpan={7} className='subtotal subtotal-empty'></td>
-                                            <td className='subtotal subtotal-text'>Sum:</td>
-                                            <td className='subtotal subtotal-num'>{group.subtotal}</td>
-                                            <td colSpan={2}></td>
+                                            <td colSpan={2} className='subtotal subtotal-empty'></td>
+                                            <td className='subtotal subtotal-text'>Count: {group.vendorCount.toLocaleString('en-IN')}</td>
+                                            <td colSpan={3}></td>
+                                            <td className='subtotal subtotal-text'>Total: {group.subtotal.toLocaleString('en-IN')}</td>
+                                            <td className='subtotal subtotal-text'>Total: {group.subtotalCopAmt.toLocaleString('en-IN')}</td>
+                                            {/* <td className='subtotal subtotal-num'>{group.subtotal}</td> */}
+                                            <td colSpan={1}></td>
                                         </tr>
                                     </React.Fragment>
                                 ))}
+                                <tr>
+                                    <td colSpan={2} className='subtotal subtotal-empty'></td>
+                                    <td>Total Count: {totals.totalVendorCount.toLocaleString('en-IN')}</td>
+                                    <td colSpan={3}></td>
+                                    <td className='subtotal subtotal-text'>Grand Total: {totals.totalSubtotal.toLocaleString('en-IN')}</td>
+                                    <td className='subtotal subtotal-text'>Grand Total: {totals.totalSubtotalCopAmt.toLocaleString('en-IN')}</td>
+                                </tr>
                             </tbody>
                         </table>
                     )}
@@ -257,7 +372,7 @@ const RepBillOutstandingSubtotal = () => {
 
             {isModalOpen && (
                 <div className="modal-overlay">
-                    <SendBox 
+                    <SendBox
                         closeWindow={() => setIsModalOpen(false)}
                         selectedBills={selectedRows}
                         billsData={billsData}
