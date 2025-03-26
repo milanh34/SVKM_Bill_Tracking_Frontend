@@ -1,0 +1,346 @@
+.reports-page {
+  background-color: white;
+  color: black;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  overflow-x: auto;
+}
+.report-outer {
+  padding: 15px;
+  padding-top: 0px;
+  height: 100%;
+  background-color: white;
+}
+.report-inner {
+  background-color: #f0f0f0;
+  padding: 15px;
+  border-radius: 12px;
+  height: 100%;
+}
+.checklists {
+  display: flex;
+  gap: 16px;
+  margin-left: 4rem;
+  background-color: transparent;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  width: 75%;
+}
+.checklist-buttons {
+  background-color: #3c51b9;
+  color: white;
+  padding: 12px 24px 12px 24px;
+  border-radius: 18px;
+  font-weight: 500;
+  font-size: 15px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+.checklist-buttons:hover {
+  background-color: #3a4ca8;
+}
+.report-table-container {
+  overflow-x: auto;
+  border: none;
+  background-color: #f0f0f0;
+  min-width: 100%;
+  scroll-behavior: smooth;
+  box-shadow: none;
+}
+.report-table-container::-webkit-scrollbar {
+  height: 8px;
+}
+.report-table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+.report-table-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+.report-table-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+.table-wrapper {
+  position: relative;
+  margin: 0;
+  background-color: #f0f0f0;
+  overflow-y: auto;
+}
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.report-table td,
+.report-table th {
+  font-size: 14px;
+  text-align: left;
+  background-color: #f0f0f0;
+}
+.report-table th,
+.report-table td {
+  min-width: 120px;
+}
+.report-table th:first-child,
+.report-table td:first-child {
+  min-width: 40px;
+  width: 40px;
+}
+.report-table th {
+  font-weight: bold;
+  padding: 16px 16px 16px 8px;
+}
+.table-data {
+  background-color: white !important;
+  border-bottom: 1px solid #ddd;
+  padding: 16px 32px 16px 8px;
+}
+.table-data-checkbox   {
+  border-bottom: none;
+}
+.report-table input[type="checkbox"],
+.report-table-container input[type="checkbox"],
+.report-select-all input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  outline: none;
+  accent-color: white;
+}
+.report-table-container input[type="checkbox"]:not(:checked),
+.report-select-all input[type="checkbox"]:not(:checked) {
+  opacity: 0.5;
+  filter: invert(100%);
+}
+.report-table th:nth-child(2),
+.report-table td:nth-child(2) {
+  text-align: center;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+  width: 500px;
+  text-align: left;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.modal-input {
+  width: 100%;
+  height: 60px;
+  background-color: #e0e0e0;
+  border: 1px solid #4e4e4e25;
+  border-radius: 8px;
+  padding: 10px;
+  resize: none;
+}
+.modal-input:focus {
+  outline: none;
+}
+.modal-bills {
+  height: 80px;
+}
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+.modal-button {
+  background-color: #005eff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.modal-button:hover {
+  background-color: #0044cc;
+}
+.modal-close {
+  background-color: #ff4d4d;
+}
+.modal-close:hover {
+  background-color: #cc0000;
+}
+.column-selector {
+  margin-bottom: 0px;
+  background-color: #f0f0f0;
+  padding: 0 16px;
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+}
+.column-dropdown-button {
+  background-color: white;
+  border: 1px solid #cacaca;
+  border-radius: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #333;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  min-width: 300px;
+  max-width: 300px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23666666' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+.column-dropdown-button:hover {
+  background-color: #fafafa;
+  border-color: #c0c0c0;
+}
+.column-dropdown-content {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 24px;
+  background-color: white;
+  border: 1px solid #cacaca;
+  border-radius: 12px;
+  padding: 8px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 292px;
+  max-width: 292px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.column-dropdown-content::-webkit-scrollbar {
+  height: 8px;
+}
+.column-dropdown-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 8px;
+}
+.column-dropdown-content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 8px;
+}
+.column-dropdown-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+.column-option {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  gap: 10px;
+  transition: background-color 0.2s ease;
+  border-radius: 4px;
+}
+.column-option label {
+  background-color: transparent;
+}
+.column-option:hover {
+  background-color: #e1e1e1;
+}
+.column-option input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid #d1d5db;
+}
+.column-option input[type="checkbox"]:not(:checked) {
+  opacity: 0.5;
+  filter: invert(100%);
+}
+.column-option input[type="checkbox"]:checked {
+  filter: invert(10%);
+}
+.column-option label {
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+  color: #333;
+}
+.report-select-all {
+  background: transparent;
+  display: flex;
+  align-items: center;
+  margin-left: 12px;
+}
+.report-select-all label {
+  background: transparent;
+  margin-left: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #3c3c3c;
+  cursor: pointer;
+}
+.report-select-all label:hover {
+  color: #1c1c1c;
+}
+.view-container {
+  background: transparent;
+  margin-bottom: 15px;
+  display: flex;
+}
+.download-button {
+  background-color: #3c51b9;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 14px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.download-button:hover {
+  background-color: #3a4ca8;
+}
+
+.button-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  padding: 10px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.action-button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  background-color: #1a8d1a;
+  color: white;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.action-button:hover {
+  background-color: #147814;
+}

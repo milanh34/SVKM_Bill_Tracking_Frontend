@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import email from "../assets/email.svg";
 import password from "../assets/password.svg";
 import eye from "../assets/eye.svg";
-import LoginHeader from "../components/login/LoginHeader";
+import LoginHeader from "../components_tailwind/login/LoginHeader";
 import { ChevronDown } from "lucide-react";
 
 const LoginPage = () => {

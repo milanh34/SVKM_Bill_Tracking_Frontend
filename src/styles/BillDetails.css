@@ -1,0 +1,275 @@
+.outer {
+    background-color: white;
+    color: black;
+    padding-bottom: 2vh;
+}
+
+.bill-form-container {
+    max-width: 92.55vw;
+    border: 2px solid #4E4E4E25;
+    border-radius: 12px;
+    padding: 3vh 2vw;
+    font-family: Arial, sans-serif;
+    margin: 0vh auto;
+}
+
+.form-title {
+    color: #000B3E;
+    margin-top: 1.4vh;
+    margin-bottom: 4.7vh;
+    /* font-size: 2vw; */
+    font-size: 35px;
+    font-weight: 700;
+}
+
+.form-section {
+    margin-bottom: 60px;
+}
+
+.form-group {
+    position: relative;
+    margin-bottom: 2.5vh;
+}
+
+.form-control,
+.form-select {
+    padding: 2.2vh 1vw;
+    margin-right: 3.85vw;
+    margin-bottom: 0.75vw;
+    width: 33.75vw;
+    border: 0.1vh solid #ccc;
+    border-radius: 0.4vw;
+    font-size: 1vw;
+    outline: none;
+    transition: border-color 0.2s;
+    background-color: white;
+    box-shadow: 0px 4px 5px 0px rgba(0, 0, 0, 0.04);
+}
+
+.form-select {
+    max-width: 33.75vw;
+    min-width: 33.75vw;
+    margin-top: 0;
+    font-size: 15px;
+}
+
+.form-billdate {
+    width: 18.75vw;
+    color: #01073FA7;
+}
+
+.form-billname {
+    width: 84vw;
+}
+
+.form-label {
+    position: absolute;
+    left: 1vw;
+    top: -2vh;
+    padding: 0 0.3vw;
+    font-size: 15px !important;
+    font-weight: 600;
+    background-color: rgba(254, 247, 255, 1);
+    color: #01073F;
+    pointer-events: none;
+}
+
+.bill-input[type="date"] {
+    width: 50%;
+    font-size: 15px;
+}
+
+.bill-input[type="date"]::-webkit-calendar-picker-indicator {
+    background-color: #4A90E2;
+    cursor: pointer;
+}
+
+.form-control:focus {
+    border-color: #4A90E2;
+}
+
+.form-control:focus+.form-label {
+    color: #4A90E2;
+}
+
+/* to hide arrows in inout type number */
+.bill-input[type=number] {
+    
+    -moz-appearance: textfield;
+}
+
+.bill-input {
+    font-size: 20px;
+}
+
+.bill-input::-webkit-outer-spin-button,
+.bill-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.upload-container,
+.upload-container-small {
+    border: 0.25vh dashed #ccc;
+    padding: 2vh 2vw;
+    text-align: center;
+    border-radius: 0.5vw;
+    margin-top: 2vh;
+    /* height: 45.5vh; */
+    /* width: 33.75vw; */
+    /* width: 57vw; */
+    position: relative;
+}
+
+.upload-container {
+    width: 57vw;
+    height: 45.5vh;
+    /* width: 33.75vw;
+    height: 35.5vh; */
+}
+
+.upload-container-small {
+    width: 43.5vw;
+    height: 45vh;
+    float: right;
+    z-index: 100;
+}
+
+.upload-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.upload-icon {
+    width: 4vw;
+    height: 4vw;
+    margin-bottom: 1vh;
+}
+
+.upload-text {
+    color: #666;
+    font-size: 1vw;
+}
+
+.form-control::file-selector-button {
+    position: absolute;
+    top: 70%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 8px 16px;
+    margin-right: 16px;
+    border: none;
+    border-radius: 4px;
+    background: #007bff;
+    color: white;
+    /* cursor: pointer; */
+    /* transition: background-color 0.2s ease; */
+}
+
+.form-control-input {
+    /* width: 29.2vw; */
+    width: 100%;
+    text-align: center;
+}
+
+/* .form-bill-img {
+    position: absolute;
+    top: 70%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+} */
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2vw;
+}
+
+.more-details-section,
+.transfer-details-main-section,
+.more-extra-section,
+.more-more-extra-section {
+    display: flex;
+}
+
+.remarks-section {
+    margin-top: 12vh;
+}
+
+/* Media Queries for Responsiveness */
+@media screen and (max-width: 768px) {
+    .form-container {
+        max-width: 90vw;
+    }
+
+    .form-title {
+        font-size: 4vw;
+    }
+
+    .form-control {
+        font-size: 2vw;
+    }
+
+    .form-label {
+        font-size: 1.8vw;
+    }
+
+    .upload-text {
+        font-size: 2vw;
+    }
+
+    .upload-icon {
+        width: 8vw;
+        height: 8vw;
+    }
+}
+
+/* Extra small devices */
+@media screen and (max-width: 576px) {
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 2vh;
+    }
+
+    .form-control {
+        font-size: 3vw;
+    }
+
+    .form-label {
+        font-size: 2.5vw;
+    }
+
+    .upload-container-small {
+        float: none;
+    }
+
+    .upload-text {
+        font-size: 3vw;
+    }
+}
+
+.submit-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #011A99;
+    color: white;
+    margin-top: 12vh;
+    padding: 2.15vh auto;
+    border: none;
+    border-radius: 0.5vw;
+    cursor: pointer;
+    font-size: 2.5vh;
+    width: 84vw;
+    height: 6.8vh;
+}
+
+.submit-button:hover {
+    background-color: #021678;
+}
+
+.submit-button:active {
+    background-color: #004085;
+}

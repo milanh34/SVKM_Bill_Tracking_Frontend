@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from "react";
-import "../styles/SendBox.css";
 import cross from "../assets/cross.svg";
 
 const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
@@ -73,20 +72,28 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
 
     return (
         <>
-            <div className="form-container">
-                <button className="close-button">
-                    <img src={cross} onClick={closeWindow} alt="close" />
+            <div className="relative bg-white p-6 rounded-lg shadow-md max-w-lg mx-auto z-50">
+                <button 
+                    className="absolute top-2 right-2 bg-transparent border-none cursor-pointer p-1"
+                    onClick={closeWindow}
+                >
+                    <img src={cross} alt="close" />
                 </button>
 
-                <form className="send-form" style={{ marginTop: '10px' }} onSubmit={handleSubmit}>
+                <form className="flex flex-col mt-10" onSubmit={handleSubmit}>
                     {!singleRole && (
-                        <div className="form-group">
-                            <label>Send to:</label>
-                            <div className="custom-dropdown" ref={rolesDropdownRef}>
+                        <div className="flex flex-col mb-4 space-y-2">
+                            <label className="text-base font-medium text-black">Send to:</label>
+                            <div className="relative w-full" ref={rolesDropdownRef}>
                                 <button
                                     type="button"
-                                    className="dropdown-button"
+                                    className="bg-gray-200 rounded text-left w-full py-3 px-3 text-base cursor-pointer outline-none transition-all duration-200 ease-in-out text-gray-700 appearance-none pr-8"
                                     onClick={() => setIsRolesDropdownOpen(!isRolesDropdownOpen)}
+                                    style={{
+                                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23666666' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
+                                        backgroundRepeat: 'no-repeat',
+                                        backgroundPosition: 'right 12px center'
+                                    }}
                                 >
                                     {selectedRoles.length === 0
                                         ? "Select Roles"
@@ -96,27 +103,32 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
                                 </button>
 
                                 {isRolesDropdownOpen && (
-                                    <div className="dropdown-content">
-                                        <div className="dropdown-option" onClick={handleSelectAllRoles}>
+                                    <div className="absolute top-full mt-1 left-0 right-0 bg-white border border-gray-300 rounded p-1.5 shadow-lg max-h-60 overflow-y-auto z-50">
+                                        <div 
+                                            className="flex items-center p-2 gap-2.5 cursor-pointer transition-colors duration-200 rounded hover:bg-gray-100"
+                                            onClick={handleSelectAllRoles}
+                                        >
                                             <input
                                                 type="checkbox"
                                                 checked={selectedRoles.length === roles.length && roles.length > 0}
                                                 readOnly
+                                                className="cursor-pointer"
                                             />
-                                            <label>Select All</label>
+                                            <label className="cursor-pointer">Select All</label>
                                         </div>
                                         {roles.map((role) => (
                                             <div
                                                 key={role.value}
-                                                className="dropdown-option"
+                                                className="flex items-center p-2 gap-2.5 cursor-pointer transition-colors duration-200 rounded hover:bg-gray-100"
                                                 onClick={() => handleRoleToggle(role)}
                                             >
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedRoles.includes(role.value)}
                                                     readOnly
+                                                    className="cursor-pointer"
                                                 />
-                                                <label>{role.label}</label>
+                                                <label className="cursor-pointer">{role.label}</label>
                                             </div>
                                         ))}
                                     </div>
@@ -125,31 +137,35 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
                         </div>
                     )}
 
-                    <div className="form-group">
-                        <label>Selected Bills:</label>
-                        <div className="bills-display">
+                    <div className="flex flex-col mb-4 space-y-2">
+                        <label className="text-base font-medium text-black">Selected Bills:</label>
+                        <div className="max-h-48 overflow-y-auto bg-gray-200 rounded p-2 scrollbar scrollbar-track-gray-100 scrollbar-thumb-gray-400 scrollbar-thumb-rounded">
                             {selectedBillDetails.map((bill, index) => (
-                                <div key={index} className="bill-item">
+                                <div key={index} className="py-2 px-2 border-b border-gray-300 text-sm last:border-b-0">
                                     {bill}
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    <div className="form-group">
-                        <label>Remarks:</label>
-                        <textarea className="form-textarea"></textarea>
+                    <div className="flex flex-col mb-4 space-y-2">
+                        <label className="text-base font-medium text-black">Remarks:</label>
+                        <textarea className="w-full py-3 px-3 border-none bg-gray-200 rounded text-base min-h-32 resize-y"></textarea>
                     </div>
 
-                    <div className="send-button-group">
-                        <button type="submit" className="btn btn-send">
+                    <div className="flex justify-end gap-4 bg-white">
+                        <button 
+                            type="submit" 
+                            className="py-2 px-8 border-none rounded text-base cursor-pointer text-white transition-opacity duration-200 bg-green-700 hover:opacity-90"
+                        >
                             Send
                         </button>
                     </div>
                 </form>
             </div>
+            
             {showToast && (
-                <div className="toast-notification">
+                <div className="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-green-700 text-white py-3 px-6 rounded-lg shadow-md z-50 max-w-4/5 text-center text-sm animate-toast">
                     {`${selectedBills.length} bills sent to ${selectedRoles
                         .map(roleValue => roles.find(r => r.value === roleValue)?.label)
                         .join(", ")}`}
@@ -160,4 +176,3 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
 };
 
 export default SendBox;
-

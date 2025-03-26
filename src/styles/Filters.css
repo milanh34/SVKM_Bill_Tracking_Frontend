@@ -1,0 +1,262 @@
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  align-items: center;
+  background-color: transparent;
+}
+
+.filter-container {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  z-index: 21;
+  background-color: transparent;
+  width: 66%;
+}
+
+@media screen and (max-width: 1080px) {
+  .top-bar {
+    flex-wrap: wrap;
+    gap: 2vh;
+    padding-left: 2rem;
+  }
+  .filter-container {
+    width: 60%;
+  }
+}
+
+.filter {
+  background-color: white;
+  border-radius: 6px;
+  border: 1px solid #cacaca;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  padding: 9px 12px;
+}
+
+.filter:hover {
+  border-color: #c0c0c0;
+  background-color: #fafafa;
+}
+
+.search-box {
+  display: flex;
+  background-color: white;
+  min-height: 32px;
+  min-width: 65%;
+  border-radius: 6px;
+  border: 1px solid #cacaca;
+  padding: 4px 0px;
+}
+
+.search-box:hover {
+  border-color: #c0c0c0;
+  background-color: #fafafa;
+}
+
+.search {
+  text-align: center;
+  width: 32px;
+}
+
+.bar-search-input {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  width: 100%;
+  color: black;
+  padding-right: 4px;
+}
+
+.bar-search-input::placeholder {
+  color: #cacaca;
+}
+
+.custom-dropdown {
+  position: relative;
+  min-width: 40%;
+  z-index: 100;
+  background-color: transparent;
+}
+
+.filters-dropdown-button {
+  background-color: white;
+  border-radius: 6px;
+  border: 1px solid #e2e2e2;
+  margin: 0;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  min-height: 34px;
+  width: 100%;
+  text-align: left;
+  transition: all 0.2s ease;
+  color: #333;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23666666' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.filters-dropdown-button:hover {
+  border-color: #c0c0c0;
+  background-color: #fafafa;
+}
+
+.dropdown-content {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background-color: white;
+  border: 1px solid #cacaca;
+  border-radius: 8px;
+  padding: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 101;
+}
+
+.dropdown-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dropdown-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.dropdown-option {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  gap: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-radius: 4px;
+}
+
+.dropdown-option label {
+  background-color: transparent;
+}
+
+.dropdown-option:hover {
+  background-color: #e1e1e1;
+}
+
+.dropdown-option input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid #d1d5db;
+}
+
+.dropdown-option input[type="checkbox"]:not(:checked) {
+  opacity: 0.5;
+  filter: invert(100%);
+}
+
+.dropdown-option input[type="checkbox"]:checked {
+  filter: invert(10%);
+}
+
+.dropdown-option label {
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  user-select: none;
+}
+
+.sort {
+  background-color: white;
+  border-radius: 6px;
+  border: 1px solid #e2e2e2;
+  margin: 0;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  min-height: 34px;
+  transition: all 0.2s ease;
+  color: #333;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23666666' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.dropdown:hover,
+.sort:hover {
+  border-color: #c0c0c0;
+  background-color: #fafafa;
+}
+
+.dropdown {
+  min-width: 40%;
+}
+
+.sort {
+  min-width: 45%;
+}
+
+.date-container {
+  width: 100%;
+  display: flex;
+  justify-content: end;
+  z-index: 20;
+  color: black;
+  background-color: transparent;
+}
+
+.dates {
+  width: 300px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: transparent;
+}
+
+.date-container label {
+  font-size: 14px;
+  background-color: transparent;
+}
+
+.date-picker {
+  background-color: white;
+  border-radius: 6px;
+  border: 1px solid #cacaca;
+  padding: 6px 3px;
+  font-size: 14px !important;
+  outline: none;
+  min-height: 32px;
+  min-width: 110px;
+  text-align: center;
+  cursor: pointer;
+  color: black;
+}
+
+.date-picker::-webkit-calendar-picker-indicator {
+  background-color: #cacaca !important;
+  cursor: pointer;
+}

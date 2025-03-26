@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from "react"
 import Header from "../components/Header";
 import axios from "axios";
 import { bills, report } from "../apis/bills.api";
-import SendBox from "../components/Sendbox";
+import SendBox from "../components_tailwind/Sendbox";
 import { AgGridReact } from "ag-grid-react";
 import {
   ClientSideRowModelModule,

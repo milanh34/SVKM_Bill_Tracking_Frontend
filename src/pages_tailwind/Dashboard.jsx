@@ -5,7 +5,7 @@ import { bills } from "../apis/bills.api";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import * as XLSX from "xlsx";
-import DataTable from "../components/dashboard/DataTable";
+import DataTable from "../components_tailwind/dashboard/DataTable";
 import {
   Funnel,
   Grid3x3,
@@ -16,9 +16,9 @@ import {
 } from "lucide-react";
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnConfig";
-import { FilterModal } from "../components/dashboard/FilterModal";
-import { SendToModal } from "../components/dashboard/SendToModal";
-import { SendBoxModal } from "../components/dashboard/SendBoxModal";
+import { FilterModal } from "../components_tailwind/dashboard/FilterModal";
+import { SendToModal } from "../components_tailwind/dashboard/SendToModal";
+import { SendBoxModal } from "../components_tailwind/dashboard/SendBoxModal";
 import Loader from "../components/Loader";
 
 const Dashboard = () => {

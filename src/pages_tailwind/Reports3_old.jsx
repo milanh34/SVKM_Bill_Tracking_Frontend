@@ -3,13 +3,13 @@ import Header from "../components/Header";
 // import Filters from "../components/Filters2";
 import axios from "axios";
 import { bills, report } from "../apis/bills.api";
-import SendBox from "../components/Sendbox";
+import SendBox from "../components_tailwind/Sendbox";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import * as XLSX from "xlsx";
 
 // Import DataTable component and utility functions
-import DataTable from "../components/dashboard/DataTable3_old";
+import DataTable from "../components_tailwind/dashboard/DataTable3_old";
 import { Funnel, Grid3x3, Download, Send, AlertTriangle } from "lucide-react";
 
 // Add this function before the Reports component
