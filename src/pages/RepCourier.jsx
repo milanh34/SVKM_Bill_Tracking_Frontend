@@ -64,7 +64,7 @@ const RepCourier = () => {
             <div className="invoice-container">
 
                 <div className="header">
-                    <h2 className='header-h2'>Invoices Courier to Mumbai</h2>
+                    <h2 className='header-h2'>Invoices Couriered to Mumbai</h2>
                     <div className="report-button-group">
                         <button className="btn print">
                             Print
