@@ -147,35 +147,6 @@ const RepBillOutstandingSubtotal = () => {
         fetchBills();
     }, [fromDate]);
 
-    // useEffect(() => {
-
-    //     try {
-    //         const totals = filteredData.reduce(
-    //             (acc, { subtotal, subtotalCopAmt, vendorCount }) => {
-    //                 acc.totalSubtotal += subtotal
-    //                 acc.totalSubtotalCopAmt += subtotalCopAmt
-    //                 acc.totalVendorCount += vendorCount;
-    //                 return acc;
-    //             },
-    //             {
-    //                 totalSubtotal: 0,
-    //                 totalSubtotalCopAmt: 0,
-    //                 totalVendorCount: 0
-    //             }
-    //         );
-
-    //         // Format totals with commas
-    //         setTotals({
-    //             totalSubtotal: totals.totalSubtotal,
-    //             totalSubtotalCopAmt: totals.totalSubtotalCopAmt,
-    //             totalVendorCount: totals.totalVendorCount
-    //         });
-    //     }
-    //     catch (error) {
-    //         console.error(error);
-    //     }
-
-    // }, [filteredData])
 
     const handleSelectAll = (e) => {
         if (e.target.checked) {
@@ -366,6 +337,7 @@ const RepBillOutstandingSubtotal = () => {
                                     <td colSpan={3}></td>
                                     <td className='subtotal subtotal-text'>Grand Total: {totals.totalSubtotal.toLocaleString('en-IN')}</td>
                                     <td className='subtotal subtotal-text'>Grand Total: {totals.totalSubtotalCopAmt.toLocaleString('en-IN')}</td>
+                                    <td colSpan={1}></td>
                                 </tr>
                             </tbody>
                         </table>
