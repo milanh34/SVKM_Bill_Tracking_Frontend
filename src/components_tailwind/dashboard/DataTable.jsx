@@ -186,7 +186,7 @@ const DataTable = ({
       return { color: "#15803d", fontWeight: "bold" };
     } else if (statusLower.includes("reject") || statusLower === "fail") {
       return { color: "#b91c1c", fontWeight: "bold" };
-    } else if (statusLower.includes("pend") || statusLower === "waiting") {
+    } else if (statusLower.includes("pend") || statusLower === "waiting" || statusLower === "unpaid") {
       return { color: "#ca8a04", fontWeight: "bold" };
     }
     return {};
@@ -222,8 +222,8 @@ const DataTable = ({
   };
 
   return (
-    <div className="relative w-full h-full flex flex-col border border-gray-200 rounded-lg">
-      <div className="overflow-x-auto overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 scrollbar-thumb-rounded-full">
+    <div className="relative w-full flex flex-col border border-gray-200 rounded-lg">
+      <div className={`overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 scrollbar-thumb-rounded-full ${data.length < 10 ? 'h-fit' : 'flex-1'}`}>
         <style jsx>{`
           .scrollbar-thin::-webkit-scrollbar {
             width: 6px;

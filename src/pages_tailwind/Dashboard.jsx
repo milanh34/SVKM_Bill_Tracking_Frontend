@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import axios from "axios";
-import { bills } from "../apis/bills.api";
-import { toast } from "react-toastify";
+import { bills, billWorkflow } from "../apis/bills.api";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import * as XLSX from "xlsx";
 import DataTable from "../components_tailwind/dashboard/DataTable";
@@ -21,7 +21,7 @@ import { FilterModal } from "../components_tailwind/dashboard/FilterModal";
 import { SendToModal } from "../components_tailwind/dashboard/SendToModal";
 import { SendBoxModal } from "../components_tailwind/dashboard/SendBoxModal";
 import Loader from "../components/Loader";
-import Cookies from 'js-cookie';
+import Cookies from "js-cookie";
 
 const Dashboard = () => {
   const [billsData, setBillsData] = useState([]);
@@ -52,24 +52,41 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const roles = [
-    { value: "Site_Officer", label: "Site Officer" },
-    { value: "QS_Team", label: "QS Team" },
+    { value: "site_officer", label: "Site Officer" },
+    { value: "qs_site", label: "QS Team" },
     {
-      value: "PIMO_Mumbai_&_MIGO/SES_Team",
+      value: "site_pimo",
       label: "PIMO Mumbai & MIGO/SES Team",
     },
     {
-      value: "PIMO_Mumbai_for_Advance_&_FI_Entry",
+      value: "pimo_mumbai",
       label: "PIMO Mumbai for Advance & FI Entry",
     },
-    { value: "Accounts_Team", label: "Accounts Team" },
+    { value: "accounts", label: "Accounts Team" },
     {
-      value: "Trustee,_Advisor_&_Director",
+      value: "director",
       label: "Trustee, Advisor & Director",
     },
   ];
 
+  const roleWorkflow = {
+    site_officer: [{ value: "site_pimo", label: "Site PIMO Team" }],
+    site_pimo: [{ value: "qs_site", label: "QS Site Team" }],
+    qs_site: [{ value: "pimo_mumbai", label: "PIMO Mumbai Team" }],
+    pimo_mumbai: [{ value: "director", label: "Director" }],
+    director: [{ value: "accounts", label: "Accounts Team" }],
+    accounts: [{ value: "completed", label: "Complete Payment" }],
+  };
+
   const handleSendTo = () => {
+    const userRole = Cookies.get("userRole");
+    const availableRoles = roleWorkflow[userRole] || [];
+    
+    if (availableRoles.length === 0) {
+      toast.error("You don't have permission to forward bills");
+      return;
+    }
+
     setIsSendBoxOpen(true);
   };
 
@@ -82,42 +99,131 @@ const Dashboard = () => {
     setSelectedRows(billsToSend);
     setIsWindowOpen(true);
     setIsSendBoxOpen(false);
-    toast.success(
-      <div className="send-toast">
-        <span className="send-toast-icon">
-          <i className="fas fa-paper-plane"></i>
-        </span>
-        <span>Sending bills to {role.label}...</span>
-      </div>,
-      { autoClose: 2000 }
-    );
+  };
+
+  const handleSendBills = async (selectedBills, remarks) => {
+    try {
+      const actor = Cookies.get('userName');
+      const promises = selectedBills.map(billId =>
+        axios.post(`${billWorkflow}/${billId}/advance`, {
+          actor,
+          comments: remarks || "No remarks added"
+        })
+      );
+
+      const results = await Promise.allSettled(promises);
+      
+      // Check if any requests failed
+      const failedRequests = results.filter(result => result.status === 'rejected');
+      const successfulRequests = results.filter(result => result.status === 'fulfilled');
+      
+      if (failedRequests.length > 0) {
+        toast.error(
+          <div className="flex items-center gap-2">
+            <AlertTriangle size={18} />
+            <span>Failed to send {failedRequests.length} bill{failedRequests.length > 1 ? 's' : ''}</span>
+          </div>
+        );
+      }
+
+      if (successfulRequests.length > 0) {
+        toast.success(
+          <div className="flex items-center gap-2">
+            <Send size={18} className="text-white" />
+            <span>
+              Successfully sent {successfulRequests.length} bill{successfulRequests.length > 1 ? 's' : ''} to {selectedRole.label}
+            </span>
+          </div>,
+          {
+            style: { background: "#4CAF50", color: "white" },
+            progressStyle: { background: "white" }
+          }
+        );
+      }
+
+      setIsWindowOpen(false);
+      setSelectedRole(null);
+      fetchBills();
+    } catch (error) {
+      console.error("Error advancing bills:", error);
+      toast.error(
+        <div className="flex items-center gap-2">
+          <AlertTriangle size={18} />
+          <span>{error.response?.data?.message || "Failed to send bills. Please try again."}</span>
+        </div>
+      );
+    }
   };
 
   useEffect(() => {
-    const userRole = Cookies.get('userRole');
-    const token = Cookies.get('token');
-    
+    const userRole = Cookies.get("userRole");
+    const token = Cookies.get("token");
+
     if (!userRole || !token) {
       navigate("/login");
     }
   }, [navigate]);
 
-  useEffect(() => {
-    const fetchBills = async () => {
-      try {
-        const response = await axios.get(bills);
-        setBillsData(response.data);
-        console.log(response.data);
-      } catch (error) {
-        console.log(error);
-        setError(
-          "We are experiencing some technical difficulties. Our team is working to resolve this issue as quickly as possible."
-        );
-        setBillsData([]);
-      } finally {
-        setLoading(false);
+  const filterBillsByWorkflowState = (bills, userRole) => {
+    return bills.filter(bill => {
+      const currentState = bill.workflowState?.currentState;
+      
+      // For completed or rejected bills
+      if (currentState === "Completed" || currentState === "Rejected") {
+        return ["pimo_mumbai", "accounts", "director", "admin"].includes(userRole);
       }
-    };
+
+      // Map workflow states to roles that can see them
+      const stateToRoleMap = {
+        "Site_Officer": ["site_officer"],
+        "Site_PIMO": ["site_pimo"],
+        "QS_Site": ["qs_site"],
+        "PIMO_Mumbai": ["pimo_mumbai"],
+        "Directors": ["director"],
+        "Accounts": ["accounts"]
+      };
+
+      // Admin can see all bills
+      if (userRole === "admin") return true;
+
+      // Check if user's role matches the current workflow state
+      return stateToRoleMap[currentState]?.includes(userRole) || false;
+    });
+  };
+
+  const fetchBills = async () => {
+    try {
+      const response = await axios.get(bills);
+      const userRole = Cookies.get('userRole');
+      
+      console.log("Received response data:", response.data);
+      
+      // Filter bills based on workflow state and user role
+      const filteredBills = filterBillsByWorkflowState(response.data, userRole);
+      
+      // Sort filtered bills by status
+      const sortedData = filteredBills.sort((a, b) => {
+        const aStatus = a.accountsDept.status.toLowerCase();
+        const bStatus = b.accountsDept.status.toLowerCase();
+        if (aStatus === "unpaid" && bStatus !== "unpaid") return -1;
+        if (aStatus !== "unpaid" && bStatus === "unpaid") return 1;
+        return 0;
+      });
+
+      console.log("Sorted & Filtered Data", sortedData);
+      setBillsData(sortedData);
+    } catch (error) {
+      console.log(error);
+      setError(
+        "We are experiencing some technical difficulties. Our team is working to resolve this issue as quickly as possible."
+      );
+      setBillsData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
     fetchBills();
   }, []);
 
@@ -391,7 +497,7 @@ const Dashboard = () => {
     setIsFilterPopupOpen(false);
   };
 
-  const currentUserRole = Cookies.get('userRole'); // Replace localStorage usage
+  const currentUserRole = Cookies.get("userRole"); // Replace localStorage usage
   const availableRoles = roles.filter((role) => role.value !== currentUserRole);
 
   const columns = useMemo(() => {
@@ -416,7 +522,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (columns.length > 0) {
-      setVisibleColumnFields(columns.slice(0, 10).map((col) => col.field));
+      setVisibleColumnFields(columns.slice(0, 12).map((col) => col.field));
     }
   }, [columns]);
 
@@ -503,6 +609,19 @@ const Dashboard = () => {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <Header />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
+      
       <div className="flex-1 p-3 overflow-hidden">
         <div className="h-full bg-white rounded-lg shadow flex flex-col">
           <div className="p-3 border-b border-gray-200">
@@ -779,7 +898,7 @@ const Dashboard = () => {
       <SendToModal
         isOpen={isSendBoxOpen}
         onClose={() => setIsSendBoxOpen(false)}
-        availableRoles={availableRoles}
+        availableRoles={roleWorkflow[currentUserRole] || []}
         handleSendToRole={handleSendToRole}
       />
 
@@ -792,6 +911,7 @@ const Dashboard = () => {
         selectedBills={selectedRows}
         billsData={billsData}
         singleRole={selectedRole}
+        handleSend={handleSendBills}
       />
     </div>
   );

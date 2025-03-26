@@ -117,6 +117,7 @@ const LoginPage = () => {
         expires: cookieExpiry,
       });
       Cookies.set("userId", response.data.user.id, { expires: cookieExpiry });
+      Cookies.set("userName", response.data.user.name, { expires: cookieExpiry });
 
       toast.success("Login successful!");
       setTimeout(() => {
