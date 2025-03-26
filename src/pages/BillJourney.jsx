@@ -3,17 +3,20 @@ import Header from "../components/Header";
 import "../styles/ReportsBasic.css";
 import Filters from '../components/Filters';
 import ReportBtns from '../components/ReportBtns';
+import download from "../assets/download.svg";
+import send from "../assets/send.svg";
+import print from "../assets/print.svg";
 
 const BillJourney = () => {
 
     const getFormattedDate = () => {
-                    const today = new Date();
-                    const day = String(today.getDate()).padStart(2, "0");
-                    const month = String(today.getMonth() + 1).padStart(2, "0");
-                    const year = today.getFullYear();
-                    return `${year}-${month}-${day}`; 
-                };
-            
+        const today = new Date();
+        const day = String(today.getDate()).padStart(2, "0");
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        const year = today.getFullYear();
+        return `${year}-${month}-${day}`;
+    };
+
     const [fromDate, setFromDate] = useState(getFormattedDate());
     const [toDate, setToDate] = useState(getFormattedDate());
 
@@ -33,8 +36,18 @@ const BillJourney = () => {
                 <div className="header">
                     <h2 className='header-h2'>Bill Journey Report</h2>
                     <div className="report-button-group">
-                        <button className="btn download">Download</button>
-                        <button className="btn send">Send to</button>
+                        <button className="btn print">
+                            Print
+                            <img src={print} />
+                        </button>
+                        <button className="btn download">
+                            Download
+                            <img src={download} />
+                        </button>
+                        <button className="btn send">
+                            Send to
+                            <img src={send} />
+                        </button>
                     </div>
                 </div>
 

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import axios from "axios";
 import { bills } from "../apis/bills.api";
@@ -20,6 +21,7 @@ import { FilterModal } from "../components_tailwind/dashboard/FilterModal";
 import { SendToModal } from "../components_tailwind/dashboard/SendToModal";
 import { SendBoxModal } from "../components_tailwind/dashboard/SendBoxModal";
 import Loader from "../components/Loader";
+import Cookies from 'js-cookie';
 
 const Dashboard = () => {
   const [billsData, setBillsData] = useState([]);
@@ -47,6 +49,8 @@ const Dashboard = () => {
   const [pagesToShow, setPagesToShow] = useState(5);
   const [showDownloadValidation, setShowDownloadValidation] = useState(false);
 
+  const navigate = useNavigate();
+
   const roles = [
     { value: "Site_Officer", label: "Site Officer" },
     { value: "QS_Team", label: "QS Team" },
@@ -64,9 +68,6 @@ const Dashboard = () => {
       label: "Trustee, Advisor & Director",
     },
   ];
-
-  const currentUserRole = localStorage.getItem("userRole");
-  const availableRoles = roles.filter((role) => role.value !== currentUserRole);
 
   const handleSendTo = () => {
     setIsSendBoxOpen(true);
@@ -93,10 +94,13 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    if (localStorage.getItem("userRole") === null) {
-      window.location.href = "/login";
+    const userRole = Cookies.get('userRole');
+    const token = Cookies.get('token');
+    
+    if (!userRole || !token) {
+      navigate("/login");
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     const fetchBills = async () => {
@@ -387,19 +391,22 @@ const Dashboard = () => {
     setIsFilterPopupOpen(false);
   };
 
+  const currentUserRole = Cookies.get('userRole'); // Replace localStorage usage
+  const availableRoles = roles.filter((role) => role.value !== currentUserRole);
+
   const columns = useMemo(() => {
     let roleForColumns = currentUserRole;
-    if (currentUserRole === "Site_Officer") {
+    if (currentUserRole === "site_officer") {
       roleForColumns = "SITE_OFFICER";
-    } else if (currentUserRole === "QS_Team") {
+    } else if (currentUserRole === "qs_site") {
       roleForColumns = "QS_TEAM";
-    } else if (currentUserRole === "PIMO_Mumbai_&_MIGO/SES_Team") {
+    } else if (currentUserRole === "site_pimo") {
       roleForColumns = "PIMO_MUMBAI_MIGO_SES";
-    } else if (currentUserRole === "PIMO_Mumbai_for_Advance_&_FI_Entry") {
+    } else if (currentUserRole === "pimo_mumbai") {
       roleForColumns = "PIMO_MUMBAI_ADVANCE_FI";
-    } else if (currentUserRole === "Accounts_Team") {
+    } else if (currentUserRole === "accounts") {
       roleForColumns = "ACCOUNTS_TEAM";
-    } else if (currentUserRole === "Trustee,_Advisor_&_Director") {
+    } else if (currentUserRole === "director") {
       roleForColumns = "DIRECTOR_TRUSTEE_ADVISOR";
     } else {
       roleForColumns = "ADMIN";

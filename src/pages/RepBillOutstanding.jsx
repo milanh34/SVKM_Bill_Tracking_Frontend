@@ -6,6 +6,9 @@ import "../styles/ReportsBasic.css";
 import FiltersOutstanding from '../components/FiltersOutstanding';
 import ReportBtns from '../components/ReportBtns';
 import SendBox from "../components/SendBox";
+import download from "../assets/download.svg";
+import send from "../assets/send.svg";
+import print from "../assets/print.svg";
 
 const RepBillOutstanding = () => {
 
@@ -14,7 +17,7 @@ const RepBillOutstanding = () => {
         const day = String(today.getDate()).padStart(2, "0");
         const month = String(today.getMonth() + 1).padStart(2, "0");
         const year = today.getFullYear();
-        return `${year}-${month}-${day}`; 
+        return `${year}-${month}-${day}`;
     };
 
     const [billsData, setBillsData] = useState([]);
@@ -77,8 +80,8 @@ const RepBillOutstanding = () => {
         let billIdsToDownload = [];
 
         if (selectedRows.length === 0) {
-            billIdsToDownload = filteredData.map(bill => bill._id); i 
-            
+            billIdsToDownload = filteredData.map(bill => bill._id); i
+
             if (billIdsToDownload.length > 0) {
                 if (!window.confirm(`No bills selected. Download all ${billIdsToDownload.length} filtered bills?`)) {
                     return;
@@ -97,7 +100,7 @@ const RepBillOutstanding = () => {
                 { billIds: billIdsToDownload, format: "excel" },
                 { responseType: "blob" }
             );
-            
+
             const url = window.URL.createObjectURL(
                 new Blob([response.data], {
                     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -157,17 +160,17 @@ const RepBillOutstanding = () => {
                 <div className="header">
                     <h2 className='header-h2'>Outstanding Bills Report as on</h2>
                     <div className="report-button-group">
+                        <button className="btn print">
+                            Print
+                            <img src={print} />
+                        </button>
                         <button className="btn download" onClick={handleTopDownload}>
                             Download
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="white" className="size-6 download-icon">
-                                <path strokeLinecap="round" strokeWidth="3" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                            </svg>
+                            <img src={download} />
                         </button>
                         <button className="btn send" onClick={handleSendClick}>
                             Send to
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="white" className="size-6 send-icon">
-                                <path strokeLinecap="round" strokeWidth="2" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-                            </svg>
+                            <img src={send} />
                         </button>
                     </div>
                 </div>
@@ -246,7 +249,7 @@ const RepBillOutstanding = () => {
 
             {isModalOpen && (
                 <div className="modal-overlay">
-                    <SendBox 
+                    <SendBox
                         closeWindow={() => setIsModalOpen(false)}
                         selectedBills={selectedRows}
                         billsData={billsData}

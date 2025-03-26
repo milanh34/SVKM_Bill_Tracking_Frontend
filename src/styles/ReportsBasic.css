@@ -99,7 +99,7 @@
 .report-button-group {
   display: flex;
   gap: 1vw;
-  width: 30%;
+  width: 50%;
 }
 
 .btn {
@@ -115,6 +115,19 @@
 .btn.download {
   width: 300px;
   background-color: #ffd700;
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn.print {
+  width: 300px;
+  background-color: #cb4ca9;
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  align-items: center;
 }
 
 .btn.download:hover {
@@ -136,6 +149,10 @@
 .btn.send {
   width: 300px;
   background-color: #4caf50;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
 }
 
 .btn.send:hover {

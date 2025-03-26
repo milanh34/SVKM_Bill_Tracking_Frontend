@@ -1,6 +1,8 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import image from "../assets/svkmHeader.svg";
+import Cookies from 'js-cookie';
+import profile from "../assets/profile.svg"
 
 const Header = () => {
   const navigate = useNavigate();
@@ -12,7 +14,7 @@ const Header = () => {
     { name: "Checklist", path: "/checklist" },
     { name: "Reports", path: "/reports" },
     { name: "Admin", path: "/admin" },
-    { name: "Profile", path: "/profile" },
+    { name: "Paid Bills", path: "/paidbills" },
   ];
 
   const roles = [
@@ -24,6 +26,16 @@ const Header = () => {
     { value: "Trustee,_Advisor_&_Director", label: "Trustee, Advisor & Director" },
     { value: "Admin", label: "Admin" }
   ];
+
+  const roleMap = {
+    Site_Officer: "site_officer",
+    QS_Team: "qs_site",
+    "PIMO_Mumbai_&_MIGO/SES_Team": "site_pimo",
+    "PIMO_Mumbai_for_Advance_&_FI_Entry": "pimo_mumbai",
+    Accounts_Team: "accounts",
+    "Trustee,_Advisor_&_Director": "director",
+    Admin: "admin",
+  };
 
   const getActiveClass = (path) => {
     if (path === "/") {
@@ -37,24 +49,34 @@ const Header = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("userRole");
+    // Clear all cookies
+    Cookies.remove('token');
+    Cookies.remove('userRole');
+    Cookies.remove('userEmail');
+    Cookies.remove('userId');
     navigate("/login");
   };
 
   const handleRoleChange = (event) => {
     const newRole = event.target.value;
-    localStorage.setItem("userRole", newRole);
+    const mappedRole = roleMap[newRole];
+    const cookieExpiry = 0.333; // 8 hours
+    
+    Cookies.set('userRole', mappedRole, { expires: cookieExpiry });
     window.location.reload();
   };
 
   return (
     <div className="relative z-20">
-      <div className="w-full bg-transparent">
+      <div className="w-full bg-transparent flex flex-row items-center relative">
         <img 
           src={image}
           alt="Header" 
           className="w-full"
         />
+        <div className='mb-10 cursor-pointer absolute right-5'>
+          <img src={profile} onClick={() => navigate("/profile")} />
+        </div>
       </div>
       <div className="absolute w-full top-[63%] max-xl:h-1/3 max-lg:h-1/4 flex justify-end">
       <div className="bg-[#364cbb] w-[91.2%] flex items-center justify-between overflow-x-auto">

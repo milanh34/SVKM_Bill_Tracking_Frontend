@@ -64,7 +64,9 @@ const ReportBtns = () => {
                     id={btn.id}
                     className='report-btns'
                     style={{
-                        backgroundColor: currentRoute === btn.id ? '#349398' : '#364CBB'
+                        backgroundColor: currentRoute === btn.id ? '#ffffff' : '#364CBB',
+                        color: currentRoute === btn.id ? "#000" : "fff",
+                        border: currentRoute === btn.id ? "3px solid #364CBB" : "none"
                     }}
                 >
                     {btn.label}
