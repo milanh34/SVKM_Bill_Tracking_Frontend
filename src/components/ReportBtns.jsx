@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import "../styles/ReportsBasic.css";
 import { useLocation, useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 const ReportBtns = () => {
     const navigate = useNavigate();
@@ -10,7 +11,7 @@ const ReportBtns = () => {
     const [buttonClicked, setButtonClicked] = useState("");
 
     useEffect(() => {
-        const storedRole = localStorage.getItem("userRole");
+        const storedRole = Cookies.get("userRole");
         if (storedRole) {
             setSelectedRole(storedRole);
         }
@@ -30,13 +31,13 @@ const ReportBtns = () => {
 
     // Define role-based access
     const roleAccess = {
-        "Site_Officer": ["reportsrecatsite", "reportscouriermumbai"],
-        "QS_Team": [],
-        "PIMO_Mumbai_&_MIGO/SES_Team": ["reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportspending"],
-        "PIMO_Mumbai_for_Advance_&_FI_Entry": ["reportsrecatsite"],
-        "Accounts_Team": ["reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportsinvoiceacctdept", "reportsinvoiceqssite", "reportsinvoicepaid", "reportsbilljourney"],
-        "Trustee,_Advisor_&_Director": ["reportsrecatsite", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportsinvoiceqssite", "reportsinvoicepaid", "reportspending", "reportsbilljourney"],
-        "Admin": ["reportsrecatsite", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportsinvoiceqssite", "reportsinvoicepaid", "reportspending", "reportsbilljourney"]
+        "site_officer": ["reportsrecatsite", "reportscouriermumbai"],
+        "qs_site": [],
+        "site_pimo": ["reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportspending"],
+        "pimo_mumbai": ["reportsrecatsite"],
+        "accounts": ["reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportsinvoiceacctdept", "reportsinvoiceqssite", "reportsinvoicepaid", "reportsbilljourney"],
+        "director": ["reportsrecatsite", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportsinvoiceqssite", "reportsinvoicepaid", "reportspending", "reportsbilljourney"],
+        "admin": ["reportsrecatsite", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportsinvoiceqssite", "reportsinvoicepaid", "reportspending", "reportsbilljourney"]
     };
 
     const allButtons = [

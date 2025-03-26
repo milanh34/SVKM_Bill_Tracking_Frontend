@@ -9,6 +9,7 @@ import SendBox from "../components/SendBox";
 import download from "../assets/download.svg";
 import send from "../assets/send.svg";
 import print from "../assets/print.svg";
+import Cookies from "js-cookie";
 
 const RepRecAtSite = () => {
 
@@ -32,7 +33,7 @@ const RepRecAtSite = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
-        if (localStorage.getItem("userRole") === null) {
+        if (Cookies.get("userRole") === null) {
             window.location.href = "/login";
         }
     }, []);
