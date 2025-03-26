@@ -44,7 +44,7 @@ const FiltersOutstanding = ({
 
     return (
         <div className="top-bar">
-            <div className="filter-container">
+            {/* <div className="filter-container">
                 <div className="filter">
                     <img src={filterSvg} alt="" />
                 </div>
@@ -99,7 +99,7 @@ const FiltersOutstanding = ({
                     <option value="date">Date</option>
                     <option value="amount">Amount</option>
                 </select>
-            </div>
+            </div> */}
             <div className="date-container">
                 <div className="dates">
                     <label>From:</label>

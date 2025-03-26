@@ -331,7 +331,7 @@ const RepBillOutstandingSubtotal = () => {
                                         </tr>
                                     </React.Fragment>
                                 ))}
-                                <tr>
+                                <tr className='grand-subtotal'>
                                     <td colSpan={2} className='subtotal subtotal-empty'></td>
                                     <td>Total Count: {totals.totalVendorCount.toLocaleString('en-IN')}</td>
                                     <td colSpan={3}></td>

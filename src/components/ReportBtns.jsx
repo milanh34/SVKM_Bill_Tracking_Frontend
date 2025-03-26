@@ -43,7 +43,7 @@ const ReportBtns = () => {
         { id: 'reportsrecatsite', label: 'Invoices Received at Site' },
         { id: 'reportsbilloutstanding', label: 'Outstanding Bill Report' },
         { id: 'reportsbilloutstandingsubtotal', label: 'Outstanding Bill Report Subtotal' },
-        { id: 'reportscouriermumbai', label: 'Invoices Courier at Mumbai' },
+        { id: 'reportscouriermumbai', label: 'Invoices Couriered to Mumbai' },
         { id: 'reportsreceivedmumbai', label: 'Invoices Received at Mumbai' },
         { id: 'reportsinvoiceacctdept', label: 'Invoices given to Accounts dept' },
         { id: 'reportsinvoiceqssite', label: 'Invoices given to QS site' },
