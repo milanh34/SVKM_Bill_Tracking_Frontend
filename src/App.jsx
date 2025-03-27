@@ -63,7 +63,7 @@ function App() {
         <Route path='/reportsbilljourney' element={<BillJourney />}/>
         <Route path='/checklist' element={<Checklist />} />
         <Route path='/create-bill' element={<CreateBill />} />
-        <Route path="/paid" element={<PaidBills />} />
+        <Route path="/paidbills" element={<PaidBills />} />
         <Route path="/profile" element={<Profile />} />
       </Routes>
     </BrowserRouter>
