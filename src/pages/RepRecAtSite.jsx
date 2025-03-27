@@ -5,7 +5,7 @@ import Header from "../components/Header";
 import "../styles/ReportsBasic.css";
 import Filters from '../components/Filters';
 import ReportBtns from '../components/ReportBtns';
-import SendBox from "../components/SendBox";
+import SendBox from "../components/Sendbox";
 import download from "../assets/download.svg";
 import send from "../assets/send.svg";
 import print from "../assets/print.svg";
