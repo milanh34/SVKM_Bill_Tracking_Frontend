@@ -759,17 +759,25 @@ const Dashboard = () => {
                       </button>
                     </div>
 
-                    <div className="text-sm text-gray-600">
-                      Showing{" "}
-                      {filteredData.length
-                        ? (currentPage - 1) * itemsPerPage + 1
-                        : 0}{" "}
-                      to{" "}
-                      {Math.min(
-                        currentPage * itemsPerPage,
-                        filteredData.length
-                      )}{" "}
-                      of {filteredData.length} entries
+                    <div className="flex items-center text-sm text-gray-600">
+                      <div>
+                        Showing {filteredData.length ? (currentPage - 1) * itemsPerPage + 1 : 0} to{" "}
+                        {Math.min(currentPage * itemsPerPage, totalFilteredItems)} entries
+                        <span className="ml-2">
+                          <span className="text-gray-400">|</span>
+                          <span className="ml-2">
+                            Total: <span className="font-medium">{billsData.length}</span>
+                          </span>
+                          {totalFilteredItems !== billsData.length && (
+                            <>
+                              <span className="text-gray-400 mx-2">|</span>
+                              <span className="text-blue-600">
+                                Filtered: <span className="font-medium">{totalFilteredItems}</span>
+                              </span>
+                            </>
+                          )}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>

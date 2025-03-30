@@ -211,11 +211,15 @@ const DataTable = ({
   const displayData = useMemo(() => {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    return sortedData.slice(indexOfFirstItem, indexOfLastItem);
+  }, [sortedData, currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    // Update filtered data count whenever filters change
     if (onPaginatedDataChange) {
       onPaginatedDataChange(sortedData.length);
     }
-    return sortedData.slice(indexOfFirstItem, indexOfLastItem);
-  }, [sortedData, currentPage, itemsPerPage, onPaginatedDataChange]);
+  }, [sortedData, onPaginatedDataChange]);
 
   const formatCurrency = (value) => {
     if (value === null || value === undefined) return "";
