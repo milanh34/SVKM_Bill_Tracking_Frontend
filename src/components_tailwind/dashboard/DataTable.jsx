@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { EditIcon, SortAscIcon, SortDescIcon, Filter } from "./Icons";
+import { X } from "lucide-react";
 
 const FILTER_OPERATORS = [
-  { value: "contains", label: "Contains" },
-  { value: "notContains", label: "Not contains" },
+  { value: "multiSelect", label: "Select Values" },
 ];
 
 const DataTable = ({
@@ -26,6 +26,7 @@ const DataTable = ({
 }) => {
   const [columnFilters, setColumnFilters] = useState({});
   const [activeFilter, setActiveFilter] = useState(null);
+  const [filterSearchQuery, setFilterSearchQuery] = useState("");
 
   const visibleColumns = useMemo(() => {
     return availableColumns.filter((col) =>
@@ -52,15 +53,92 @@ const DataTable = ({
     onSort(key);
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date)) return "-";
+      
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${day}-${month}-${year}`;
+    } catch (e) {
+      return "-";
+    }
+  };
+
+  const isDateField = (field) => {
+    const dateIndicators = [
+      'date', 'Date', 'Dt', '_dt',
+      'Recd', 'Given', 'Dispatch',
+      'Created', 'Received', 'Payment',
+      'advance', 'Advance', 'Returned',
+      'Booking', 'Check', 'Inv',
+      'Invoice', 'invReturnedToSite',
+      'invBookingChecking',
+      'dateGiven', 'dateReceived',
+      'returnedToPimo', 'receivedBack'
+    ];
+    
+    // Check for date-related patterns in nested fields
+    if (field.includes('.')) {
+      const parts = field.split('.');
+      for (const part of parts) {
+        if (dateIndicators.some(indicator => 
+          part.toLowerCase().includes(indicator.toLowerCase())
+        )) {
+          return true;
+        }
+      }
+    }
+    
+    // Check for direct matches
+    return dateIndicators.some(indicator => 
+      field.toLowerCase().includes(indicator.toLowerCase())
+    );
+  };
+
+  const getUniqueValues = (data, field) => {
+    const values = new Set();
+    data.forEach((row) => {
+      const value = getNestedValue(row, field);
+      if (value !== undefined && value !== null) {
+        if (isDateField(field)) {
+          const formattedDate = formatDate(value);
+          if (formattedDate !== "-") {
+            values.add(formattedDate);
+          }
+        } else {
+          values.add(value.toString());
+        }
+      }
+    });
+    return Array.from(values).sort((a, b) => {
+      if (a.includes('-') && b.includes('-')) {
+        const [dayA, monthA, yearA] = a.split('-').map(Number);
+        const [dayB, monthB, yearB] = b.split('-').map(Number);
+        const dateA = new Date(yearA, monthA - 1, dayA);
+        const dateB = new Date(yearB, monthB - 1, dayB);
+        return dateA - dateB;
+      }
+      return a.localeCompare(b);
+    });
+  };
+
   const applyFilter = (value, filterValue, operator) => {
     if (!value) return false;
     const stringValue = value.toString().toLowerCase();
-    const filterString = filterValue.toLowerCase();
+    
+    if (value instanceof Date || !isNaN(new Date(value))) {
+      const formattedDate = formatDate(value);
+      return filterValue.some(val => formattedDate === val);
+    }
+
     switch (operator) {
-      case "contains":
-        return stringValue.includes(filterString);
-      case "notContains":
-        return !stringValue.includes(filterString);
+      case "multiSelect":
+        return filterValue.some((val) => stringValue === val.toLowerCase());
       default:
         return true;
     }
@@ -76,8 +154,14 @@ const DataTable = ({
         });
         if (!isMatchingSearch) return false;
       }
+
       return Object.entries(columnFilters).every(([field, filter]) => {
-        if (!filter?.value) return true;
+        if (
+          !filter?.value ||
+          (Array.isArray(filter.value) && filter.value.length === 0)
+        ) {
+          return true;
+        }
         const value = getNestedValue(row, field);
         if (value === null || value === undefined) return false;
         return applyFilter(value, filter.value, filter.operator);
@@ -133,16 +217,6 @@ const DataTable = ({
     return sortedData.slice(indexOfFirstItem, indexOfLastItem);
   }, [sortedData, currentPage, itemsPerPage, onPaginatedDataChange]);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    try {
-      const date = new Date(dateString);
-      return date.toISOString().split("T")[0];
-    } catch (e) {
-      return dateString;
-    }
-  };
-
   const formatCurrency = (value) => {
     if (value === null || value === undefined) return "";
     return new Intl.NumberFormat("en-IN", {
@@ -154,12 +228,7 @@ const DataTable = ({
 
   const formatCellValue = (value, field) => {
     if (value === undefined || value === null) return "-";
-    if (
-      field.includes("date") ||
-      field.includes("Date") ||
-      field.endsWith("Dt") ||
-      field.endsWith("_dt")
-    ) {
+    if (isDateField(field)) {
       return formatDate(value);
     }
     if (
@@ -186,7 +255,11 @@ const DataTable = ({
       return { color: "#15803d", fontWeight: "bold" };
     } else if (statusLower.includes("reject") || statusLower === "fail") {
       return { color: "#b91c1c", fontWeight: "bold" };
-    } else if (statusLower.includes("pend") || statusLower === "waiting" || statusLower === "unpaid") {
+    } else if (
+      statusLower.includes("pend") ||
+      statusLower === "waiting" ||
+      statusLower === "unpaid"
+    ) {
       return { color: "#ca8a04", fontWeight: "bold" };
     }
     return {};
@@ -203,13 +276,17 @@ const DataTable = ({
 
   const handleFilterClick = (field, event) => {
     event.stopPropagation();
-    setActiveFilter(activeFilter === field ? null : field);
+    if (activeFilter === field) {
+      return; // Don't close the filter when clicking the filter icon again
+    }
+    setActiveFilter(field);
+    setFilterSearchQuery(""); // Reset search query when opening new filter
   };
 
-  const handleFilterChange = (field, operator, value) => {
+  const handleFilterChange = (field, operator, selectedValues) => {
     setColumnFilters((prev) => ({
       ...prev,
-      [field]: { operator, value },
+      [field]: { operator, value: selectedValues },
     }));
   };
 
@@ -221,9 +298,104 @@ const DataTable = ({
     });
   };
 
+  const renderFilterPopup = (column) => {
+    const uniqueValues = getUniqueValues(data, column.field);
+    const currentFilter =
+      columnFilters[column.field] || { operator: "multiSelect", value: [] };
+
+    const filteredValues = uniqueValues.filter((value) =>
+      value.toLowerCase().includes(filterSearchQuery.toLowerCase())
+    );
+
+    return (
+      <div
+        className="absolute mt-1 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 p-3 min-w-[250px]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium">{column.headerName}</span>
+            <button
+              className="text-gray-500 hover:text-gray-700"
+              onClick={() => setActiveFilter(null)}
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search values..."
+              value={filterSearchQuery}
+              onChange={(e) => setFilterSearchQuery(e.target.value)}
+              className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm pr-8"
+            />
+            {filterSearchQuery && (
+              <button
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                onClick={() => setFilterSearchQuery("")}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          <div className="max-h-60 overflow-y-auto space-y-1 border rounded-md p-1">
+            {filteredValues.map((value) => (
+              <label
+                key={value}
+                className="flex items-center space-x-2 px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={currentFilter.value?.includes(value)}
+                  onChange={(e) => {
+                    const newValues = e.target.checked
+                      ? [...(currentFilter.value || []), value]
+                      : (currentFilter.value || []).filter((v) => v !== value);
+                    handleFilterChange(column.field, "multiSelect", newValues);
+                  }}
+                  className="rounded border-gray-300"
+                />
+                <span className="text-sm">{value}</span>
+              </label>
+            ))}
+          </div>
+
+          <div className="flex justify-between gap-2 pt-2 border-t">
+            <button
+              className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
+              onClick={() => handleFilterClear(column.field)}
+            >
+              Clear filters
+            </button>
+            <button
+              className="px-2 py-1 text-xs bg-[#011a99] text-white hover:bg-[#015099] rounded"
+              onClick={() => {
+                setActiveFilter(null);
+                setFilterSearchQuery("");
+              }}
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className={`relative w-full flex flex-col border border-gray-200 rounded-lg ${data.length > 8 ? 'h-full' : ''}`}>
-      <div className={`overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 scrollbar-thumb-rounded-full ${data.length < 10 ? 'h-fit' : 'flex-1'}`}>
+    <div
+      className={`relative w-full flex flex-col border border-gray-200 rounded-lg ${
+        data.length > 8 ? "h-full" : ""
+      }`}
+    >
+      <div
+        className={`overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 scrollbar-thumb-rounded-full ${
+          data.length < 10 ? "h-fit" : "flex-1"
+        }`}
+      >
         <style jsx>{`
           .scrollbar-thin::-webkit-scrollbar {
             width: 6px;
@@ -281,9 +453,10 @@ const DataTable = ({
                       {column.headerName}
                     </span>
                     <div className="flex items-center space-x-1">
-                      {columnFilters[column.field] && (
+                      {columnFilters[column.field] && 
+                       columnFilters[column.field].value?.length > 0 && (
                         <div className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded ml-1">
-                          Filtered
+                          {`${columnFilters[column.field].value.length} selected`}
                         </div>
                       )}
                       <span className="invisible group-hover:visible ml-1">
@@ -304,7 +477,7 @@ const DataTable = ({
                       >
                         <Filter
                           className={`w-4 h-4 ${
-                            columnFilters[column.field]
+                            columnFilters[column.field]?.value?.length > 0
                               ? "text-blue-500"
                               : "text-gray-400"
                           }`}
@@ -312,67 +485,7 @@ const DataTable = ({
                       </button>
                     </div>
                   </div>
-                  {activeFilter === column.field && (
-                    <div
-                      className="absolute mt-1 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 p-3 min-w-[250px]"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="space-y-3">
-                        <select
-                          className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-                          value={
-                            columnFilters[column.field]?.operator || "contains"
-                          }
-                          onChange={(e) =>
-                            handleFilterChange(
-                              column.field,
-                              e.target.value,
-                              columnFilters[column.field]?.value || ""
-                            )
-                          }
-                        >
-                          {FILTER_OPERATORS.map((op) => (
-                            <option key={op.value} value={op.value}>
-                              {op.label}
-                            </option>
-                          ))}
-                        </select>
-
-                        <input
-                          type="text"
-                          placeholder="Filter value..."
-                          className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-                          value={columnFilters[column.field]?.value || ""}
-                          onChange={(e) =>
-                            handleFilterChange(
-                              column.field,
-                              columnFilters[column.field]?.operator ||
-                                "contains",
-                              e.target.value
-                            )
-                          }
-                        />
-
-                        <div className="flex justify-end gap-2">
-                          <button
-                            className="px-2 py-1 text-xs bg-[#011a99] text-white hover:bg-[#015099] rounded"
-                            onClick={() => setActiveFilter(null)}
-                          >
-                            Apply
-                          </button>
-                          <button
-                            className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded"
-                            onClick={() => {
-                              handleFilterClear(column.field);
-                              setActiveFilter(null);
-                            }}
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {activeFilter === column.field && renderFilterPopup(column)}
                 </th>
               ))}
               <th className="sticky right-0 z-40 w-16 bg-blue-50 px-1.5 py-2.5 border-b border-gray-200">
