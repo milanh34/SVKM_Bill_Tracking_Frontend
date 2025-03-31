@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { EditIcon, SortAscIcon, SortDescIcon, Filter } from "./Icons";
 import { X } from "lucide-react";
 
@@ -27,6 +27,22 @@ const DataTable = ({
   const [columnFilters, setColumnFilters] = useState({});
   const [activeFilter, setActiveFilter] = useState(null);
   const [filterSearchQuery, setFilterSearchQuery] = useState("");
+  const [filterPosition, setFilterPosition] = useState("right"); // Add this state
+  const filterRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setActiveFilter(null);
+        setFilterSearchQuery("");
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const visibleColumns = useMemo(() => {
     return availableColumns.filter((col) =>
@@ -281,10 +297,19 @@ const DataTable = ({
   const handleFilterClick = (field, event) => {
     event.stopPropagation();
     if (activeFilter === field) {
-      return; // Don't close the filter when clicking the filter icon again
+      return;
     }
+    
+    // Calculate if the popup should open to the left or right
+    const buttonRect = event.currentTarget.getBoundingClientRect();
+    const screenWidth = window.innerWidth;
+    const popupWidth = 250; // Approximate width of the popup
+    
+    // If the button is in the left third of the screen, open to the right
+    setFilterPosition(buttonRect.left < screenWidth / 3 ? "right" : "left");
+    
     setActiveFilter(field);
-    setFilterSearchQuery(""); // Reset search query when opening new filter
+    setFilterSearchQuery("");
   };
 
   const handleFilterChange = (field, operator, selectedValues) => {
@@ -313,14 +338,17 @@ const DataTable = ({
 
     return (
       <div
-        className="absolute mt-1 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 p-3 min-w-[250px]"
+        ref={filterRef}
+        className={`absolute mt-2.5 bg-white border border-gray-200 rounded-md shadow-lg z-10 p-3 min-w-[250px] ${
+          filterPosition === "right" ? "left-0" : "right-0"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">{column.headerName}</span>
             <button
-              className="text-gray-500 hover:text-gray-700"
+              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md cursor-pointer"
               onClick={() => setActiveFilter(null)}
             >
               <X size={16} />
@@ -369,13 +397,13 @@ const DataTable = ({
 
           <div className="flex justify-between gap-2 pt-2 border-t">
             <button
-              className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
+              className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded cursor-pointer transition-colors duration-150"
               onClick={() => handleFilterClear(column.field)}
             >
               Clear filters
             </button>
             <button
-              className="px-2 py-1 text-xs bg-[#011a99] text-white hover:bg-[#015099] rounded"
+              className="px-2 py-1 text-xs bg-[#011a99] text-white hover:bg-[#015099] rounded cursor-pointer transition-colors duration-150"
               onClick={() => {
                 setActiveFilter(null);
                 setFilterSearchQuery("");
@@ -420,10 +448,11 @@ const DataTable = ({
           }
         `}</style>
         <table className="w-full border-collapse">
-          <thead className="sticky top-0 z-30 bg-gray-50">
+          <thead className="sticky top-0 z-40 bg-gray-50">
             <tr className="divide-x divide-gray-200">
-              <th className="sticky left-0 z-40 w-12 bg-blue-50 px-1.5 py-2.5 border-b border-gray-200">
-                <div className="absolute inset-0 bg-blue-50 border-r border-blue-200"></div>
+              <th className="sticky left-0 top-0 z-50 w-12 bg-blue-50 px-1.5 py-2.5 border-b border-gray-200">
+                <div className="absolute inset-0 bg-blue-50 border-r border-blue-200" 
+                     style={{ bottom: "-1px", zIndex: -1 }}></div>
                 <div className="relative z-10 flex flex-col items-center">
                   <input
                     type="checkbox"
@@ -477,13 +506,13 @@ const DataTable = ({
                       </span>
                       <button
                         onClick={(e) => handleFilterClick(column.field, e)}
-                        className="p-1 hover:bg-gray-200 rounded-md"
+                        className="p-1 hover:bg-gray-200 rounded-md transition-colors duration-150 cursor-pointer focus:outline-none"
                       >
                         <Filter
                           className={`w-4 h-4 ${
                             columnFilters[column.field]?.value?.length > 0
                               ? "text-blue-500"
-                              : "text-gray-400"
+                              : "text-gray-400 hover:text-gray-600"
                           }`}
                         />
                       </button>
@@ -492,8 +521,9 @@ const DataTable = ({
                   {activeFilter === column.field && renderFilterPopup(column)}
                 </th>
               ))}
-              <th className="sticky right-0 z-40 w-16 bg-blue-50 px-1.5 py-2.5 border-b border-gray-200">
-                <div className="absolute inset-0 bg-blue-50 border-l border-blue-200"></div>
+              <th className="sticky right-0 top-0 z-50 w-16 bg-blue-50 px-1.5 py-2.5 border-b border-gray-200">
+                <div className="absolute inset-0 bg-blue-50 border-l border-blue-200" 
+                     style={{ bottom: "-1px", zIndex: -1 }}></div>
                 <div className="relative z-10 text-center">Actions</div>
               </th>
             </tr>
@@ -511,10 +541,9 @@ const DataTable = ({
                   className={`${bgColor} transition duration-150 ease-in-out divide-x divide-gray-200`}
                 >
                   <td className="sticky left-0 z-20 whitespace-nowrap px-3 py-3 text-center">
-                    <div
-                      className={`absolute inset-0 ${
-                        isSelected ? "bg-blue-50" : "bg-white"
-                      } border-r border-blue-200`}
+                    <div 
+                      className={`absolute inset-0 ${isSelected ? "bg-blue-50" : "bg-white"} border-r border-blue-200`} 
+                      style={{ bottom: "-1px", top: "-1px" }}
                     ></div>
                     <div className="relative z-10">
                       <input
@@ -549,10 +578,9 @@ const DataTable = ({
                     );
                   })}
                   <td className="sticky right-0 z-20 whitespace-nowrap px-1.5 py-2.5 text-center">
-                    <div
-                      className={`absolute inset-0 ${
-                        isSelected ? "bg-blue-50" : "bg-white"
-                      } border-l border-blue-200`}
+                    <div 
+                      className={`absolute inset-0 ${isSelected ? "bg-blue-50" : "bg-white"} border-l border-blue-200`}
+                      style={{ bottom: "-1px", top: "-1px" }}
                     ></div>
                     <div className="relative z-10">
                       <button
