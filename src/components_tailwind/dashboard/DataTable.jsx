@@ -74,7 +74,8 @@ const DataTable = ({
     if (!dateString) return "-";
     try {
       const date = new Date(dateString);
-      if (isNaN(date)) return "-";
+      if (isNaN(date.getTime())) return "-";
+      if (date.getFullYear() <= 1971) return "-";
       
       const day = date.getDate().toString().padStart(2, '0');
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -113,6 +114,20 @@ const DataTable = ({
     
     // Check for direct matches
     return dateIndicators.some(indicator => 
+      field.toLowerCase().includes(indicator.toLowerCase())
+    );
+  };
+
+  const isNumericField = (field) => {
+    const numericIndicators = [
+      'amount', 'Amount', 'Amt', 'amt',
+      'percentage', 'Percentage',
+      'poAmt', 'taxInvAmt', 'proformaInvAmt',
+      'advanceAmt', 'paymentAmt', 'migoDetails.amount',
+      'copDetails.amount'
+    ];
+    
+    return numericIndicators.some(indicator => 
       field.toLowerCase().includes(indicator.toLowerCase())
     );
   };
@@ -239,29 +254,56 @@ const DataTable = ({
   }, [sortedData, onPaginatedDataChange]);
 
   const formatCurrency = (value) => {
-    if (value === null || value === undefined) return "";
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 2,
-    }).format(value);
+    if (value === null || value === undefined || isNaN(value)) return "-";
+    try {
+      return new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(value);
+    } catch (e) {
+      return value.toString();
+    }
   };
 
   const formatCellValue = (value, field) => {
-    if (value === undefined || value === null) return "-";
-    if (isDateField(field)) {
-      return formatDate(value);
-    }
-    if (
-      field.includes("amount") ||
-      field.includes("Amount") ||
-      field.includes("Amt") ||
-      field.includes("amt")
-    ) {
-      if (typeof value === "number") {
-        return formatCurrency(value);
+    if (value === undefined || value === null || value === '') return "-";
+
+    // Handle numeric fields first
+    if (isNumericField(field)) {
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue)) {
+        return formatCurrency(numValue);
       }
     }
+
+    // Handle date fields
+    if (isDateField(field)) {
+      // Check for Unix timestamp (milliseconds since epoch)
+      if (typeof value === 'number') {
+        const date = new Date(value);
+        if (date.getFullYear() > 1971) { // Valid date check
+          return formatDate(date);
+        }
+      }
+      // Check if it's already a date string
+      if (typeof value === 'string' && value.includes('T')) {
+        const date = new Date(value);
+        if (!isNaN(date.getTime())) {
+          return formatDate(date);
+        }
+      }
+      // If we can't parse it as a valid date, return the original value
+      return value.toString();
+    }
+
+    // Handle status fields with special styling
+    if (field.includes('status')) {
+      return value.toString();
+    }
+
+    // Default handling for other fields
     return value.toString();
   };
 
