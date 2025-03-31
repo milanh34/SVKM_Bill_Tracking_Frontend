@@ -29,6 +29,7 @@ const DataTable = ({
   const [filterSearchQuery, setFilterSearchQuery] = useState("");
   const [filterPosition, setFilterPosition] = useState("right"); // Add this state
   const filterRef = useRef(null);
+  const [selectAllState, setSelectAll] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -291,6 +292,27 @@ const DataTable = ({
         ? selectedRows.filter((rowId) => rowId !== id)
         : [...selectedRows, id];
       onRowSelect(newSelection);
+      
+      // Update selectAll state based on if all filtered items are selected
+      setSelectAll(newSelection.length === filteredData.length);
+    }
+  };
+
+  useEffect(() => {
+    // Reset selectAll when filters change
+    setSelectAll(false);
+  }, [columnFilters, searchQuery]);
+
+  const handleSelectAll = (e) => {
+    const isChecked = e.target.checked;
+    setSelectAll(isChecked);
+    
+    if (isChecked) {
+      // Only select IDs from the filtered data
+      const filteredIds = filteredData.map(row => row._id);
+      onRowSelect(filteredIds);
+    } else {
+      onRowSelect([]);
     }
   };
 
@@ -456,8 +478,8 @@ const DataTable = ({
                 <div className="relative z-10 flex flex-col items-center">
                   <input
                     type="checkbox"
-                    checked={selectAll}
-                    onChange={onSelectAll}
+                    checked={selectAllState}
+                    onChange={handleSelectAll}
                     className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                   {totalSelected > 0 && (
