@@ -5,7 +5,6 @@ import axios from "axios";
 import { bills, billWorkflow, importReport } from "../apis/bills.api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import * as XLSX from "xlsx";
 import DataTable from "../components_tailwind/dashboard/DataTable";
 import {
   Funnel,
@@ -14,7 +13,6 @@ import {
   Send,
   AlertTriangle,
   CheckSquare,
-  Upload,
 } from "lucide-react";
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnConfig";
@@ -24,6 +22,7 @@ import { SendBoxModal } from "../components_tailwind/dashboard/SendBoxModal";
 import Loader from "../components/Loader";
 import Cookies from "js-cookie";
 import ImportModal from "../components_tailwind/dashboard/ImportModal";
+import { handleExportReport } from "../utils/exportExcelDashboard";
 
 const Dashboard = () => {
   const [billsData, setBillsData] = useState([]);
@@ -332,190 +331,23 @@ const Dashboard = () => {
   };
 
   const handleDownloadReport = async () => {
-    try {
-      const dataToExport =
-        selectedRows.length > 0
-          ? filteredData.filter((item) => selectedRows.includes(item._id))
-          : filteredData;
-      if (dataToExport.length === 0) {
+    const result = await handleExportReport(selectedRows, filteredData, columns, visibleColumnFields);
+    if (result.success) {
+      toast.success(result.message);
+    } else {
+      if (result.message.includes("Please select at least one row")) {
         toast.warning(
           <div className="send-toast">
-            <span>
-              <AlertTriangle size={18} />
-            </span>
-            <span>Please select at least one row to download</span>
+            <span><AlertTriangle size={18} /></span>
+            <span>{result.message}</span>
           </div>,
           { autoClose: 3000 }
         );
         setShowDownloadValidation(true);
         setTimeout(() => setShowDownloadValidation(false), 3000);
-        return;
+      } else {
+        toast.error(result.message);
       }
-      const essentialFields = [
-        "srNo",
-        "typeOfInv",
-        "region",
-        "projectDescription",
-        "vendorNo",
-        "vendorName",
-        "gstNumber",
-        "compliance206AB",
-        "panStatus",
-        "poNo",
-        "poAmt",
-        "taxInvNo",
-        "taxInvDt",
-        "currency",
-        "taxInvAmt",
-        "remarksBySiteTeam",
-        "status",
-      ];
-      const essentialColumns = essentialFields
-        .map((field) => columns.find((col) => col.field === field))
-        .filter((col) => col !== undefined);
-      const additionalColumns = columns.filter(
-        (col) =>
-          visibleColumnFields.includes(col.field) &&
-          col.field !== "srNoOld" &&
-          !essentialFields.includes(col.field)
-      );
-      const allColumnsToExport = [...essentialColumns, ...additionalColumns];
-      const workbook = XLSX.utils.book_new();
-      
-      // Create timestamp row
-      const now = new Date();
-      const timestamp = [
-        [`Report generated on: ${now.toLocaleDateString('en-IN')} ${now.toLocaleTimeString('en-IN')}`]
-      ];
-      
-      // First create the data worksheet
-      const excelData = dataToExport.map((row) => {
-        const formattedRow = {};
-        allColumnsToExport.forEach((column) => {
-          let value;
-          if (column.field.includes(".")) {
-            const [parentField, childField] = column.field.split(".");
-            value = row[parentField] ? row[parentField][childField] : "";
-          } else {
-            value = row[column.field];
-          }
-          if (
-            column.field.includes("date") ||
-            column.field.includes("Date") ||
-            column.field.endsWith("Dt") ||
-            column.field.endsWith("_dt")
-          ) {
-            if (value) {
-              const date = new Date(value);
-              if (!isNaN(date)) {
-                value = date.toISOString().split("T")[0];
-              }
-            }
-          }
-          formattedRow[column.headerName] =
-            value !== undefined && value !== null ? value : "";
-        });
-        return formattedRow;
-      });
-
-      // Create worksheet with timestamp
-      const worksheet = XLSX.utils.aoa_to_sheet(timestamp);
-      
-      // Merge cells for timestamp row
-      worksheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
-      
-      // Add data starting from row 2
-      XLSX.utils.sheet_add_json(worksheet, excelData, { 
-        origin: 'A2',
-        skipHeader: false
-      });
-
-      // Adjust column widths and styling
-      const range = XLSX.utils.decode_range(worksheet["!ref"]);
-      const colWidths = {};
-      Object.keys(excelData[0] || {}).forEach((key, index) => {
-        colWidths[index] = Math.max(key.length * 1.5, 15);
-      });
-      worksheet["!cols"] = Object.keys(colWidths).map((col) => ({
-        wch: colWidths[col],
-      }));
-      for (let col = range.s.c; col <= range.e.c; col++) {
-        const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-        if (!worksheet[cellAddress]) continue;
-        worksheet[cellAddress].s = {
-          font: {
-            bold: true,
-            color: { rgb: "FFFFFF" },
-            sz: 12,
-          },
-          fill: {
-            fgColor: { rgb: "0172C2" },
-          },
-          alignment: {
-            horizontal: "center",
-            vertical: "center",
-            wrapText: true,
-          },
-          border: {
-            top: { style: "medium", color: { rgb: "000000" } },
-            bottom: { style: "medium", color: { rgb: "000000" } },
-            left: { style: "thin", color: { rgb: "000000" } },
-            right: { style: "thin", color: { rgb: "000000" } },
-          },
-        };
-      }
-      worksheet["!rows"] = [{ hpt: 30 }];
-      for (let row = 1; row <= range.e.r; row++) {
-        for (let col = range.s.c; col <= range.e.c; col++) {
-          const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-          if (!worksheet[cellAddress]) continue;
-          worksheet[cellAddress].s = {
-            border: {
-              top: { style: "thin", color: { rgb: "CCCCCC" } },
-              bottom: { style: "thin", color: { rgb: "CCCCCC" } },
-              left: { style: "thin", color: { rgb: "CCCCCC" } },
-              right: { style: "thin", color: { rgb: "CCCCCC" } },
-            },
-          };
-          if (col >= 0 && typeof worksheet[cellAddress].v === "number") {
-            worksheet[cellAddress].s.alignment = { horizontal: "right" };
-            worksheet[cellAddress].s.numFmt = "#,##0.00";
-          }
-        }
-      }
-
-      // Adjust cell styles for timestamp row
-      const timestampCell = worksheet['A1'];
-      if (timestampCell) {
-        timestampCell.s = {
-          font: { bold: true, color: { rgb: "000000" }, sz: 12 },
-          alignment: { horizontal: "left" }
-        };
-      }
-
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Bills Report");
-      const excelBuffer = XLSX.write(workbook, {
-        bookType: "xlsx",
-        type: "array",
-      });
-      const blob = new Blob([excelBuffer], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
-      const url = URL.createObjectURL(blob);
-      const now1 = new Date();
-      const filename = `${now1.getDate().toString().padStart(2, '0')}${(now1.getMonth() + 1).toString().padStart(2, '0')}${now1.getFullYear().toString().slice(-2)}_${now1.getHours().toString().padStart(2, '0')}${now1.getMinutes().toString().padStart(2, '0')}${now1.getSeconds().toString().padStart(2, '0')}.xlsx`;
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", filename); // Changed from "BillsReport.xlsx" to dynamic filename
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      toast.success("Report downloaded successfully");
-    } catch (error) {
-      console.error("Error downloading the report:", error);
-      toast.error(
-        "Failed to download report: " + (error.message || "Unknown error")
-      );
     }
   };
 
@@ -927,17 +759,25 @@ const Dashboard = () => {
                       </button>
                     </div>
 
-                    <div className="text-sm text-gray-600">
-                      Showing{" "}
-                      {filteredData.length
-                        ? (currentPage - 1) * itemsPerPage + 1
-                        : 0}{" "}
-                      to{" "}
-                      {Math.min(
-                        currentPage * itemsPerPage,
-                        filteredData.length
-                      )}{" "}
-                      of {filteredData.length} entries
+                    <div className="flex items-center text-sm text-gray-600">
+                      <div>
+                        Showing {filteredData.length ? (currentPage - 1) * itemsPerPage + 1 : 0} to{" "}
+                        {Math.min(currentPage * itemsPerPage, totalFilteredItems)} entries
+                        <span className="ml-2">
+                          <span className="text-gray-400">|</span>
+                          <span className="ml-2">
+                            Total: <span className="font-medium">{billsData.length}</span>
+                          </span>
+                          {totalFilteredItems !== billsData.length && (
+                            <>
+                              <span className="text-gray-400 mx-2">|</span>
+                              <span className="text-blue-600">
+                                Filtered: <span className="font-medium">{totalFilteredItems}</span>
+                              </span>
+                            </>
+                          )}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
