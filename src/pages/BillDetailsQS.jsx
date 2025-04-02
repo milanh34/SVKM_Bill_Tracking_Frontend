@@ -82,7 +82,6 @@ const BillDetailsQS = () => {
           'proformaInvRecdDate',
           'taxInvRecdBy',
           'department', 
-          'panStatus'
         ];
         
         const missingFields = requiredFields.filter(field => !billFormData[field]);
@@ -242,7 +241,7 @@ const BillDetailsQS = () => {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label" htmlFor="panStatus">PAN Status *</label>
+                                <label className="form-label" htmlFor="panStatus">PAN Status</label>
                                 <select id="panStatus" className='form-select' value={BillDetails.panStatus} onChange={handleChange}>
                                     <option value="" selected disabled hidden>Select PAN Status</option>
                                     <option value={BillDetails.panStatus} >PAN operative/N.A</option>

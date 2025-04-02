@@ -73,6 +73,42 @@ const BillDetailsSISO = () => {
         dateInputRef.current.focus();
     };
 
+    const handleSubmitForm = () => {
+        const requiredFields = [
+            'invoiceType',
+            'region',
+            'projectDesc',
+            'vendorName',
+            'vendorNo',
+            'poCreated',
+            'proformaInvRecdDate',
+            'taxInvRecdBy',
+            'department',
+        ];
+
+        const missingFields = requiredFields.filter(field => !billFormData[field]);
+
+        if (missingFields.length > 0) {
+            alert(`Please fill in the following required fields: ${missingFields.join(', ')}`);
+            return;
+        }
+
+        fetch(bills, {
+            method: "POST",
+            headers: {
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify(billFormData)
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                console.log(data);
+            })
+            .catch((error) => {
+                console.error("Error submitting form:", error);
+            });
+    }
+
     return (
         <div className='outer'>
 
@@ -88,7 +124,7 @@ const BillDetailsSISO = () => {
 
                         <div className="form-row">
                             <div className="form-group">
-                                <label className="form-label" htmlFor="invoiceType">Type of Invoice</label>
+                                <label className="form-label" htmlFor="invoiceType">Type of Invoice *</label>
                                 {/* <input
                                 type="text"
                                 className="form-control"
@@ -98,7 +134,7 @@ const BillDetailsSISO = () => {
                                 required
                             /> */}
                                 <select id="invoiceType" className='form-select' value={BillDetails.invoiceType} onChange={handleChange}>
-                                <option value="" selected disabled hidden>Select Invoice Type</option>
+                                    <option value="" selected disabled hidden>Select Invoice Type</option>
                                     <option value={BillDetails.invoiceType} >Proforma Invoice</option>
                                     <option value={BillDetails.invoiceType} >Credit Note</option>
                                     <option value={BillDetails.invoiceType} >Advance/LC/BG</option>
@@ -128,7 +164,7 @@ const BillDetailsSISO = () => {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label" htmlFor="region">Region</label>
+                                <label className="form-label" htmlFor="region">Region *</label>
                                 {/* <input
                                 type="text"
                                 className="form-control"
@@ -138,7 +174,7 @@ const BillDetailsSISO = () => {
                                 required
                             /> */}
                                 <select id="region" className='form-select' value={BillDetails.region} onChange={handleChange}>
-                                <option value="" selected disabled hidden>Select Region</option>
+                                    <option value="" selected disabled hidden>Select Region</option>
                                     <option value={BillDetails.region} >MUMBAI</option>
                                     <option value={BillDetails.region} >KHARGHAR</option>
                                     <option value={BillDetails.region} >AHMEDABAD</option>
@@ -160,7 +196,7 @@ const BillDetailsSISO = () => {
 
                         <div className="form-row">
                             <div className="form-group">
-                                <label className="form-label" htmlFor="projectDesc">Project Description</label>
+                                <label className="form-label" htmlFor="projectDesc">Project Description *</label>
                                 <input
                                     type="text"
                                     className="form-control bill-input"
@@ -186,7 +222,7 @@ const BillDetailsSISO = () => {
 
                         <div className="form-row">
                             <div className="form-group">
-                                <label className="form-label" htmlFor="vendorName">Vendor Name</label>
+                                <label className="form-label" htmlFor="vendorName">Vendor Name *</label>
                                 <input
                                     type="text"
                                     className="form-control bill-input"
@@ -198,7 +234,7 @@ const BillDetailsSISO = () => {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label" htmlFor="vendorNo">Vendor No</label>
+                                <label className="form-label" htmlFor="vendorNo">Vendor No *</label>
                                 <input
                                     type="number"
                                     className="form-control bill-input"
@@ -254,7 +290,7 @@ const BillDetailsSISO = () => {
                     <div className='form-section'>
 
                         <div className="form-group">
-                            <label className="form-label" htmlFor="poCreated">Is PO already Created?</label>
+                            <label className="form-label" htmlFor="poCreated">Is PO already Created? *</label>
                             {/* <input
             type="text"
             className="form-control"
@@ -348,7 +384,7 @@ const BillDetailsSISO = () => {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label" htmlFor="proformaInvRecdDate">Proforma Inv Recd at Site</label>
+                                <label className="form-label" htmlFor="proformaInvRecdDate">Proforma Inv Recd at Site *</label>
                                 <input
                                     type="date"
                                     className="form-control bill-input"
@@ -416,7 +452,7 @@ const BillDetailsSISO = () => {
                             required
                         /> */}
                             <select id="currency" className='form-select' value={BillDetails.currency} onChange={handleChange}>
-                            <option value="" selected disabled hidden>Select Currency</option>
+                                <option value="" selected disabled hidden>Select Currency</option>
                                 <option value={BillDetails.currency} >INR</option>
                                 <option value={BillDetails.currency} >USD</option>
                                 <option value={BillDetails.currency} >RMB</option>
@@ -437,7 +473,7 @@ const BillDetailsSISO = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label" htmlFor="taxInvRecdBy">Tax Inv Received By</label>
+                            <label className="form-label" htmlFor="taxInvRecdBy">Tax Inv Received By *</label>
                             <input
                                 type="text"
                                 className="form-control bill-input"
@@ -449,7 +485,7 @@ const BillDetailsSISO = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label" htmlFor="department">Department</label>
+                            <label className="form-label" htmlFor="department">Department *</label>
                             <input
                                 type="text"
                                 className="form-control bill-input"
@@ -776,7 +812,7 @@ const BillDetailsSISO = () => {
                 </div>
 
 
-                <button className="submit-button" type="submit">Submit</button>
+                <button className="submit-button" type="submit" onClick={handleSubmitForm}>Submit</button>
 
             </div>
 
