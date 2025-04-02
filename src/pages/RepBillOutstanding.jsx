@@ -230,7 +230,7 @@ const RepBillOutstanding = () => {
                                                 onChange={() => handleSelectRow(bill._id)}
                                             />
                                         </td> */}
-                                        <td className='table-td'>{index + 1}</td>
+                                        <td className='table-td'>{bill.srNo}</td>
                                         <td className='table-td'>{bill.region}</td>
                                         <td className='table-td'>{bill.vendorNo}</td>
                                         <td className='table-td'>{bill.vendorName}</td>

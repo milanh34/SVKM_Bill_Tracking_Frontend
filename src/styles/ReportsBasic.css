@@ -204,9 +204,14 @@
 
 .invoice-table td {
   border: 1px solid #000000;
-  font-weight: 300;
+  /* font-weight: 300; */
   font-size: 14px;
   text-align: left;
+}
+
+.table-td {
+  font-weight: 300;
+  border: 1px solid #000000;
 }
 
 /* .invoice-table tr:nth-child(even) td {

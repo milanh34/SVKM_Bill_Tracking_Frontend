@@ -85,30 +85,6 @@ const RepBillOutstandingSubtotal = () => {
                     vendorCount: bills.length
                 }));
 
-                // Calculate the total of subtotals, cop amounts and vendor counts
-                // const totals = processedData.reduce((acc, data) => {
-                //     // Parse the string-formatted numbers back to integers
-                //     const subtotal = parseFloat(data.subtotal.replace(/,/g, ''));
-                //     const subtotalCopAmt = parseFloat(data.subtotalCopAmt.replace(/,/g, ''));
-
-                //     console.log(acc)
-                //     // Accumulate totals
-                //     acc.totalSubtotal += subtotal;
-                //     acc.totalSubtotalCopAmt += subtotalCopAmt;
-                //     acc.totalVendorCount += data.vendorCount;
-                //     console.log(acc)
-
-                //     return acc;
-                // }, {
-                //     totalSubtotal: 0,
-                //     totalSubtotalCopAmt: 0,
-                //     totalVendorCount: 0
-                // });
-
-                // // Format the totals as needed
-                // totals.totalSubtotal = totals.totalSubtotal.toLocaleString('en-IN');
-                // totals.totalSubtotalCopAmt = totals.totalSubtotalCopAmt.toLocaleString('en-IN');
-
                 setBillsData(processedData);
 
                 const totals = processedData.reduce(
@@ -133,8 +109,8 @@ const RepBillOutstandingSubtotal = () => {
                 });
 
 
-                console.log("total Subtotal: " + totals.totalSubtotal);
-
+                // console.log("total Subtotal: " + totals.totalSubtotal);
+                console.log(processedData);
 
 
             } catch (error) {
@@ -322,10 +298,11 @@ const RepBillOutstandingSubtotal = () => {
                                         ))}
                                         <tr>
                                             <td colSpan={2} className='subtotal subtotal-empty'></td>
-                                            <td className='subtotal subtotal-text'>Count: {group.vendorCount.toLocaleString('en-IN')}</td>
-                                            <td colSpan={3}></td>
-                                            <td className='subtotal subtotal-text'>Total: {group.subtotal.toLocaleString('en-IN')}</td>
-                                            <td className='subtotal subtotal-text'>Total: {group.subtotalCopAmt.toLocaleString('en-IN')}</td>
+                                            <td className='subtotal subtotal-text'><strong>Count: {group.vendorCount.toLocaleString('en-IN')}</strong></td>
+                                            <td className='subtotal subtotal-text'><strong>{group.billdets[0].vendorName}</strong></td>
+                                            <td colSpan={2}></td>
+                                            <td className='subtotal subtotal-text'><strong>Total: {group.subtotal.toLocaleString('en-IN')}</strong></td>
+                                            <td className='subtotal subtotal-text'><strong>Total: {group.subtotalCopAmt.toLocaleString('en-IN')}</strong></td>
                                             {/* <td className='subtotal subtotal-num'>{group.subtotal}</td> */}
                                             <td colSpan={1}></td>
                                         </tr>
@@ -333,10 +310,10 @@ const RepBillOutstandingSubtotal = () => {
                                 ))}
                                 <tr className='grand-subtotal'>
                                     <td colSpan={2} className='subtotal subtotal-empty'></td>
-                                    <td>Total Count: {totals.totalVendorCount.toLocaleString('en-IN')}</td>
+                                    <td><strong>Total Count: {totals.totalVendorCount.toLocaleString('en-IN')}</strong></td>
                                     <td colSpan={3}></td>
-                                    <td className='subtotal subtotal-text'>Grand Total: {totals.totalSubtotal.toLocaleString('en-IN')}</td>
-                                    <td className='subtotal subtotal-text'>Grand Total: {totals.totalSubtotalCopAmt.toLocaleString('en-IN')}</td>
+                                    <td className='subtotal subtotal-text'><strong>Grand Total: {totals.totalSubtotal.toLocaleString('en-IN')}</strong></td>
+                                    <td className='subtotal subtotal-text'><strong>Grand Total: {totals.totalSubtotalCopAmt.toLocaleString('en-IN')}</strong></td>
                                     <td colSpan={1}></td>
                                 </tr>
                             </tbody>

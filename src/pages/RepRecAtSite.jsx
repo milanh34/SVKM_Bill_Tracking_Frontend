@@ -232,7 +232,7 @@ const RepRecAtSite = () => {
                                                     onChange={() => handleSelectRow(bill._id)}
                                                 />
                                             </td> */}
-                                            <td className='table-td'>{index + 1}</td>
+                                            <td className='table-td'>{bill.srNo}</td>
                                             <td className='table-td'>{bill.projectDesc}</td>
                                             <td className='table-td'>{bill.vendorName}</td>
                                             <td className='table-td'>{bill.taxInvNo}</td>
