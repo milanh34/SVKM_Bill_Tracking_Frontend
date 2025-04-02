@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import '../styles/BillDetails.css'
 import Header from '../components/Header';
 import BillDetails from './BillDetails';
+import { bills } from '../apis/bills.api';
 
 const BillDetailsSISO = () => {
 
