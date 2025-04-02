@@ -72,18 +72,41 @@ const BillDetailsQS = () => {
     };
 
     const handleSubmitForm = () => {
+        const requiredFields = [
+          'invoiceType',
+          'region',
+          'projectDesc',
+          'vendorName',
+          'vendorNo',
+          'poCreated',
+          'proformaInvRecdDate',
+          'taxInvRecdBy',
+          'department', 
+          'panStatus'
+        ];
+        
+        const missingFields = requiredFields.filter(field => !billFormData[field]);
+        
+        if (missingFields.length > 0) {
+          alert(`Please fill in the following required fields: ${missingFields.join(', ')}`);
+          return;
+        }
+        
         fetch(bills, {
-            method: "POST",
-            headers: {
-                'content-type': 'application/json'
-            },
-            body: JSON.stringify(billFormData)
+          method: "POST",
+          headers: {
+            'content-type': 'application/json'
+          },
+          body: JSON.stringify(billFormData)
         })
-            .then((res) => res.json())
-            .then((data) => {
-                console.log(data);
-            })
-    }
+          .then((res) => res.json())
+          .then((data) => {
+            console.log(data);
+          })
+          .catch((error) => {
+            console.error("Error submitting form:", error);
+          });
+      }
 
     return (
         <div className='outer'>
@@ -100,16 +123,8 @@ const BillDetailsQS = () => {
 
                         <div className="form-row">
                             <div className="form-group">
-                                <label className="form-label" htmlFor="invoiceType">Type of Invoice</label>
-                                {/* <input
-                                type="text"
-                                className="form-control bill-input"
-                                id="invoiceType"
-                                value={billFormData.invoiceType}
-                                onChange={handleChange}
-                                required
-                            /> */}
-                                <select id="invoiceType" className='form-select' value={BillDetails.invoiceType} onChange={handleChange}>
+                                <label className="form-label" htmlFor="invoiceType">Type of Invoice *</label>
+                                <select id="invoiceType" className='form-select' value={BillDetails.invoiceType} onChange={handleChange} required>
                                     <option value="" selected disabled hidden>Select Invoice Type</option>
                                     <option value={BillDetails.invoiceType} >Proforma Invoice</option>
                                     <option value={BillDetails.invoiceType} >Credit Note</option>
@@ -140,16 +155,8 @@ const BillDetailsQS = () => {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label" htmlFor="region">Region</label>
-                                {/* <input
-                                type="text"
-                                className="form-control bill-input"
-                                id="region"
-                                value={billFormData.region}
-                                onChange={handleChange}
-                                required
-                            /> */}
-                                <select id="region" className='form-select' value={BillDetails.region} onChange={handleChange}>
+                                <label className="form-label" htmlFor="region">Region *</label>
+                                <select id="region" className='form-select' value={BillDetails.region} onChange={handleChange} required>
                                     <option value="" selected disabled hidden>Select Region</option>
                                     <option value={BillDetails.region} >MUMBAI</option>
                                     <option value={BillDetails.region} >KHARGHAR</option>
@@ -172,7 +179,7 @@ const BillDetailsQS = () => {
 
                         <div className="form-row">
                             <div className="form-group">
-                                <label className="form-label" htmlFor="projectDesc">Project Description</label>
+                                <label className="form-label" htmlFor="projectDesc">Project Description *</label>
                                 <input
                                     type="text"
                                     className="form-control bill-input"
@@ -191,14 +198,13 @@ const BillDetailsQS = () => {
                                     id="gstNo"
                                     value={billFormData.gstNo}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
                         </div>
 
                         <div className="form-row">
                             <div className="form-group">
-                                <label className="form-label" htmlFor="vendorName">Vendor Name</label>
+                                <label className="form-label" htmlFor="vendorName">Vendor Name *</label>
                                 <input
                                     type="text"
                                     className="form-control bill-input"
@@ -210,7 +216,7 @@ const BillDetailsQS = () => {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label" htmlFor="vendorNo">Vendor No</label>
+                                <label className="form-label" htmlFor="vendorNo">Vendor No *</label>
                                 <input
                                     type="number"
                                     className="form-control bill-input"
@@ -225,14 +231,6 @@ const BillDetailsQS = () => {
                         <div className="form-row">
                             <div className="form-group">
                                 <label className="form-label" htmlFor="compliance206">206AB Compliance</label>
-                                {/* <input
-                                type="text"
-                                className="form-control bill-input"
-                                id="compliance206"
-                                value={billFormData.compliance206}
-                                onChange={handleChange}
-                                required
-                            /> */}
                                 <select id="compliance206" className='form-select' value={BillDetails.compliance206} onChange={handleChange}>
                                     <option value="" selected disabled hidden>Select 206AB Compliance</option>
                                     <option value={BillDetails.compliance206} >206AB Check on Website</option>
@@ -244,15 +242,7 @@ const BillDetailsQS = () => {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label" htmlFor="panStatus">PAN Status</label>
-                                {/* <input
-                                type="text"
-                                className="form-control bill-input"
-                                id="panStatus"
-                                value={billFormData.panStatus}
-                                onChange={handleChange}
-                                required
-                            /> */}
+                                <label className="form-label" htmlFor="panStatus">PAN Status *</label>
                                 <select id="panStatus" className='form-select' value={BillDetails.panStatus} onChange={handleChange}>
                                     <option value="" selected disabled hidden>Select PAN Status</option>
                                     <option value={BillDetails.panStatus} >PAN operative/N.A</option>
@@ -266,18 +256,10 @@ const BillDetailsQS = () => {
                     <div className='form-section'>
 
                         <div className="form-group">
-                            <label className="form-label" htmlFor="poCreated">Is PO already Created?</label>
-                            {/* <input
-            type="text"
-            className="form-control bill-input"
-            id="poCreated"
-            value={billFormData.poCreated}
-            onChange={handleChange}
-            required
-          /> */}
-                            <select id="poCreated" className='form-select' value={BillDetails.poCreated}>
-                                <option value={BillDetails.poCreated} onChange={handleChange}>No</option>
-                                <option value={BillDetails.poCreated} onChange={handleChange}>Yes</option>
+                            <label className="form-label" htmlFor="poCreated">Is PO already Created? *</label>
+                            <select id="poCreated" className='form-select' value={BillDetails.poCreated} onChange={handleChange} required>
+                                <option value={BillDetails.poCreated}>No</option>
+                                <option value={BillDetails.poCreated}>Yes</option>
                             </select>
                         </div>
 
@@ -290,7 +272,6 @@ const BillDetailsQS = () => {
                                     id="poNo"
                                     value={billFormData.poNo}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
 
@@ -303,7 +284,6 @@ const BillDetailsQS = () => {
                                     value={billFormData.poDate}
                                     onChange={handleChange}
                                     onClick={handleInputClick}
-                                    required
                                 />
                             </div>
                         </div>
@@ -316,7 +296,6 @@ const BillDetailsQS = () => {
                                 id="poAmt"
                                 value={billFormData.poAmt}
                                 onChange={handleChange}
-                                required
                             />
                         </div>
 
@@ -329,7 +308,6 @@ const BillDetailsQS = () => {
                                     id="proformaInvNo"
                                     value={billFormData.proformaInvNo}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
 
@@ -341,7 +319,6 @@ const BillDetailsQS = () => {
                                     id="proformaInvDate"
                                     value={billFormData.proformaInvDate}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
                         </div>
@@ -355,12 +332,11 @@ const BillDetailsQS = () => {
                                     id="proformaInvAmt"
                                     value={billFormData.proformaInvAmt}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label" htmlFor="proformaInvRecdDate">Proforma Inv Recd at Site</label>
+                                <label className="form-label" htmlFor="proformaInvRecdDate">Proforma Inv Recd at Site *</label>
                                 <input
                                     type="date"
                                     className="form-control bill-input"
@@ -385,7 +361,6 @@ const BillDetailsQS = () => {
                                     id="taxInvNo"
                                     value={billFormData.taxInvNo}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
 
@@ -397,7 +372,6 @@ const BillDetailsQS = () => {
                                     id="taxInvDate"
                                     value={billFormData.taxInvDate}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
                         </div>
@@ -413,20 +387,11 @@ const BillDetailsQS = () => {
                                 id="billImg"
                                 value={billFormData.billImg}
                                 onChange={handleChange}
-                                required
                             />
                         </div>
 
                         <div className="form-group">
                             <label className="form-label" htmlFor="currency">Currency</label>
-                            {/* <input
-                            type="text"
-                            className="form-control bill-input"
-                            id="currency"
-                            value={billFormData.currency}
-                            onChange={handleChange}
-                            required
-                        /> */}
                             <select id="currency" className='form-select' value={BillDetails.currency} onChange={handleChange}>
                                 <option value="" selected disabled hidden>Select Currency</option>
                                 <option value={BillDetails.currency} >INR</option>
@@ -444,12 +409,11 @@ const BillDetailsQS = () => {
                                 id="taxInvAmt"
                                 value={billFormData.taxInvAmt}
                                 onChange={handleChange}
-                                required
                             />
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label" htmlFor="taxInvRecdBy">Tax Inv Received By</label>
+                            <label className="form-label" htmlFor="taxInvRecdBy">Tax Inv Received By *</label>
                             <input
                                 type="text"
                                 className="form-control bill-input"
@@ -461,7 +425,7 @@ const BillDetailsQS = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label" htmlFor="department">Department</label>
+                            <label className="form-label" htmlFor="department">Department *</label>
                             <input
                                 type="text"
                                 className="form-control bill-input"
@@ -480,28 +444,10 @@ const BillDetailsQS = () => {
                                 id="remarksSiteTeam"
                                 value={billFormData.remarksSiteTeam}
                                 onChange={handleChange}
-                                required
                             />
                         </div>
 
                     </div>
-
-                    {/* <div className="form-section">
-                        <div className="upload-container-small">
-                            <div className="upload-content">
-                                <p className="upload-text">Upload image of the bill</p>
-                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='50' height='50'%3E%3Crect x='2' y='2' width='20' height='20' fill='none' stroke='%23ccc' stroke-width='2' rx='2'/%3E%3Cpath fill='%23ccc' d='M4 18 L8 12 L12 15 L18 8 L20 10 L20 18 L4 18'/%3E%3Ccircle cx='16' cy='8' r='2' fill='%23ccc'/%3E%3C/svg%3E" alt="Image placeholder" className='upload-icon' />
-                            </div>
-                            <input
-                                type="file"
-                                className='form-control form-control-input'
-                                id="billImg"
-                                value={billFormData.billImg}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-                    </div> */}
                 </div>
 
                 <div className="more-details-section">
@@ -519,7 +465,6 @@ const BillDetailsQS = () => {
                                     id="advDate"
                                     value={billFormData.advDate}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
 
@@ -531,7 +476,6 @@ const BillDetailsQS = () => {
                                     id="advAmt"
                                     value={billFormData.advAmt}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
 
@@ -543,7 +487,6 @@ const BillDetailsQS = () => {
                                     id="advPercent"
                                     value={billFormData.advPrecent}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
 
@@ -555,7 +498,6 @@ const BillDetailsQS = () => {
                                     id="advReqEnteredBy"
                                     value={billFormData.advReqEnteredBy}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
 
@@ -576,7 +518,6 @@ const BillDetailsQS = () => {
                                     id="checkingDate"
                                     value={billFormData.checkingDate}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
 
@@ -588,7 +529,6 @@ const BillDetailsQS = () => {
                                     id="dateGivenToQS"
                                     value={billFormData.dateGivenToQS}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
 
@@ -600,7 +540,6 @@ const BillDetailsQS = () => {
                                     id="qsName"
                                     value={billFormData.qsName}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
 
@@ -612,7 +551,6 @@ const BillDetailsQS = () => {
                                     id="dateGivenToQSforCOP"
                                     value={billFormData.dateGivenToQSforCOP}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
 
@@ -624,7 +562,6 @@ const BillDetailsQS = () => {
                                     id="copDate"
                                     value={billFormData.copDate}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
 
@@ -636,7 +573,6 @@ const BillDetailsQS = () => {
                                     id="copAmt"
                                     value={billFormData.copAmt}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
 
@@ -648,7 +584,6 @@ const BillDetailsQS = () => {
                                     id="remarksQsTeam"
                                     value={billFormData.remarksQsTeam}
                                     onChange={handleChange}
-                                    required
                                 />
                             </div>
 
@@ -669,7 +604,6 @@ const BillDetailsQS = () => {
                             value={billFormData.dateGivenToQSMum}
                             onChange={handleChange}
                             style={{ width: "25%" }}
-                            required
                         />
                     </div>
 
@@ -681,7 +615,6 @@ const BillDetailsQS = () => {
                             id="nameQS"
                             value={billFormData.nameQS}
                             onChange={handleChange}
-                            required
                         />
                     </div>
 
@@ -694,7 +627,6 @@ const BillDetailsQS = () => {
                             value={billFormData.dateGivenToPIMOmum}
                             onChange={handleChange}
                             style={{ width: "25%" }}
-                            required
                         />
                     </div>
 
@@ -706,14 +638,13 @@ const BillDetailsQS = () => {
                             id="pimoName"
                             value={billFormData.pimoName}
                             onChange={handleChange}
-                            required
                         />
                     </div>
 
                 </div>
 
 
-                <button className="submit-button" type="submit" onClick={handleSubmitForm} >Submit</button>
+                <button className="submit-button" type="submit" onClick={handleSubmitForm}>Submit</button>
 
             </div>
 
