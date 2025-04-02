@@ -208,6 +208,14 @@ const RepBillOutstanding = () => {
                         <table className='invoice-table'>
                             <thead>
                                 <tr>
+                                    <th>
+                                        {/* <label htmlFor="selectAll">Select All</label> */}
+                                        <input
+                                            type="checkbox"
+                                            onChange={handleSelectAll}
+                                            checked={selectedRows.length === billsData.flatMap(group => group.billdets).length}
+                                        />
+                                    </th>
                                     {/* <th className="invoices-table-checkbox"></th> */}
                                     <th className='table-th'>Sr No</th>
                                     <th className='table-th'>Region</th>
@@ -216,20 +224,20 @@ const RepBillOutstanding = () => {
                                     <th className='table-th'>Tax Inv no</th>
                                     <th className='table-th'>Tax Inv Date</th>
                                     <th className='table-th'>Tax Inv Amt</th>
-                                    <th className='table-th'>Dt Tax Inv recd at Site</th>
+                                    <th className='table-th'>Dt Tax Inv recd at Accounts</th>
                                     <th className='table-th'>Nature of Work</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredData.map((bill, index) => (
                                     <tr key={bill._id}>
-                                        {/* <td className="invoices-table-checkbox">
+                                        <td className="invoices-table-checkbox">
                                             <input
                                                 type="checkbox"
                                                 checked={selectedRows.includes(bill._id)}
                                                 onChange={() => handleSelectRow(bill._id)}
                                             />
-                                        </td> */}
+                                        </td>
                                         <td className='table-td'>{bill.srNo}</td>
                                         <td className='table-td'>{bill.region}</td>
                                         <td className='table-td'>{bill.vendorNo}</td>
