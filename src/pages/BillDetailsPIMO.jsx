@@ -100,15 +100,36 @@ const BillDetailsPIMO = () => {
     };
 
     const handleSubmitForm = () => {
-        billFormData.natureOfWork = billFormData.invoiceType || '';
-        billFormData.amount = billFormData.paymentAmount || '';
-        billFormData.billDate = billFormData.taxInvDate || Date.now().toString();
-        billFormData.compliance206AB = billFormData.compliance206 || '';
-        billFormData.gstNumber = billFormData.gstNo || '';
-        billFormData.vendor = null;
-        billFormData.projectDescription = billFormData.projectDesc || '';
-        billFormData.typeOfInv = billFormData.invoiceType || '';
-        billFormData.paid = billFormData.status || '';
+        // billFormData.natureOfWork = billFormData.invoiceType || '';
+        // billFormData.amount = billFormData.paymentAmount || '';
+        // billFormData.billDate = billFormData.taxInvDate || Date.now().toString();
+        // billFormData.compliance206AB = billFormData.compliance206 || '';
+        // billFormData.gstNumber = billFormData.gstNo || '';
+        // billFormData.vendor = null;
+        // billFormData.projectDescription = billFormData.projectDesc || '';
+        // billFormData.typeOfInv = billFormData.invoiceType || '';
+        // billFormData.paid = billFormData.status || '';
+
+        const requiredFields = [
+            'invoiceType',
+            'region',
+            'projectDesc',
+            'vendorName',
+            'vendorNo',
+            'poCreated',
+            'proformaInvRecdDate',
+            'taxInvRecdBy',
+            'department',
+            'status'
+        ];
+
+        const missingFields = requiredFields.filter(field => !billFormData[field]);
+
+        if (missingFields.length > 0) {
+            alert(`Please fill in the following required fields: ${missingFields.join(', ')}`);
+            return;
+        }
+
         fetch(bills, {
             method: "POST",
             headers: {
@@ -137,7 +158,7 @@ const BillDetailsPIMO = () => {
 
                         <div className="form-row">
                             <div className="form-group">
-                                <label className="form-label" htmlFor="invoiceType">Type of Invoice</label>
+                                <label className="form-label" htmlFor="invoiceType">Type of Invoice *</label>
                                 {/* <input
                                 type="text"
                                 className="form-control bill-input"
@@ -147,7 +168,7 @@ const BillDetailsPIMO = () => {
                                 required
                             /> */}
                                 <select id="invoiceType" className='form-select' value={BillDetails.invoiceType} onChange={handleChange}>
-                                <option value="" selected disabled hidden>Select Invoice Type</option>
+                                    <option value="" selected disabled hidden>Select Invoice Type</option>
                                     <option value={BillDetails.invoiceType} >Proforma Invoice</option>
                                     <option value={BillDetails.invoiceType} >Credit Note</option>
                                     <option value={BillDetails.invoiceType} >Advance/LC/BG</option>
@@ -177,7 +198,7 @@ const BillDetailsPIMO = () => {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label" htmlFor="region">Region</label>
+                                <label className="form-label" htmlFor="region">Region *</label>
                                 {/* <input
                                 type="text"
                                 className="form-control bill-input"
@@ -187,7 +208,7 @@ const BillDetailsPIMO = () => {
                                 required
                             /> */}
                                 <select id="region" className='form-select' value={BillDetails.region} onChange={handleChange}>
-                                <option value="" selected disabled hidden>Select Region</option>
+                                    <option value="" selected disabled hidden>Select Region</option>
                                     <option value={BillDetails.region} >MUMBAI</option>
                                     <option value={BillDetails.region} >KHARGHAR</option>
                                     <option value={BillDetails.region} >AHMEDABAD</option>
@@ -209,7 +230,7 @@ const BillDetailsPIMO = () => {
 
                         <div className="form-row">
                             <div className="form-group">
-                                <label className="form-label" htmlFor="projectDesc">Project Description</label>
+                                <label className="form-label" htmlFor="projectDesc">Project Description *</label>
                                 <input
                                     type="text"
                                     className="form-control bill-input"
@@ -235,7 +256,7 @@ const BillDetailsPIMO = () => {
 
                         <div className="form-row">
                             <div className="form-group">
-                                <label className="form-label" htmlFor="vendorName">Vendor Name</label>
+                                <label className="form-label" htmlFor="vendorName">Vendor Name *</label>
                                 <input
                                     type="text"
                                     className="form-control bill-input"
@@ -247,7 +268,7 @@ const BillDetailsPIMO = () => {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label" htmlFor="vendorNo">Vendor No</label>
+                                <label className="form-label" htmlFor="vendorNo">Vendor No *</label>
                                 <input
                                     type="number"
                                     className="form-control bill-input"
@@ -303,7 +324,7 @@ const BillDetailsPIMO = () => {
                     <div className='form-section'>
 
                         <div className="form-group">
-                            <label className="form-label" htmlFor="poCreated">Is PO already Created?</label>
+                            <label className="form-label" htmlFor="poCreated">Is PO already Created? *</label>
                             {/* <input
             type="text"
             className="form-control bill-input"
@@ -398,7 +419,7 @@ const BillDetailsPIMO = () => {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label" htmlFor="proformaInvRecdDate">Proforma Inv Recd at Site</label>
+                                <label className="form-label" htmlFor="proformaInvRecdDate">Proforma Inv Recd at Site *</label>
                                 <input
                                     type="date"
                                     className="form-control bill-input"
@@ -466,7 +487,7 @@ const BillDetailsPIMO = () => {
                             required
                         /> */}
                             <select id="currency" className='form-select' value={BillDetails.currency} onChange={handleChange}>
-                            <option value="" selected disabled hidden>Select Currency</option>
+                                <option value="" selected disabled hidden>Select Currency</option>
                                 <option value={BillDetails.currency} >INR</option>
                                 <option value={BillDetails.currency} >USD</option>
                                 <option value={BillDetails.currency} >RMB</option>
@@ -487,7 +508,7 @@ const BillDetailsPIMO = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label" htmlFor="taxInvRecdBy">Tax Inv Received By</label>
+                            <label className="form-label" htmlFor="taxInvRecdBy">Tax Inv Received By *</label>
                             <input
                                 type="text"
                                 className="form-control bill-input"
@@ -499,7 +520,7 @@ const BillDetailsPIMO = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label" htmlFor="department">Department</label>
+                            <label className="form-label" htmlFor="department">Department *</label>
                             <input
                                 type="text"
                                 className="form-control bill-input"
@@ -1097,7 +1118,7 @@ const BillDetailsPIMO = () => {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label" htmlFor="status">Status</label>
+                                <label className="form-label" htmlFor="status">Status *</label>
                                 <input
                                     type="text"
                                     className="form-control bill-input"
