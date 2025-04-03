@@ -53,6 +53,12 @@ const Dashboard = () => {
 
   const navigate = useNavigate();
 
+  console.log(selectedRows);
+
+  const handleChecklist = () => {
+    navigate('/checklist-bill-list', { state: { selectedRows } });
+  }
+
   const roles = [
     { value: "site_officer", label: "Site Officer" },
     { value: "qs_site", label: "QS Team" },
@@ -546,7 +552,7 @@ const Dashboard = () => {
                   }}
                 >
                   <CheckSquare className="w-4 h-4" />
-                  <span>Checklist</span>
+                  <span onClick={handleChecklist}>Checklist</span>
                 </button>
 {/* 
                 <button

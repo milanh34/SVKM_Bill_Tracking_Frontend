@@ -28,6 +28,7 @@ import ReportsPending from './pages/ReportsPending'
 import BillJourney from './pages/BillJourney'
 import ReportsEmpty from './pages/ReportsEmpty'
 import CreateBill from './pages/CreateBill'
+import ChecklistBillList from "./pages/ChecklistBillList";
 
 function App() {
   return (
@@ -62,6 +63,7 @@ function App() {
         <Route path='/billpimo' element={<BillDetailsPIMO />}/>
         <Route path='/reportsbilljourney' element={<BillJourney />}/>
         <Route path='/checklist' element={<Checklist />} />
+        <Route path='/checklist-bill-list' element={<ChecklistBillList />} />
         <Route path='/create-bill' element={<CreateBill />} />
         <Route path="/paidbills" element={<PaidBills />} />
         <Route path="/profile" element={<Profile />} />

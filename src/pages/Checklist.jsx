@@ -2,8 +2,16 @@ import { useState } from "react";
 import "../styles/AdvancedChecklist.css";
 import Header from "../components/Header";
 import pen from "../assets/pen.svg";
+import { useLocation } from "react-router-dom";
 
 const Checklist = () => {
+
+    const location = useLocation();
+
+    const billForChecklist = location.state?.item || "hello";
+
+    console.log("checklist me aya hua bill", billForChecklist);
+
     const [formData, setFormData] = useState({
         sapCode: "",
         natureOfAdvance: "",
@@ -41,6 +49,7 @@ const Checklist = () => {
     return (
         <div style={{ width: '100%' }}>
             <Header />
+            <h1>{billForChecklist}</h1>
             <div className="checklist-container">
                 <div className="checklist-header">
                     <h1>Checklist</h1>
