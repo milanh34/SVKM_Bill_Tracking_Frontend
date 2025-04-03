@@ -1,9 +1,10 @@
-.container {
-  width: 100%;
+.invoice-table-page .container {
   padding: 20px;
   height: fit-content;
   background-color: rgba(240, 240, 240, 1);
   box-sizing: border-box;
+  overflow-x: hidden;
+  min-width: 100%;
 }
 
 .actions {
@@ -15,42 +16,6 @@
   align-items: center;
   background-color: rgba(240, 240, 240, 1);
   box-sizing: border-box;
-}
-
-.search-wrapper {
-  position: relative;
-  flex: 1;
-  min-width: 200px;
-  display: flex;
-  align-items: center;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  box-sizing: border-box;
-  padding: 0vh 1vw;
-}
-
-.search-input {
-  padding: 8px 8px 8px 10px;
-  border-radius: 4px;
-  width: 50%;
-}
-
-.search-input::placeholder {
-  color: gray;
-}
-
-.dropdown {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  min-width: 200px;
-}
-
-.filter-input {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  min-width: 200px;
 }
 
 .date-filters {
@@ -97,7 +62,8 @@
 }
 
 .invoice-table-container {
-  overflow-x: auto;
+  width: 100vw;
+  overflow-x: scroll;
   border: 1px solid #ffffff;
   border-radius: 4px;
 }
@@ -105,12 +71,12 @@
 .invoice-table-1 {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1200px;
+  min-width: 80vw;
 }
 
 .invoice-th,
 .invoice-td {
-  padding: 12px;
+  padding: 8px;
   text-align: left;
   border-bottom: 1px solid #ddd;
 }
@@ -132,12 +98,12 @@
   font-weight: 500;
 }
 
-.status-badge.active {
+.status-badge.accept {
   background-color: #e6f4ea;
   color: #1e7e34;
 }
 
-.status-badge.inactive {
+.status-badge.reject {
   background-color: #fce8e8;
   color: #dc3545;
 }

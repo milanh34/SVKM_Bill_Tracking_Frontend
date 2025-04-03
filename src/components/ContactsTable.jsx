@@ -1,109 +1,56 @@
 import "../styles/ContactTable.css";
 import updownarrow from "../assets/updownarrow.svg";
+import { useState } from "react";
 
 const ContactsTable = () => {
-  const contacts = [
-    {
-      name: "Karin",
-      email: "karin@gmail.com",
-      lastContacted: "Mon 9 Aug, 10:49 AM",
-      avatarUrl:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-13%20192752-u6wDAvPm7wcVrr3MlPl8WKybKq5d8f.png",
-      leadSource: "Online Store",
-      leadSourceColor: "yellow",
+  const [bills, setBills] = useState([{
+    id: 1,
+        srNo: 123,
+        projectDescription: 'hello',
+        vendorName: 'Milan',
+        taxInvAmt: 10890.00,
+        status: "accept"
     },
     {
-      name: "Shabrina",
-      email: "shabrina@gmail.com",
-      lastContacted: "Mon 9 Aug, 10:49 AM",
-      avatarUrl:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-13%20192752-u6wDAvPm7wcVrr3MlPl8WKybKq5d8f.png",
-      leadSource: "Online Store",
-      leadSourceColor: "red",
+        id: 1,
+        srNo: 123,
+        projectDescription: 'hello',
+        vendorName: 'Milan',
+        taxInvAmt: 10890.00,
+        status: "accept"
     },
     {
-      name: "Joel",
-      email: "joel@gmail.com",
-      lastContacted: "Mon 9 Aug, 10:49 AM",
-      avatarUrl:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-13%20192752-u6wDAvPm7wcVrr3MlPl8WKybKq5d8f.png",
-      leadSource: "Online Store",
-      leadSourceColor: "blue",
+        id: 1,
+        srNo: 123,
+        projectDescription: 'hello',
+        vendorName: 'Milan',
+        taxInvAmt: 10890.00,
+        status: "accept"
     },
     {
-      name: "Kevin",
-      email: "kevin@gmail.com",
-      lastContacted: "Mon 9 Aug, 10:49 AM",
-      avatarUrl:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-13%20192752-u6wDAvPm7wcVrr3MlPl8WKybKq5d8f.png",
-      leadSource: "Online Store",
-      leadSourceColor: "yellow",
+        id: 1,
+        srNo: 123,
+        projectDescription: 'hello',
+        vendorName: 'Milan',
+        taxInvAmt: 10890.00,
+        status: "accept"
     },
     {
-      name: "Kevin",
-      email: "kevin@gmail.com",
-      lastContacted: "Mon 9 Aug, 10:49 AM",
-      avatarUrl:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-13%20192752-u6wDAvPm7wcVrr3MlPl8WKybKq5d8f.png",
-      leadSource: "Online Store",
-      leadSourceColor: "yellow",
+        id: 1,
+        srNo: 123,
+        projectDescription: 'hello',
+        vendorName: 'Milan',
+        taxInvAmt: 10890.00,
+        status: "accept"
     },
     {
-      name: "Kevin",
-      email: "kevin@gmail.com",
-      lastContacted: "Mon 9 Aug, 10:49 AM",
-      avatarUrl:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-13%20192752-u6wDAvPm7wcVrr3MlPl8WKybKq5d8f.png",
-      leadSource: "Online Store",
-      leadSourceColor: "yellow",
-    },
-    {
-      name: "Kevin",
-      email: "kevin@gmail.com",
-      lastContacted: "Mon 9 Aug, 10:49 AM",
-      avatarUrl:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-13%20192752-u6wDAvPm7wcVrr3MlPl8WKybKq5d8f.png",
-      leadSource: "Online Store",
-      leadSourceColor: "yellow",
-    },
-    {
-      name: "Kevin",
-      email: "kevin@gmail.com",
-      lastContacted: "Mon 9 Aug, 10:49 AM",
-      avatarUrl:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-13%20192752-u6wDAvPm7wcVrr3MlPl8WKybKq5d8f.png",
-      leadSource: "Online Store",
-      leadSourceColor: "yellow",
-    },
-    {
-      name: "Kevin",
-      email: "kevin@gmail.com",
-      lastContacted: "Mon 9 Aug, 10:49 AM",
-      avatarUrl:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-13%20192752-u6wDAvPm7wcVrr3MlPl8WKybKq5d8f.png",
-      leadSource: "Online Store",
-      leadSourceColor: "yellow",
-    },
-    {
-      name: "Kevin",
-      email: "kevin@gmail.com",
-      lastContacted: "Mon 9 Aug, 10:49 AM",
-      avatarUrl:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-13%20192752-u6wDAvPm7wcVrr3MlPl8WKybKq5d8f.png",
-      leadSource: "Online Store",
-      leadSourceColor: "yellow",
-    },
-    {
-      name: "Kevin",
-      email: "kevin@gmail.com",
-      lastContacted: "Mon 9 Aug, 10:49 AM",
-      avatarUrl:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-13%20192752-u6wDAvPm7wcVrr3MlPl8WKybKq5d8f.png",
-      leadSource: "Online Store",
-      leadSourceColor: "yellow",
-    },
-    // Add more contacts as needed
-  ]
+        id: 1,
+        srNo: 123,
+        projectDescription: 'hello',
+        vendorName: 'Milan',
+        taxInvAmt: 10890.00,
+        status: "accept"
+    }]);
 
   return (
     <div className="contacts-table-container">
@@ -111,55 +58,41 @@ const ContactsTable = () => {
         <thead>
           <tr>
             <th>
-              CONTACT NAME
-              <img src={updownarrow}/>  
+              Bill No. 
             </th>
             <th>
-              LAST CONTACTED
-              <img src={updownarrow}/>  
+              Sr. No. 
             </th>
             <th>
-              COMPANY
-              <img src={updownarrow}/>  
+              Bill Description 
             </th>
             <th>
-              CONTACT
-              <img src={updownarrow}/>  
+              Vendor Name
             </th>
             <th>
-              LEAD SOURCE
-              <img src={updownarrow}/>  
+              Tax Invoice amount 
+            </th>
+            <th>
+              Status
             </th>
           </tr>
         </thead>
         <tbody>
-          {contacts.map((contact, index) => (
-            <tr key={index}>
-              <td>
-                <div className="contact-info">
-                  <img src={contact.avatarUrl || "/placeholder.svg"} alt={contact.name} className="avatar" />
-                  <div>
-                    <div className="contact-name">{contact.name}</div>
-                    <div className="contact-email">{contact.email}</div>
-                  </div>
-                </div>
-              </td>
-              <td>{contact.lastContacted}</td>
-              <td>
-                <div className="company">
-                  <img src="https://www.google.com/favicon.ico" alt="Google" className="company-logo" />
-                  Google
-                </div>
-              </td>
-              <td>
-                <a href={`mailto:${contact.email}`} className="contact-email-link">
-                  {contact.email}
-                </a>
-              </td>
-              <td>
-                <span className={`lead-source ${contact.leadSourceColor}`}>{contact.leadSource}</span>
-              </td>
-            </tr>
+          {bills.map((bill, index) => (
+            <tr className='invoice-tr' key={bill.id}>
+            <td className='invoice-td'>{bill.id}</td>
+            <td className='invoice-td'>{bill.srNo}</td>
+            <td className='invoice-td'>{bill.projectDescription}</td>
+            <td className='invoice-td'>{bill.vendorName}</td>
+            
+            <td className='invoice-td'>{bill.taxInvAmt.toFixed(2)}</td>
+
+            <td className='invoice-td'>
+                <span className={`status-badge ${bill.status.toLowerCase()}`}>
+                    {bill.status}
+                </span>
+            </td>
+        </tr>
           ))}
         </tbody>
       </table>

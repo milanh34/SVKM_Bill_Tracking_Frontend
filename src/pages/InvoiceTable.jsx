@@ -8,73 +8,55 @@ const InvoiceTable = () => {
     // const [searchQuery, setSearchQuery] = useState("");
     const[isWindowOpen, setIsWindowOpen] = useState(false);
 
-    const invoiceData = [
-        {
-            id: 1,
-            vendorNo: "834440",
-            projectDescription: "MPSTME 8th floor",
-            vendorName: "Inner Space",
-            taxInvoiceNo: "GST/0525/906",
-            taxInvoiceAmount: 42834.0,
-            taxInvoiceDate: "8,055.15",
-            poNo: "B000010484",
-            region: "Mumbai",
-            status: "Active",
-            remarks: "",
-        },
-        {
-            id: 1,
-            vendorNo: "834440",
-            projectDescription: "MPSTME 8th floor",
-            vendorName: "Inner Space",
-            taxInvoiceNo: "GST/0525/906",
-            taxInvoiceAmount: 42834.0,
-            taxInvoiceDate: "8,055.15",
-            poNo: "B000010484",
-            region: "Mumbai",
-            status: "Active",
-            remarks: "",
-        },
-        {
-            id: 1,
-            vendorNo: "834440",
-            projectDescription: "MPSTME 8th floor",
-            vendorName: "Inner Space",
-            taxInvoiceNo: "GST/0525/906",
-            taxInvoiceAmount: 42834.0,
-            taxInvoiceDate: "8,055.15",
-            poNo: "B000010484",
-            region: "Mumbai",
-            status: "Active",
-            remarks: "",
-        },
-        {
-            id: 1,
-            vendorNo: "834440",
-            projectDescription: "MPSTME 8th floor",
-            vendorName: "Inner Space",
-            taxInvoiceNo: "GST/0525/906",
-            taxInvoiceAmount: 42834.0,
-            taxInvoiceDate: "8,055.15",
-            poNo: "B000010484",
-            region: "Mumbai",
-            status: "inactive",
-            remarks: "",
-        },
-        {
-            id: 1,
-            vendorNo: "834440",
-            projectDescription: "MPSTME 8th floor",
-            vendorName: "Inner Space",
-            taxInvoiceNo: "GST/0525/906",
-            taxInvoiceAmount: 42834.0,
-            taxInvoiceDate: "8,055.15",
-            poNo: "B000010484",
-            region: "Mumbai",
-            status: "Active",
-            remarks: "",
-        },
-    ];
+    const invoiceData = [{
+        id: 1,
+        srNo: 123,
+        projectDescription: 'hello',
+        vendorName: 'Milan',
+        taxInvAmt: 10890.00,
+        status: "accept"
+    },
+    {
+        id: 1,
+        srNo: 123,
+        projectDescription: 'hello',
+        vendorName: 'Milan',
+        taxInvAmt: 10890.00,
+        status: "accept"
+    },
+    {
+        id: 1,
+        srNo: 123,
+        projectDescription: 'hello',
+        vendorName: 'Milan',
+        taxInvAmt: 10890.00,
+        status: "accept"
+    },
+    {
+        id: 1,
+        srNo: 123,
+        projectDescription: 'hello',
+        vendorName: 'Milan',
+        taxInvAmt: 10890.00,
+        status: "accept"
+    },
+    {
+        id: 1,
+        srNo: 123,
+        projectDescription: 'hello',
+        vendorName: 'Milan',
+        taxInvAmt: 10890.00,
+        status: "accept"
+    },
+    {
+        id: 1,
+        srNo: 123,
+        projectDescription: 'hello',
+        vendorName: 'Milan',
+        taxInvAmt: 10890.00,
+        status: "accept"
+    }
+];
 
     const openWindow = () =>{
         setIsWindowOpen(true);
@@ -85,7 +67,7 @@ const InvoiceTable = () => {
     }
 
     return (
-        <div>
+        <div className='invoice-table-page'>
             <Header />
 
             <div className="container">
@@ -124,37 +106,29 @@ const InvoiceTable = () => {
                     <table className='invoice-table-1'>
                         <thead>
                             <tr>
+                                <th className='invoice-th'>Bill. NO.</th>
                                 <th className='invoice-th'>SR. NO.</th>
-                                <th className='invoice-th'>VENDOR NO</th>
-                                <th className='invoice-th'>PROJECT DESCRIPTION</th>
+                                <th className='invoice-th'>BILL DESCRIPTION</th>
                                 <th className='invoice-th'>VENDOR NAME</th>
-                                <th className='invoice-th'>TAX INVOICE NO.</th>
                                 <th className='invoice-th'>TAX INVOICE AMOUNT</th>
-                                <th className='invoice-th'>TAX INVOICE RECEIVED AT SITE</th>
-                                <th className='invoice-th'>PO NO.</th>
-                                <th className='invoice-th'>REGION</th>
                                 <th className='invoice-th'>STATUS</th>
-                                <th className='invoice-th'>REMARKS</th>
                             </tr>
                         </thead>
                         <tbody>
                             {invoiceData.map((row) => (
                                 <tr className='invoice-tr' key={row.id}>
                                     <td className='invoice-td'>{row.id}</td>
-                                    <td className='invoice-td'>{row.vendorNo}</td>
+                                    <td className='invoice-td'>{row.srNo}</td>
                                     <td className='invoice-td'>{row.projectDescription}</td>
                                     <td className='invoice-td'>{row.vendorName}</td>
-                                    <td className='invoice-td'>{row.taxInvoiceNo}</td>
-                                    <td className='invoice-td'>{row.taxInvoiceAmount.toFixed(2)}</td>
-                                    <td className='invoice-td'>{row.taxInvoiceDate}</td>
-                                    <td className='invoice-td'>{row.poNo}</td>
-                                    <td className='invoice-td'>{row.region}</td>
+                                    
+                                    <td className='invoice-td'>{row.taxInvAmt.toFixed(2)}</td>
+                        
                                     <td className='invoice-td'>
                                         <span className={`status-badge ${row.status.toLowerCase()}`}>
                                             {row.status}
                                         </span>
                                     </td>
-                                    <td className='invoice-td'> <input readOnly /> </td>
                                 </tr>
                             ))}
                         </tbody>
