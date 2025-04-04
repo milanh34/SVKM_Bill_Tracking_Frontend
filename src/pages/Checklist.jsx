@@ -1,39 +1,43 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../styles/AdvancedChecklist.css";
 import Header from "../components/Header";
 import pen from "../assets/pen.svg";
 import { useLocation } from "react-router-dom";
+import { bills } from "../apis/bills.api";
 
 const Checklist = () => {
 
     const location = useLocation();
 
-    const billForChecklist = location.state?.item || "hello";
-
-    console.log("checklist me aya hua bill", billForChecklist);
+    const billID = location.state?.item || "hello";
 
     const [formData, setFormData] = useState({
-        sapCode: "",
+        sapCode: null,
+        vendorName: "",
         natureOfAdvance: "",
         recoverable: "Yes",
         qsCertification: "",
         bgDate: "",
         isContractor: "Yes",
         contractorName: "",
-        projectName: "ABCD Project",
-        region: "Mumbai",
+        projectName: "",
+        region: "",
         isPORaised: "No",
         poReason: "",
-        poNumber: "1930272833",
-        poDate: "23-01-2023",
-        poAmount: "25,00,000",
-        paymentTowards: "Material",
+        poNumber: "",
+        poDate: "",
+        poAmount: "",
+        paymentTowards: "",
         panStatus: "",
         compliance: "",
         amountINR: "",
     });
 
+    const [billData, setBillData] = useState({});
+
     const [isEditable, setIsEditable] = useState(false);
+
+    console.log(billData);
 
     const toggleEditMode = () => {
         setIsEditable(!isEditable);
@@ -46,20 +50,49 @@ const Checklist = () => {
         });
     };
 
+    const handleChangesInChecklist = (data) => {
+        setFormData((prev) => ({
+            ...prev,
+            sapCode: data.vendorNo ?? "",
+            vendorName: data.vendorName ?? "",
+            projectName: data.projectDescription ?? "",
+            region: data.region ?? "",
+            isPORaised: data.poCreated ?? "No",
+            poNumber: data.poNo ?? "",
+            poDate: data.poDate ? new Date(data.poDate).toISOString().split("T")[0] : "",
+            poAmount: data.poAmt ?? "",
+            panStatus: data.panStatus ?? "",
+            compliance: data.compliance206AB ?? "",
+            amountINR: data.amount ?? "",
+        }));
+    };
+
+    useEffect(() => {
+
+        fetch(`${bills}/${billID}`)
+            .then((res) => res.json())
+            .then((data) => {
+                // console.log(data);
+                setBillData(data);
+                handleChangesInChecklist(data);
+            })
+
+    }, []);
+
     return (
         <div style={{ width: '100%' }}>
             <Header />
-            <h1>{billForChecklist}</h1>
+            <h1>{billID}</h1>
             <div className="checklist-container">
                 <div className="checklist-header">
                     <h1>Checklist</h1>
                     <button
                         className="edit-button"
                         onClick={toggleEditMode}
-                        style={{ backgroundColor: isEditable ? "green": "#011A99", color: "white" }}
+                        style={{ backgroundColor: isEditable ? "green" : "#011A99", color: "white" }}
                     >
                         {isEditable ? "Save" : "Edit"}
-                        <img src={pen} style={{background:'transparent'}} alt="edit icon" />
+                        <img src={pen} style={{ background: 'transparent' }} alt="edit icon" />
                     </button>
 
                 </div>
@@ -81,7 +114,7 @@ const Checklist = () => {
                                 <td>
                                     <input
                                         type="text"
-                                        value={formData.sapCode}
+                                        value={formData.vendorName}
                                         readOnly={!isEditable}
                                         onChange={(e) => handleInputChange(e, 'sapCode')}
                                     />
