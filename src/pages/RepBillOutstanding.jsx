@@ -63,7 +63,7 @@ const RepBillOutstanding = () => {
         if (selectAll) {
             setSelectedRows([]);
         } else {
-            setSelectedRows(billsData.map(bill => bill._id));
+            setSelectedRows(filteredData.map(bill => bill._id));
         }
         setSelectAll(!selectAll);
     };
@@ -213,7 +213,7 @@ const RepBillOutstanding = () => {
                                         <input
                                             type="checkbox"
                                             onChange={handleSelectAll}
-                                            checked={selectedRows.length === billsData.flatMap(group => group.billdets).length}
+                                            checked={selectedRows.length === filteredData.flatMap(group => group.billdets).length && selectedRows.length !== 0}
                                         />
                                     </th>
                                     {/* <th className="invoices-table-checkbox"></th> */}
