@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { bills, report } from "../apis/bills.api";
+import { bills, report, getReport } from "../apis/bills.api";
 import Header from "../components/Header";
 import "../styles/ReportsBasic.css";
 import Filters from '../components/Filters';
@@ -38,25 +38,26 @@ const RepBillOutstandingSubtotal = () => {
     useEffect(() => {
         const fetchBills = async () => {
             try {
-                const response = await axios.get(bills);
-                const rawData = response.data.map(bill => ({
-                    _id: bill._id,
-                    srNo: bill.srNo || '',
-                    region: bill.region || '',
-                    vendorNo: bill.vendorNo || '',
-                    vendorName: bill.vendorName || '',
-                    taxInvNo: bill.taxInvNo || '',
-                    taxInvDate: bill.taxInvDate?.split('T')[0] || '',
-                    taxInvAmt: parseFloat(bill.taxInvAmt || 0),
-                    copAmount: bill.copDetails?.amount || 0,
-                    dtRecdAccts: bill.accountsDeptSubmission?.dateGivenToAccounts?.split('T')[0] || ''
+                const response = await axios.get(`${getReport}/outstanding-bills`);
+                const rawData = response.data.report.data.map(report => ({
+                    // _id: report._id,
+                    srNo: report.srNo || '',
+                    region: report.region || '',
+                    vendorNo: report.vendorNo || '',
+                    vendorName: report.vendorName || '',
+                    taxInvNo: report.taxInvNo || '',
+                    taxInvDate: report.taxInvDate || '',
+                    taxInvAmt: parseFloat(report.taxInvAmt || 0),
+                    copAmount: report.copAmt?.amount || 0,
+                    // dtRecdAccts: report.accountsDeptSubmission?.dateGivenToAccounts?.split('T')[0] || ''
+                    dtRecdAccts: report.dateRecdInAcctsDept || ''
                 }));
 
                 // Filter Data sccording to Data
                 const filteredData = rawData
-                    .filter(bill =>
+                    .filter(report =>
                         // Filter based on date range check (using the `isWithinDateRange` function)
-                        isWithinDateRange(bill.taxInvDate)
+                        isWithinDateRange(report.taxInvDate)
                     )
                     .sort((a, b) => {
                         // Sort by amount or date based on `sortBy` prop

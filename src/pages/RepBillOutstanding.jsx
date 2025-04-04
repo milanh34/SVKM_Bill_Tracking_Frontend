@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { bills, report } from "../apis/bills.api";
+import { bills, report, getReport } from "../apis/bills.api";
 import Header from "../components/Header";
 import "../styles/ReportsBasic.css";
 import FiltersOutstanding from '../components/FiltersOutstanding';
@@ -35,35 +35,37 @@ const RepBillOutstanding = () => {
     useEffect(() => {
         const fetchBills = async () => {
             try {
-                const response = await axios.get(bills);
-                console.log(response.data);
-                const filteredData = response.data.map(bill => ({
-                    _id: bill._id,
-                    srNo: bill.srNo || '',
-                    region: bill.region || '',
-                    vendorNo: bill.vendorNo || '',
-                    vendorName: bill.vendorName || '',
-                    taxInvNo: bill.taxInvNo || '',
-                    taxInvDate: bill.taxInvDate?.split('T')[0] || '',
-                    taxInvAmt: bill.taxInvAmt || '',
-                    dtTaxInvRecdAtSite: bill.taxInvRecdAtSite?.split('T')[0] || '',
-                    natureOfWork: bill.natureOfWork || ''
+                const response = await axios.get(`${getReport}/outstanding-bills?startDate=${fromDate}&endDate=${toDate}`);
+                console.log(response.data.report.data);
+                const filteredData = response?.data?.report.data.map(report => ({
+                    // _id: bill._id,
+                    copAmt: report.copAmt || '',
+                    srNo: report.srNo || '',
+                    region: report.region || '',
+                    vendorNo: report.vendorNo || '',
+                    vendorName: report.vendorName || '',
+                    taxInvNo: report.taxInvNo || '',
+                    taxInvDate: report.taxInvDate?.split('T')[0] || '',
+                    taxInvAmt: report.taxInvAmt || '',
+                    dtTaxInvRecdAtSite: report.dateRecdInAcctsDept?.split('T')[0] || '',
+                    natureOfWork: report.natureOfWorkSupply || ''
                 }));
                 setBillsData(filteredData);
             } catch (error) {
                 setError("Failed to load data");
+                console.error("Error = " + error);
             } finally {
                 setLoading(false);
             }
         };
         fetchBills();
-    }, []);
+    }, [fromDate, toDate]);
 
     const handleSelectAll = () => {
         if (selectAll) {
             setSelectedRows([]);
         } else {
-            setSelectedRows(filteredData.map(bill => bill._id));
+            setSelectedRows(billsData.map(bill => bill.srNo));
         }
         setSelectAll(!selectAll);
     };
@@ -80,7 +82,7 @@ const RepBillOutstanding = () => {
         let billIdsToDownload = [];
 
         if (selectedRows.length === 0) {
-            billIdsToDownload = filteredData.map(bill => bill._id); i
+            billIdsToDownload = billsData.map(bill => bill.srNo); i
 
             if (billIdsToDownload.length > 0) {
                 if (!window.confirm(`No bills selected. Download all ${billIdsToDownload.length} filtered bills?`)) {
@@ -131,25 +133,25 @@ const RepBillOutstanding = () => {
 
     const uniqueRegions = [...new Set(billsData.map(bill => bill.region))];
 
-    const filteredData = billsData
-        .filter((row) =>
-            Object.values(row).some(
-                (value) =>
-                    value && value.toString().toLowerCase().includes(searchQuery.toLowerCase())
-            )
-        )
-        .filter((row) =>
-            selectedRegion.length === 0 ? true : selectedRegion.includes(row.region)
-        )
-        .filter((row) => isWithinDateRange(row.taxInvDate))
-        .sort((a, b) => {
-            if (sortBy === "amount") {
-                return parseFloat(String(a.taxInvAmt || "0")) - parseFloat(String(b.taxInvAmt || "0"));
-            } else if (sortBy === "date") {
-                return new Date(a.taxInvDate || 0) - new Date(b.taxInvDate || 0);
-            }
-            return 0;
-        });
+    // const filteredData = billsData
+    //     .filter((row) =>
+    //         Object.values(row).some(
+    //             (value) =>
+    //                 value && value.toString().toLowerCase().includes(searchQuery.toLowerCase())
+    //         )
+    //     )
+    //     .filter((row) =>
+    //         selectedRegion.length === 0 ? true : selectedRegion.includes(row.region)
+    //     )
+    //     .filter((row) => isWithinDateRange(row.taxInvDate))
+    //     .sort((a, b) => {
+    //         if (sortBy === "amount") {
+    //             return parseFloat(String(a.taxInvAmt || "0")) - parseFloat(String(b.taxInvAmt || "0"));
+    //         } else if (sortBy === "date") {
+    //             return new Date(a.taxInvDate || 0) - new Date(b.taxInvDate || 0);
+    //         }
+    //         return 0;
+    //     });
 
     return (
         <div className='full-report-div'>
@@ -213,7 +215,7 @@ const RepBillOutstanding = () => {
                                         <input
                                             type="checkbox"
                                             onChange={handleSelectAll}
-                                            checked={selectedRows.length === filteredData.flatMap(group => group.billdets).length && selectedRows.length !== 0}
+                                            checked={selectedRows.length === billsData.flatMap(group => group.billdets).length && selectedRows.length !== 0}
                                         />
                                     </th>
                                     {/* <th className="invoices-table-checkbox"></th> */}
@@ -229,13 +231,13 @@ const RepBillOutstanding = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredData.map((bill, index) => (
-                                    <tr key={bill._id}>
+                                {billsData.map((bill, index) => (
+                                    <tr key={bill.srNo}>
                                         <td className="invoices-table-checkbox">
                                             <input
                                                 type="checkbox"
-                                                checked={selectedRows.includes(bill._id)}
-                                                onChange={() => handleSelectRow(bill._id)}
+                                                checked={selectedRows.includes(bill.srNo)}
+                                                onChange={() => handleSelectRow(bill.srNo)}
                                             />
                                         </td>
                                         <td className='table-td'>{bill.srNo}</td>
