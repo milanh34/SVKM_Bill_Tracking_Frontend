@@ -19,14 +19,14 @@ import InvoicesGivenToAccountDept from './pages_tailwind/InvoiceAccountDepartmen
 import InvoicesPaid from './pages_tailwind/InvoicePaid'
 import BillJourney from './pages_tailwind/BillJourney'
 import CreateBill from './pages_tailwind/CreateBill'
+import BillDetailsQS from './pages_tailwind/BillDetailsQS'
+import BillDetailsSISO from './pages_tailwind/BillDetailsSISO'
+import BillDetailsPIMO from './pages_tailwind/BillDetailsPIMO'
 
 import BillDetails from './pages/BillDetails'
 import ContactPage from './pages/ContactPage'
 import Checklist from './pages/Checklist'
 import InvoiceTable from './pages/InvoiceTable'
-import BillDetailsQS from './pages/BillDetailsQS'
-import BillDetailsSISO from './pages/BillDetailsSISO'
-import BillDetailsPIMO from './pages/BillDetailsPIMO'
 import BillSend from './pages/BillSend'
 import ChecklistBillList from "./pages/ChecklistBillList";
 
