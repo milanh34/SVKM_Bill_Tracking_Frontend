@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from "../components/Header";
 import Filters from '../components/Filters';
 import ReportBtns from '../components_tailwind/ReportBtns';
@@ -20,15 +20,25 @@ const ReportsPending = () => {
 
     const [fromDate, setFromDate] = useState(getFormattedDate());
     const [toDate, setToDate] = useState(getFormattedDate());
+    const [bills, setBills] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-    const bills = [
-        { srNo: '8736', projectDesc: 'MPSTME 8th Floor', vendorName: 'INNER SPACE', taxInvNo: 'SE/20/2024', taxInvDate: '30-12-2024', taxInvAmt: '8,055.15', dtTaxInvRecdAtSite: '02-01-2025', dtBillRecdAtPIMO: '02-01-2025', poNo: '8000010464' },
-        { srNo: '8737', projectDesc: 'MPSTME 3rd to 6th Floor', vendorName: 'INNER SPACE', taxInvNo: '123', taxInvDate: '24-12-2024', taxInvAmt: '1,28,820.61', dtTaxInvRecdAtSite: '02-01-2025', dtBillRecdAtPIMO: '02-01-2025', poNo: '800012505' },
-        { srNo: '8738', projectDesc: 'D J Sanghvi 5th Floor', vendorName: 'INNER SPACE', taxInvNo: 'SGD-123-2025', taxInvDate: '03-01-2025', taxInvAmt: '6,904.42', dtTaxInvRecdAtSite: '02-01-2025', dtBillRecdAtPIMO: '02-01-2025', poNo: '8000010465' },
-        { srNo: '8868', projectDesc: 'SBMP Phase II', vendorName: 'SUDHIR POWER LTD', taxInvNo: 'GST105253906', taxInvDate: '21-12-2024', taxInvAmt: '42,83,400.00', dtTaxInvRecdAtSite: '06-01-2025', dtBillRecdAtPIMO: '07-01-2025', poNo: '7000019763' },
-        { srNo: '8869', projectDesc: 'SBMP Phase II', vendorName: 'SUDHIR POWER LTD', taxInvNo: 'GST105253907', taxInvDate: '21-12-2024', taxInvAmt: '42,83,400.00', dtTaxInvRecdAtSite: '06-01-2025', dtBillRecdAtPIMO: '07-01-2025', poNo: '7000019763' },
-        { srNo: '8870', projectDesc: 'SBMP Phase II', vendorName: 'SUDHIR POWER LTD', taxInvNo: 'GST105253908', taxInvDate: '21-12-2024', taxInvAmt: '42,83,400.00', dtTaxInvRecdAtSite: '06-01-2025', dtBillRecdAtPIMO: '07-01-2025', poNo: '7000019763' }
-    ];
+    const fetchBills = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get(`${pendingBills}?startDate=${fromDate}&endDate=${toDate}`);
+            console.log(response);
+            setBills(response.data.report?.data);
+        } catch (error) {
+            console.error('Error fetching pending bills:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchBills();
+    }, [fromDate, toDate]);
 
     return (
         <div>
@@ -77,17 +87,25 @@ const ReportsPending = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {bills.map((bill, index) => (
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="9" className="text-center py-4">Loading...</td>
+                                </tr>
+                            ) : bills.length === 0 ? (
+                                <tr>
+                                    <td colSpan="9" className="text-center py-4">No pending bills found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
+                                </tr>
+                            ) : bills.map((bill, index) => (
                                 <tr key={index} className="hover:bg-[#f5f5f5]">
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.srNo}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.projectDesc}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorName}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvNo}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvDate}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.taxInvAmt}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.dtTaxInvRecdAtSite}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.dtBillRecdAtPIMO}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.poNo}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.srNo}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.projectDescription}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.invoiceNo}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.invoiceDate}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.invoiceAmount.toLocaleString()}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dateInvoiceReceivedAtSite}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dateBillReceivedAtPimoRrrm}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.poNo}</td>
                                 </tr>
                             ))}
                         </tbody>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from "../components/Header";
 import Filters from '../components/Filters';
 import ReportBtns from '../components_tailwind/ReportBtns';
@@ -20,13 +20,25 @@ const BillJourney = () => {
 
     const [fromDate, setFromDate] = useState(getFormattedDate());
     const [toDate, setToDate] = useState(getFormattedDate());
+    const [bills, setBills] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-    const bills = [
-        { srNo: '8762', region: 'HYDERABAD', projectDesc: 'Hyd External Work', vendorName: 'GEM ENGSERV PRIVATE LIMITED', invoiceDate: '30-12-2024', invoiceAmount: '2,05,569.00', delayReceiving: 3, daysSite: 0, daysMumbai: 4, daysAccount: 14 },
-        { srNo: '8806', region: 'Ghansoli', projectDesc: 'Edu complex Ghansoli', vendorName: 'Grune Designs Private Limited', invoiceDate: '24-12-2024', invoiceAmount: '2,68,450.00', delayReceiving: 10, daysSite: 0, daysMumbai: 17, daysAccount: 9 },
-        { srNo: '8865', region: 'HYDERABAD', projectDesc: 'Staff QTrs. II', vendorName: 'N. Panthaky and Partners', invoiceDate: '03-01-2025', invoiceAmount: '12,21,141.00', delayReceiving: 1, daysSite: 2, daysMumbai: 8, daysAccount: 6 },
-        { srNo: '8866', region: 'HYDERABAD', projectDesc: 'Boys Hostel II', vendorName: 'N. Panthaky and Partners', invoiceDate: '03-01-2025', invoiceAmount: '16,51,399.00', delayReceiving: 1, daysSite: 2, daysMumbai: 8, daysAccount: 6 }
-    ];
+    const fetchBills = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get(`${billJourney}?startDate=${fromDate}&endDate=${toDate}`);
+            console.log(response);
+            setBills(response.data.report?.data);
+        } catch (error) {
+            console.error('Error fetching bills:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchBills();
+    }, [fromDate, toDate]);
 
     return (
         <div className='mb-[12vh]'>
@@ -73,21 +85,31 @@ const BillJourney = () => {
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>No. of Days at Site</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>No. of Days at Mumbai</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>No. of Days at A/c</th>
+                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Days for Payment</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {bills.map((bill, index) => (
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="10" className="text-center py-4">Loading...</td>
+                                </tr>
+                            ) : bills.length === 0 ? (
+                                <tr>
+                                    <td colSpan="10" className="text-center py-4">No bills found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
+                                </tr>
+                            ) : bills.map((bill, index) => (
                                 <tr key={index} className="hover:bg-[#f5f5f5]">
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.srNo}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.region}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.projectDesc}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorName}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.invoiceDate}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.invoiceAmount}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.delayReceiving}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.daysSite}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.daysMumbai}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.daysAccount}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.srNo}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.region}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.projectDescription}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.invoiceDate}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.invoiceAmount.toLocaleString()}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.delay_for_receiving_invoice}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.no_of_Days_Site}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.no_of_Days_at_Mumbai}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.no_of_Days_at_AC}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.days_for_payment}</td>
                                 </tr>
                             ))}
                         </tbody>
