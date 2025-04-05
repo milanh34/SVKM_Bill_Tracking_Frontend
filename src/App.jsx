@@ -18,6 +18,7 @@ import RepBillOutstandingSubtotal from './pages_tailwind/RepBillOutstandingSubto
 import InvoicesGivenToAccountDept from './pages_tailwind/InvoiceAccountDepartment'
 import InvoicesPaid from './pages_tailwind/InvoicePaid'
 import BillJourney from './pages_tailwind/BillJourney'
+import CreateBill from './pages_tailwind/CreateBill'
 
 import BillDetails from './pages/BillDetails'
 import ContactPage from './pages/ContactPage'
@@ -27,7 +28,6 @@ import BillDetailsQS from './pages/BillDetailsQS'
 import BillDetailsSISO from './pages/BillDetailsSISO'
 import BillDetailsPIMO from './pages/BillDetailsPIMO'
 import BillSend from './pages/BillSend'
-import CreateBill from './pages/CreateBill'
 import ChecklistBillList from "./pages/ChecklistBillList";
 
 function App() {

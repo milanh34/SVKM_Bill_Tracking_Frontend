@@ -3,7 +3,7 @@ import axios from 'axios';
 import { report, getReport } from "../apis/bills.api";
 import Header from "../components/Header";
 import FiltersOutstanding from '../components/FiltersOutstanding';
-import ReportBtns from '../components/ReportBtns';
+import ReportBtns from '../components_tailwind/ReportBtns';
 import SendBox from "../components/Sendbox";
 import download from "../assets/download.svg";
 import send from "../assets/send.svg";

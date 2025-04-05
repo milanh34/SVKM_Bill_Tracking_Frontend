@@ -1,7 +1,6 @@
 import React from "react";
 import Header from "../components/Header";
-import "../styles/ReportsBasic.css";
-import ReportBtns from "../components/ReportBtns";
+import ReportBtns from "../components_tailwind/ReportBtns";
 import Cookies from "js-cookie";
 
 const ReportsEmpty = () => {

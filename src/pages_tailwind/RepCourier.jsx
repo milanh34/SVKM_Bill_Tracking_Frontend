@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Header from "../components/Header";
 import { bills, report, getReport } from "../apis/bills.api";
 import Filters from '../components/Filters';
-import ReportBtns from '../components/ReportBtns';
+import ReportBtns from '../components_tailwind/ReportBtns';
 import download from "../assets/download.svg";
 import send from "../assets/send.svg";
 import print from "../assets/print.svg";
