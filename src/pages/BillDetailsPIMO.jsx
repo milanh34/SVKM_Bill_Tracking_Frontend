@@ -1,1147 +1,1540 @@
-import React from 'react';
-import { useState, useRef } from 'react';
-import '../styles/BillDetails.css'
-import Header from '../components/Header';
-import BillDetails from './BillDetails';
-import { bills } from '../apis/bills.api';
+import React, { useState, useRef, useEffect } from "react";
+import "../styles/BillDetails.css";
+import Header from "../components/Header";
+import BillDetails from "./BillDetails";
+import { bills } from "../apis/bills.api";
+import imageBox from "../assets/img-box.svg";
 
 const BillDetailsPIMO = () => {
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+          .bill-form select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background: white url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 0.75rem center;
+            padding-right: 2.5rem;
+          }
+          .bill-form select::-webkit-scrollbar {
+            width: 6px;
+          }
+          .bill-form select::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+          }
+          .bill-form select::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+          }
+          .bill-form select::-webkit-scrollbar-thumb:hover {
+            background: #555;
+          }
+        `;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
 
-    const [billFormData, setBillFormData] = useState({
-        invoiceType: "",
-        region: "",
-        projectDesc: "",
-        gstNo: "",
-        vendorName: "",
-        vendorNo: "",
-        compliance206: "",
-        panStatus: "",
-        poCreated: "",
-        poNo: "",
-        poDate: "",
-        poAmt: "",
-        proformaInvNo: "",
-        proformaInvAmt: "",
-        proformaInvDate: "",
-        proformaInvRecdDate: "",
-        taxInvNo: "",
-        taxInvDate: "",
-        taxInvAmt: "",
-        taxInvRecdBy: "",
-        currency: "",
-        department: "",
-        remarksSiteTeam: "",
-        billImg: "",
+  const [billFormData, setBillFormData] = useState({
+    invoiceType: "",
+    region: "",
+    projectDesc: "",
+    gstNo: "",
+    vendorName: "",
+    vendorNo: "",
+    compliance206: "",
+    panStatus: "",
+    poCreated: "",
+    poNo: "",
+    poDate: "",
+    poAmt: "",
+    proformaInvNo: "",
+    proformaInvAmt: "",
+    proformaInvDate: "",
+    proformaInvRecdDate: "",
+    taxInvNo: "",
+    taxInvDate: "",
+    taxInvAmt: "",
+    taxInvRecdBy: "",
+    taxInvRecdAtSite: "",
+    currency: "",
+    department: "",
+    remarksSiteTeam: "",
+    billImg: "",
 
-        advDate: "",
-        advAmt: "",
-        advPercent: "",
-        advReqEnteredBy: "",
+    advDate: "",
+    advAmt: "",
+    advPercent: "",
+    advReqEnteredBy: "",
 
-        checkingDate: "",
-        dateGivenToQS: "",
-        qsName: "",
-        dateGivenToQSforCOP: "",
-        copDate: "",
-        copAmt: "",
-        remarksQsTeam: "",
+    checkingDate: "",
+    dateGivenToQS: "",
+    qsName: "",
+    dateGivenToQSforCOP: "",
+    copDate: "",
+    copAmt: "",
+    remarksQsTeam: "",
 
-        dateGivenToQSMum: "",
-        nameQS: "",
-        dateGivenToPIMOmum: "",
-        pimoName: "",
+    dateGivenToQSMum: "",
+    nameQS: "",
+    dateGivenToPIMOmum: "",
+    pimoName: "",
 
-        dateGivenToIT: "",
-        nameGivenToIT: "",
-        nameGivenToPIMO: "",
-        sesNo: "",
-        sesAmt: "",
-        dateSes: "",
-        dateRecdFromIT: "",
-        dateRecdFromPIMO: "",
+    dateGivenToIT: "",
+    nameGivenToIT: "",
+    nameGivenToPIMO: "",
+    sesNo: "",
+    sesAmt: "",
+    dateSes: "",
+    dateRecdFromIT: "",
+    dateRecdFromPIMO: "",
 
-        dateGivenToDirector: "",
-        dateGivenToAdmin: "",
-        dateGivenToTrustee: "",
-        dateRecdBackToPIMO: "",
-        remarksPIMO: "",
-        dateGivenToAccounts: "",
-        nameGivenByPimoOff: "",
-        dateRecdByAccounts: "",
-        dateReturnToPIMO: "",
-        dateRecdBackInAccounts: "",
+    dateGivenToDirector: "",
+    dateGivenToAdmin: "",
+    dateGivenToTrustee: "",
+    dateRecdBackToPIMO: "",
+    remarksPIMO: "",
+    dateGivenToAccounts: "",
+    nameGivenByPimoOff: "",
+    dateRecdByAccounts: "",
+    dateReturnToPIMO: "",
+    dateRecdBackInAccounts: "",
 
-        paymentInstruc: "",
-        remarksForPay: "",
-        f110Identification: "",
-        datePayment: "",
+    paymentInstruc: "",
+    remarksForPay: "",
+    f110Identification: "",
+    datePayment: "",
 
-        accountsIdentification: "",
-        paymentAmount: "",
-        remarksByAccounts: "",
-        status: ""
-    });
+    accountsIdentification: "",
+    paymentAmount: "",
+    remarksByAccounts: "",
+    status: "",
+  });
 
-    const handleChange = (e) => {
-        e.preventDefault();
+  const [billImage, setBillImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
-        let id = e.target.id;
-        let val = e.target.value;
-
-        setBillFormData({
-            ...billFormData, [id]: val,
-        })
-    }
-
-    const dateInputRef = useRef(null);
-
-    const handleInputClick = () => {
-        dateInputRef.current.focus();
+  // Clean up the preview URL when component unmounts
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
     };
+  }, [imagePreview]);
 
-    const handleSubmitForm = () => {
-        // billFormData.natureOfWork = billFormData.invoiceType || '';
-        // billFormData.amount = billFormData.paymentAmount || '';
-        // billFormData.billDate = billFormData.taxInvDate || Date.now().toString();
-        // billFormData.compliance206AB = billFormData.compliance206 || '';
-        // billFormData.gstNumber = billFormData.gstNo || '';
-        // billFormData.vendor = null;
-        // billFormData.projectDescription = billFormData.projectDesc || '';
-        // billFormData.typeOfInv = billFormData.invoiceType || '';
-        // billFormData.paid = billFormData.status || '';
+  const handleChange = (e) => {
+    const { id, type, files } = e.target;
 
-        const requiredFields = [
-            'invoiceType',
-            'region',
-            'projectDesc',
-            'vendorName',
-            'vendorNo',
-            'poCreated',
-            'proformaInvRecdDate',
-            'taxInvRecdBy',
-            'department',
-            'status'
-        ];
+    if (id === "billImg" && files && files[0]) {
+      setBillImage(files[0]);
+      setImagePreview(URL.createObjectURL(files[0]));
+      setBillFormData((prevData) => ({
+        ...prevData,
+        billImg: files[0].name,
+      }));
+    } else {
+      setBillFormData((prevData) => ({
+        ...prevData,
+        [id]: e.target.value,
+      }));
+    }
+  };
 
-        const missingFields = requiredFields.filter(field => !billFormData[field]);
+  const dateInputRef = useRef(null);
 
-        if (missingFields.length > 0) {
-            alert(`Please fill in the following required fields: ${missingFields.join(', ')}`);
-            return;
-        }
+  const handleInputClick = () => {
+    dateInputRef.current.focus();
+  };
 
-        fetch(bills, {
-            method: "POST",
-            headers: {
-                'content-type': 'application/json'
-            },
-            body: JSON.stringify(billFormData)
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                console.log(data);
-            })
+  const handleSubmitForm = () => {
+    const requiredFields = [
+      "invoiceType",
+      "region",
+      "projectDesc",
+      "vendorName",
+      "vendorNo",
+      "poCreated",
+      "proformaInvRecdDate",
+      "taxInvRecdBy",
+      "department",
+      "status",
+    ];
+
+    const missingFields = requiredFields.filter(
+      (field) => !billFormData[field]
+    );
+
+    if (missingFields.length > 0) {
+      alert(
+        `Please fill in the following required fields: ${missingFields.join(
+          ", "
+        )}`
+      );
+      return;
     }
 
-    return (
-        <div className='outer'>
-
-            <Header />
-
-            <div className='bill-form-container'>
-
-                <div className="bill-details-section">
-
-                    <h1 className="form-title">Bill Details</h1>
-
-                    <div className="form-section">
-
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="invoiceType">Type of Invoice *</label>
-                                {/* <input
-                                type="text"
-                                className="form-control bill-input"
-                                id="invoiceType"
-                                value={billFormData.invoiceType}
-                                onChange={handleChange}
-                                required
-                            /> */}
-                                <select id="invoiceType" className='form-select' value={BillDetails.invoiceType} onChange={handleChange}>
-                                    <option value="" selected disabled hidden>Select Invoice Type</option>
-                                    <option value={BillDetails.invoiceType} >Proforma Invoice</option>
-                                    <option value={BillDetails.invoiceType} >Credit Note</option>
-                                    <option value={BillDetails.invoiceType} >Advance/LC/BG</option>
-                                    <option value={BillDetails.invoiceType} >Direct FI Entry</option>
-                                    <option value={BillDetails.invoiceType} >Utility Work</option>
-                                    <option value={BillDetails.invoiceType} >Petty cash</option>
-                                    <option value={BillDetails.invoiceType} >Hold/Ret Release</option>
-                                    <option value={BillDetails.invoiceType} >Imports</option>
-                                    <option value={BillDetails.invoiceType} >Equipments</option>
-                                    <option value={BillDetails.invoiceType} >Materials</option>
-                                    <option value={BillDetails.invoiceType} >IT related</option>
-                                    <option value={BillDetails.invoiceType} >IBMS</option>
-                                    <option value={BillDetails.invoiceType} >Consultancy bill</option>
-                                    <option value={BillDetails.invoiceType} >Civil Works</option>
-                                    <option value={BillDetails.invoiceType} >Petrol/Diesel</option>
-                                    <option value={BillDetails.invoiceType} >STP Work</option>
-                                    <option value={BillDetails.invoiceType} >HVAC Work</option>
-                                    <option value={BillDetails.invoiceType} >MEP Work</option>
-                                    <option value={BillDetails.invoiceType} >Fire Fighting Work</option>
-                                    <option value={BillDetails.invoiceType} >Painting work</option>
-                                    <option value={BillDetails.invoiceType} >Site Infra</option>
-                                    <option value={BillDetails.invoiceType} >Carpentry</option>
-                                    <option value={BillDetails.invoiceType} >Housekeeping/Security</option>
-                                    <option value={BillDetails.invoiceType} >Overheads</option>
-                                    <option value={BillDetails.invoiceType} >Others</option>
-                                </select>
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="region">Region *</label>
-                                {/* <input
-                                type="text"
-                                className="form-control bill-input"
-                                id="region"
-                                value={billFormData.region}
-                                onChange={handleChange}
-                                required
-                            /> */}
-                                <select id="region" className='form-select' value={BillDetails.region} onChange={handleChange}>
-                                    <option value="" selected disabled hidden>Select Region</option>
-                                    <option value={BillDetails.region} >MUMBAI</option>
-                                    <option value={BillDetails.region} >KHARGHAR</option>
-                                    <option value={BillDetails.region} >AHMEDABAD</option>
-                                    <option value={BillDetails.region} >BANGALURU</option>
-                                    <option value={BillDetails.region} >BHUBANESHWAR</option>
-                                    <option value={BillDetails.region} >CHANDIGARH</option>
-                                    <option value={BillDetails.region} >DELHI</option>
-                                    <option value={BillDetails.region} >NOIDA</option>
-                                    <option value={BillDetails.region} >NAGPUR</option>
-                                    <option value={BillDetails.region} >GANSOLI</option>
-                                    <option value={BillDetails.region} >HOSPITAL</option>
-                                    <option value={BillDetails.region} >DHULE</option>
-                                    <option value={BillDetails.region} >SHIRPUR</option>
-                                    <option value={BillDetails.region} >INDORE</option>
-                                    <option value={BillDetails.region} >HYDERABAD</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="projectDesc">Project Description *</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="projectDesc"
-                                    value={billFormData.projectDesc}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="gstNo">GST Number</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="gstNo"
-                                    value={billFormData.gstNo}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="vendorName">Vendor Name *</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="vendorName"
-                                    value={billFormData.vendorName}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="vendorNo">Vendor No *</label>
-                                <input
-                                    type="number"
-                                    className="form-control bill-input"
-                                    id="vendorNo"
-                                    value={billFormData.vendorNo}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="compliance206">206AB Compliance</label>
-                                {/* <input
-                                type="text"
-                                className="form-control bill-input"
-                                id="compliance206"
-                                value={billFormData.compliance206}
-                                onChange={handleChange}
-                                required
-                            /> */}
-                                <select id="compliance206" className='form-select' value={BillDetails.compliance206} onChange={handleChange}>
-                                    <option value="" selected disabled hidden>Select 206AB Compliance</option>
-                                    <option value={BillDetails.compliance206} >206AB Check on Website</option>
-                                    <option value={BillDetails.compliance206} >2024-Specified Person U/S 206AB</option>
-                                    <option value={BillDetails.compliance206} >2024-Non-Specified Person U/S 206AB</option>
-                                    <option value={BillDetails.compliance206} >2025-Specified Person U/S 206AB</option>
-                                    <option value={BillDetails.compliance206} >2025-Non-Specified Person U/S 206AB</option>
-                                </select>
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="panStatus">PAN Status</label>
-                                {/* <input
-                                type="text"
-                                className="form-control bill-input"
-                                id="panStatus"
-                                value={billFormData.panStatus}
-                                onChange={handleChange}
-                                required
-                            /> */}
-                                <select id="panStatus" className='form-select' value={BillDetails.panStatus} onChange={handleChange}>
-                                    <option value="" selected disabled hidden>Select PAN Status</option>
-                                    <option value={BillDetails.panStatus} >PAN operative/N.A</option>
-                                    <option value={BillDetails.panStatus} >PAN inoperative</option>
-                                </select>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div className='form-section'>
-
-                        <div className="form-group">
-                            <label className="form-label" htmlFor="poCreated">Is PO already Created? *</label>
-                            {/* <input
-            type="text"
-            className="form-control bill-input"
-            id="poCreated"
-            value={billFormData.poCreated}
-            onChange={handleChange}
-            required
-          /> */}
-                            <select id="poCreated" className='form-select' value={BillDetails.poCreated} onChange={handleChange}>
-                                <option value="" selected disabled hidden>Select PO Created or Not</option>
-                                <option value={BillDetails.poCreated} >No</option>
-                                <option value={BillDetails.poCreated} >Yes</option>
-                            </select>
-                        </div>
-
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="poNo">PO No.</label>
-                                <input
-                                    type="number"
-                                    className="form-control bill-input"
-                                    id="poNo"
-                                    value={billFormData.poNo}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="poDate">PO Date</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="poDate"
-                                    value={billFormData.poDate}
-                                    onChange={handleChange}
-                                    onClick={handleInputClick}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label" htmlFor="poAmt">PO Amount</label>
-                            <input
-                                type="number"
-                                className="form-control bill-input"
-                                id="poAmt"
-                                value={billFormData.poAmt}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="proformaInvNo">Proforma Invoice No</label>
-                                <input
-                                    type="number"
-                                    className="form-control bill-input"
-                                    id="proformaInvNo"
-                                    value={billFormData.proformaInvNo}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="proformaInvDate">Proforma Inv Date</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="proformaInvDate"
-                                    value={billFormData.proformaInvDate}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="proformaInvAmt">Proforma Invoice Amount</label>
-                                <input
-                                    type="number"
-                                    className="form-control bill-input"
-                                    id="proformaInvAmt"
-                                    value={billFormData.proformaInvAmt}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="proformaInvRecdDate">Proforma Inv Recd at Site *</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="proformaInvRecdDate"
-                                    value={billFormData.proformaInvRecdDate}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div className="form-section">
-
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="taxInvNo">Tax Invoice No.</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="taxInvNo"
-                                    value={billFormData.taxInvNo}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="taxInvDate">Tax Inv Date</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="taxInvDate"
-                                    value={billFormData.taxInvDate}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="upload-container-small">
-                            <div className="upload-content">
-                                <p className="upload-text">Upload image of the bill</p>
-                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='50' height='50'%3E%3Crect x='2' y='2' width='20' height='20' fill='none' stroke='%23ccc' stroke-width='2' rx='2'/%3E%3Cpath fill='%23ccc' d='M4 18 L8 12 L12 15 L18 8 L20 10 L20 18 L4 18'/%3E%3Ccircle cx='16' cy='8' r='2' fill='%23ccc'/%3E%3C/svg%3E" alt="Image placeholder" className='upload-icon' />
-                            </div>
-                            <input
-                                type="file"
-                                className='form-control form-control-input bill-input'
-                                id="billImg"
-                                value={billFormData.billImg}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label" htmlFor="currency">Currency</label>
-                            {/* <input
-                            type="text"
-                            className="form-control bill-input"
-                            id="currency"
-                            value={billFormData.currency}
-                            onChange={handleChange}
-                            required
-                        /> */}
-                            <select id="currency" className='form-select' value={BillDetails.currency} onChange={handleChange}>
-                                <option value="" selected disabled hidden>Select Currency</option>
-                                <option value={BillDetails.currency} >INR</option>
-                                <option value={BillDetails.currency} >USD</option>
-                                <option value={BillDetails.currency} >RMB</option>
-                                <option value={BillDetails.currency} >EURO</option>
-                            </select>
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label" htmlFor="taxInvAmt">Tax Invoice Amount</label>
-                            <input
-                                type="number"
-                                className="form-control bill-input"
-                                id="taxInvAmt"
-                                value={billFormData.taxInvAmt}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label" htmlFor="taxInvRecdBy">Tax Inv Received By *</label>
-                            <input
-                                type="text"
-                                className="form-control bill-input"
-                                id="taxInvRecdBy"
-                                value={billFormData.taxInvRecdBy}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label" htmlFor="department">Department *</label>
-                            <input
-                                type="text"
-                                className="form-control bill-input"
-                                id="department"
-                                value={billFormData.department}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label" htmlFor="remarksSiteTeam">Remarks by Site Team</label>
-                            <input
-                                type="text"
-                                className="form-control bill-input"
-                                id="remarksSiteTeam"
-                                value={billFormData.remarksSiteTeam}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                    </div>
-
-                    {/* <div className="form-section">
-                        <div className="upload-container-small">
-                            <div className="upload-content">
-                                <p className="upload-text">Upload image of the bill</p>
-                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='50' height='50'%3E%3Crect x='2' y='2' width='20' height='20' fill='none' stroke='%23ccc' stroke-width='2' rx='2'/%3E%3Cpath fill='%23ccc' d='M4 18 L8 12 L12 15 L18 8 L20 10 L20 18 L4 18'/%3E%3Ccircle cx='16' cy='8' r='2' fill='%23ccc'/%3E%3C/svg%3E" alt="Image placeholder" className='upload-icon' />
-                            </div>
-                            <input
-                                type="file"
-                                className='form-control form-control-input'
-                                id="billImg"
-                                value={billFormData.billImg}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-                    </div> */}
-                </div>
-
-                <div className="more-details-section">
-
-                    <div className="advanced-bill-section">
-
-                        <h1 className="form-title">Advanced Details</h1>
-
-                        <div className="form-section">
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="advDate">Advanced Date</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="advDate"
-                                    value={billFormData.advDate}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="advAmt">Advance Amount</label>
-                                <input
-                                    type="number"
-                                    className="form-control bill-input"
-                                    id="advAmt"
-                                    value={billFormData.advAmt}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="advPercent">Advance Percentage</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="advPercent"
-                                    value={billFormData.advPercent}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="advReqEnteredBy">Advance Request Entered By </label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="advReqEnteredBy"
-                                    value={billFormData.advReqEnteredBy}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div className="quality-surveyor-details-section">
-
-                        <h1 className="form-title">Quality Surveyor Details</h1>
-
-                        <div className="form-section">
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="checkingDate">Date of Checking</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="checkingDate"
-                                    value={billFormData.checkingDate}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="dateGivenToQS">Date Given to QS for Inspection</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="dateGivenToQS"
-                                    value={billFormData.dateGivenToQS}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="qsName">Name of QS</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="qsName"
-                                    value={billFormData.qsName}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="dateGivenToQSforCOP">Date Given to QS for COP</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="dateGivenToQSforCOP"
-                                    value={billFormData.dateGivenToQSforCOP}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="copDate">COP Date</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="copDate"
-                                    value={billFormData.copDate}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="copAmt">COP Amount</label>
-                                <input
-                                    type="number"
-                                    className="form-control bill-input"
-                                    id="copAmt"
-                                    value={billFormData.copAmt}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="remarksQsTeam">Remarks by QS Team</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="remarksQsTeam"
-                                    value={billFormData.remarksQsTeam}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                        </div>
-
-                    </div>
-                </div>
-
-                <div className="extra-section">
-
-                    <div className="form-section">
-
-                        <div className="form-row">
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="dateGivenToQSMum">Date Given to QS Mumbai</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="dateGivenToQSMum"
-                                    value={billFormData.dateGivenToQSMum}
-                                    onChange={handleChange}
-                                    // style={{ width: "25%" }}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="dateGivenToPIMOmum">Date Given to PIMO Mumbai</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="dateGivenToPIMOmum"
-                                    value={billFormData.dateGivenToPIMOmum}
-                                    onChange={handleChange}
-                                    // style={{ width: "25%" }}
-                                    required
-                                />
-                            </div>
-
-                        </div>
-
-                        <div className="form-row">
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="nameQS">Name of QS</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="nameQS"
-                                    value={billFormData.nameQS}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="pimoName">Name - PIMO</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="pimoName"
-                                    value={billFormData.pimoName}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div className="more-extra-section">
-
-                    <div className="extra-01">
-                        <div className="form-section">
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="dateGivenToIT">Date Given to IT Dept</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="dateGivenToIT"
-                                    value={billFormData.dateGivenToIT}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="nameGivenToIT">Name - given to IT Dept</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="nameGivenToIT"
-                                    value={billFormData.nameGivenToIT}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="dateGivenToPIMOmum">Date Given to PIMO Mumbai</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="dateGivenToPIMOmum"
-                                    value={billFormData.dateGivenToPIMOmum}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="sesNo">SES No.</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="sesNo"
-                                    value={billFormData.sesNo}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="sesAmt">SES Amount</label>
-                                <input
-                                    type="number"
-                                    className="form-control bill-input"
-                                    id="sesAmt"
-                                    value={billFormData.sesAmt}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="dateSes">SES Date</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="dateSes"
-                                    value={billFormData.dateSes}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="dateRecdFromIT">Date Recieved From IT Dept</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="dateRecdFromIT"
-                                    value={billFormData.dateRecdFromIT}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="dateRecdFromPIMO">Date Recieved From PIMO</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="dateRecdFromPIMO"
-                                    value={billFormData.dateRecdFromPIMO}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="nameGivenToPIMO">Name - given to PIMO Mumbai</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="nameGivenToPIMO"
-                                    value={billFormData.nameGivenToPIMO}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div className="extra-02">
-                        <div className="form-section">
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="dateGivenToDirector">Date Given to Director to Approve</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="dateGivenToDirector"
-                                    value={billFormData.dateGivenToDirector}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="dateGivenToAdmin">Date Given to Admin to Approve</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="dateGivenToAdmin"
-                                    value={billFormData.dateGivenToAdmin}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="dateGivenToTrustee">Date Given to Trustee to Approve</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="dateGivenToTrustee"
-                                    value={billFormData.dateGivenToTrustee}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="dateRecdBackToPIMO">Date Recieved back to PIMO after Approval</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="dateRecdBackToPIMO"
-                                    value={billFormData.dateRecdBackToPIMO}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="remarksPIMO">Remarks PIMO Mumbai</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="remarksPIMO"
-                                    value={billFormData.remarksPIMO}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="dateGivenToAccounts">Date Given to Account Dept</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="dateGivenToAccounts"
-                                    value={billFormData.dateGivenToAccounts}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="nameGivenByPimoOff">Name - given by PIMO Office</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="nameGivenByPimoOff"
-                                    value={billFormData.nameGivenByPimoOff}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="dateRecdByAccounts">Date Recieved by Account Dept</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="dateRecdByAccounts"
-                                    value={billFormData.dateRecdByAccounts}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="dateReturnToPIMO">Date Returned to PIMO</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="dateReturnToPIMO"
-                                    value={billFormData.dateReturnToPIMO}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="dateRecdBackInAccounts">Date Recieved Back to Accounts Dept</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="dateRecdBackInAccounts"
-                                    value={billFormData.dateRecdBackInAccounts}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div className="more-more-extra-section">
-
-                    <div className="extra-03">
-                        <div className="form-section">
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="paymentInstruc">Payment Instructions</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="paymentInstruc"
-                                    value={billFormData.paymentInstruc}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="remarksForPay">Remarks for Payment Instructions</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="remarksForPay"
-                                    value={billFormData.remarksForPay}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="f110Identification">F110 Identification</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="f110Identification"
-                                    value={billFormData.f110Identification}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="datePayment">Date of Payment</label>
-                                <input
-                                    type="date"
-                                    className="form-control bill-input"
-                                    id="datePayment"
-                                    value={billFormData.datePayment}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div className="extra-04">
-                        <div className="form-section">
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="accountsIdentification">Accounts Identification`</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="accountsIdentification"
-                                    value={billFormData.accountsIdentification}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="paymentAmount">Payment Amount</label>
-                                <input
-                                    type="number"
-                                    className="form-control bill-input"
-                                    id="paymentAmount"
-                                    value={billFormData.paymentAmount}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="remarksByAccounts">Remarks by Account Dept</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="remarksByAccounts"
-                                    value={billFormData.remarksByAccounts}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label" htmlFor="status">Status *</label>
-                                <input
-                                    type="text"
-                                    className="form-control bill-input"
-                                    id="status"
-                                    value={billFormData.status}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <button className="submit-button" type="submit" onClick={handleSubmitForm}>Submit</button>
-
+    fetch(bills, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(billFormData),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+      });
+  };
+
+  return (
+    <div className="bg-white text-black pb-2">
+      <Header />
+
+      <div className="max-w-[92.55vw] border-2 border-[#4E4E4E25] rounded-xl p-[3vh_2vw] font-arial mx-auto bill-form">
+        <div>
+          <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">
+            Bill Details
+          </h1>
+
+          <div>
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="invoiceType"
+                >
+                  Type of Invoice *
+                </label>
+                <select
+                  id="invoiceType"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  value={BillDetails.invoiceType}
+                  onChange={handleChange}
+                >
+                  <option value="" selected disabled hidden>
+                    Select Invoice Type
+                  </option>
+                  <option value={BillDetails.invoiceType}>
+                    Proforma Invoice
+                  </option>
+                  <option value={BillDetails.invoiceType}>Credit Note</option>
+                  <option value={BillDetails.invoiceType}>Advance/LC/BG</option>
+                  <option value={BillDetails.invoiceType}>
+                    Direct FI Entry
+                  </option>
+                  <option value={BillDetails.invoiceType}>Utility Work</option>
+                  <option value={BillDetails.invoiceType}>Petty cash</option>
+                  <option value={BillDetails.invoiceType}>
+                    Hold/Ret Release
+                  </option>
+                  <option value={BillDetails.invoiceType}>Imports</option>
+                  <option value={BillDetails.invoiceType}>Equipments</option>
+                  <option value={BillDetails.invoiceType}>Materials</option>
+                  <option value={BillDetails.invoiceType}>IT related</option>
+                  <option value={BillDetails.invoiceType}>IBMS</option>
+                  <option value={BillDetails.invoiceType}>
+                    Consultancy bill
+                  </option>
+                  <option value={BillDetails.invoiceType}>Civil Works</option>
+                  <option value={BillDetails.invoiceType}>Petrol/Diesel</option>
+                  <option value={BillDetails.invoiceType}>STP Work</option>
+                  <option value={BillDetails.invoiceType}>HVAC Work</option>
+                  <option value={BillDetails.invoiceType}>MEP Work</option>
+                  <option value={BillDetails.invoiceType}>
+                    Fire Fighting Work
+                  </option>
+                  <option value={BillDetails.invoiceType}>Painting work</option>
+                  <option value={BillDetails.invoiceType}>Site Infra</option>
+                  <option value={BillDetails.invoiceType}>Carpentry</option>
+                  <option value={BillDetails.invoiceType}>
+                    Housekeeping/Security
+                  </option>
+                  <option value={BillDetails.invoiceType}>Overheads</option>
+                  <option value={BillDetails.invoiceType}>Others</option>
+                </select>
+              </div>
+
+              <div className="relative mb-[2.5vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="region"
+                >
+                  Region *
+                </label>
+                <select
+                  id="region"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  value={BillDetails.region}
+                  onChange={handleChange}
+                >
+                  <option value="" selected disabled hidden>
+                    Select Region
+                  </option>
+                  <option value={BillDetails.region}>MUMBAI</option>
+                  <option value={BillDetails.region}>KHARGHAR</option>
+                  <option value={BillDetails.region}>AHMEDABAD</option>
+                  <option value={BillDetails.region}>BANGALURU</option>
+                  <option value={BillDetails.region}>BHUBANESHWAR</option>
+                  <option value={BillDetails.region}>CHANDIGARH</option>
+                  <option value={BillDetails.region}>DELHI</option>
+                  <option value={BillDetails.region}>NOIDA</option>
+                  <option value={BillDetails.region}>NAGPUR</option>
+                  <option value={BillDetails.region}>GANSOLI</option>
+                  <option value={BillDetails.region}>HOSPITAL</option>
+                  <option value={BillDetails.region}>DHULE</option>
+                  <option value={BillDetails.region}>SHIRPUR</option>
+                  <option value={BillDetails.region}>INDORE</option>
+                  <option value={BillDetails.region}>HYDERABAD</option>
+                </select>
+              </div>
             </div>
 
-        </div>
-    )
-}
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="projectDesc"
+                >
+                  Project Description *
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="projectDesc"
+                  value={billFormData.projectDesc}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-export default BillDetailsPIMO
+              <div className="relative mb-[2.5vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="gstNo"
+                >
+                  GST Number
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="gstNo"
+                  value={billFormData.gstNo}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="vendorName"
+                >
+                  Vendor Name *
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="vendorName"
+                  value={billFormData.vendorName}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[2.5vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="vendorNo"
+                >
+                  Vendor No *
+                </label>
+                <input
+                  type="number"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="vendorNo"
+                  value={billFormData.vendorNo}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="compliance206"
+                >
+                  206AB Compliance
+                </label>
+                <select
+                  id="compliance206"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  value={BillDetails.compliance206}
+                  onChange={handleChange}
+                >
+                  <option value="" selected disabled hidden>
+                    Select 206AB Compliance
+                  </option>
+                  <option value={BillDetails.compliance206}>
+                    206AB Check on Website
+                  </option>
+                  <option value={BillDetails.compliance206}>
+                    2024-Specified Person U/S 206AB
+                  </option>
+                  <option value={BillDetails.compliance206}>
+                    2024-Non-Specified Person U/S 206AB
+                  </option>
+                  <option value={BillDetails.compliance206}>
+                    2025-Specified Person U/S 206AB
+                  </option>
+                  <option value={BillDetails.compliance206}>
+                    2025-Non-Specified Person U/S 206AB
+                  </option>
+                </select>
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="panStatus"
+                >
+                  PAN Status
+                </label>
+                <select
+                  id="panStatus"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  value={BillDetails.panStatus}
+                  onChange={handleChange}
+                >
+                  <option value="" selected disabled hidden>
+                    Select PAN Status
+                  </option>
+                  <option value={BillDetails.panStatus}>
+                    PAN operative/N.A
+                  </option>
+                  <option value={BillDetails.panStatus}>PAN inoperative</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="poCreated"
+                >
+                  Is PO already Created? *
+                </label>
+                <select
+                  id="poCreated"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  value={BillDetails.poCreated}
+                  onChange={handleChange}
+                >
+                  <option value="" selected disabled hidden>
+                    Select PO Created or Not
+                  </option>
+                  <option value={BillDetails.poCreated}>No</option>
+                  <option value={BillDetails.poCreated}>Yes</option>
+                </select>
+              </div>
+              <div></div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="poNo"
+                >
+                  PO No.
+                </label>
+                <input
+                  type="number"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="poNo"
+                  value={billFormData.poNo}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="poDate"
+                >
+                  PO Date
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="poDate"
+                  value={billFormData.poDate}
+                  onChange={handleChange}
+                  onClick={handleInputClick}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="poAmt"
+                >
+                  PO Amount
+                </label>
+                <input
+                  type="number"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="poAmt"
+                  value={billFormData.poAmt}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div></div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="proformaInvNo"
+                >
+                  Proforma Invoice No
+                </label>
+                <input
+                  type="number"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="proformaInvNo"
+                  value={billFormData.proformaInvNo}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="proformaInvDate"
+                >
+                  Proforma Inv Date
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="proformaInvDate"
+                  value={billFormData.proformaInvDate}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="proformaInvAmt"
+                >
+                  Proforma Invoice Amount
+                </label>
+                <input
+                  type="number"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="proformaInvAmt"
+                  value={billFormData.proformaInvAmt}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="proformaInvRecdDate"
+                >
+                  Proforma Inv Recd at Site *
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="proformaInvRecdDate"
+                  value={billFormData.proformaInvRecdDate}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="taxInvNo"
+                >
+                  Tax Invoice No.
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="taxInvNo"
+                  value={billFormData.taxInvNo}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="taxInvDate"
+                >
+                  Tax Inv Date
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="taxInvDate"
+                  value={billFormData.taxInvDate}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="currency"
+                >
+                  Currency
+                </label>
+                <select
+                  id="currency"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  value={BillDetails.currency}
+                  onChange={handleChange}
+                >
+                  <option value="" selected disabled hidden>
+                    Select Currency
+                  </option>
+                  <option value={BillDetails.currency}>INR</option>
+                  <option value={BillDetails.currency}>USD</option>
+                  <option value={BillDetails.currency}>RMB</option>
+                  <option value={BillDetails.currency}>EURO</option>
+                </select>
+              </div>
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="taxInvRecdAtSite"
+                >
+                  Tax Invoice Received At Site
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="taxInvRecdAtSite"
+                  value={billFormData.taxInvRecdAtSite}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div>
+                <div className="relative mb-[4vh]">
+                  <label
+                    className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                    htmlFor="taxInvAmt"
+                  >
+                    Tax Invoice Amount
+                  </label>
+                  <input
+                    type="number"
+                    className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                    id="taxInvAmt"
+                    value={billFormData.taxInvAmt}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="relative mb-[4vh]">
+                  <label
+                    className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                    htmlFor="taxInvRecdBy"
+                  >
+                    Tax Inv Received By *
+                  </label>
+                  <input
+                    type="text"
+                    className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                    id="taxInvRecdBy"
+                    value={billFormData.taxInvRecdBy}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="relative mb-[4vh]">
+                  <label
+                    className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                    htmlFor="department"
+                  >
+                    Department *
+                  </label>
+                  <input
+                    type="text"
+                    className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                    id="department"
+                    value={billFormData.department}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="relative mb-[4vh]">
+                  <label
+                    className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                    htmlFor="remarksSiteTeam"
+                  >
+                    Remarks by Site Team
+                  </label>
+                  <input
+                    type="text"
+                    className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                    id="remarksSiteTeam"
+                    value={billFormData.remarksSiteTeam}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="upload-container-small">
+                <label
+                  htmlFor="billImg"
+                  className="absolute inset-0 w-full h-full cursor-pointer flex flex-col items-center justify-center"
+                >
+                  {imagePreview ? (
+                    <div className="mb-4">
+                      <img
+                        src={imagePreview}
+                        alt="Bill preview"
+                        className="max-w-[250px] max-h-[250px] object-contain mx-auto"
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-[#666] text-[1vw]">
+                        Upload image of the bill
+                      </p>
+                      <img
+                        src={imageBox}
+                        alt="Upload placeholder"
+                        className="w-[6vw] h-[6vw] mb-[1vh]"
+                      />
+                    </>
+                  )}
+                  {billImage && (
+                    <p className="text-[#666] text-[0.8vw] mt-2">
+                      {billImage.name}
+                    </p>
+                  )}
+                </label>
+                <input
+                  type="file"
+                  id="billImg"
+                  onChange={handleChange}
+                  accept="image/*"
+                  className="hidden"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex mt-[4vh]">
+          <div className="w-1/2">
+            <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">
+              Advanced Details
+            </h1>
+
+            <div>
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="advDate"
+                >
+                  Advanced Date
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="advDate"
+                  value={billFormData.advDate}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="advAmt"
+                >
+                  Advance Amount
+                </label>
+                <input
+                  type="number"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="advAmt"
+                  value={billFormData.advAmt}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="advPercent"
+                >
+                  Advance Percentage
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="advPercent"
+                  value={billFormData.advPercent}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="advReqEnteredBy"
+                >
+                  Advance Request Entered By{" "}
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="advReqEnteredBy"
+                  value={billFormData.advReqEnteredBy}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="ml-[1vw]">
+            <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">
+              Quality Surveyor Details
+            </h1>
+
+            <div>
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="checkingDate"
+                >
+                  Date of Checking
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="checkingDate"
+                  value={billFormData.checkingDate}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateGivenToQS"
+                >
+                  Date Given to QS for Inspection
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="dateGivenToQS"
+                  value={billFormData.dateGivenToQS}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="qsName"
+                >
+                  Name of QS
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="qsName"
+                  value={billFormData.qsName}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateGivenToQSforCOP"
+                >
+                  Date Given to QS for COP
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="dateGivenToQSforCOP"
+                  value={billFormData.dateGivenToQSforCOP}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="copDate"
+                >
+                  COP Date
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="copDate"
+                  value={billFormData.copDate}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="copAmt"
+                >
+                  COP Amount
+                </label>
+                <input
+                  type="number"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="copAmt"
+                  value={billFormData.copAmt}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="remarksQsTeam"
+                >
+                  Remarks by QS Team
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="remarksQsTeam"
+                  value={billFormData.remarksQsTeam}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div>
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateGivenToQSMum"
+                >
+                  Date Given to QS Mumbai
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="dateGivenToQSMum"
+                  value={billFormData.dateGivenToQSMum}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateGivenToPIMOmum"
+                >
+                  Date Given to PIMO Mumbai
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="dateGivenToPIMOmum"
+                  value={billFormData.dateGivenToPIMOmum}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="nameQS"
+                >
+                  Name of QS
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="nameQS"
+                  value={billFormData.nameQS}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="pimoName"
+                >
+                  Name - PIMO
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="pimoName"
+                  value={billFormData.pimoName}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex mt-[4vh]">
+          <div className="w-1/2">
+            <div>
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateGivenToIT"
+                >
+                  Date Given to IT Dept
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="dateGivenToIT"
+                  value={billFormData.dateGivenToIT}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="nameGivenToIT"
+                >
+                  Name - given to IT Dept
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] "
+                  id="nameGivenToIT"
+                  value={billFormData.nameGivenToIT}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateGivenToPIMOmum"
+                >
+                  Date Given to PIMO Mumbai
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="dateGivenToPIMOmum"
+                  value={billFormData.dateGivenToPIMOmum}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="sesNo"
+                >
+                  SES No.
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] "
+                  id="sesNo"
+                  value={billFormData.sesNo}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="sesAmt"
+                >
+                  SES Amount
+                </label>
+                <input
+                  type="number"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] "
+                  id="sesAmt"
+                  value={billFormData.sesAmt}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateSes"
+                >
+                  SES Date
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="dateSes"
+                  value={billFormData.dateSes}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateRecdFromIT"
+                >
+                  Date Recieved From IT Dept
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="dateRecdFromIT"
+                  value={billFormData.dateRecdFromIT}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateRecdFromPIMO"
+                >
+                  Date Recieved From PIMO
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="dateRecdFromPIMO"
+                  value={billFormData.dateRecdFromPIMO}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="nameGivenToPIMO"
+                >
+                  Name - given to PIMO Mumbai
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="nameGivenToPIMO"
+                  value={billFormData.nameGivenToPIMO}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="w-1/2">
+            <div className="ml-[1vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateGivenToDirector"
+                >
+                  Date Given to Director to Approve
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="dateGivenToDirector"
+                  value={billFormData.dateGivenToDirector}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateGivenToAdmin"
+                >
+                  Date Given to Admin to Approve
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="dateGivenToAdmin"
+                  value={billFormData.dateGivenToAdmin}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateGivenToTrustee"
+                >
+                  Date Given to Trustee to Approve
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="dateGivenToTrustee"
+                  value={billFormData.dateGivenToTrustee}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateRecdBackToPIMO"
+                >
+                  Date Recieved back to PIMO after Approval
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="dateRecdBackToPIMO"
+                  value={billFormData.dateRecdBackToPIMO}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="remarksPIMO"
+                >
+                  Remarks PIMO Mumbai
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="remarksPIMO"
+                  value={billFormData.remarksPIMO}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateGivenToAccounts"
+                >
+                  Date Given to Account Dept
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="dateGivenToAccounts"
+                  value={billFormData.dateGivenToAccounts}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="nameGivenByPimoOff"
+                >
+                  Name - given by PIMO Office
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="nameGivenByPimoOff"
+                  value={billFormData.nameGivenByPimoOff}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateRecdByAccounts"
+                >
+                  Date Recieved by Account Dept
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="dateRecdByAccounts"
+                  value={billFormData.dateRecdByAccounts}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateReturnToPIMO"
+                >
+                  Date Returned to PIMO
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="dateReturnToPIMO"
+                  value={billFormData.dateReturnToPIMO}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateRecdBackInAccounts"
+                >
+                  Date Recieved Back to Accounts Dept
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="dateRecdBackInAccounts"
+                  value={billFormData.dateRecdBackInAccounts}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex mt-[4vh]">
+          <div className="w-1/2">
+            <div>
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="paymentInstruc"
+                >
+                  Payment Instructions
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="paymentInstruc"
+                  value={billFormData.paymentInstruc}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="remarksForPay"
+                >
+                  Remarks for Payment Instructions
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="remarksForPay"
+                  value={billFormData.remarksForPay}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="f110Identification"
+                >
+                  F110 Identification
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="f110Identification"
+                  value={billFormData.f110Identification}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="datePayment"
+                >
+                  Date of Payment
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="datePayment"
+                  value={billFormData.datePayment}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="w-1/2">
+            <div className="ml-[1vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="accountsIdentification"
+                >
+                  Accounts Identification`
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="accountsIdentification"
+                  value={billFormData.accountsIdentification}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="paymentAmount"
+                >
+                  Payment Amount
+                </label>
+                <input
+                  type="number"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="paymentAmount"
+                  value={billFormData.paymentAmount}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="remarksByAccounts"
+                >
+                  Remarks by Account Dept
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="remarksByAccounts"
+                  value={billFormData.remarksByAccounts}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="status"
+                >
+                  Status *
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="status"
+                  value={billFormData.status}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button
+          className="submit-button"
+          type="submit"
+          onClick={handleSubmitForm}
+        >
+          Submit
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default BillDetailsPIMO;

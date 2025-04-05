@@ -10,28 +10,12 @@ const ReportsEmpty = () => {
       <Header />
       <ReportBtns />
       {Cookies.get("userRole") != "qs_site" && (
-        <p
-          style={{
-            paddingTop: "15vh",
-            color: "#313131",
-            fontWeight: "600",
-            fontSize: "20px",
-            textAlign: "center",
-          }}
-        >
+        <p className="pt-[15vh] text-[#313131] font-semibold text-[20px] text-center">
           Click on any report to view the details
         </p>
       )}
       {Cookies.get("userRole") == "qs_site" && (
-        <p
-          style={{
-            paddingTop: "15vh",
-            color: "#313131",
-            fontWeight: "600",
-            fontSize: "20px",
-            textAlign: "center",
-          }}
-        >
+        <p className="pt-[15vh] text-[#313131] font-semibold text-[20px] text-center">
           No reports available
         </p>
       )}

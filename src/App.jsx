@@ -7,26 +7,26 @@ import Admin from "./pages_tailwind/Admin";
 import FullBillDetails from "./pages_tailwind/FullBill";
 import PaidBills from "./pages_tailwind/PaidBills";
 import Profile from "./pages_tailwind/Profile";
+import RepRecAtSite from './pages_tailwind/RepRecAtSite'
+import RepRecMumbai from './pages_tailwind/RepRecMumbai'
+import ReportsEmpty from './pages_tailwind/ReportsEmpty'
+import ReportsPending from './pages_tailwind/ReportsPending'
+import InvoicesGivenToQSSite from './pages_tailwind/InvoiceQSSite'
+import RepCourier from './pages_tailwind/RepCourier'
+import RepBillOutstanding from './pages_tailwind/RepBillOutstanding'
+import RepBillOutstandingSubtotal from './pages_tailwind/RepBillOutstandingSubtotal'
+import InvoicesGivenToAccountDept from './pages_tailwind/InvoiceAccountDepartment'
+import InvoicesPaid from './pages_tailwind/InvoicePaid'
+import BillJourney from './pages_tailwind/BillJourney'
 
 import BillDetails from './pages/BillDetails'
-import RepRecAtSite from './pages/RepRecAtSite'
 import ContactPage from './pages/ContactPage'
 import Checklist from './pages/Checklist'
-import RepBillOutstanding from './pages/RepBillOutstanding'
-import RepBillOutstandingSubtotal from './pages/RepBillOutstandingSubtotal'
-import RepCourier from './pages/RepCourier'
-import RepRecMumbai from './pages/RepRecMumbai'
 import InvoiceTable from './pages/InvoiceTable'
 import BillDetailsQS from './pages/BillDetailsQS'
 import BillDetailsSISO from './pages/BillDetailsSISO'
 import BillDetailsPIMO from './pages/BillDetailsPIMO'
 import BillSend from './pages/BillSend'
-import InvoicesGivenToAccountDept from './pages/InvoiceAccountDepartment'
-import InvoicesGivenToQSSite from './pages/InvoiceQSSite'
-import InvoicesPaid from './pages/InvoicePaid'
-import ReportsPending from './pages/ReportsPending'
-import BillJourney from './pages/BillJourney'
-import ReportsEmpty from './pages/ReportsEmpty'
 import CreateBill from './pages/CreateBill'
 import ChecklistBillList from "./pages/ChecklistBillList";
 

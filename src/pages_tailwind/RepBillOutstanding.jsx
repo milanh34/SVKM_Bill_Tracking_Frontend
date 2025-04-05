@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { bills, report, getReport } from "../apis/bills.api";
+import { report, getReport } from "../apis/bills.api";
 import Header from "../components/Header";
-import "../styles/ReportsBasic.css";
 import FiltersOutstanding from '../components/FiltersOutstanding';
 import ReportBtns from '../components/ReportBtns';
 import SendBox from "../components/Sendbox";
@@ -38,7 +37,6 @@ const RepBillOutstanding = () => {
                 const response = await axios.get(`${getReport}/outstanding-bills?startDate=${fromDate}&endDate=${toDate}`);
                 console.log(response.data.report.data);
                 const filteredData = response?.data?.report.data.map(report => ({
-                    // _id: bill._id,
                     copAmt: report.copAmt || '',
                     srNo: report.srNo || '',
                     region: report.region || '',
@@ -82,7 +80,7 @@ const RepBillOutstanding = () => {
         let billIdsToDownload = [];
 
         if (selectedRows.length === 0) {
-            billIdsToDownload = billsData.map(bill => bill.srNo); i
+            billIdsToDownload = billsData.map(bill => bill.srNo);
 
             if (billIdsToDownload.length > 0) {
                 if (!window.confirm(`No bills selected. Download all ${billIdsToDownload.length} filtered bills?`)) {
@@ -133,44 +131,24 @@ const RepBillOutstanding = () => {
 
     const uniqueRegions = [...new Set(billsData.map(bill => bill.region))];
 
-    // const filteredData = billsData
-    //     .filter((row) =>
-    //         Object.values(row).some(
-    //             (value) =>
-    //                 value && value.toString().toLowerCase().includes(searchQuery.toLowerCase())
-    //         )
-    //     )
-    //     .filter((row) =>
-    //         selectedRegion.length === 0 ? true : selectedRegion.includes(row.region)
-    //     )
-    //     .filter((row) => isWithinDateRange(row.taxInvDate))
-    //     .sort((a, b) => {
-    //         if (sortBy === "amount") {
-    //             return parseFloat(String(a.taxInvAmt || "0")) - parseFloat(String(b.taxInvAmt || "0"));
-    //         } else if (sortBy === "date") {
-    //             return new Date(a.taxInvDate || 0) - new Date(b.taxInvDate || 0);
-    //         }
-    //         return 0;
-    //     });
-
     return (
-        <div className='full-report-div'>
+        <div className='mb-[12vh]'>
             <Header />
             <ReportBtns />
 
-            <div className="invoice-container">
-                <div className="header">
-                    <h2 className='header-h2'>Outstanding Bills Report as on</h2>
-                    <div className="report-button-group">
-                        <button className="btn print">
+            <div className="p-[2vh_2vw] mx-auto font-sans h-[100vh] bg-white text-black">
+                <div className="flex justify-between items-center mb-[2vh]">
+                    <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Outstanding Bills Report as on</h2>
+                    <div className="flex gap-[1vw] w-[50%]">
+                        <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]">
                             Print
                             <img src={print} />
                         </button>
-                        <button className="btn download" onClick={handleTopDownload}>
+                        <button className="w-[300px] bg-[#F48D02] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#e6c200]" onClick={handleTopDownload}>
                             Download
                             <img src={download} />
                         </button>
-                        <button className="btn send" onClick={handleSendClick}>
+                        <button className="w-[300px] bg-[#34915C] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#45a049]" onClick={handleSendClick}>
                             Send to
                             <img src={send} />
                         </button>
@@ -191,64 +169,52 @@ const RepBillOutstanding = () => {
                     setToDate={setToDate}
                 />
 
-                {/* <div className="invoices-select-all">
-                    <input
-                        type="checkbox"
-                        checked={selectAll}
-                        onChange={handleSelectAll}
-                        id="selectAll"
-                    />
-                    <label htmlFor="selectAll">Select All</label>
-                </div> */}
-
-                <div className="table-container">
+                <div className="overflow-x-auto shadow-md max-h-[85vh] relative border border-black">
                     {loading ? (
                         <p>Loading data...</p>
                     ) : error ? (
                         <p>{error}</p>
                     ) : (
-                        <table className='invoice-table'>
+                        <table className='w-full border-collapse bg-white'>
                             <thead>
                                 <tr>
-                                    <th>
-                                        {/* <label htmlFor="selectAll">Select All</label> */}
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>
                                         <input
                                             type="checkbox"
                                             onChange={handleSelectAll}
-                                            checked={selectedRows.length === billsData.flatMap(group => group.billdets).length && selectedRows.length !== 0}
+                                            checked={selectAll}
                                         />
                                     </th>
-                                    {/* <th className="invoices-table-checkbox"></th> */}
-                                    <th className='table-th'>Sr No</th>
-                                    <th className='table-th'>Region</th>
-                                    <th className='table-th'>Vendor No</th>
-                                    <th className='table-th'>Vendor Name</th>
-                                    <th className='table-th'>Tax Inv no</th>
-                                    <th className='table-th'>Tax Inv Date</th>
-                                    <th className='table-th'>Tax Inv Amt</th>
-                                    <th className='table-th'>Dt Tax Inv recd at Accounts</th>
-                                    <th className='table-th'>Nature of Work</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Sr No</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Region</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor No</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor Name</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv no</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Date</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Amt</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt Tax Inv recd at Accounts</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Nature of Work</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {billsData.map((bill, index) => (
-                                    <tr key={bill.srNo}>
-                                        <td className="invoices-table-checkbox">
+                                    <tr key={bill.srNo} className="hover:bg-[#f5f5f5]">
+                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>
                                             <input
                                                 type="checkbox"
                                                 checked={selectedRows.includes(bill.srNo)}
                                                 onChange={() => handleSelectRow(bill.srNo)}
                                             />
                                         </td>
-                                        <td className='table-td'>{bill.srNo}</td>
-                                        <td className='table-td'>{bill.region}</td>
-                                        <td className='table-td'>{bill.vendorNo}</td>
-                                        <td className='table-td'>{bill.vendorName}</td>
-                                        <td className='table-td'>{bill.taxInvNo}</td>
-                                        <td className='right-align table-td'>{bill.taxInvDate}</td>
-                                        <td className='right-align table-td'>{bill.taxInvAmt}</td>
-                                        <td className='right-align table-td'>{bill.dtTaxInvRecdAtSite}</td>
-                                        <td className='table-td'>{bill.natureOfWork}</td>
+                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.srNo}</td>
+                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.region}</td>
+                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorNo}</td>
+                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorName}</td>
+                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvNo}</td>
+                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvDate}</td>
+                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.taxInvAmt}</td>
+                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.dtTaxInvRecdAtSite}</td>
+                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.natureOfWork}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -258,7 +224,7 @@ const RepBillOutstanding = () => {
             </div>
 
             {isModalOpen && (
-                <div className="modal-overlay">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
                     <SendBox
                         closeWindow={() => setIsModalOpen(false)}
                         selectedBills={selectedRows}

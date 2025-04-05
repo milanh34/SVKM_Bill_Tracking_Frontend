@@ -201,7 +201,7 @@ const Dashboard = () => {
 
   const fetchBills = async () => {
     try {
-      const response = await axios.get(bills);
+      const response = await axios.get(bills, {headers: { Authorization: `Bearer ${Cookies.get('token')}` }});
       const userRole = Cookies.get('userRole');
       
       console.log("Received response data:", response.data);
