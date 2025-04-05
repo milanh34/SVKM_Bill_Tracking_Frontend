@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { bills, report } from "../apis/bills.api";
+import { bills, getReport, report } from "../apis/bills.api";
 import Header from "../components/Header";
 import "../styles/ReportsBasic.css";
 import Filters from '../components/Filters';
@@ -41,17 +41,18 @@ const RepRecAtSite = () => {
     useEffect(() => {
         const fetchBills = async () => {
             try {
-                const response = await axios.get(bills);
-                const filteredData = response.data.map(bill => ({
-                    _id: bill._id,
-                    srNo: bill.srNo || '',
-                    projectDesc: bill.projectDescription || '',
-                    vendorName: bill.vendorName || '',
-                    taxInvNo: bill.taxInvNo || '',
-                    taxInvDate: bill.taxInvDate?.split('T')[0] || '',
-                    taxInvAmt: bill.taxInvAmt || '',
-                    dtTaxInvRecdAtSite: bill.taxInvRecdAtSite?.split('T')[0] || '',
-                    poNo: bill.poNo || ''
+                const response = await axios.get(`${getReport}/invoices-received-at-site?startDate=${fromDate}&endDate=${toDate}`);
+                console.log(response.data);
+                const filteredData = response.data.report.data.map(report => ({
+                    // _id: bill._id,
+                    srNo: report.srNo || '',
+                    projectDesc: report.projectDescription || '',
+                    vendorName: report.vendorName || '',
+                    taxInvNo: report.taxInvNo || '',
+                    taxInvDate: report.taxInvDate || '',
+                    taxInvAmt: report.taxInvAmt || '',
+                    dtTaxInvRecdAtSite: report.dtTaxInvRecdAtSite || '',
+                    poNo: report.poNo || ''
                 }));
                 setBillsData(filteredData);
             } catch (error) {
@@ -61,17 +62,17 @@ const RepRecAtSite = () => {
             }
         };
         fetchBills();
-    }, []);
+    }, [fromDate, toDate]);
 
     useEffect(() => {
         if (selectAll) {
-            setSelectedRows(billsData.map(bill => bill._id));
+            setSelectedRows(billsData.map(bill => bill.srNo));
         }
     }, [billsData, selectAll]);
 
     const handleSelectAll = () => {
         setSelectAll(!selectAll);
-        setSelectedRows(selectAll ? [] : billsData.map(bill => bill._id));
+        setSelectedRows(selectAll ? [] : billsData.map(bill => bill.srNo));
     };
 
     const handleSelectRow = (id) => {
@@ -86,7 +87,7 @@ const RepRecAtSite = () => {
         try {
 
             const billIdsToDownload = selectedRows.length === 0
-                ? billsData.map(bill => bill._id)
+                ? billsData.map(bill => bill.srNo)      // bill._id
                 : selectedRows;
 
             const response = await axios.post(
@@ -138,22 +139,22 @@ const RepRecAtSite = () => {
         return true;
     };
 
-    const filteredData = billsData
-        .filter((row) =>
-            Object.values(row).some(
-                (value) =>
-                    value && value.toString().toLowerCase().includes(searchQuery.toLowerCase())
-            )
-        )
-        .filter((row) => isWithinDateRange(row.taxInvDate))
-        .sort((a, b) => {
-            if (sortBy === "amount") {
-                return parseFloat(String(a.taxInvAmt || "0")) - parseFloat(String(b.taxInvAmt || "0"));
-            } else if (sortBy === "date") {
-                return new Date(a.taxInvDate || 0) - new Date(b.taxInvDate || 0);
-            }
-            return 0;
-        });
+    // const filteredData = billsData
+    //     .filter((row) =>
+    //         Object.values(row).some(
+    //             (value) =>
+    //                 value && value.toString().toLowerCase().includes(searchQuery.toLowerCase())
+    //         )
+    //     )
+    //     .filter((row) => isWithinDateRange(row.taxInvDate))
+    //     .sort((a, b) => {
+    //         if (sortBy === "amount") {
+    //             return parseFloat(String(a.taxInvAmt || "0")) - parseFloat(String(b.taxInvAmt || "0"));
+    //         } else if (sortBy === "date") {
+    //             return new Date(a.taxInvDate || 0) - new Date(b.taxInvDate || 0);
+    //         }
+    //         return 0;
+    //     });
 
     return (
         <div className='full-report-div'>
@@ -223,8 +224,8 @@ const RepRecAtSite = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredData.map((bill, index) => (
-                                        <tr key={bill._id}>
+                                    {billsData.map((bill, index) => (
+                                        <tr key={bill.srNo}>
                                             {/* <td className="invoices-table-checkbox">
                                                 <input
                                                     type="checkbox"

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from "../components/Header";
+import { bills, report, getReport } from "../apis/bills.api";
 import "../styles/ReportsBasic.css";
 import Filters from '../components/Filters';
 import ReportBtns from '../components/ReportBtns';
@@ -17,20 +18,43 @@ const RepCourier = () => {
         return `${year}-${month}-${day}`;
     };
 
+    const [loading, setLoading] = useState(true);
     const [fromDate, setFromDate] = useState(getFormattedDate());
     const [toDate, setToDate] = useState(getFormattedDate());
+    const [billsData, setBillsData] = useState([]);
+    const [error, setError] = useState(null);
 
-    const bills = [...Array(20)].map((_, index) => ({
-        srNo: '8737',
-        projectDesc: 'MPSTME 3rd to 6th Floor',
-        vendorName: 'Inner Space',
-        taxInvNo: '123',
-        taxInvDate: '22-10-2024',
-        taxInvAmt: '1,26,620.81',
-        dtTaxInvRecdAtSite: '22-02-2024',
-        dtTaxInvCourierToMum: '22-02-2024',
-        poNo: '8000010464'
-    }));
+
+    useEffect(() => {
+        console.log("Inside use effect inv couriered to mum");
+        const fetchBills = async () => {
+
+            try {
+                const response = await axios.get(`${getReport}/invoices-courier-to-mumbai?startDate=2023-01-01&endDate=2025-12-31`);
+                console.log(response.data);
+                const filteredData = response.data.report.data.map(report => ({
+                    // _id: bill._id,
+                    srNo: report.srNo || '',
+                    projectDesc: report.projectDescription || '',
+                    vendorName: report.vendorName || '',
+                    taxInvNo: report.taxInvNo || '',
+                    taxInvDate: report.taxInvDate || '',
+                    taxInvAmt: report.taxInvAmt || '',
+                    dtTaxInvRecdAtSite: report.dtTaxInvRecdAtSite || '',
+                    poNo: report.poNo || ''
+                }));
+                setBillsData(filteredData);
+            }
+            catch (err) {
+                setError("Failed to load data");
+                console.error("Error = " + error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchBills();
+    }, []);
 
     // const invoices = [
     //     {
@@ -104,7 +128,7 @@ const RepCourier = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {bills.map((bill, index) => (
+                            {billsData.map((bill, index) => (
                                 <tr key={index}>
                                     <td className='table-td'>{bill.srNo}</td>
                                     <td className='table-td'>{bill.projectDesc}</td>

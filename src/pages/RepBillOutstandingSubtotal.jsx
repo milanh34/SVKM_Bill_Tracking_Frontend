@@ -52,7 +52,7 @@ const RepBillOutstandingSubtotal = () => {
                     // dtRecdAccts: report.accountsDeptSubmission?.dateGivenToAccounts?.split('T')[0] || ''
                     dtRecdAccts: report.dateRecdInAcctsDept || ''
                 }));
-
+                console.log(rawData[0].taxInvDate);
                 // Filter Data sccording to Data
                 const filteredData = rawData
                     .filter(report =>
@@ -68,6 +68,7 @@ const RepBillOutstandingSubtotal = () => {
                         }
                         return 0; // Default, no sorting
                     });
+                console.log(filteredData[0].taxInvDate);
 
                 // Group bills by vendor name
                 const groupedByVendor = filteredData.reduce((acc, bill) => {
@@ -122,7 +123,7 @@ const RepBillOutstandingSubtotal = () => {
             }
         };
         fetchBills();
-    }, [fromDate]);
+    }, [fromDate, toDate]);
 
 
     const handleSelectAll = (e) => {
