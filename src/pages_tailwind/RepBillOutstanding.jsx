@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { report, getReport } from "../apis/bills.api";
+import { report } from "../apis/bills.api";
+import { outstanding } from '../apis/report.api';
 import Header from "../components/Header";
 import FiltersOutstanding from '../components/FiltersOutstanding';
 import ReportBtns from '../components_tailwind/ReportBtns';
@@ -34,7 +35,7 @@ const RepBillOutstanding = () => {
     useEffect(() => {
         const fetchBills = async () => {
             try {
-                const response = await axios.get(`${getReport}/outstanding-bills?startDate=${fromDate}&endDate=${toDate}`);
+                const response = await axios.get(`${outstanding}?startDate=${fromDate}&endDate=${toDate}`);
                 console.log(response.data.report.data);
                 const filteredData = response?.data?.report.data.map(report => ({
                     copAmt: report.copAmt || '',

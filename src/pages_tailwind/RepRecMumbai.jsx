@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { report, getReport } from "../apis/bills.api";
 import axios from 'axios';
 import Header from "../components/Header";
 import Filters from '../components/Filters';
@@ -7,6 +6,7 @@ import ReportBtns from '../components_tailwind/ReportBtns';
 import download from "../assets/download.svg";
 import send from "../assets/send.svg";
 import print from "../assets/print.svg";
+import { receivedAtMumbai } from '../apis/report.api';
 
 const RepRecMumbai = () => {
 
@@ -29,7 +29,7 @@ const RepRecMumbai = () => {
 
         const fetchBills = async () => {
             try {
-                const response = await axios.get(`${getReport}/invoices-received-at-mumbai?startDate=${fromDate}&endDate=${toDate}`);
+                const response = await axios.get(`${receivedAtMumbai}?startDate=${fromDate}&endDate=${toDate}`);
                 console.log(response.data.report.data);
                 const filteredData = response?.data?.report.data.map(report => ({
                     copAmt: report.copAmt || '',

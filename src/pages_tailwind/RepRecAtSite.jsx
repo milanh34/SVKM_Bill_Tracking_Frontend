@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { bills, getReport, report } from "../apis/bills.api";
+import { report } from "../apis/bills.api";
+import { receivedAtSite } from '../apis/report.api';
 import Header from "../components/Header";
 import Filters from '../components/Filters';
 import ReportBtns from '../components_tailwind/ReportBtns';
@@ -40,7 +41,7 @@ const RepRecAtSite = () => {
     useEffect(() => {
         const fetchBills = async () => {
             try {
-                const response = await axios.get(`${getReport}/invoices-received-at-site?startDate=${fromDate}&endDate=${toDate}`);
+                const response = await axios.get(`${receivedAtSite}?startDate=${fromDate}&endDate=${toDate}`);
                 console.log(response.data);
                 const filteredData = response.data.report.data.map(report => ({
                     srNo: report.srNo || '',

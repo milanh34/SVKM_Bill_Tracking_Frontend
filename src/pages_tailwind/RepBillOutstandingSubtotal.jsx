@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { bills, report, getReport } from "../apis/bills.api";
+import { report } from "../apis/bills.api";
+import { outstanding } from '../apis/report.api';
 import Header from "../components/Header";
 import Filters from '../components/Filters';
 import ReportBtns from '../components_tailwind/ReportBtns';
@@ -37,7 +38,7 @@ const RepBillOutstandingSubtotal = () => {
     useEffect(() => {
         const fetchBills = async () => {
             try {
-                const response = await axios.get(`${getReport}/outstanding-bills`);
+                const response = await axios.get(`${outstanding}`);
                 const rawData = response.data.report.data.map(report => ({
                     srNo: report.srNo || '',
                     region: report.region || '',

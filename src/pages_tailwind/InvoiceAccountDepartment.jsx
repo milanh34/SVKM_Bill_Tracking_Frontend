@@ -5,6 +5,8 @@ import ReportBtns from '../components_tailwind/ReportBtns';
 import download from "../assets/download.svg";
 import send from "../assets/send.svg";
 import print from "../assets/print.svg";
+import axios from 'axios';
+import { invoicesGivenToAccountDept } from '../apis/report.api';
 
 const InvoicesGivenToAccountDept = () => {
 
