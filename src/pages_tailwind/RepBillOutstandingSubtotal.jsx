@@ -108,7 +108,7 @@ const RepBillOutstandingSubtotal = () => {
             }
         };
         fetchBills();
-    }, [fromDate]);
+    }, [fromDate, toDate]);
 
     const handleSelectAll = (e) => {
         if (e.target.checked) {
@@ -233,7 +233,7 @@ const RepBillOutstandingSubtotal = () => {
                             <tbody>
                                 {billsData.map((group, groupIndex) => (
                                     <React.Fragment key={groupIndex}>
-                                        {group.billdets.map((bill, index) => (
+                                        {group.billdets.map((bill) => (
                                             <tr key={bill._id} className="hover:bg-[#f5f5f5]">
                                                 <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.srNo}</td>
                                                 <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.region}</td>
@@ -246,23 +246,23 @@ const RepBillOutstandingSubtotal = () => {
                                                 <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.dtRecdAccts}</td>
                                             </tr>
                                         ))}
-                                        <tr>
-                                            <td colSpan={2} className='border border-black'></td>
-                                            <td className='border border-black font-bold text-[14px] py-[1.5vh] px-[1vw] text-left'>Count: {group.vendorCount.toLocaleString('en-IN')}</td>
-                                            <td className='border border-black font-bold text-[14px] py-[1.5vh] px-[1vw] text-left'>{group.billdets[0].vendorName}</td>
+                                        <tr className='bg-[#f8f9fa]'>
+                                            <td colSpan={2} className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw]'></td>
+                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'><strong>Count: {group.vendorCount.toLocaleString('en-IN')}</strong></td>
+                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'><strong>{group.billdets[0].vendorName}</strong></td>
                                             <td colSpan={2}></td>
-                                            <td className='border border-black font-bold text-[14px] py-[1.5vh] px-[1vw] text-right'>Total: {group.subtotal.toLocaleString('en-IN')}</td>
-                                            <td className='border border-black font-bold text-[14px] py-[1.5vh] px-[1vw] text-right'>Total: {group.subtotalCopAmt.toLocaleString('en-IN')}</td>
+                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'><strong>Total: {group.subtotal.toLocaleString('en-IN')}</strong></td>
+                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'><strong>Total: {group.subtotalCopAmt.toLocaleString('en-IN')}</strong></td>
                                             <td colSpan={1}></td>
                                         </tr>
                                     </React.Fragment>
                                 ))}
-                                <tr className='bg-[#f0f0f0]'>
-                                    <td colSpan={2} className='border border-black'></td>
-                                    <td className='border border-black font-bold text-[14px] py-[1.5vh] px-[1vw] text-left'>Total Count: {totals.totalVendorCount.toLocaleString('en-IN')}</td>
+                                <tr className='bg-[#e9ecef] font-semibold'>
+                                    <td colSpan={2} className='border border-black text-[14px] py-[1.5vh] px-[1vw]'></td>
+                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'><strong>Total Count: {totals.totalVendorCount.toLocaleString('en-IN')}</strong></td>
                                     <td colSpan={3}></td>
-                                    <td className='border border-black font-bold text-[14px] py-[1.5vh] px-[1vw] text-right'>Grand Total: {totals.totalSubtotal.toLocaleString('en-IN')}</td>
-                                    <td className='border border-black font-bold text-[14px] py-[1.5vh] px-[1vw] text-right'>Grand Total: {totals.totalSubtotalCopAmt.toLocaleString('en-IN')}</td>
+                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'><strong>Grand Total: {totals.totalSubtotal.toLocaleString('en-IN')}</strong></td>
+                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'><strong>Grand Total: {totals.totalSubtotalCopAmt.toLocaleString('en-IN')}</strong></td>
                                     <td colSpan={1}></td>
                                 </tr>
                             </tbody>

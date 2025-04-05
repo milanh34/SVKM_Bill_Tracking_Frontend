@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from "../components/Header";
+import { bills, report, getReport } from "../apis/bills.api";
 import Filters from '../components/Filters';
 import ReportBtns from '../components/ReportBtns';
 import download from "../assets/download.svg";
@@ -16,20 +17,41 @@ const RepCourier = () => {
         return `${year}-${month}-${day}`;
     };
 
+    const [loading, setLoading] = useState(true);
     const [fromDate, setFromDate] = useState(getFormattedDate());
     const [toDate, setToDate] = useState(getFormattedDate());
+    const [billsData, setBillsData] = useState([]);
+    const [error, setError] = useState(null);
 
-    const bills = [...Array(20)].map((_, index) => ({
-        srNo: '8737',
-        projectDesc: 'MPSTME 3rd to 6th Floor',
-        vendorName: 'Inner Space',
-        taxInvNo: '123',
-        taxInvDate: '22-10-2024',
-        taxInvAmt: '1,26,620.81',
-        dtTaxInvRecdAtSite: '22-02-2024',
-        dtTaxInvCourierToMum: '22-02-2024',
-        poNo: '8000010464'
-    }));
+    useEffect(() => {
+        console.log("Inside use effect inv couriered to mum");
+        const fetchBills = async () => {
+
+            try {
+                const response = await axios.get(`${getReport}/invoices-courier-to-mumbai?startDate=2023-01-01&endDate=2025-12-31`);
+                console.log(response.data);
+                const filteredData = response.data.report.data.map(report => ({
+                    srNo: report.srNo || '',
+                    projectDesc: report.projectDescription || '',
+                    vendorName: report.vendorName || '',
+                    taxInvNo: report.taxInvNo || '',
+                    taxInvDate: report.taxInvDate || '',
+                    taxInvAmt: report.taxInvAmt || '',
+                    dtTaxInvRecdAtSite: report.dtTaxInvRecdAtSite || '',
+                    poNo: report.poNo || ''
+                }));
+                setBillsData(filteredData);
+            }
+            catch (err) {
+                setError("Failed to load data");
+                console.error("Error = " + error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchBills();
+    }, []);
 
     return (
         <div className='mb-[12vh]'>
@@ -74,20 +96,20 @@ const RepCourier = () => {
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Amt</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt Tax Inv recd at Site</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt Tax Inv courier to Mumbai</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>PO No</th>
+                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>PO no</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {bills.map((bill, index) => (
+                            {billsData.map((bill, index) => (
                                 <tr key={index} className="hover:bg-[#f5f5f5]">
                                     <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.srNo}</td>
                                     <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.projectDesc}</td>
                                     <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorName}</td>
                                     <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvNo}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.taxInvDate}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.taxInvAmt}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.dtTaxInvRecdAtSite}</td>
-                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.dtTaxInvCourierToMum}</td>
+                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvDate}</td>
+                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvAmt}</td>
+                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.dtTaxInvRecdAtSite}</td>
+                                    <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.dtTaxInvCourierToMum}</td>
                                     <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.poNo}</td>
                                 </tr>
                             ))}

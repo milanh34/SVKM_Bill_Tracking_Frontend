@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { bills, report } from "../apis/bills.api";
+import { bills, getReport, report } from "../apis/bills.api";
 import Header from "../components/Header";
 import Filters from '../components/Filters';
 import ReportBtns from '../components/ReportBtns';
@@ -40,17 +40,17 @@ const RepRecAtSite = () => {
     useEffect(() => {
         const fetchBills = async () => {
             try {
-                const response = await axios.get(bills, {headers: { Authorization: `Bearer ${Cookies.get("token")}` }});
-                const filteredData = response.data.map(bill => ({
-                    _id: bill._id,
-                    srNo: bill.srNo || '',
-                    projectDesc: bill.projectDescription || '',
-                    vendorName: bill.vendorName || '',
-                    taxInvNo: bill.taxInvNo || '',
-                    taxInvDate: bill.taxInvDate?.split('T')[0] || '',
-                    taxInvAmt: bill.taxInvAmt || '',
-                    dtTaxInvRecdAtSite: bill.taxInvRecdAtSite?.split('T')[0] || '',
-                    poNo: bill.poNo || ''
+                const response = await axios.get(`${getReport}/invoices-received-at-site?startDate=${fromDate}&endDate=${toDate}`);
+                console.log(response.data);
+                const filteredData = response.data.report.data.map(report => ({
+                    srNo: report.srNo || '',
+                    projectDesc: report.projectDescription || '',
+                    vendorName: report.vendorName || '',
+                    taxInvNo: report.taxInvNo || '',
+                    taxInvDate: report.taxInvDate || '',
+                    taxInvAmt: report.taxInvAmt || '',
+                    dtTaxInvRecdAtSite: report.dtTaxInvRecdAtSite || '',
+                    poNo: report.poNo || ''
                 }));
                 setBillsData(filteredData);
             } catch (error) {
@@ -60,17 +60,17 @@ const RepRecAtSite = () => {
             }
         };
         fetchBills();
-    }, []);
+    }, [fromDate, toDate]);
 
     useEffect(() => {
         if (selectAll) {
-            setSelectedRows(billsData.map(bill => bill._id));
+            setSelectedRows(billsData.map(bill => bill.srNo));
         }
     }, [billsData, selectAll]);
 
     const handleSelectAll = () => {
         setSelectAll(!selectAll);
-        setSelectedRows(selectAll ? [] : billsData.map(bill => bill._id));
+        setSelectedRows(selectAll ? [] : billsData.map(bill => bill.srNo));
     };
 
     const handleSelectRow = (id) => {
@@ -85,7 +85,7 @@ const RepRecAtSite = () => {
         try {
 
             const billIdsToDownload = selectedRows.length === 0
-                ? billsData.map(bill => bill._id)
+                ? billsData.map(bill => bill.srNo)
                 : selectedRows;
 
             const response = await axios.post(
@@ -137,23 +137,6 @@ const RepRecAtSite = () => {
         return true;
     };
 
-    const filteredData = billsData
-        .filter((row) =>
-            Object.values(row).some(
-                (value) =>
-                    value && value.toString().toLowerCase().includes(searchQuery.toLowerCase())
-            )
-        )
-        .filter((row) => isWithinDateRange(row.taxInvDate))
-        .sort((a, b) => {
-            if (sortBy === "amount") {
-                return parseFloat(String(a.taxInvAmt || "0")) - parseFloat(String(b.taxInvAmt || "0"));
-            } else if (sortBy === "date") {
-                return new Date(a.taxInvDate || 0) - new Date(b.taxInvDate || 0);
-            }
-            return 0;
-        });
-
     return (
         <div className='mb-[12vh]'>
             <Header />
@@ -163,11 +146,11 @@ const RepRecAtSite = () => {
                 <div className="flex justify-between items-center mb-[2vh]">
                     <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Invoices Received At Site</h2>
                     <div className="flex gap-[1vw] w-[50%]">
-                        <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]">
+                        <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]" onClick={handleTopDownload}>
                             Print
                             <img src={print} />
                         </button>
-                        <button className="w-[300px] bg-[#F48D02] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#e6c200]" onClick={handleTopDownload}>
+                        <button className="w-[300px] bg-[#F48D02] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#e6c200]">
                             Download
                             <img src={download} />
                         </button>
@@ -209,15 +192,15 @@ const RepRecAtSite = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredData.map((bill, index) => (
-                                    <tr key={bill._id} className="hover:bg-[#f5f5f5]">
+                                {billsData.map((bill) => (
+                                    <tr key={bill.srNo} className="hover:bg-[#f5f5f5]">
                                         <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.srNo}</td>
                                         <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.projectDesc}</td>
                                         <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorName}</td>
                                         <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvNo}</td>
                                         <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvDate}</td>
-                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.taxInvAmt}</td>
-                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.dtTaxInvRecdAtSite}</td>
+                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvAmt}</td>
+                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.dtTaxInvRecdAtSite}</td>
                                         <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.poNo}</td>
                                     </tr>
                                 ))}
