@@ -7,6 +7,7 @@ import send from "../assets/send.svg";
 import print from "../assets/print.svg";
 import axios from 'axios';
 import { courieredMumbai } from '../apis/report.api';
+import { report } from "../apis/bills.api";
 
 const RepCourier = () => {
 
@@ -23,6 +24,7 @@ const RepCourier = () => {
     const [toDate, setToDate] = useState(getFormattedDate());
     const [bills, setBills] = useState([]);
     const [error, setError] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         console.log("Inside use effect inv couriered to mum");
@@ -44,6 +46,65 @@ const RepCourier = () => {
         fetchBills();
     }, [fromDate, toDate]);
 
+    const handleTopDownload = async () => {
+        const generateReport = async (billIds, format = 'excel') => {
+            try {
+                // Prepare the request body
+                const requestBody = { billIds, format };
+
+                // Send the POST request to generate the report
+                const response = await fetch(report, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody),
+                });
+
+                // Check if the request was successful
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.message}`);
+                    return;
+                }
+
+                // Get the response as a Blob (binary data) for file download
+                const blob = await response.blob();
+
+                // Extract the file name from the Content-Disposition header
+                const contentDisposition = response.headers.get('Content-Disposition');
+                const fileName = contentDisposition
+                    ? contentDisposition.split('filename=')[1].replace(/"/g, '')
+                    : `report-${new Date().toISOString()}`;
+
+                // Create a URL for the Blob and trigger the download
+                const downloadUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+
+                // Clean up the link element
+                document.body.removeChild(link);
+                URL.revokeObjectURL(downloadUrl);
+            } catch (error) {
+                console.error('Error generating the report:', error);
+                alert('An error occurred while generating the report.');
+            }
+        };
+
+        const ids = bills.map(bill => bill.srNo);
+        const format = 'excel';
+        // call function
+        generateReport(ids, format);
+    }
+
+    const handleSendClick = () => {
+        setIsModalOpen(true);
+    };
+
+
     return (
         <div className='mb-[12vh]'>
             <Header />
@@ -57,11 +118,11 @@ const RepCourier = () => {
                             Print
                             <img src={print} />
                         </button>
-                        <button className="w-[300px] bg-[#F48D02] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#e6c200]">
+                        <button className="w-[300px] bg-[#F48D02] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#e6c200]" onClick={handleTopDownload}>
                             Download
                             <img src={download} />
                         </button>
-                        <button className="w-[300px] bg-[#34915C] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#45a049]">
+                        <button className="w-[300px] bg-[#34915C] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#45a049]" onClick={handleSendClick}>
                             Send to
                             <img src={send} />
                         </button>
@@ -91,31 +152,42 @@ const RepCourier = () => {
                             </tr>
                         </thead>
                         <tbody>
-                        {loading ? (
-                            <tr>
-                                <td colSpan="9" className="text-center py-4">Loading...</td>
-                            </tr>
-                        ) : bills.length === 0 ? (
-                            <tr>
-                                <td colSpan="9" className="text-center py-4">No invoices found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
-                            </tr>
-                        ) : bills.map((bill, index) => (
-                            <tr key={index} className="hover:bg-[#f5f5f5]">
-                                <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.srNo}</td>
-                                <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.projectDescription}</td>
-                                <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
-                                <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
-                                <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvDate}</td>
-                                <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvAmt}</td>
-                                <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.dtTaxInvRecdAtSite}</td>
-                                <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.dtTaxInvCourierToMumbai}</td>
-                                <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.poNo}</td>
-                            </tr>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="9" className="text-center py-4">Loading...</td>
+                                </tr>
+                            ) : bills.length === 0 ? (
+                                <tr>
+                                    <td colSpan="9" className="text-center py-4">No invoices found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
+                                </tr>
+                            ) : bills.map((bill, index) => (
+                                <tr key={index} className="hover:bg-[#f5f5f5]">
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.srNo}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.projectDescription}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvDate}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvAmt}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.dtTaxInvRecdAtSite}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.dtTaxInvCourierToMumbai}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.poNo}</td>
+                                </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            {/* {isModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+                    <SendBox
+                        closeWindow={() => setIsModalOpen(false)}
+                        // selectedBills={selectedRows}
+                        // billsData={billsData}
+                    />
+                </div>
+            )} */}
+
         </div>
     )
 }

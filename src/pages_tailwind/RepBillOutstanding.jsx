@@ -36,8 +36,10 @@ const RepBillOutstanding = () => {
         const fetchBills = async () => {
             try {
                 const response = await axios.get(`${outstanding}?startDate=${fromDate}&endDate=${toDate}`);
-                console.log(response.data.report.data);
+                console.log(response.data);
+                let count = 0;
                 const filteredData = response?.data?.report.data.map(report => ({
+                    id: count++,
                     copAmt: report.copAmt || '',
                     srNo: report.srNo || '',
                     region: report.region || '',
@@ -49,6 +51,7 @@ const RepBillOutstanding = () => {
                     dtTaxInvRecdAtSite: report.dateRecdInAcctsDept?.split('T')[0] || '',
                     natureOfWork: report.natureOfWorkSupply || ''
                 }));
+                console.log(filteredData);
                 setBillsData(filteredData);
             } catch (error) {
                 setError("Failed to load data");
@@ -64,7 +67,7 @@ const RepBillOutstanding = () => {
         if (selectAll) {
             setSelectedRows([]);
         } else {
-            setSelectedRows(billsData.map(bill => bill.srNo));
+            setSelectedRows(billsData.map(bill => bill.id));
         }
         setSelectAll(!selectAll);
     };
@@ -118,6 +121,61 @@ const RepBillOutstanding = () => {
             alert("Failed to download report: " + (error.message || "Unknown error"));
         }
     };
+
+    // const handleTopDownload = async () => {
+    //     const generateReport = async (billIds, format = 'excel') => {
+    //         try {
+    //             // Prepare the request body
+    //             const requestBody = { billIds, format };
+
+    //             // Send the POST request to generate the report
+    //             const response = await fetch(report, {
+    //                 method: 'POST',
+    //                 headers: {
+    //                     'Content-Type': 'application/json',
+    //                 },
+    //                 body: JSON.stringify(requestBody),
+    //             });
+
+    //             // Check if the request was successful
+    //             if (!response.ok) {
+    //                 const errorData = await response.json();
+    //                 alert(`Error: ${errorData.message}`);
+    //                 return;
+    //             }
+
+    //             // Get the response as a Blob (binary data) for file download
+    //             const blob = await response.blob();
+
+    //             // Extract the file name from the Content-Disposition header
+    //             const contentDisposition = response.headers.get('Content-Disposition');
+    //             const fileName = contentDisposition
+    //                 ? contentDisposition.split('filename=')[1].replace(/"/g, '')
+    //                 : `report-${new Date().toISOString()}`;
+
+    //             // Create a URL for the Blob and trigger the download
+    //             const downloadUrl = URL.createObjectURL(blob);
+    //             const link = document.createElement('a');
+    //             link.href = downloadUrl;
+    //             link.download = fileName;
+    //             document.body.appendChild(link);
+    //             link.click();
+
+    //             // Clean up the link element
+    //             document.body.removeChild(link);
+    //             URL.revokeObjectURL(downloadUrl);
+    //         } catch (error) {
+    //             console.error('Error generating the report:', error);
+    //             alert('An error occurred while generating the report.');
+    //         }
+    //     };
+
+    //     // const ids = selectedRows.map(bill => bill.srNo);
+    //     const ids = ["67cad20efe125d9d5be9a7f3","67cad20efe125d9d5be9a7f5"]
+    //     const format = 'excel';
+    //     // call function
+    //     generateReport(ids, format);
+    // }
 
     const handleSendClick = () => {
         setIsModalOpen(true);
