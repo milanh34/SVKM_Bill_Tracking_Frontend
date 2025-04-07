@@ -82,7 +82,7 @@ const Checklist = () => {
     return (
         <div style={{ width: '100%' }}>
             <Header />
-            <h1>{billID}</h1>
+            {/* <h1>{billID}</h1> */}
             <div className="checklist-container">
                 <div className="checklist-header">
                     <h1>Checklist</h1>

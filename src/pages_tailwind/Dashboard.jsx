@@ -178,7 +178,7 @@ const Dashboard = () => {
       
       if (currentState === "Completed" || currentState === "Rejected") {
         return ["pimo_mumbai", "accounts", "director", "admin"].includes(userRole);
-      }m
+      }
 
       const stateToRoleMap = {
         "Site_Officer": ["site_officer"],

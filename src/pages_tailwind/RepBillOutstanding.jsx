@@ -9,6 +9,7 @@ import SendBox from "../components/Sendbox";
 import download from "../assets/download.svg";
 import send from "../assets/send.svg";
 import print from "../assets/print.svg";
+import { handleExportOutstandingReport } from "../utils/exportExcelReportOutstanding";
 
 const RepBillOutstanding = () => {
 
@@ -80,47 +81,51 @@ const RepBillOutstanding = () => {
         }
     };
 
+    // const handleTopDownload = async () => {
+    //     let billIdsToDownload = [];
+
+    //     if (selectedRows.length === 0) {
+    //         billIdsToDownload = billsData.map(bill => bill.srNo);
+
+    //         if (billIdsToDownload.length > 0) {
+    //             if (!window.confirm(`No bills selected. Download all ${billIdsToDownload.length} filtered bills?`)) {
+    //                 return;
+    //             }
+    //         } else {
+    //             alert("No bills available to download.");
+    //             return;
+    //         }
+    //     } else {
+    //         billIdsToDownload = selectedRows;
+    //     }
+
+    //     try {
+    //         const response = await axios.post(
+    //             report,
+    //             { billIds: billIdsToDownload, format: "excel" },
+    //             { responseType: "blob" }
+    //         );
+
+    //         const url = window.URL.createObjectURL(
+    //             new Blob([response.data], {
+    //                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    //             })
+    //         );
+    //         const link = document.createElement("a");
+    //         link.href = url;
+    //         link.setAttribute("download", "report.xlsx");
+    //         document.body.appendChild(link);
+    //         link.click();
+    //         document.body.removeChild(link);
+    //     } catch (error) {
+    //         console.error("Error downloading the report:", error);
+    //         alert("Failed to download report: " + (error.message || "Unknown error"));
+    //     }
+    // };
+
     const handleTopDownload = async () => {
-        let billIdsToDownload = [];
-
-        if (selectedRows.length === 0) {
-            billIdsToDownload = billsData.map(bill => bill.srNo);
-
-            if (billIdsToDownload.length > 0) {
-                if (!window.confirm(`No bills selected. Download all ${billIdsToDownload.length} filtered bills?`)) {
-                    return;
-                }
-            } else {
-                alert("No bills available to download.");
-                return;
-            }
-        } else {
-            billIdsToDownload = selectedRows;
-        }
-
-        try {
-            const response = await axios.post(
-                report,
-                { billIds: billIdsToDownload, format: "excel" },
-                { responseType: "blob" }
-            );
-
-            const url = window.URL.createObjectURL(
-                new Blob([response.data], {
-                    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                })
-            );
-            const link = document.createElement("a");
-            link.href = url;
-            link.setAttribute("download", "report.xlsx");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } catch (error) {
-            console.error("Error downloading the report:", error);
-            alert("Failed to download report: " + (error.message || "Unknown error"));
-        }
-    };
+        const result = await handleExportOutstandingReport(selectedRows, billsData, columns, visibleColumnFields);
+    }
 
     // const handleTopDownload = async () => {
     //     const generateReport = async (billIds, format = 'excel') => {
