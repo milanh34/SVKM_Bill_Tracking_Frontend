@@ -299,9 +299,7 @@ const Checklist = () => {
                                         disabled={!isEditable}
                                         onChange={(e) => handleInputChange(e, 'paymentTowards')}
                                     >
-                                        <option>Material</option>
-                                        <option>Services</option>
-                                        <option>Other</option>
+                                        <option>Select here</option>
                                     </select>
                                 </td>
                                 <td>
