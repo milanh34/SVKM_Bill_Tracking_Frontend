@@ -49,8 +49,8 @@ const RepBillOutstanding = () => {
                     taxInvNo: report.taxInvNo || '',
                     taxInvDate: report.taxInvDate?.split('T')[0] || '',
                     taxInvAmt: report.taxInvAmt || '',
-                    dtTaxInvRecdAtSite: report.dateRecdInAcctsDept?.split('T')[0] || '',
-                    natureOfWork: report.natureOfWorkSupply || ''
+                    dateRecdInAcctsDept: report.dateRecdInAcctsDept?.split('T')[0] || '',
+                    natureOfWorkSupply: report.natureOfWorkSupply || ''
                 }));
                 console.log(filteredData);
                 setBillsData(filteredData);
@@ -124,8 +124,27 @@ const RepBillOutstanding = () => {
     // };
 
     const handleTopDownload = async () => {
+        console.log("Download outstanding bill clicked");
         const result = await handleExportOutstandingReport(selectedRows, billsData, columns, visibleColumnFields);
     }
+
+    const columns = [
+        // { field: "copAmt", headerName: "COP Amount" },
+        { field: "srNo", headerName: "Sr. No" },
+        { field: "region", headerName: "Region" },
+        { field: "vendorNo", headerName: "Vendor No." },
+        { field: "vendorName", headerName: "Vendor Name" },
+        { field: "taxInvNo", headerName: "Tax Invoice No." },
+        { field: "taxInvDate", headerName: "Tax Invoice Date" },
+        { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
+        { field: "dateRecdInAcctsDept", headerName: "Date Received in Accts Dept" },
+        { field: "natureOfWorkSupply", headerName: "Nature of Work" }
+    ]
+
+    const visibleColumnFields = [
+        "srNo", "region", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dateRecdInAcctsDept", "natureOfWorkSupply"
+    ]
+
 
     // const handleTopDownload = async () => {
     //     const generateReport = async (billIds, format = 'excel') => {
@@ -276,9 +295,9 @@ const RepBillOutstanding = () => {
                                         <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorName}</td>
                                         <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvNo}</td>
                                         <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvDate}</td>
-                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.taxInvAmt}</td>
-                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.dtTaxInvRecdAtSite}</td>
-                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.natureOfWork}</td>
+                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.taxInvAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.dateRecdInAcctsDept}</td>
+                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.natureOfWorkSupply}</td>
                                     </tr>
                                 ))}
                             </tbody>

@@ -28,22 +28,23 @@ export const handleExportOutstandingReport = async (selectedRows, filteredData, 
             "taxInvNo",
             "taxInvDate",
             "taxInvAmt",
-            "dtTaxInvRecdAtSite",
-            "natureOfWork"
+            "dateRecdInAcctsDept",
+            "natureOfWorkSupply"
         ];
 
         const essentialColumns = essentialFields
             .map((field) => columns.find((col) => col.field === field))
             .filter((col) => col !== undefined);
 
-        const additionalColumns = columns.filter(
-            (col) =>
-                visibleColumnFields.includes(col.field) &&
-                col.field !== "srNoOld" &&
-                !essentialFields.includes(col.field)
-        );
+        // const additionalColumns = columns.filter(
+        //     (col) =>
+        //         visibleColumnFields.includes(col.field) &&
+        //         col.field !== "srNoOld" &&
+        //         !essentialFields.includes(col.field)
+        // );
 
-        const allColumnsToExport = [...essentialColumns, ...additionalColumns];
+        // const allColumnsToExport = [...essentialColumns, ...additionalColumns];
+        const allColumnsToExport = [...essentialColumns];
         const workbook = XLSX.utils.book_new();
 
         // Create timestamp row
@@ -74,7 +75,7 @@ export const handleExportOutstandingReport = async (selectedRows, filteredData, 
                     if (value) {
                         const date = new Date(value);
                         if (!isNaN(date)) {
-                            value = date.toISOString().split("T")[0];
+                            value = date.toISOString(); //.split("T")[0];
                         }
                     }
                 }
@@ -91,7 +92,7 @@ export const handleExportOutstandingReport = async (selectedRows, filteredData, 
                     }
                 }
 
-                formattedRow[column.headerName] = value !== undefined && value !== null ? value : "";
+                formattedRow[column.headerName] = (value !== undefined && value !== null) ? value : "no";
             });
             return formattedRow;
         });
