@@ -2,14 +2,11 @@ import { useEffect, useState } from "react";
 import "../styles/AdvancedChecklist.css";
 import Header from "../components/Header";
 import pen from "../assets/pen.svg";
-import { useLocation } from "react-router-dom";
 import { bills } from "../apis/bills.api";
 
-const Checklist = () => {
+const Checklist = (props) => {
 
-    const location = useLocation();
-
-    const billID = location.state?.item || "hello";
+    const billID = props.billID;
 
     const [formData, setFormData] = useState({
         sapCode: null,
@@ -77,11 +74,11 @@ const Checklist = () => {
                 handleChangesInChecklist(data);
             })
 
-    }, []);
+    }, [billID]);
 
     return (
         <div style={{ width: '100%' }}>
-            <Header />
+            {/* <Header /> */}
             {/* <h1>{billID}</h1> */}
             <div className="checklist-container">
                 <div className="checklist-header">
