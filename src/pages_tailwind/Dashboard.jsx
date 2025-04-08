@@ -50,6 +50,7 @@ const Dashboard = () => {
   const [pagesToShow, setPagesToShow] = useState(5);
   const [showDownloadValidation, setShowDownloadValidation] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [columnSearchQuery, setColumnSearchQuery] = useState("");
 
   const navigate = useNavigate();
 
@@ -121,7 +122,6 @@ const Dashboard = () => {
 
       const results = await Promise.allSettled(promises);
       
-      // Check if any requests failed
       const failedRequests = results.filter(result => result.status === 'rejected');
       const successfulRequests = results.filter(result => result.status === 'fulfilled');
       
@@ -176,12 +176,10 @@ const Dashboard = () => {
     return bills.filter(bill => {
       const currentState = bill.workflowState?.currentState;
       
-      // For completed or rejected bills
       if (currentState === "Completed" || currentState === "Rejected") {
         return ["pimo_mumbai", "accounts", "director", "admin"].includes(userRole);
       }
 
-      // Map workflow states to roles that can see them
       const stateToRoleMap = {
         "Site_Officer": ["site_officer"],
         "Site_PIMO": ["site_pimo"],
@@ -191,25 +189,21 @@ const Dashboard = () => {
         "Accounts": ["accounts"]
       };
 
-      // Admin can see all bills
       if (userRole === "admin") return true;
 
-      // Check if user's role matches the current workflow state
       return stateToRoleMap[currentState]?.includes(userRole) || false;
     });
   };
 
   const fetchBills = async () => {
     try {
-      const response = await axios.get(bills);
+      const response = await axios.get(bills, {headers: { Authorization: `Bearer ${Cookies.get('token')}` }});
       const userRole = Cookies.get('userRole');
       
       console.log("Received response data:", response.data);
       
-      // Filter bills based on workflow state and user role
       const filteredBills = filterBillsByWorkflowState(response.data, userRole);
       
-      // Sort filtered bills by status
       const sortedData = filteredBills.sort((a, b) => {
         const aStatus = a.accountsDept.status.toLowerCase();
         const bStatus = b.accountsDept.status.toLowerCase();
@@ -371,7 +365,7 @@ const Dashboard = () => {
     setIsFilterPopupOpen(false);
   };
 
-  const currentUserRole = Cookies.get("userRole"); // Replace localStorage usage
+  const currentUserRole = Cookies.get("userRole");
   const availableRoles = roles.filter((role) => role.value !== currentUserRole);
 
   const columns = useMemo(() => {
@@ -396,14 +390,20 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (columns.length > 0) {
-      setVisibleColumnFields(columns.slice(0, 12).map((col) => col.field));
+      const initialColumns = columns.slice(0, 12).map((col) => col.field);
+      if (!initialColumns.includes("srNo")) {
+        initialColumns.unshift("srNo");
+      }
+      setVisibleColumnFields(initialColumns);
     }
   }, [columns]);
 
   const toggleColumnVisibility = (field) => {
+    if (field === "srNo") return;
+
     setVisibleColumnFields((prev) => {
       if (prev.includes(field)) {
-        return prev.filter((f) => f !== field);
+        return prev.filter((f) => f !== field && f !== "srNo");
       } else {
         return [...prev, field];
       }
@@ -492,7 +492,6 @@ const Dashboard = () => {
       });
 
       toast.success('Bills updated successfully');
-      fetchBills(); // Refresh the bills data
     } catch (error) {
       console.error('Error updating bills:', error);
       toast.error(
@@ -575,51 +574,56 @@ const Dashboard = () => {
                   </button>
 
                   {isColumnDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-96 overflow-y-auto">
-                      <div className="p-2 border-b border-gray-200">
-                        <div
-                          className="flex items-center space-x-2 cursor-pointer"
-                          onClick={toggleAllColumns}
-                        >
+                    <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-96 overflow-hidden flex flex-col">
+                      <div className="sticky top-0 bg-white p-2 border-b border-gray-200">
+                        <input
+                          type="text"
+                          placeholder="Search columns..."
+                          value={columnSearchQuery}
+                          onChange={(e) => setColumnSearchQuery(e.target.value)}
+                          className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
+                      <div className="p-2 border-b border-gray-200 bg-white sticky top-[52px]">
+                        <div className="flex items-center space-x-2 cursor-pointer" onClick={toggleAllColumns}>
                           <input
                             type="checkbox"
-                            checked={
-                              visibleColumnFields.length ===
-                              columns.filter((col) => col.field !== "srNoOld")
-                                .length
-                            }
+                            checked={visibleColumnFields.length === columns.filter(col => col.field !== "srNoOld").length}
                             readOnly
                           />
-                          <span>Select All</span>
+                          <span className="text-sm">Select All</span>
                         </div>
                       </div>
-                      <div className="p-2 space-y-2">
+                      <div className="overflow-y-auto p-2 space-y-2">
                         {columns
-                          .filter((col) => col.field !== "srNoOld")
+                          .filter(col => col.field !== "srNoOld")
+                          .filter(col => col.headerName.toLowerCase().includes(columnSearchQuery.toLowerCase()))
                           .map((column) => (
-                            <div
-                              key={column.field}
-                              className="flex items-center space-x-2"
-                            >
+                            <div key={column.field} className="flex items-center space-x-2">
                               <input
                                 type="checkbox"
                                 id={`col-${column.field}`}
-                                checked={visibleColumnFields.includes(
-                                  column.field
-                                )}
-                                onChange={() =>
-                                  toggleColumnVisibility(column.field)
-                                }
-                                className="hover:cursor-pointer"
+                                checked={column.field === "srNo" || visibleColumnFields.includes(column.field)}
+                                onChange={() => toggleColumnVisibility(column.field)}
+                                className={`hover:cursor-pointer ${column.field === "srNo" ? "opacity-60" : ""}`}
+                                disabled={column.field === "srNo"}
                               />
-                              <label
-                                className="hover:cursor-pointer"
+                              <label 
+                                className={`hover:cursor-pointer text-sm ${column.field === "srNo" ? "opacity-60" : ""}`} 
                                 htmlFor={`col-${column.field}`}
                               >
                                 {column.headerName}
                               </label>
                             </div>
                           ))}
+                        {columns.filter(col => 
+                          col.field !== "srNoOld" && 
+                          col.headerName.toLowerCase().includes(columnSearchQuery.toLowerCase())
+                        ).length === 0 && (
+                          <div className="text-gray-500 text-sm text-center py-2">
+                            No columns found
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

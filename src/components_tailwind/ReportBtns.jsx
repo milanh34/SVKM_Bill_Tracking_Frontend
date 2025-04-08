@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import "../styles/ReportsBasic.css";
 import { useLocation, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 
@@ -57,16 +56,16 @@ const ReportBtns = () => {
     const allowedButtons = roleAccess[selectedRole] ? allButtons.filter(btn => roleAccess[selectedRole].includes(btn.id)) : [];
 
     return (
-        <div className='report-btn-main'>
+        <div className='flex flex-wrap justify-start items-center gap-[1vw] mb-[1vh] px-[2vw] max-w-full'>
             {allowedButtons.map(btn => (
                 <button
                     key={btn.id}
                     onClick={handleClick}
                     id={btn.id}
-                    className='report-btns'
+                    className='bg-[#364cbb] text-white font-semibold px-[1.4vw] py-[0.5vw] rounded-[1vw] border-none cursor-pointer whitespace-nowrap text-[0.9vw] transition-all duration-200 hover:bg-[#2a3c9e] hover:-translate-y-0.5 shadow-md'
                     style={{
                         backgroundColor: currentRoute === btn.id ? '#ffffff' : '#364CBB',
-                        color: currentRoute === btn.id ? "#000" : "fff",
+                        color: currentRoute === btn.id ? "#000" : "#fff",
                         border: currentRoute === btn.id ? "3px solid #364CBB" : "none"
                     }}
                 >

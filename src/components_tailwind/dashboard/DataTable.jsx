@@ -27,9 +27,11 @@ const DataTable = ({
   const [columnFilters, setColumnFilters] = useState({});
   const [activeFilter, setActiveFilter] = useState(null);
   const [filterSearchQuery, setFilterSearchQuery] = useState("");
-  const [filterPosition, setFilterPosition] = useState("right"); // Add this state
+  const [filterPosition, setFilterPosition] = useState("right");
   const filterRef = useRef(null);
   const [selectAllState, setSelectAll] = useState(false);
+  const [filterType, setFilterType] = useState({}); 
+  const [dateRanges, setDateRanges] = useState({}); 
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -100,7 +102,6 @@ const DataTable = ({
       'returnedToPimo', 'receivedBack'
     ];
     
-    // Check for date-related patterns in nested fields
     if (field.includes('.')) {
       const parts = field.split('.');
       for (const part of parts) {
@@ -112,7 +113,6 @@ const DataTable = ({
       }
     }
     
-    // Check for direct matches
     return dateIndicators.some(indicator => 
       field.toLowerCase().includes(indicator.toLowerCase())
     );
@@ -159,8 +159,27 @@ const DataTable = ({
     });
   };
 
-  const applyFilter = (value, filterValue, operator) => {
+  const applyFilter = (value, filterValue, operator, field) => {
     if (!value) return false;
+    
+    if (isDateField(field)) {
+      const currentFilterType = filterType[field] || 'individual';
+      const dateValue = new Date(value);
+      
+      if (currentFilterType === 'range') {
+        const { from, to } = dateRanges[field] || {};
+        if (from && to) {
+          const fromDate = new Date(from);
+          const toDate = new Date(to);
+          return dateValue >= fromDate && dateValue <= toDate;
+        }
+        return true;
+      } else {
+        const formattedDate = formatDate(value);
+        return filterValue.some(val => formattedDate === val);
+      }
+    }
+
     const stringValue = value.toString().toLowerCase();
     
     if (value instanceof Date || !isNaN(new Date(value))) {
@@ -196,7 +215,7 @@ const DataTable = ({
         }
         const value = getNestedValue(row, field);
         if (value === null || value === undefined) return false;
-        return applyFilter(value, filter.value, filter.operator);
+        return applyFilter(value, filter.value, filter.operator, field);
       });
     });
   }, [data, searchQuery, columnFilters, visibleColumns]);
@@ -247,7 +266,6 @@ const DataTable = ({
   }, [sortedData, currentPage, itemsPerPage]);
 
   useEffect(() => {
-    // Update filtered data count whenever filters change
     if (onPaginatedDataChange) {
       onPaginatedDataChange(sortedData.length);
     }
@@ -270,7 +288,6 @@ const DataTable = ({
   const formatCellValue = (value, field) => {
     if (value === undefined || value === null || value === '') return "-";
 
-    // Handle numeric fields first
     if (isNumericField(field)) {
       const numValue = parseFloat(value);
       if (!isNaN(numValue)) {
@@ -278,32 +295,26 @@ const DataTable = ({
       }
     }
 
-    // Handle date fields
     if (isDateField(field)) {
-      // Check for Unix timestamp (milliseconds since epoch)
       if (typeof value === 'number') {
         const date = new Date(value);
-        if (date.getFullYear() > 1971) { // Valid date check
+        if (date.getFullYear() > 1971) {
           return formatDate(date);
         }
       }
-      // Check if it's already a date string
       if (typeof value === 'string' && value.includes('T')) {
         const date = new Date(value);
         if (!isNaN(date.getTime())) {
           return formatDate(date);
         }
       }
-      // If we can't parse it as a valid date, return the original value
       return value.toString();
     }
 
-    // Handle status fields with special styling
     if (field.includes('status')) {
       return value.toString();
     }
 
-    // Default handling for other fields
     return value.toString();
   };
 
@@ -335,13 +346,11 @@ const DataTable = ({
         : [...selectedRows, id];
       onRowSelect(newSelection);
       
-      // Update selectAll state based on if all filtered items are selected
       setSelectAll(newSelection.length === filteredData.length);
     }
   };
 
   useEffect(() => {
-    // Reset selectAll when filters change
     setSelectAll(false);
   }, [columnFilters, searchQuery]);
 
@@ -350,7 +359,6 @@ const DataTable = ({
     setSelectAll(isChecked);
     
     if (isChecked) {
-      // Only select IDs from the filtered data
       const filteredIds = filteredData.map(row => row._id);
       onRowSelect(filteredIds);
     } else {
@@ -364,13 +372,15 @@ const DataTable = ({
       return;
     }
     
-    // Calculate if the popup should open to the left or right
     const buttonRect = event.currentTarget.getBoundingClientRect();
     const screenWidth = window.innerWidth;
-    const popupWidth = 250; // Approximate width of the popup
+    const popupWidth = 250;
+    const tableBottom = event.currentTarget.closest('.overflow-x-auto').getBoundingClientRect().bottom;
+    const availableHeight = tableBottom - buttonRect.bottom - 20;
     
-    // If the button is in the left third of the screen, open to the right
     setFilterPosition(buttonRect.left < screenWidth / 3 ? "right" : "left");
+    
+    filterRef.current = { maxHeight: availableHeight };
     
     setActiveFilter(field);
     setFilterSearchQuery("");
@@ -393,52 +403,113 @@ const DataTable = ({
 
   const renderFilterPopup = (column) => {
     const uniqueValues = getUniqueValues(data, column.field);
-    const currentFilter =
-      columnFilters[column.field] || { operator: "multiSelect", value: [] };
+    const currentFilter = columnFilters[column.field] || { operator: "multiSelect", value: [] };
+    const maxHeight = filterRef.current?.maxHeight || 400;
+    const isDate = isDateField(column.field);
+    const currentFilterType = filterType[column.field] || 'individual';
+    const currentDateRange = dateRanges[column.field] || { from: '', to: '' };
 
-    const filteredValues = uniqueValues.filter((value) =>
-      value.toLowerCase().includes(filterSearchQuery.toLowerCase())
+    const showDateRange = isDate && (
+      column.headerName.toLowerCase().includes('date') || 
+      column.headerName.toLowerCase().includes('at site') ||
+      column.headerName.toLowerCase().includes('booking')
     );
 
     return (
       <div
         ref={filterRef}
-        className={`absolute mt-2.5 bg-white border border-gray-200 rounded-md shadow-lg z-10 p-3 min-w-[250px] ${
+        className={`absolute mt-2.5 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-[250px] flex flex-col ${
           filterPosition === "right" ? "left-0" : "right-0"
         }`}
+        style={{ maxHeight: `${Math.min(maxHeight, 400)}px` }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="space-y-3">
+        {/* Header */}
+        <div className="sticky top-0 z-30 bg-white border-b border-gray-200 p-3">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">{column.headerName}</span>
             <button
-              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md cursor-pointer"
               onClick={() => setActiveFilter(null)}
+              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
             >
               <X size={16} />
             </button>
           </div>
 
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search values..."
-              value={filterSearchQuery}
-              onChange={(e) => setFilterSearchQuery(e.target.value)}
-              className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm pr-8"
-            />
-            {filterSearchQuery && (
-              <button
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                onClick={() => setFilterSearchQuery("")}
+          {/* Update date range selector condition */}
+          {showDateRange && (
+            <div className="mt-2">
+              <select
+                value={currentFilterType}
+                onChange={(e) => setFilterType(prev => ({
+                  ...prev,
+                  [column.field]: e.target.value
+                }))}
+                className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm"
               >
-                <X size={14} />
-              </button>
-            )}
-          </div>
+                <option value="individual">Select Individual Dates</option>
+                <option value="range">Select Date Range</option>
+              </select>
+            </div>
+          )}
 
-          <div className="max-h-60 overflow-y-auto space-y-1 border rounded-md p-1">
-            {filteredValues.map((value) => (
+          {(!showDateRange || currentFilterType === 'individual') && (
+            <div className="mt-2 relative">
+              <input
+                type="text"
+                placeholder="Search values..."
+                value={filterSearchQuery}
+                onChange={(e) => setFilterSearchQuery(e.target.value)}
+                className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm pr-8"
+              />
+              {filterSearchQuery && (
+                <button
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  onClick={() => setFilterSearchQuery("")}
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Update date range inputs condition */}
+          {showDateRange && currentFilterType === 'range' && (
+            <div className="mt-2 space-y-2">
+              <div>
+                <label className="text-xs text-gray-500">From</label>
+                <input
+                  type="date"
+                  value={currentDateRange.from}
+                  onChange={(e) => setDateRanges(prev => ({
+                    ...prev,
+                    [column.field]: { ...currentDateRange, from: e.target.value }
+                  }))}
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500">To</label>
+                <input
+                  type="date"
+                  value={currentDateRange.to}
+                  onChange={(e) => setDateRanges(prev => ({
+                    ...prev,
+                    [column.field]: { ...currentDateRange, to: e.target.value }
+                  }))}
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        {(!showDateRange || currentFilterType === 'individual') && (
+          <div className="flex-1 overflow-y-auto p-2 bg-white">
+            {uniqueValues.filter((value) =>
+              value.toLowerCase().includes(filterSearchQuery.toLowerCase())
+            ).map((value) => (
               <label
                 key={value}
                 className="flex items-center space-x-2 px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer"
@@ -457,25 +528,37 @@ const DataTable = ({
                 <span className="text-sm">{value}</span>
               </label>
             ))}
+            {uniqueValues.length === 0 && (
+              <div className="text-gray-500 text-sm text-center py-2">
+                No values found
+              </div>
+            )}
           </div>
+        )}
 
-          <div className="flex justify-between gap-2 pt-2 border-t">
-            <button
-              className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded cursor-pointer transition-colors duration-150"
-              onClick={() => handleFilterClear(column.field)}
-            >
-              Clear filters
-            </button>
-            <button
-              className="px-2 py-1 text-xs bg-[#011a99] text-white hover:bg-[#015099] rounded cursor-pointer transition-colors duration-150"
-              onClick={() => {
-                setActiveFilter(null);
-                setFilterSearchQuery("");
-              }}
-            >
-              Apply
-            </button>
-          </div>
+        {/* Footer */}
+        <div className="sticky bottom-0 z-30 bg-white border-t border-gray-200 p-2 flex justify-between gap-2">
+          <button
+            className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
+            onClick={() => {
+              handleFilterClear(column.field);
+              setDateRanges(prev => ({ ...prev, [column.field]: { from: '', to: '' } }));
+            }}
+          >
+            Clear
+          </button>
+          <button
+            className="px-2 py-1 text-xs bg-[#011a99] text-white hover:bg-[#015099] rounded"
+            onClick={() => {
+              if (currentFilterType === 'range' && currentDateRange.from && currentDateRange.to) {
+                handleFilterChange(column.field, 'dateRange', [currentDateRange.from, currentDateRange.to]);
+              }
+              setActiveFilter(null);
+              setFilterSearchQuery("");
+            }}
+          >
+            Apply
+          </button>
         </div>
       </div>
     );

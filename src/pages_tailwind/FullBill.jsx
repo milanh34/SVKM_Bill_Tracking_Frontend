@@ -181,7 +181,7 @@ const FullBillDetails = () => {
               </label>
               <select
                 id="invoiceType"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
                 value={billFormData.invoiceType}
                 onChange={handleChange}
                 required
@@ -228,7 +228,7 @@ const FullBillDetails = () => {
               </label>
               <select
                 id="region"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
                 value={billFormData.region}
                 onChange={handleChange}
                 required
@@ -266,7 +266,7 @@ const FullBillDetails = () => {
               </label>
               <input
                 type="text"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="projectDesc"
                 value={billFormData.projectDesc}
                 onChange={handleChange}
@@ -283,7 +283,7 @@ const FullBillDetails = () => {
               </label>
               <input
                 type="text"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="gstNo"
                 value={billFormData.gstNo}
                 onChange={handleChange}
@@ -303,7 +303,7 @@ const FullBillDetails = () => {
               </label>
               <input
                 type="text"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="vendorName"
                 value={billFormData.vendorName}
                 onChange={handleChange}
@@ -320,7 +320,7 @@ const FullBillDetails = () => {
               </label>
               <input
                 type="number"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="vendorNo"
                 value={billFormData.vendorNo}
                 onChange={handleChange}
@@ -340,7 +340,7 @@ const FullBillDetails = () => {
               </label>
               <select
                 id="compliance206"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
                 value={billFormData.compliance206}
                 onChange={handleChange}
                 required
@@ -375,7 +375,7 @@ const FullBillDetails = () => {
               </label>
               <select
                 id="panStatus"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
                 value={billFormData.panStatus}
                 onChange={handleChange}
                 required
@@ -402,7 +402,7 @@ const FullBillDetails = () => {
               </label>
               <select
                 id="poCreated"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
                 value={billFormData.poCreated}
                 onChange={handleChange}
                 required
@@ -424,7 +424,7 @@ const FullBillDetails = () => {
               </label>
               <input
                 type="number"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="poNo"
                 value={billFormData.poNo}
                 onChange={handleChange}
@@ -441,7 +441,7 @@ const FullBillDetails = () => {
               </label>
               <input
                 type="date"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="poDate"
                 value={billFormData.poDate}
                 onChange={handleChange}
@@ -459,7 +459,7 @@ const FullBillDetails = () => {
               </label>
               <input
                 type="number"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="poAmt"
                 value={billFormData.poAmt}
                 onChange={handleChange}
@@ -480,7 +480,7 @@ const FullBillDetails = () => {
               </label>
               <input
                 type="number"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="proformaInvNo"
                 value={billFormData.proformaInvNo}
                 onChange={handleChange}
@@ -497,7 +497,7 @@ const FullBillDetails = () => {
               </label>
               <input
                 type="date"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="proformaInvDate"
                 value={billFormData.proformaInvDate}
                 onChange={handleChange}
@@ -516,7 +516,7 @@ const FullBillDetails = () => {
               </label>
               <input
                 type="number"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="proformaInvAmt"
                 value={billFormData.proformaInvAmt}
                 onChange={handleChange}
@@ -533,7 +533,7 @@ const FullBillDetails = () => {
               </label>
               <input
                 type="date"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="proformaInvRecdDate"
                 value={billFormData.proformaInvRecdDate}
                 onChange={handleChange}
@@ -555,7 +555,7 @@ const FullBillDetails = () => {
               </label>
               <input
                 type="text"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="taxInvNo"
                 value={billFormData.taxInvNo}
                 onChange={handleChange}
@@ -572,7 +572,7 @@ const FullBillDetails = () => {
               </label>
               <input
                 type="date"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="taxInvDate"
                 value={billFormData.taxInvDate}
                 onChange={handleChange}
@@ -590,7 +590,7 @@ const FullBillDetails = () => {
               </label>
               <select
                 id="currency"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
                 value={billFormData.currency}
                 onChange={handleChange}
                 required
@@ -616,7 +616,7 @@ const FullBillDetails = () => {
               </label>
               <input
                 type="number"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="taxInvAmt"
                 value={billFormData.taxInvAmt}
                 onChange={handleChange}
@@ -635,7 +635,7 @@ const FullBillDetails = () => {
               </label>
               <input
                 type="text"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="taxInvRecdBy"
                 value={billFormData.taxInvRecdBy}
                 onChange={handleChange}
@@ -654,7 +654,7 @@ const FullBillDetails = () => {
               </label>
               <input
                 type="text"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="department"
                 value={billFormData.department}
                 onChange={handleChange}
@@ -673,7 +673,7 @@ const FullBillDetails = () => {
               </label>
               <input
                 type="text"
-                className="w-full p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="remarks"
                 value={billFormData.remarks}
                 onChange={handleChange}

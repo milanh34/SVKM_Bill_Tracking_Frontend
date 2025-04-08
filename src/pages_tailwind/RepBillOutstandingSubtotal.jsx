@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { bills, report } from "../apis/bills.api";
+import { report } from "../apis/bills.api";
+import { outstanding } from '../apis/report.api';
 import Header from "../components/Header";
-import "../styles/ReportsBasic.css";
 import Filters from '../components/Filters';
-import ReportBtns from '../components/ReportBtns';
+import ReportBtns from '../components_tailwind/ReportBtns';
 import SendBox from "../components/Sendbox";
 import download from "../assets/download.svg";
 import send from "../assets/send.svg";
@@ -38,37 +38,32 @@ const RepBillOutstandingSubtotal = () => {
     useEffect(() => {
         const fetchBills = async () => {
             try {
-                const response = await axios.get(bills);
-                const rawData = response.data.map(bill => ({
-                    _id: bill._id,
-                    srNo: bill.srNo || '',
-                    region: bill.region || '',
-                    vendorNo: bill.vendorNo || '',
-                    vendorName: bill.vendorName || '',
-                    taxInvNo: bill.taxInvNo || '',
-                    taxInvDate: bill.taxInvDate?.split('T')[0] || '',
-                    taxInvAmt: parseFloat(bill.taxInvAmt || 0),
-                    copAmount: bill.copDetails?.amount || 0,
-                    dtRecdAccts: bill.accountsDeptSubmission?.dateGivenToAccounts?.split('T')[0] || ''
+                const response = await axios.get(`${outstanding}`);
+                const rawData = response.data.report.data.map(report => ({
+                    srNo: report.srNo || '',
+                    region: report.region || '',
+                    vendorNo: report.vendorNo || '',
+                    vendorName: report.vendorName || '',
+                    taxInvNo: report.taxInvNo || '',
+                    taxInvDate: report.taxInvDate || '',
+                    taxInvAmt: parseFloat(report.taxInvAmt || 0),
+                    copAmount: report.copAmt?.amount || 0,
+                    dtRecdAccts: report.dateRecdInAcctsDept || ''
                 }));
 
-                // Filter Data sccording to Data
                 const filteredData = rawData
-                    .filter(bill =>
-                        // Filter based on date range check (using the `isWithinDateRange` function)
-                        isWithinDateRange(bill.taxInvDate)
+                    .filter(report =>
+                        isWithinDateRange(report.taxInvDate)
                     )
                     .sort((a, b) => {
-                        // Sort by amount or date based on `sortBy` prop
                         if (sortBy === "amount") {
-                            return a.taxInvAmt - b.taxInvAmt; // Sort by taxInvAmt (amount)
+                            return a.taxInvAmt - b.taxInvAmt;
                         } else if (sortBy === "date") {
-                            return new Date(a.taxInvDate) - new Date(b.taxInvDate); // Sort by taxInvDate
+                            return new Date(a.taxInvDate) - new Date(b.taxInvDate);
                         }
-                        return 0; // Default, no sorting
+                        return 0;
                     });
 
-                // Group bills by vendor name
                 const groupedByVendor = filteredData.reduce((acc, bill) => {
                     if (!acc[bill.vendorName]) {
                         acc[bill.vendorName] = [];
@@ -77,7 +72,6 @@ const RepBillOutstandingSubtotal = () => {
                     return acc;
                 }, {});
 
-                // Create final data structure with SUBTOTALS
                 const processedData = Object.entries(groupedByVendor).map(([vendorName, bills]) => ({
                     billdets: bills,
                     subtotal: bills.reduce((sum, bill) => sum + bill.taxInvAmt, 0),
@@ -89,8 +83,8 @@ const RepBillOutstandingSubtotal = () => {
 
                 const totals = processedData.reduce(
                     (acc, { subtotal, subtotalCopAmt, vendorCount }) => {
-                        acc.totalSubtotal += subtotal
-                        acc.totalSubtotalCopAmt += subtotalCopAmt
+                        acc.totalSubtotal += subtotal;
+                        acc.totalSubtotalCopAmt += subtotalCopAmt;
                         acc.totalVendorCount += vendorCount;
                         return acc;
                     },
@@ -101,17 +95,11 @@ const RepBillOutstandingSubtotal = () => {
                     }
                 );
 
-                // Format totals with commas
                 setTotals({
                     totalSubtotal: totals.totalSubtotal,
                     totalSubtotalCopAmt: totals.totalSubtotalCopAmt,
                     totalVendorCount: totals.totalVendorCount
                 });
-
-
-                // console.log("total Subtotal: " + totals.totalSubtotal);
-                console.log(processedData);
-
 
             } catch (error) {
                 setError("Failed to load data");
@@ -121,8 +109,7 @@ const RepBillOutstandingSubtotal = () => {
             }
         };
         fetchBills();
-    }, [fromDate]);
-
+    }, [fromDate, toDate]);
 
     const handleSelectAll = (e) => {
         if (e.target.checked) {
@@ -190,43 +177,23 @@ const RepBillOutstandingSubtotal = () => {
         }
     };
 
-    // const filteredData = billsData
-    //     .filter(group =>
-    //         group.billdets.some(bill =>
-    //             Object.values(bill).some(value =>
-    //                 value && value.toString().toLowerCase().includes(searchQuery.toLowerCase())
-    //             )
-    //         )
-    //     )
-    //     .filter(group =>
-    //         group.billdets.some(bill => isWithinDateRange(bill.taxInvDate))
-    //     )
-    //     .sort((a, b) => {
-    //         if (sortBy === "amount") {
-    //             return parseFloat(a.subtotal.replace(/,/g, '')) - parseFloat(b.subtotal.replace(/,/g, ''));
-    //         } else if (sortBy === "date") {
-    //             return new Date(a.billdets[0].taxInvDate) - new Date(b.billdets[0].taxInvDate);
-    //         }
-    //         return 0;
-    //     });
-
     return (
-        <div className='full-report-div'>
+        <div className='mb-[12vh]'>
             <Header />
             <ReportBtns />
-            <div className="invoice-container">
-                <div className="header">
-                    <h2 className='header-h2'>Outstanding Bills Report Subtotal as on</h2>
-                    <div className="report-button-group">
-                        <button className="btn print">
+            <div className="p-[2vh_2vw] mx-auto font-sans h-[100vh] bg-white text-black">
+                <div className="flex justify-between items-center mb-[2vh]">
+                    <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Outstanding Bills Report Subtotal as on</h2>
+                    <div className="flex gap-[1vw] w-[50%]">
+                        <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]">
                             Print
                             <img src={print} />
                         </button>
-                        <button className="btn download" onClick={handleTopDownload}>
+                        <button className="w-[300px] bg-[#F48D02] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#e6c200]" onClick={handleTopDownload}>
                             Download
                             <img src={download} />
                         </button>
-                        <button className="btn send" onClick={() => setIsModalOpen(true)}>
+                        <button className="w-[300px] bg-[#34915C] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#45a049]" onClick={() => setIsModalOpen(true)}>
                             Send to
                             <img src={send} />
                         </button>
@@ -244,76 +211,59 @@ const RepBillOutstandingSubtotal = () => {
                     setToDate={setToDate}
                 />
 
-                <div className="table-container">
+                <div className="overflow-x-auto shadow-md max-h-[85vh] relative border border-black">
                     {loading ? (
                         <p>Loading data...</p>
                     ) : error ? (
                         <p>{error}</p>
                     ) : (
-                        <table className='invoice-table'>
+                        <table className='w-full border-collapse bg-white'>
                             <thead>
                                 <tr>
-                                    {/* <th>
-                                        <input
-                                            type="checkbox"
-                                            onChange={handleSelectAll}
-                                            checked={selectedRows.length === billsData.flatMap(group => group.billdets).length}
-                                        />
-                                    </th> */}
-                                    <th className='table-th'>Sr No</th>
-                                    <th className='table-th'>Region</th>
-                                    <th className='table-th'>Vendor No</th>
-                                    <th className='table-th'>Vendor Name</th>
-                                    <th className='table-th'>Tax Inv no</th>
-                                    <th className='table-th'>Tax Inv Date</th>
-                                    <th className='table-th'>Tax Inv Amt</th>
-                                    {/* <th className='table-th'></th>  Column for sum */}
-                                    <th className='table-th'>COP Amount</th>
-                                    <th className='table-th'>Dt recd in Accts Dept</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Sr No</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Region</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor No</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor Name</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv no</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Date</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Amt</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>COP Amount</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt recd in Accts Dept</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {billsData.map((group, groupIndex) => (
                                     <React.Fragment key={groupIndex}>
-                                        {group.billdets.map((bill, index) => (
-                                            <tr key={bill._id}>
-                                                {/* <td className='table-td'>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedRows.includes(bill._id)}
-                                                        onChange={(e) => handleSelectRow(e, bill._id)}
-                                                    />
-                                                </td> */}
-                                                <td className='table-td'>{bill.srNo}</td>
-                                                <td className='table-td'>{bill.region}</td>
-                                                <td className='table-td'>{bill.vendorNo}</td>
-                                                <td className='table-td'>{bill.vendorName}</td>
-                                                <td className='table-td'>{bill.taxInvNo}</td>
-                                                <td className='table-td'>{bill.taxInvDate}</td>
-                                                <td className='right-align table-td'>{bill.taxInvAmt.toLocaleString('en-IN')}</td>
-                                                {/* <td className='table-td'></td>  Empty column for sum row */}
-                                                <td className='right-align table-td'>{typeof bill.copAmount === 'number' ? bill.copAmount.toLocaleString('en-IN') : bill.copAmount}</td>
-                                                <td className='table-td'>{bill.dtRecdAccts}</td>
+                                        {group.billdets.map((bill) => (
+                                            <tr key={bill._id} className="hover:bg-[#f5f5f5]">
+                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.srNo}</td>
+                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.region}</td>
+                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorNo}</td>
+                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorName}</td>
+                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvNo}</td>
+                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvDate}</td>
+                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.taxInvAmt.toLocaleString('en-IN')}</td>
+                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{typeof bill.copAmount === 'number' ? bill.copAmount.toLocaleString('en-IN') : bill.copAmount}</td>
+                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.dtRecdAccts}</td>
                                             </tr>
                                         ))}
-                                        <tr>
-                                            <td colSpan={2} className='subtotal subtotal-empty'></td>
-                                            <td className='subtotal subtotal-text'><strong>Count: {group.vendorCount.toLocaleString('en-IN')}</strong></td>
-                                            <td className='subtotal subtotal-text'><strong>{group.billdets[0].vendorName}</strong></td>
+                                        <tr className='bg-[#f8f9fa]'>
+                                            <td colSpan={2} className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw]'></td>
+                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'><strong>Count: {group.vendorCount.toLocaleString('en-IN')}</strong></td>
+                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'><strong>{group.billdets[0].vendorName}</strong></td>
                                             <td colSpan={2}></td>
-                                            <td className='subtotal subtotal-text'><strong>Total: {group.subtotal.toLocaleString('en-IN')}</strong></td>
-                                            <td className='subtotal subtotal-text'><strong>Total: {group.subtotalCopAmt.toLocaleString('en-IN')}</strong></td>
-                                            {/* <td className='subtotal subtotal-num'>{group.subtotal}</td> */}
+                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'><strong>Total: {group.subtotal.toLocaleString('en-IN')}</strong></td>
+                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'><strong>Total: {group.subtotalCopAmt.toLocaleString('en-IN')}</strong></td>
                                             <td colSpan={1}></td>
                                         </tr>
                                     </React.Fragment>
                                 ))}
-                                <tr className='grand-subtotal'>
-                                    <td colSpan={2} className='subtotal subtotal-empty'></td>
-                                    <td><strong>Total Count: {totals.totalVendorCount.toLocaleString('en-IN')}</strong></td>
+                                <tr className='bg-[#e9ecef] font-semibold'>
+                                    <td colSpan={2} className='border border-black text-[14px] py-[1.5vh] px-[1vw]'></td>
+                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'><strong>Total Count: {totals.totalVendorCount.toLocaleString('en-IN')}</strong></td>
                                     <td colSpan={3}></td>
-                                    <td className='subtotal subtotal-text'><strong>Grand Total: {totals.totalSubtotal.toLocaleString('en-IN')}</strong></td>
-                                    <td className='subtotal subtotal-text'><strong>Grand Total: {totals.totalSubtotalCopAmt.toLocaleString('en-IN')}</strong></td>
+                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'><strong>Grand Total: {totals.totalSubtotal.toLocaleString('en-IN')}</strong></td>
+                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'><strong>Grand Total: {totals.totalSubtotalCopAmt.toLocaleString('en-IN')}</strong></td>
                                     <td colSpan={1}></td>
                                 </tr>
                             </tbody>
@@ -323,7 +273,7 @@ const RepBillOutstandingSubtotal = () => {
             </div>
 
             {isModalOpen && (
-                <div className="modal-overlay">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
                     <SendBox
                         closeWindow={() => setIsModalOpen(false)}
                         selectedBills={selectedRows}

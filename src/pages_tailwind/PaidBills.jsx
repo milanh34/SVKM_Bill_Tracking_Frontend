@@ -54,7 +54,7 @@ const PaidBills = () => {
 
   const fetchBills = async () => {
     try {
-      const response = await axios.get(bills);
+      const response = await axios.get(bills, {headers: { Authorization: `Bearer ${Cookies.get('token')}` }});
       const paidBills = response.data.filter(bill => 
         bill.accountsDept?.status?.toLowerCase() === "paid"
       );

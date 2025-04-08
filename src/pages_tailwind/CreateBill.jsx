@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
-import '../styles/ReportsBasic.css';
 
 const CreateBill = () => {
   const navigate = useNavigate();
@@ -15,27 +14,18 @@ const CreateBill = () => {
   return (
     <div>
       <Header />
-      <div className="report-btn-container" style={{ marginTop: '20px' }}>
+      <div className="mt-5">
         {buttons.map((button) => (
           <button
             key={button.path}
-            className="report-button report-btns"
+            className="bg-[#364cbb] text-white font-semibold px-[1.4vw] py-[0.65vw] ml-5 rounded-[1vw] border-none cursor-pointer whitespace-nowrap text-[0.9vw] transition-all duration-200 hover:bg-[#2a3c9e] hover:-translate-y-0.5 shadow-md"
             onClick={() => navigate(button.path)}
-            style={{marginLeft: '20px'}}
           >
             {button.label}
           </button>
         ))}
       </div>
-      <p
-        style={{
-          paddingTop: "15vh",
-          color: "#313131",
-          fontWeight: "600",
-          fontSize: "20px",
-          textAlign: "center",
-        }}
-      >
+      <p className="pt-[15vh] text-[#313131] font-semibold text-[20px] text-center">
         Select type of bill to create
       </p>
     </div>
