@@ -1,0 +1,67 @@
+/* Regular screen styles */
+.print-only {
+    display: none;
+  }
+  
+  /* When the printing class is added, show print content and hide screen content */
+  body.printing .screen-only {
+    display: none;
+  }
+  
+  body.printing .print-only {
+    display: block;
+  }
+  
+  /* Print-specific styles */
+  @media print {
+    /* Hide non-essential elements */
+    body > *:not(#print-container) {
+      display: none;
+    }
+    
+    /* Ensure each checklist is on a new page */
+    .print-page {
+      page-break-after: always;
+      break-after: page;
+      height: 100vh;
+      display: block !important;
+    }
+    
+    /* Reset body styles for printing */
+    body, html {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      height: auto !important;
+      background: white !important;
+    }
+    
+    /* Force visibility of print content */
+    [style*="display: none"] {
+      display: block !important;
+    }
+    
+    /* Ensure background colors print */
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+  }
+  
+  /* Optional: Add styles for a print preview if needed */
+  body.printing #print-container {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    z-index: 9999;
+    overflow: auto;
+  }
+  
+  body.printing .print-page {
+    border-bottom: 1px dashed #ccc;
+    margin-bottom: 20px;
+  }

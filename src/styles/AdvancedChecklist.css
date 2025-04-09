@@ -188,18 +188,3 @@
       justify-content: center;
   }
 }
-
-/* Print Styles */
-@media print {
-  .checklist-container {
-      margin: 0;
-      padding: 0;
-      box-shadow: none;
-  }
-
-  .edit-button,
-  .download-button,
-  .send-button {
-      display: none;
-  }
-}

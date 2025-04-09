@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import "../styles/AdvancedChecklist.css";
-import Header from "../components/Header";
 import pen from "../assets/pen.svg";
 import { bills } from "../apis/bills.api";
 
@@ -84,7 +83,7 @@ const Checklist = (props) => {
                 <div className="checklist-header">
                     <h1>Checklist</h1>
                     <button
-                        className="edit-button"
+                        className="edit-button no-print"
                         onClick={toggleEditMode}
                         style={{ backgroundColor: isEditable ? "green" : "#011A99", color: "white" }}
                     >
@@ -353,7 +352,7 @@ const Checklist = (props) => {
                 </div>
 
                 <div className="checklist-footer">
-                    <button className="download-button" style={{ color: 'white' }}>
+                    <button className="download-button no-print" style={{ color: 'white' }}>
                         Download
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ background: 'transparent' }} >
                             <path
@@ -365,7 +364,7 @@ const Checklist = (props) => {
                             />
                         </svg>
                     </button>
-                    <button className="send-button">
+                    <button className="send-button no-print">
                         Send to
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ background: 'transparent' }}>
                             <path
@@ -379,6 +378,16 @@ const Checklist = (props) => {
                     </button>
                 </div>
             </div>
+
+            <style>
+                {`
+                    @media print {
+                        .no-print {
+                            display: none !important;
+                        }
+                    }
+                `}
+            </style>
         </div>
     );
 };
