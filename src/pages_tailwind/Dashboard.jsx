@@ -15,7 +15,7 @@ import {
   CheckSquare,
 } from "lucide-react";
 import search from "../assets/search.svg";
-import { getColumnsForRole } from "../utils/columnConfig";
+import { getColumnsForRole } from "../utils/columnView";
 import { FilterModal } from "../components_tailwind/dashboard/FilterModal";
 import { SendToModal } from "../components_tailwind/dashboard/SendToModal";
 import { SendBoxModal } from "../components_tailwind/dashboard/SendBoxModal";

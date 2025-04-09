@@ -9,7 +9,7 @@ import * as XLSX from "xlsx";
 import DataTable from "../components_tailwind/dashboard/DataTable";
 import { Funnel, Grid3x3, Download } from "lucide-react";
 import search from "../assets/search.svg";
-import { getColumnsForRole } from "../utils/columnConfig";
+import { getColumnsForRole } from "../utils/columnView";
 import { FilterModal } from "../components_tailwind/dashboard/FilterModal";
 import Loader from "../components/Loader";
 import Cookies from "js-cookie";
