@@ -186,30 +186,30 @@ const Dashboard = () => {
     }
   }, [navigate]);
 
-  const filterBillsByWorkflowState = (bills, userRole) => {
-    return bills.filter((bill) => {
-      const currentState = bill.workflowState?.currentState;
+  // const filterBillsByWorkflowState = (bills, userRole) => {
+  //   return bills.filter((bill) => {
+  //     const currentState = bill.workflowState?.currentState;
 
-      if (currentState === "Completed" || currentState === "Rejected") {
-        return ["pimo_mumbai", "accounts", "director", "admin"].includes(
-          userRole
-        );
-      }
+  //     if (currentState === "Completed" || currentState === "Rejected") {
+  //       return ["pimo_mumbai", "accounts", "director", "admin"].includes(
+  //         userRole
+  //       );
+  //     }
 
-      const stateToRoleMap = {
-        Site_Officer: ["site_officer"],
-        Site_PIMO: ["site_pimo"],
-        QS_Site: ["qs_site"],
-        PIMO_Mumbai: ["pimo_mumbai"],
-        Directors: ["director"],
-        Accounts: ["accounts"],
-      };
+  //     const stateToRoleMap = {
+  //       Site_Officer: ["site_officer"],
+  //       Site_PIMO: ["site_pimo"],
+  //       QS_Site: ["qs_site"],
+  //       PIMO_Mumbai: ["pimo_mumbai"],
+  //       Directors: ["director"],
+  //       Accounts: ["accounts"],
+  //     };
 
-      if (userRole === "admin") return true;
+  //     if (userRole === "admin") return true;
 
-      return stateToRoleMap[currentState]?.includes(userRole) || false;
-    });
-  };
+  //     return stateToRoleMap[currentState]?.includes(userRole) || false;
+  //   });
+  // };
 
   const fetchBills = async () => {
     try {
@@ -220,14 +220,19 @@ const Dashboard = () => {
 
       console.log("Received response data:", response.data);
 
-      const filteredBills = filterBillsByWorkflowState(response.data, userRole);
+      // const filteredBills = filterBillsByWorkflowState(response.data, userRole);
 
-      const sortedData = filteredBills.sort((a, b) => {
-        const aStatus = a.accountsDept.status.toLowerCase();
-        const bStatus = b.accountsDept.status.toLowerCase();
-        if (aStatus === "unpaid" && bStatus !== "unpaid") return -1;
-        if (aStatus !== "unpaid" && bStatus === "unpaid") return 1;
-        return 0;
+      const sortedData = response.data.sort((a, b) => {
+        const aHasHistory = (a.workflowState?.history?.length || 0) > 0;
+        const bHasHistory = (b.workflowState?.history?.length || 0) > 0;
+        
+        if (aHasHistory !== bHasHistory) {
+          return aHasHistory ? 1 : -1;
+        }
+        
+        const aDate = new Date(a.taxInvDate || 0);
+        const bDate = new Date(b.taxInvDate || 0);
+        return bDate - aDate;
       });
 
       console.log("Sorted & Filtered Data", sortedData);
