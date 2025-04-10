@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { report } from "../apis/bills.api";
 import { outstanding } from '../apis/report.api';
 import Header from "../components/Header";
 import FiltersOutstanding from '../components/FiltersOutstanding';
@@ -39,21 +38,22 @@ const RepBillOutstanding = () => {
                 const response = await axios.get(`${outstanding}?startDate=${fromDate}&endDate=${toDate}`);
                 console.log(response.data);
                 let count = 0;
-                const filteredData = response?.data?.report.data.map(report => ({
-                    id: count++,
-                    copAmt: report.copAmt || '',
-                    srNo: report.srNo || '',
-                    region: report.region || '',
-                    vendorNo: report.vendorNo || '',
-                    vendorName: report.vendorName || '',
-                    taxInvNo: report.taxInvNo || '',
-                    taxInvDate: report.taxInvDate?.split('T')[0] || '',
-                    taxInvAmt: report.taxInvAmt || '',
-                    dateRecdInAcctsDept: report.dateRecdInAcctsDept?.split('T')[0] || '',
-                    natureOfWorkSupply: report.natureOfWorkSupply || ''
-                }));
-                console.log(filteredData);
-                setBillsData(filteredData);
+                // const filteredData = response?.data?.report.data.map(report => ({
+                //     id: count++,
+                //     copAmt: report.copAmt || '',
+                //     srNo: report.srNo || '',
+                //     region: report.region || '',
+                //     vendorNo: report.vendorNo || '',
+                //     vendorName: report.vendorName || '',
+                //     taxInvNo: report.taxInvNo || '',
+                //     taxInvDate: report.taxInvDate?.split('T')[0] || '',
+                //     taxInvAmt: report.taxInvAmt || '',
+                //     dateRecdInAcctsDept: report.dateRecdInAcctsDept?.split('T')[0] || '',
+                //     natureOfWorkSupply: report.natureOfWorkSupply || ''
+                // }));
+                console.log(response?.data?.report.data);
+                // setBillsData(filteredData);
+                setBillsData(response?.data?.report.data);
             } catch (error) {
                 setError("Failed to load data");
                 console.error("Error = " + error);
@@ -284,26 +284,28 @@ const RepBillOutstanding = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {billsData.map((bill, index) => (
-                                    <tr key={bill.srNo} className="hover:bg-[#f5f5f5]">
-                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedRows.includes(bill.srNo)}
-                                                onChange={() => handleSelectRow(bill.srNo)}
-                                            />
-                                        </td>
-                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.srNo}</td>
-                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.region}</td>
-                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorNo}</td>
-                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorName}</td>
-                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvNo}</td>
-                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvDate}</td>
-                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.taxInvAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.dateRecdInAcctsDept}</td>
-                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.natureOfWorkSupply}</td>
-                                    </tr>
-                                ))}
+                                {billsData
+                                    .filter(bill => !bill.isSubtotal && bill.srNo)
+                                    .map((bill) => (
+                                        <tr key={bill.srNo} className="hover:bg-[#f5f5f5]">
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedRows.includes(bill.srNo)}
+                                                    onChange={() => handleSelectRow(bill.srNo)}
+                                                />
+                                            </td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.srNo}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.region}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorNo}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorName}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvNo}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvDate}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.dateRecdInAcctsDept}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.natureOfWorkSupply}</td>
+                                        </tr>
+                                    ))}
                             </tbody>
                         </table>
                     )}
