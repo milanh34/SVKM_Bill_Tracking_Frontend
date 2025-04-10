@@ -9,27 +9,27 @@ const formatCurrency = (value) => {
     }).format(value);
 };
 
-export const handleExportOutstandingReport = async (selectedRows, filteredData, columns, visibleColumnFields, toPrint) => {
+export const handleExportRepRecdAtSite = async (selectedRows, filteredData, columns, visibleColumnFields, toPrint) => {
     try {
-        const dataToExport = selectedRows.length > 0
-            ? filteredData.filter((item) => selectedRows.includes(item._id))
-            : filteredData;
+        // const dataToExport = selectedRows.length > 0
+        //     ? filteredData.filter((item) => selectedRows.includes(item._id))
+        //     : filteredData;
+
+        const dataToExport = filteredData.filter((item) => selectedRows.includes(item.srNo))
 
         if (dataToExport.length === 0) {
             throw new Error("Please select at least one row to download");
         }
 
         const essentialFields = [
-            "copAmt",
-            "srNo",
-            "region",
-            "vendorNo",
-            "vendorName",
-            "taxInvNo",
-            "taxInvDate",
-            "taxInvAmt",
-            "dateRecdInAcctsDept",
-            "natureOfWorkSupply"
+            "srNo", 
+            "projectDescription", 
+            "vendorName", 
+            "taxInvNo", 
+            "taxInvDate", 
+            "taxInvAmt", 
+            "dtTaxInvRecdAtSite",
+            "poNo"
         ];
 
         const essentialColumns = essentialFields
@@ -51,6 +51,9 @@ export const handleExportOutstandingReport = async (selectedRows, filteredData, 
         const now = new Date();
         const timestamp = [
             [`Report generated on: ${now.toLocaleDateString('en-IN')} ${now.toLocaleTimeString('en-IN')}`]
+        ];
+        const heading = [
+            [`Invoices received at site`]
         ];
 
         // Create worksheet with data
@@ -100,7 +103,7 @@ export const handleExportOutstandingReport = async (selectedRows, filteredData, 
         // Create and format worksheet
         if (!toPrint) {
 
-            const worksheet = XLSX.utils.aoa_to_sheet(timestamp);
+            const worksheet = XLSX.utils.aoa_to_sheet(heading);
             worksheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
             XLSX.utils.sheet_add_json(worksheet, excelData, { origin: 'A2', skipHeader: false });
 
@@ -132,9 +135,9 @@ export const handleExportOutstandingReport = async (selectedRows, filteredData, 
             }
 
             // Style timestamp row
-            const timestampCell = worksheet['A1'];
-            if (timestampCell) {
-                timestampCell.s = {
+            const headingCell = worksheet['A1'];
+            if (headingCell) {
+                headingCell.s = {
                     font: { bold: true, color: { rgb: "000000" }, sz: 12 },
                     alignment: { horizontal: "left" }
                 };
@@ -164,18 +167,16 @@ export const handleExportOutstandingReport = async (selectedRows, filteredData, 
 
             // Print the report (create a printable HTML version)
             const printWindow = window.open("", "_blank", "width=800,height=600");
-            printWindow.document.write("<html><head><title>Outstanding Report</title></head><body>");
-            // printWindow.document.write("<h2>Outstanding Report</h2>");
+            printWindow.document.write("<html><head><title>Invoices received at site</title></head><body>");
+            // printWindow.document.write("<h2>Invoices received at site</h2>");
             printWindow.document.write("<table border='1' cellpadding='5' style='border-collapse: collapse;'>");
 
             // Add the header row
             printWindow.document.write("<thead><tr>");
             printWindow.document.write(`<tr><th colSpan='1'></th>`);
-            printWindow.document.write(`<th>Outstanding Report as on:</th>`);
-            printWindow.document.write(`<th colSpan='2'></th>`);
-            printWindow.document.write(`<th>${timestamp}</th>`);
+            printWindow.document.write(`<th colSpan='8'>Invoices received at site:</th>`);
             printWindow.document.write(`</tr>`);
-            // printWindow.document.write(`<th>Outstanding Report</th>`);
+            // printWindow.document.write(`<th>Invoices received at site</th>`);
             allColumnsToExport.forEach((column) => {
                 printWindow.document.write(`<th>${column.headerName}</th>`);
             });

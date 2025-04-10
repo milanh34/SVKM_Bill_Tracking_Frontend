@@ -9,7 +9,7 @@ const formatCurrency = (value) => {
     }).format(value);
 };
 
-export const handleExportOutstandingReport = async (selectedRows, filteredData, columns, visibleColumnFields, toPrint) => {
+export const handleExportOutstandingSubtotalReport = async (selectedRows, filteredData, columns, visibleColumnFields, toPrint) => {
     try {
         const dataToExport = selectedRows.length > 0
             ? filteredData.filter((item) => selectedRows.includes(item._id))
@@ -20,7 +20,7 @@ export const handleExportOutstandingReport = async (selectedRows, filteredData, 
         }
 
         const essentialFields = [
-            "copAmt",
+            // "copAmt",
             "srNo",
             "region",
             "vendorNo",
@@ -28,8 +28,8 @@ export const handleExportOutstandingReport = async (selectedRows, filteredData, 
             "taxInvNo",
             "taxInvDate",
             "taxInvAmt",
-            "dateRecdInAcctsDept",
-            "natureOfWorkSupply"
+            "copAmount",
+            "dtRecdAccts"
         ];
 
         const essentialColumns = essentialFields
@@ -171,7 +171,7 @@ export const handleExportOutstandingReport = async (selectedRows, filteredData, 
             // Add the header row
             printWindow.document.write("<thead><tr>");
             printWindow.document.write(`<tr><th colSpan='1'></th>`);
-            printWindow.document.write(`<th>Outstanding Report as on:</th>`);
+            printWindow.document.write(`<th>Outstanding Report Subtotal as on:</th>`);
             printWindow.document.write(`<th colSpan='2'></th>`);
             printWindow.document.write(`<th>${timestamp}</th>`);
             printWindow.document.write(`</tr>`);

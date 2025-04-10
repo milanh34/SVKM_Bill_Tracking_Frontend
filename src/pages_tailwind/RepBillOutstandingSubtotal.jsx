@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { report } from "../apis/bills.api";
 import { outstanding } from '../apis/report.api';
+import { handleExportOutstandingSubtotalReport } from "../utils/exportExcelReportOutstandingSubtotal.js";
 import Header from "../components/Header";
 import Filters from '../components/Filters';
 import ReportBtns from '../components_tailwind/ReportBtns';
@@ -50,6 +51,8 @@ const RepBillOutstandingSubtotal = () => {
                     copAmount: report.copAmt?.amount || 0,
                     dtRecdAccts: report.dateRecdInAcctsDept || ''
                 }));
+
+                console.log(rawData);
 
                 const filteredData = rawData
                     .filter(report =>
@@ -101,6 +104,8 @@ const RepBillOutstandingSubtotal = () => {
                     totalVendorCount: totals.totalVendorCount
                 });
 
+                setSelectedRows(billsData.map(bill => bill.srNo));
+
             } catch (error) {
                 setError("Failed to load data");
                 console.error(error);
@@ -135,47 +140,74 @@ const RepBillOutstandingSubtotal = () => {
         return (!fromDate || currentDate >= from) && (!toDate || currentDate <= to);
     };
 
+    // const handleTopDownload = async () => {
+    //     let billIdsToDownload = [];
+
+    //     if (selectedRows.length === 0) {
+    //         billIdsToDownload = billsData.flatMap(group => group.billdets.map(bill => bill._id));
+
+    //         if (billIdsToDownload.length > 0) {
+    //             if (!window.confirm(`No bills selected. Download all ${billIdsToDownload.length} filtered bills?`)) {
+    //                 return;
+    //             }
+    //         } else {
+    //             alert("No bills available to download.");
+    //             return;
+    //         }
+    //     } else {
+    //         billIdsToDownload = selectedRows;
+    //     }
+
+    //     try {
+    //         const response = await axios.post(
+    //             report,
+    //             { billIds: billIdsToDownload, format: "excel" },
+    //             { responseType: "blob" }
+    //         );
+
+    //         const url = window.URL.createObjectURL(
+    //             new Blob([response.data], {
+    //                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    //             })
+    //         );
+    //         const link = document.createElement("a");
+    //         link.href = url;
+    //         link.setAttribute("download", "report.xlsx");
+    //         document.body.appendChild(link);
+    //         link.click();
+    //         document.body.removeChild(link);
+    //     } catch (error) {
+    //         console.error("Error downloading the report:", error);
+    //         alert("Failed to download report: " + (error.message || "Unknown error"));
+    //     }
+    // };
+
     const handleTopDownload = async () => {
-        let billIdsToDownload = [];
+        console.log("Subtotal download clicked");
+        const result = await handleExportOutstandingSubtotalReport(selectedRows, billsData, columns, visibleColumnFields, false);
+    }
 
-        if (selectedRows.length === 0) {
-            billIdsToDownload = billsData.flatMap(group => group.billdets.map(bill => bill._id));
+    const handleTopPrint = async () => {
+        console.log("Subtotal print clicked");
+        const result = await handleExportOutstandingSubtotalReport(selectedRows, billsData, columns, visibleColumnFields, true);
+    }
 
-            if (billIdsToDownload.length > 0) {
-                if (!window.confirm(`No bills selected. Download all ${billIdsToDownload.length} filtered bills?`)) {
-                    return;
-                }
-            } else {
-                alert("No bills available to download.");
-                return;
-            }
-        } else {
-            billIdsToDownload = selectedRows;
-        }
+    const columns = [
+        // { field: "copAmt", headerName: "COP Amount" },
+        { field: "srNo", headerName: "Sr. No" },
+        { field: "region", headerName: "Region" },
+        { field: "vendorNo", headerName: "Vendor No." },
+        { field: "vendorName", headerName: "Vendor Name" },
+        { field: "taxInvNo", headerName: "Tax Invoice No." },
+        { field: "taxInvDate", headerName: "Tax Invoice Date" },
+        { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
+        { field: "copAmount", headerName: "Cop Amount" },
+        { field: "dtRecdAccts", headerName: "Date Received in Accts Dept" }
+    ]
 
-        try {
-            const response = await axios.post(
-                report,
-                { billIds: billIdsToDownload, format: "excel" },
-                { responseType: "blob" }
-            );
-
-            const url = window.URL.createObjectURL(
-                new Blob([response.data], {
-                    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                })
-            );
-            const link = document.createElement("a");
-            link.href = url;
-            link.setAttribute("download", "report.xlsx");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } catch (error) {
-            console.error("Error downloading the report:", error);
-            alert("Failed to download report: " + (error.message || "Unknown error"));
-        }
-    };
+    const visibleColumnFields = [
+        "srNo", "region", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "copAmount", "dtRecdAccts"
+    ]
 
     return (
         <div className='mb-[12vh]'>
@@ -185,7 +217,7 @@ const RepBillOutstandingSubtotal = () => {
                 <div className="flex justify-between items-center mb-[2vh]">
                     <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Outstanding Bills Report Subtotal as on</h2>
                     <div className="flex gap-[1vw] w-[50%]">
-                        <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]">
+                        <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]" onClick={handleTopPrint}>
                             Print
                             <img src={print} />
                         </button>
@@ -193,10 +225,10 @@ const RepBillOutstandingSubtotal = () => {
                             Download
                             <img src={download} />
                         </button>
-                        <button className="w-[300px] bg-[#34915C] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#45a049]" onClick={() => setIsModalOpen(true)}>
+                        {/* <button className="w-[300px] bg-[#34915C] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#45a049]" onClick={() => setIsModalOpen(true)}>
                             Send to
                             <img src={send} />
-                        </button>
+                        </button> */}
                     </div>
                 </div>
 

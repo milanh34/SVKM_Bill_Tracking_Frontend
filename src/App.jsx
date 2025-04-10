@@ -51,16 +51,20 @@ function App() {
         <Route path='/reports' element={<ReportsEmpty />} />
         <Route path='/contact' element={<ContactPage />} />
         <Route path='/billsend' element={<BillSend />} />
+
         <Route path='/reportsrecatsite' element={<RepRecAtSite />} />
         <Route path='/reportsbilloutstanding' element={<RepBillOutstanding />} />
         <Route path='/reportsbilloutstandingsubtotal' element={<RepBillOutstandingSubtotal />} />
         <Route path='/reportscouriermumbai' element={<RepCourier />} />
         <Route path='/reportsreceivedmumbai' element={<RepRecMumbai />} />
-        <Route path='/reportspending' element={<ReportsPending />} />
-        <Route path='/invoicetable' element={<InvoiceTable />}/>
         <Route path='/reportsinvoiceacctdept' element={<InvoicesGivenToAccountDept />}/>
         <Route path='/reportsinvoiceqssite' element={<InvoicesGivenToQSSite />}/>
         <Route path='/reportsinvoicepaid' element={<InvoicesPaid />}/>
+        <Route path='/reportspending' element={<ReportsPending />} />
+        <Route path='/reportsbilljourney' element={<BillJourney />}/>
+        
+        <Route path='/invoicetable' element={<InvoiceTable />}/>
+
         <Route path='/billqs' element={<BillDetailsQS />}/>
         <Route path='/billsiso' element={<BillDetailsSISO />}/>
         <Route path='/billpimo' element={<BillDetailsPIMO />}/>
@@ -69,8 +73,11 @@ function App() {
         <Route path='/checklist-directFI' element={<ChecklistDirectFI />} />
         <Route path='/checklist-account' element={<ChecklistAccount />} />
         <Route path='/checklist-bill-list' element={<ChecklistBillList />} />
-        <Route path='/create-bill' element={<CreateBill />} />
+        {/* <Route path='/create-bill' element={<CreateBill />} /> */}
+        <Route path='/create-bill' element={<FullBillDetails />} />
+
         <Route path="/paidbills" element={<PaidBills />} />
+        
         <Route path="/profile" element={<Profile />} />
       </Routes>
     </BrowserRouter>

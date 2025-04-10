@@ -8,6 +8,7 @@ import print from "../assets/print.svg";
 import axios from 'axios';
 import { courieredMumbai } from '../apis/report.api';
 import { report } from "../apis/bills.api";
+import { handleExportRepCourierToMumbai } from '../utils/exportExcelReportCourierMumbai';
 
 const RepCourier = () => {
 
@@ -46,59 +47,41 @@ const RepCourier = () => {
         fetchBills();
     }, [fromDate, toDate]);
 
+
     const handleTopDownload = async () => {
-        const generateReport = async (billIds, format = 'excel') => {
-            try {
-                // Prepare the request body
-                const requestBody = { billIds, format };
+        console.log("Rep recd at site download clicked");
+        // setSelectedRows(bills.map(bill => bill.srNo));
+        const result = await handleExportRepCourierToMumbai(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, false);
+        console.log("Result = " + result.message);
+    };
 
-                // Send the POST request to generate the report
-                const response = await fetch(report, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestBody),
-                });
-
-                // Check if the request was successful
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    alert(`Error: ${errorData.message}`);
-                    return;
-                }
-
-                // Get the response as a Blob (binary data) for file download
-                const blob = await response.blob();
-
-                // Extract the file name from the Content-Disposition header
-                const contentDisposition = response.headers.get('Content-Disposition');
-                const fileName = contentDisposition
-                    ? contentDisposition.split('filename=')[1].replace(/"/g, '')
-                    : `report-${new Date().toISOString()}`;
-
-                // Create a URL for the Blob and trigger the download
-                const downloadUrl = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = downloadUrl;
-                link.download = fileName;
-                document.body.appendChild(link);
-                link.click();
-
-                // Clean up the link element
-                document.body.removeChild(link);
-                URL.revokeObjectURL(downloadUrl);
-            } catch (error) {
-                console.error('Error generating the report:', error);
-                alert('An error occurred while generating the report.');
-            }
-        };
-
-        const ids = bills.map(bill => bill.srNo);
-        const format = 'excel';
-        // call function
-        generateReport(ids, format);
+    const handleTopPrint = async () => {
+        console.log("Rep recd at site print clicked");
+        // if(selectedRows.length === 0){
+        //     setSelectedRows(bills.map(bill => bill.srNo));
+        // }
+        const result = await handleExportRepCourierToMumbai(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, true);
+        console.log("Result = " + result.message);
     }
+
+    const columns = [
+        // { field: "copAmt", headerName: "COP Amount" },
+        { field: "srNo", headerName: "Sr. No" },
+        { field: "projectDescription", headerName: "Project Description" },
+        { field: "vendorName", headerName: "Vendor Name" },
+        // { field: "vendorNo", headerName: "Vendor No." },
+        { field: "taxInvNo", headerName: "Tax Invoice No." },
+        { field: "taxInvDate", headerName: "Tax Invoice Date" },
+        { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
+        { field: "dtTaxInvRecdAtSite", headerName: "Date Tax Inv recd at Site" },
+        { field: "dtTaxInvCourierToMumbai", headerName: "Dt Tax Inv Courier To Mumbai" },
+        { field: "poNo", headerName: "PO No" }
+    ]
+
+    const visibleColumnFields = [
+        "srNo", "projectDescription", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dtTaxInvRecdAtSite", "dtTaxInvCourierToMumbai", "poNo"
+    ]
+
 
     const handleSendClick = () => {
         setIsModalOpen(true);
@@ -114,7 +97,7 @@ const RepCourier = () => {
                 <div className="flex justify-between items-center mb-[2vh]">
                     <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Invoices Couriered to Mumbai</h2>
                     <div className="flex gap-[1vw] w-[50%]">
-                        <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]">
+                        <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]" onClick={handleTopPrint}>
                             Print
                             <img src={print} />
                         </button>
@@ -122,10 +105,10 @@ const RepCourier = () => {
                             Download
                             <img src={download} />
                         </button>
-                        <button className="w-[300px] bg-[#34915C] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#45a049]" onClick={handleSendClick}>
+                        {/* <button className="w-[300px] bg-[#34915C] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#45a049]" onClick={handleSendClick}>
                             Send to
                             <img src={send} />
-                        </button>
+                        </button> */}
                     </div>
                 </div>
 

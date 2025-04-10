@@ -57,10 +57,10 @@ const InvoicesPaid = () => {
                             Download
                             <img src={download} />
                         </button>
-                        <button className="w-[300px] bg-[#34915C] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#45a049]">
+                        {/* <button className="w-[300px] bg-[#34915C] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#45a049]">
                             Send to
                             <img src={send} />
-                        </button>
+                        </button> */}
                     </div>
                 </div>
 
