@@ -411,7 +411,7 @@ const Dashboard = () => {
     setIsFilterPopupOpen(false);
   };
 
-  const availableRoles = roles.filter((role) => role.value !== currentUserRole);
+  // const availableRoles = roles.filter((role) => role.value !== currentUserRole);
 
   const columns = useMemo(() => {
     let roleForColumns = currentUserRole;
@@ -784,6 +784,7 @@ const Dashboard = () => {
                     onPaginatedDataChange={(totalItems) => {
                       setTotalFilteredItems(totalItems);
                     }}
+                    currentUserRole={currentUserRole} // Add this line
                   />
                 </div>
 

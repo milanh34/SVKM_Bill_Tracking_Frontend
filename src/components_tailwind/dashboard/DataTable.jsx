@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { EditIcon, SortAscIcon, SortDescIcon, Filter } from "./Icons";
+import { EditIcon, SortAscIcon, SortDescIcon, Filter, CheckIcon } from "./Icons";
 import { X } from "lucide-react";
+import { getColumnsForRole } from "../../utils/columnEdit";
+import { bills } from "../../apis/bills.api";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const FILTER_OPERATORS = [
   { value: "multiSelect", label: "Select Values" },
@@ -23,6 +27,7 @@ const DataTable = ({
   itemsPerPage,
   onPaginatedDataChange,
   searchQuery,
+  currentUserRole,
 }) => {
   const [columnFilters, setColumnFilters] = useState({});
   const [activeFilter, setActiveFilter] = useState(null);
@@ -32,6 +37,8 @@ const DataTable = ({
   const [selectAllState, setSelectAll] = useState(false);
   const [filterType, setFilterType] = useState({}); 
   const [dateRanges, setDateRanges] = useState({}); 
+  const [editingRow, setEditingRow] = useState(null);
+  const [editedValues, setEditedValues] = useState({});
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -90,27 +97,28 @@ const DataTable = ({
   };
 
   const isDateField = (field) => {
+    // const dateIndicators = [
+    //   'date', 'Date', 'Dt', '_dt',
+    //   'Recd', 'Given', 'Dispatch',
+    //   'Payment',
+    //   'advance', 'Advance', 'Returned',
+    //   'Booking', 'Check',
+    //   'invReturnedToSite',
+    //   'invBookingChecking',
+    //   'dateGiven', 'dateReceived',
+    //   'returnedToPimo', 'receivedBack'
+    // ];
     const dateIndicators = [
-      'date', 'Date', 'Dt', '_dt',
-      'Recd', 'Given', 'Dispatch',
-      'Created', 'Received', 'Payment',
-      'advance', 'Advance', 'Returned',
-      'Booking', 'Check', 'Inv',
-      'Invoice', 'invReturnedToSite',
-      'invBookingChecking',
-      'dateGiven', 'dateReceived',
-      'returnedToPimo', 'receivedBack'
+      'taxInvDate', 'poDate', 'proformaInvDate', 'taxInvRecdAtSite', 'advanceDate', 'Date', 'invReturnedToSite', 'dateReceived'
     ];
     
     if (field.includes('.')) {
       const parts = field.split('.');
-      for (const part of parts) {
-        if (dateIndicators.some(indicator => 
+      return parts.some(part => 
+        dateIndicators.some(indicator => 
           part.toLowerCase().includes(indicator.toLowerCase())
-        )) {
-          return true;
-        }
-      }
+        )
+      );
     }
     
     return dateIndicators.some(indicator => 
@@ -564,6 +572,108 @@ const DataTable = ({
     );
   };
 
+  const getEditableFields = () => {
+    const roleMapping = {
+      "site_officer": "SITE_OFFICER",
+      "qs_site": "QS_TEAM",
+      "site_pimo": "PIMO_MUMBAI_MIGO_SES",
+      "pimo_mumbai": "PIMO_MUMBAI_ADVANCE_FI",
+      "accounts": "ACCOUNTS_TEAM",
+      "director": "DIRECTOR_TRUSTEE_ADVISOR"
+    };
+
+    const mappedRole = roleMapping[currentUserRole] || currentUserRole;
+    const editableFields = getColumnsForRole(mappedRole).map(col => col.field);
+    return editableFields || [];
+  };
+
+  const handleCellEdit = (field, value, rowId) => {
+    setEditedValues(prev => ({
+      ...prev,
+      [rowId]: {
+        ...prev[rowId],
+        [field]: value
+      }
+    }));
+  };
+
+  const renderCell = (row, column, value) => {
+    const isEditing = editingRow === row._id;
+    const isEditable = getEditableFields().includes(column.field);
+    const editedValue = editedValues[row._id]?.[column.field];
+
+    if (isEditing && isEditable) {
+      const inputType = isDateField(column.field) ? "date" : 
+                       isNumericField(column.field) ? "number" : "text";
+      return (
+        <div className="relative w-full">
+          <input
+            type={inputType}
+            value={editedValue !== undefined ? editedValue : (value || '')}
+            onChange={(e) => handleCellEdit(column.field, e.target.value, row._id)}
+            className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+      );
+    }
+
+    const formattedValue = formatCellValue(value, column.field);
+    return (
+      <div className={`${isEditing && isEditable ? 'bg-blue-50 px-2 py-1 rounded border border-blue-200' : ''}`}>
+        {formattedValue}
+      </div>
+    );
+  };
+
+  const handleEditClick = (row) => {
+    if (editingRow === row._id) {
+      // When saving (clicking check icon)
+      const editedFieldsForRow = editedValues[row._id];
+      
+      // Remove billId, _id, srNo from the payload
+      const payload = { ...editedFieldsForRow };
+      delete payload.billId;
+      delete payload._id;
+      delete payload.srNo;
+
+      // Only make the API call if there are changes
+      if (Object.keys(payload).length > 0) {
+        axios.put(`${bills}/${row._id}`, payload)
+          .then(() => {
+            toast.success("Bill updated successfully!");
+            onEdit && onEdit(row, editedValues[row._id]);
+            // Clear edit state
+            setEditingRow(null);
+            setEditedValues(prev => {
+              const newValues = { ...prev };
+              delete newValues[row._id];
+              return newValues;
+            });
+          })
+          .catch((error) => {
+            toast.error(error.response?.data?.message || "Failed to update bill");
+            console.error("Error updating bill:", error);
+          });
+      } else {
+        setEditingRow(null);
+        setEditedValues(prev => {
+          const newValues = { ...prev };
+          delete newValues[row._id];
+          return newValues;
+        });
+      }
+    } else {
+      // Starting edit mode
+      const editableFields = getEditableFields();
+      console.log('Starting edit for row:', row.srNo);
+      setEditingRow(row._id);
+      setEditedValues(prev => ({
+        ...prev,
+        [row._id]: {}
+      }));
+    }
+  };
+
   return (
     <div
       className={`relative w-full flex flex-col border border-gray-200 rounded-lg ${
@@ -703,11 +813,6 @@ const DataTable = ({
                   </td>
                   {visibleColumns.map((column) => {
                     const value = getNestedValue(row, column.field);
-                    const formattedValue = formatCellValue(value, column.field);
-                    const cellStyle = column.field.includes("status")
-                      ? getStatusStyle(value)
-                      : {};
-
                     return (
                       <td
                         key={column.field}
@@ -717,10 +822,10 @@ const DataTable = ({
                             ? "text-right"
                             : "text-gray-900"
                         }`}
-                        style={cellStyle}
+                        style={column.field.includes("status") ? getStatusStyle(value) : {}}
                         data-field={column.field}
                       >
-                        {formattedValue}
+                        {renderCell(row, column, value)}
                       </td>
                     );
                   })}
@@ -732,9 +837,13 @@ const DataTable = ({
                     <div className="relative z-10">
                       <button
                         className="rounded-md p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        onClick={() => onEdit && onEdit(row)}
+                        onClick={() => handleEditClick(row)}
                       >
-                        <EditIcon className="w-5 h-5" />
+                        {editingRow === row._id ? (
+                          <CheckIcon className="w-5 h-5 text-green-500" />
+                        ) : (
+                          <EditIcon className="w-5 h-5" />
+                        )}
                       </button>
                     </div>
                   </td>
