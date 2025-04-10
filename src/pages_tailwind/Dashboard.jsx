@@ -25,6 +25,8 @@ import ImportModal from "../components_tailwind/dashboard/ImportModal";
 import { handleExportReport } from "../utils/exportExcelDashboard";
 
 const Dashboard = () => {
+  const currentUserRole = Cookies.get("userRole");
+  
   const [billsData, setBillsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -51,14 +53,15 @@ const Dashboard = () => {
   const [showDownloadValidation, setShowDownloadValidation] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [columnSearchQuery, setColumnSearchQuery] = useState("");
+  const [showIncomingBills, setShowIncomingBills] = useState(false);
 
   const navigate = useNavigate();
 
   console.log(selectedRows);
 
   const handleChecklist = () => {
-    navigate('/checklist-bill-list', { state: { selectedRows } });
-  }
+    navigate("/checklist-bill-list", { state: { selectedRows } });
+  };
 
   const roles = [
     { value: "site_officer", label: "Site Officer" },
@@ -90,7 +93,7 @@ const Dashboard = () => {
   const handleSendTo = () => {
     const userRole = Cookies.get("userRole");
     const availableRoles = roleWorkflow[userRole] || [];
-    
+
     if (availableRoles.length === 0) {
       toast.error("You don't have permission to forward bills");
       return;
@@ -112,24 +115,31 @@ const Dashboard = () => {
 
   const handleSendBills = async (selectedBills, remarks) => {
     try {
-      const actor = Cookies.get('userName');
-      const promises = selectedBills.map(billId =>
+      const actor = Cookies.get("userName");
+      const promises = selectedBills.map((billId) =>
         axios.post(`${billWorkflow}/${billId}/advance`, {
           actor,
-          comments: remarks || "No remarks added"
+          comments: remarks || "No remarks added",
         })
       );
 
       const results = await Promise.allSettled(promises);
-      
-      const failedRequests = results.filter(result => result.status === 'rejected');
-      const successfulRequests = results.filter(result => result.status === 'fulfilled');
-      
+
+      const failedRequests = results.filter(
+        (result) => result.status === "rejected"
+      );
+      const successfulRequests = results.filter(
+        (result) => result.status === "fulfilled"
+      );
+
       if (failedRequests.length > 0) {
         toast.error(
           <div className="flex items-center gap-2">
             <AlertTriangle size={18} />
-            <span>Failed to send {failedRequests.length} bill{failedRequests.length > 1 ? 's' : ''}</span>
+            <span>
+              Failed to send {failedRequests.length} bill
+              {failedRequests.length > 1 ? "s" : ""}
+            </span>
           </div>
         );
       }
@@ -139,12 +149,13 @@ const Dashboard = () => {
           <div className="flex items-center gap-2">
             <Send size={18} className="text-white" />
             <span>
-              Successfully sent {successfulRequests.length} bill{successfulRequests.length > 1 ? 's' : ''} to {selectedRole.label}
+              Successfully sent {successfulRequests.length} bill
+              {successfulRequests.length > 1 ? "s" : ""} to {selectedRole.label}
             </span>
           </div>,
           {
             style: { background: "#4CAF50", color: "white" },
-            progressStyle: { background: "white" }
+            progressStyle: { background: "white" },
           }
         );
       }
@@ -157,7 +168,10 @@ const Dashboard = () => {
       toast.error(
         <div className="flex items-center gap-2">
           <AlertTriangle size={18} />
-          <span>{error.response?.data?.message || "Failed to send bills. Please try again."}</span>
+          <span>
+            {error.response?.data?.message ||
+              "Failed to send bills. Please try again."}
+          </span>
         </div>
       );
     }
@@ -173,20 +187,22 @@ const Dashboard = () => {
   }, [navigate]);
 
   const filterBillsByWorkflowState = (bills, userRole) => {
-    return bills.filter(bill => {
+    return bills.filter((bill) => {
       const currentState = bill.workflowState?.currentState;
-      
+
       if (currentState === "Completed" || currentState === "Rejected") {
-        return ["pimo_mumbai", "accounts", "director", "admin"].includes(userRole);
+        return ["pimo_mumbai", "accounts", "director", "admin"].includes(
+          userRole
+        );
       }
 
       const stateToRoleMap = {
-        "Site_Officer": ["site_officer"],
-        "Site_PIMO": ["site_pimo"],
-        "QS_Site": ["qs_site"],
-        "PIMO_Mumbai": ["pimo_mumbai"],
-        "Directors": ["director"],
-        "Accounts": ["accounts"]
+        Site_Officer: ["site_officer"],
+        Site_PIMO: ["site_pimo"],
+        QS_Site: ["qs_site"],
+        PIMO_Mumbai: ["pimo_mumbai"],
+        Directors: ["director"],
+        Accounts: ["accounts"],
       };
 
       if (userRole === "admin") return true;
@@ -197,13 +213,15 @@ const Dashboard = () => {
 
   const fetchBills = async () => {
     try {
-      const response = await axios.get(bills, {headers: { Authorization: `Bearer ${Cookies.get('token')}` }});
-      const userRole = Cookies.get('userRole');
-      
+      const response = await axios.get(bills, {
+        headers: { Authorization: `Bearer ${Cookies.get("token")}` },
+      });
+      const userRole = Cookies.get("userRole");
+
       console.log("Received response data:", response.data);
-      
+
       const filteredBills = filterBillsByWorkflowState(response.data, userRole);
-      
+
       const sortedData = filteredBills.sort((a, b) => {
         const aStatus = a.accountsDept.status.toLowerCase();
         const bStatus = b.accountsDept.status.toLowerCase();
@@ -224,7 +242,7 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchBills();
   }, []);
@@ -316,13 +334,29 @@ const Dashboard = () => {
 
   const filteredData = useMemo(() => {
     let result = billsData;
-    if (selectedRegion.length > 0) {
-      result = result.filter((row) => selectedRegion.includes(row.region));
+
+    // Filter for incoming bills when showIncomingBills is true
+    if (showIncomingBills) {
+      if (currentUserRole === 'accounts') {
+        result = result.filter(bill => 
+          bill.accountsDept?.dateGiven && !bill.accountsDept?.dateReceived
+        );
+      } else if (currentUserRole === 'pimo_mumbai') {
+        result = result.filter(bill => 
+          bill.pimoMumbai?.dateGiven && !bill.pimoMumbai?.dateReceived
+        );
+      }
+    } else {
+      // Your existing filtering logic
+      if (selectedRegion.length > 0) {
+        result = result.filter((row) => selectedRegion.includes(row.region));
+      }
+      result = result.filter(isWithinDateRange);
     }
-    result = result.filter(isWithinDateRange);
+    
     result = sortData(result, sortConfig);
     return result;
-  }, [billsData, selectedRegion, sortConfig, isWithinDateRange]);
+  }, [billsData, selectedRegion, sortConfig, isWithinDateRange, showIncomingBills, currentUserRole]);
 
   const handleSelectAll = (e) => {
     const isChecked = e.target.checked;
@@ -331,14 +365,21 @@ const Dashboard = () => {
   };
 
   const handleDownloadReport = async () => {
-    const result = await handleExportReport(selectedRows, filteredData, columns, visibleColumnFields);
+    const result = await handleExportReport(
+      selectedRows,
+      filteredData,
+      columns,
+      visibleColumnFields
+    );
     if (result.success) {
       toast.success(result.message);
     } else {
       if (result.message.includes("Please select at least one row")) {
         toast.warning(
           <div className="send-toast">
-            <span><AlertTriangle size={18} /></span>
+            <span>
+              <AlertTriangle size={18} />
+            </span>
             <span>{result.message}</span>
           </div>,
           { autoClose: 3000 }
@@ -365,7 +406,6 @@ const Dashboard = () => {
     setIsFilterPopupOpen(false);
   };
 
-  const currentUserRole = Cookies.get("userRole");
   const availableRoles = roles.filter((role) => role.value !== currentUserRole);
 
   const columns = useMemo(() => {
@@ -483,17 +523,17 @@ const Dashboard = () => {
   const handleImportBills = async (file) => {
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
 
       const response = await axios.post(importReport, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+          "Content-Type": "multipart/form-data",
+        },
       });
 
-      toast.success('Bills updated successfully');
+      toast.success("Bills updated successfully");
     } catch (error) {
-      console.error('Error updating bills:', error);
+      console.error("Error updating bills:", error);
       toast.error(
         <div className="flex items-center gap-2">
           <AlertTriangle size={18} />
@@ -502,6 +542,10 @@ const Dashboard = () => {
       );
     }
   };
+
+  const showIncomingBillsButton = ["accounts", "pimo_mumbai"].includes(
+    currentUserRole
+  );
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -518,7 +562,7 @@ const Dashboard = () => {
         pauseOnHover
         theme="colored"
       />
-      
+
       <div className="flex-1 p-3 overflow-hidden">
         <div className="h-full bg-white rounded-lg shadow flex flex-col">
           <div className="p-3 border-b border-gray-200">
@@ -544,16 +588,23 @@ const Dashboard = () => {
               </div>
 
               <div className="flex items-center space-x-3">
+                {showIncomingBillsButton && (
+                  <button
+                    className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    onClick={() => setShowIncomingBills(!showIncomingBills)}
+                  >
+                    <span>{showIncomingBills ? 'Go Back' : 'Incoming Bills'}</span>
+                  </button>
+                )}
+
                 <button
                   className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                  onClick={() => {
-                    /* Add your checklist handler here */
-                  }}
+                  onClick={handleChecklist}
                 >
                   <CheckSquare className="w-4 h-4" />
-                  <span onClick={handleChecklist}>Checklist</span>
+                  <span>Checklist</span>
                 </button>
-{/* 
+                {/* 
                 <button
                   className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                   onClick={() => setIsImportModalOpen(true)}
@@ -585,10 +636,17 @@ const Dashboard = () => {
                         />
                       </div>
                       <div className="p-2 border-b border-gray-200 bg-white sticky top-[52px]">
-                        <div className="flex items-center space-x-2 cursor-pointer" onClick={toggleAllColumns}>
+                        <div
+                          className="flex items-center space-x-2 cursor-pointer"
+                          onClick={toggleAllColumns}
+                        >
                           <input
                             type="checkbox"
-                            checked={visibleColumnFields.length === columns.filter(col => col.field !== "srNoOld").length}
+                            checked={
+                              visibleColumnFields.length ===
+                              columns.filter((col) => col.field !== "srNoOld")
+                                .length
+                            }
                             readOnly
                           />
                           <span className="text-sm">Select All</span>
@@ -596,29 +654,48 @@ const Dashboard = () => {
                       </div>
                       <div className="overflow-y-auto p-2 space-y-2">
                         {columns
-                          .filter(col => col.field !== "srNoOld")
-                          .filter(col => col.headerName.toLowerCase().includes(columnSearchQuery.toLowerCase()))
+                          .filter((col) => col.field !== "srNoOld")
+                          .filter((col) =>
+                            col.headerName
+                              .toLowerCase()
+                              .includes(columnSearchQuery.toLowerCase())
+                          )
                           .map((column) => (
-                            <div key={column.field} className="flex items-center space-x-2">
+                            <div
+                              key={column.field}
+                              className="flex items-center space-x-2"
+                            >
                               <input
                                 type="checkbox"
                                 id={`col-${column.field}`}
-                                checked={column.field === "srNo" || visibleColumnFields.includes(column.field)}
-                                onChange={() => toggleColumnVisibility(column.field)}
-                                className={`hover:cursor-pointer ${column.field === "srNo" ? "opacity-60" : ""}`}
+                                checked={
+                                  column.field === "srNo" ||
+                                  visibleColumnFields.includes(column.field)
+                                }
+                                onChange={() =>
+                                  toggleColumnVisibility(column.field)
+                                }
+                                className={`hover:cursor-pointer ${
+                                  column.field === "srNo" ? "opacity-60" : ""
+                                }`}
                                 disabled={column.field === "srNo"}
                               />
-                              <label 
-                                className={`hover:cursor-pointer text-sm ${column.field === "srNo" ? "opacity-60" : ""}`} 
+                              <label
+                                className={`hover:cursor-pointer text-sm ${
+                                  column.field === "srNo" ? "opacity-60" : ""
+                                }`}
                                 htmlFor={`col-${column.field}`}
                               >
                                 {column.headerName}
                               </label>
                             </div>
                           ))}
-                        {columns.filter(col => 
-                          col.field !== "srNoOld" && 
-                          col.headerName.toLowerCase().includes(columnSearchQuery.toLowerCase())
+                        {columns.filter(
+                          (col) =>
+                            col.field !== "srNoOld" &&
+                            col.headerName
+                              .toLowerCase()
+                              .includes(columnSearchQuery.toLowerCase())
                         ).length === 0 && (
                           <div className="text-gray-500 text-sm text-center py-2">
                             No columns found
@@ -771,18 +848,32 @@ const Dashboard = () => {
 
                     <div className="flex items-center text-sm text-gray-600">
                       <div>
-                        Showing {filteredData.length ? (currentPage - 1) * itemsPerPage + 1 : 0} to{" "}
-                        {Math.min(currentPage * itemsPerPage, totalFilteredItems)} entries
+                        Showing{" "}
+                        {filteredData.length
+                          ? (currentPage - 1) * itemsPerPage + 1
+                          : 0}{" "}
+                        to{" "}
+                        {Math.min(
+                          currentPage * itemsPerPage,
+                          totalFilteredItems
+                        )}{" "}
+                        entries
                         <span className="ml-2">
                           <span className="text-gray-400">|</span>
                           <span className="ml-2">
-                            Total: <span className="font-medium">{billsData.length}</span>
+                            Total:{" "}
+                            <span className="font-medium">
+                              {billsData.length}
+                            </span>
                           </span>
                           {totalFilteredItems !== billsData.length && (
                             <>
                               <span className="text-gray-400 mx-2">|</span>
                               <span className="text-blue-600">
-                                Filtered: <span className="font-medium">{totalFilteredItems}</span>
+                                Filtered:{" "}
+                                <span className="font-medium">
+                                  {totalFilteredItems}
+                                </span>
                               </span>
                             </>
                           )}
