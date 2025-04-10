@@ -1,9 +1,134 @@
 import React, { useState, useRef, useEffect } from "react";
 import Header from "../components/Header";
 import { bills } from "../apis/bills.api";
+import { vendors } from "../apis/vendor.api";
 import imageBox from "../assets/img-box.svg";
+import axios from "axios";
+import Cookies from "js-cookie";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const FullBillDetails = () => {
+
+  const [billFormData, setBillFormData] = useState({
+    typeOfInv: "",
+    region: "",
+    projectDescription: "",
+    gstNumber: "",
+    vendorName: "",
+    vendorNo: "",
+    compliance206AB: "",
+    panStatus: "",
+    poCreated: "No",
+    poNo: "",
+    poDate: "",
+    poAmt: "",
+    proformaInvNo: "",
+    proformaInvAmt: "",
+    proformaInvDate: "",
+    proformaInvRecdAtSite: "",
+    proformaInvRecdBy: "",
+    taxInvNo: "",
+    taxInvDate: "",
+    taxInvAmt: "",
+    taxInvRecdAtSite: "",
+    taxInvRecdBy: "",
+    currency: "INR",
+    department: "",
+    remarks: "",
+    attachment: "",
+    natureOfWork: "",
+    vendor: null,
+    billDate: new Date().toISOString().split("T")[0],
+    amount: "0",
+  });
+  const [vendorsData, setVendorsData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  useEffect(() => {
+    const fetchVendors = async () => {
+      try {
+        const res = await axios.get(vendors, {
+          headers: { Authorization: `Bearer ${Cookies.get("token")}` }
+        });
+        console.log(res.data);
+        setVendorsData(res.data);
+      } catch (error) {
+        console.error("Error fetching vendors:", error);
+      }
+    };
+    fetchVendors();
+  }, []);
+
+  const handleVendorLookup = async (e) => {
+    if (e.key === 'Enter' && billFormData.vendorNo) {
+      e.preventDefault();
+      setIsLoading(true);
+      
+      try {
+        const vendor = vendorsData.find(v => v.vendorNo.toString() === billFormData.vendorNo);
+        
+        if (vendor) {
+          console.log("Found vendor data:", {
+            vendorName: vendor.vendorName,
+            complianceStatus: vendor.complianceStatus
+          });
+
+          const updates = {
+            vendorName: vendor.vendorName,
+            vendorNo: vendor.vendorNo.toString(),
+            vendor: vendor._id,
+          };
+
+          if (vendor.GSTNumber !== "Not Provided") {
+            updates.gstNumber = vendor.GSTNumber;
+          }
+
+          if (vendor.PANStatus !== "Not Provided") {
+            updates.panStatus = vendor.PANStatus;
+          }
+
+          if (vendor.complianceStatus !== "Not Provided") {
+            updates.compliance206AB = vendor.complianceStatus;
+          }
+
+          console.log("Applying updates:", updates);
+
+          setBillFormData(prev => ({
+            ...prev,
+            ...updates
+          }));
+
+          setTimeout(() => {
+            console.log("Form data after update:", billFormData);
+          }, 0);
+
+        } else {
+          const updates = {
+            vendorName: "",
+            gstNumber: "",
+            compliance206AB: "",
+            panStatus: ""
+          };
+
+          setBillFormData(prev => ({
+            ...prev,
+            ...updates
+          }));
+          console.log("Vendor not found");
+          toast.error("Vendor not found");
+        }
+      } catch (error) {
+        console.error("Error looking up vendor:", error);
+      } finally {
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 500);
+      }
+    }
+  };
+
   useEffect(() => {
     const style = document.createElement('style');
     style.textContent = `
@@ -33,36 +158,6 @@ const FullBillDetails = () => {
     return () => document.head.removeChild(style);
   }, []);
 
-  const [billFormData, setBillFormData] = useState({
-    typeOfInv: "",
-    region: "",
-    projectDescription: "",
-    gstNumber: "",
-    vendorName: "",
-    vendorNo: "",
-    compliance206AB: "",
-    panStatus: "",
-    poCreated: "No",
-    poNo: "",
-    poDate: "",
-    poAmt: "",
-    proformaInvNo: "",
-    proformaInvAmt: "",
-    proformaInvDate: "",
-    proformaInvRecdAtSite: "",
-    proformaInvRecdBy: "",
-    taxInvNo: "",
-    taxInvDate: "",
-    taxInvAmt: "",
-    taxInvRecdAtSite: "",
-    taxInvRecdBy: "",
-    currency: "",
-    department: "",
-    remarks: "",
-    attachment: "",
-    natureOfWork: "",
-  });
-
   const [billImage, setBillImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
@@ -86,6 +181,12 @@ const FullBillDetails = () => {
       if (id === 'taxInvNo' && value.length > 16) {
         return; 
       }
+      if (id === 'typeOfInv') {
+        setBillFormData((prevData) => ({
+          ...prevData,
+          natureOfWork: value,
+        }));
+      }
       
       setBillFormData((prevData) => ({
         ...prevData,
@@ -102,64 +203,58 @@ const FullBillDetails = () => {
     };
   }, [imagePreview]);
 
-  const dateInputRef = useRef(null);
-
-  const handleInputClick = () => {
-    dateInputRef.current?.focus();
-  };
-
-  const handleSubmitForm = (e) => {
+  const handleSubmitForm = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
-    const formData = new FormData();
+    try {
+      if (billImage) {
+        billFormData.append("attachment", billImage);
+      }
 
-    Object.keys(billFormData).forEach((key) => {
-      formData.append(key, billFormData[key]);
-    });
+      const requiredFields = [
+        "typeOfInv",
+        "region",
+        "projectDescription",
+        "vendorName",
+        "vendorNo",
+        "poCreated",
+        "taxInvRecdAtSite",
+        "taxInvRecdBy",
+        "department",
+      ];
 
-    if (billImage) {
-      formData.append("attachmentFile", billImage);
-    }
-
-    const requiredFields = [
-      "typeOfInv",
-      "region",
-      "projectDescription",
-      "vendorName",
-      "vendorNo",
-      "poCreated",
-      "taxInvRecdAtSite",
-      "taxInvRecdBy",
-      "department",
-    ];
-
-    const missingFields = requiredFields.filter(
-      (field) => !formData[field]
-    );
-
-    if (missingFields.length > 0) {
-      alert(
-        `Please fill in the following required fields: ${missingFields.join(
-          ", "
-        )}`
+      const missingFields = requiredFields.filter(
+        (field) => !billFormData[field]
       );
-      return;
-    }
 
-    fetch(bills, {
-      method: "POST",
-      body: formData,
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-        alert("Bill details submitted successfully");
-        resetForm();
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        alert("Error submitting bill details");
+      if (missingFields.length > 0) {
+        toast.error(`Please fill in required fields: ${missingFields.join(", ")}`);
+        return;
+      }
+
+      await setBillFormData((prevData) => ({
+        ...prevData,
+        billDate: new Date().toISOString().split("T")[0],
+        amount: 0
+      }));
+
+      const res = await axios.post(bills, billFormData, {
+        headers: { Authorization: `Bearer ${Cookies.get("token")}` }
       });
+
+      if (res.status === 200 || res.status === 201) {
+        toast.success("Bill created successfully!");
+        resetForm();
+        setImagePreview(null);
+      }
+
+    } catch (error) {
+      console.error("Error submitting bill:", error);
+      toast.error(error.response?.data?.message || "Error creating bill");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
@@ -186,7 +281,7 @@ const FullBillDetails = () => {
       taxInvAmt: "",
       taxInvRecdAtSite: "",
       taxInvRecdBy: "",
-      currency: "",
+      currency: "INR",
       department: "",
       remarks: "",
       attachment: "",
@@ -198,6 +293,33 @@ const FullBillDetails = () => {
   return (
     <div className="bg-white text-black pb-2">
       <Header />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
+      {isLoading && (
+        <div className="fixed inset-0 bg-black/25 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded-lg">
+            <p className="text-lg">Getting vendor details...</p>
+          </div>
+        </div>
+      )}
+
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black/25 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded-lg">
+            <p className="text-lg">Creating bill...</p>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-[92.55vw] border-2 border-[#4E4E4E25] rounded-xl p-[3vh_2vw] font-arial mx-auto bill-form">
         <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">
@@ -359,6 +481,7 @@ const FullBillDetails = () => {
                 id="vendorNo"
                 value={billFormData.vendorNo}
                 onChange={handleChange}
+                onKeyDown={handleVendorLookup}
                 pattern="\d{6}"
                 maxLength={6}
                 title="Vendor No must be exactly 6 digits"
@@ -808,8 +931,9 @@ const FullBillDetails = () => {
           className="flex justify-center items-center bg-[#011A99] text-white mt-[12vh] w-[84vw] h-[6.8vh] border-none rounded-[0.5vw] cursor-pointer text-[2.5vh] mx-auto hover:bg-[#021678] active:bg-[#004085]"
           type="submit"
           onClick={handleSubmitForm}
+          disabled={isSubmitting}
         >
-          Create
+          {isSubmitting ? "Creating..." : "Create"}
         </button>
       </div>
     </div>
