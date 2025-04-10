@@ -10,6 +10,7 @@ import download from "../assets/download.svg";
 import send from "../assets/send.svg";
 import print from "../assets/print.svg";
 import Cookies from "js-cookie";
+import { handleExportRepRecdAtSite } from '../utils/exportExcelReportRecdSite';
 
 const RepRecAtSite = () => {
 
@@ -44,6 +45,7 @@ const RepRecAtSite = () => {
                 const response = await axios.get(`${receivedAtSite}?startDate=${fromDate}&endDate=${toDate}`);
                 console.log(response.data);
                 setBills(response.data.report.data);
+                // await setSelectedRows(bills.map(bill => bill.srNo));
             } catch (error) {
                 setError("Failed to load data");
             } finally {
@@ -53,11 +55,11 @@ const RepRecAtSite = () => {
         fetchBills();
     }, [fromDate, toDate]);
 
-    useEffect(() => {
-        if (selectAll) {
-            setSelectedRows(bills.map(bill => bill.srNo));
-        }
-    }, [bills, selectAll]);
+    // useEffect(() => {
+    //     if (selectAll) {
+    //         setSelectedRows(bills.map(bill => bill.srNo));
+    //     }
+    // }, [bills, selectAll]);
 
     const handleSelectAll = () => {
         setSelectAll(!selectAll);
@@ -73,34 +75,37 @@ const RepRecAtSite = () => {
     };
 
     const handleTopDownload = async () => {
-        try {
-
-            const billIdsToDownload = selectedRows.length === 0
-                ? bills.map(bill => bill.srNo)
-                : selectedRows;
-
-            const response = await axios.post(
-                report,
-                { billIds: billIdsToDownload, format: "excel" },
-                { responseType: "blob" }
-            );
-
-            const url = window.URL.createObjectURL(
-                new Blob([response.data], {
-                    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                })
-            );
-
-            const link = document.createElement("a");
-            link.href = url;
-            link.setAttribute("download", "report.xlsx");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } catch (error) {
-            console.error("Error downloading the report:", error);
-        }
+        console.log("Rep recd at site download clicked");
+        // setSelectedRows(bills.map(bill => bill.srNo));
+        const result = await handleExportRepRecdAtSite(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, false);
+        console.log("Result = " + result.message);
     };
+
+    const handleTopPrint = async () => {
+        console.log("Rep recd at site print clicked");
+        // if(selectedRows.length === 0){
+        //     setSelectedRows(bills.map(bill => bill.srNo));
+        // }
+        const result = await handleExportRepRecdAtSite(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, true);
+        console.log("Result = " + result.message);
+    }
+
+    const columns = [
+        // { field: "copAmt", headerName: "COP Amount" },
+        { field: "srNo", headerName: "Sr. No" },
+        { field: "projectDescription", headerName: "Project Description" },
+        { field: "vendorName", headerName: "Vendor Name" },
+        // { field: "vendorNo", headerName: "Vendor No." },
+        { field: "taxInvNo", headerName: "Tax Invoice No." },
+        { field: "taxInvDate", headerName: "Tax Invoice Date" },
+        { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
+        { field: "dtTaxInvRecdAtSite", headerName: "Date Tax Inv recd at Site" },
+        { field: "poNo", headerName: "PO No" }
+    ]
+
+    const visibleColumnFields = [
+        "srNo", "projectDescription", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dtTaxInvRecdAtSite", "poNo"
+    ]
 
     const handleSendClick = () => {
         if (selectedRows.length === 0) {
@@ -137,11 +142,11 @@ const RepRecAtSite = () => {
                 <div className="flex justify-between items-center mb-[2vh]">
                     <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Invoices Received At Site</h2>
                     <div className="flex gap-[1vw] w-[50%]">
-                        <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]" onClick={handleTopDownload}>
+                        <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]" onClick={handleTopPrint}>
                             Print
                             <img src={print} />
                         </button>
-                        <button className="w-[300px] bg-[#F48D02] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#e6c200]">
+                        <button className="w-[300px] bg-[#F48D02] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#e6c200]" onClick={handleTopDownload}>
                             Download
                             <img src={download} />
                         </button>
