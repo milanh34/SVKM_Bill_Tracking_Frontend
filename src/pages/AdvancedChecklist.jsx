@@ -3,7 +3,7 @@ import "../styles/AdvancedChecklist.css";
 import pen from "../assets/pen.svg";
 import { bills } from "../apis/bills.api";
 
-const Checklist = (props) => {
+const AdvancedChecklist = (props) => {
 
     const billID = props.billID;
 
@@ -81,7 +81,7 @@ const Checklist = (props) => {
             {/* <h1>{billID}</h1> */}
             <div className="checklist-container">
                 <div className="checklist-header">
-                    <h1>Checklist</h1>
+                    <h1 className="text-xl font-bold text-blue-800 mb-6">Advanced Checklist</h1>
                     <button
                         className="edit-button no-print"
                         onClick={toggleEditMode}
@@ -392,4 +392,4 @@ const Checklist = (props) => {
     );
 };
 
-export default Checklist;
+export default AdvancedChecklist;

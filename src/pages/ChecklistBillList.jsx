@@ -2,7 +2,8 @@ import React, { useRef, useState } from 'react';
 import Header from '../components/Header';
 import { useLocation, useNavigate } from "react-router-dom";
 import print from "../assets/print.svg";
-import Checklist from './Checklist';
+import Checklist from './AdvancedChecklist';
+import "../styles/ChecklistBillList.css"
 
 const ITEMS_PER_PAGE = 1;
 

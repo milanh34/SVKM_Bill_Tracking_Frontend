@@ -25,10 +25,13 @@ import BillDetailsPIMO from './pages_tailwind/BillDetailsPIMO'
 
 import BillDetails from './pages/BillDetails'
 import ContactPage from './pages/ContactPage'
-import Checklist from './pages/Checklist'
+import Checklist from './pages/AdvancedChecklist'
 import InvoiceTable from './pages/InvoiceTable'
 import BillSend from './pages/BillSend'
 import ChecklistBillList from "./pages/ChecklistBillList";
+import ChecklistDirectFI from "./pages/ChecklistDirectFI";
+import AdvancedChecklist from "./pages/AdvancedChecklist";
+import ChecklistAccount from "./pages/ChecklistAccount";
 
 function App() {
   return (
@@ -62,7 +65,9 @@ function App() {
         <Route path='/billsiso' element={<BillDetailsSISO />}/>
         <Route path='/billpimo' element={<BillDetailsPIMO />}/>
         <Route path='/reportsbilljourney' element={<BillJourney />}/>
-        <Route path='/checklist' element={<Checklist />} />
+        <Route path='/checklist-advance' element={<AdvancedChecklist />} />
+        <Route path='/checklist-directFI' element={<ChecklistDirectFI />} />
+        <Route path='/checklist-account' element={<ChecklistAccount />} />
         <Route path='/checklist-bill-list' element={<ChecklistBillList />} />
         <Route path='/create-bill' element={<CreateBill />} />
         <Route path="/paidbills" element={<PaidBills />} />

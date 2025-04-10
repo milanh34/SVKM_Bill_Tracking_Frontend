@@ -19,13 +19,6 @@
   margin-bottom: 2rem;
 }
 
-.checklist-header h1 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin: 0;
-}
-
 .edit-button {
   display: flex;
   align-items: center;
@@ -186,5 +179,55 @@
   .send-button {
       width: 100%;
       justify-content: center;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .checklist-container {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 40px;
+  }
+
+  .checklist-page {
+    page-break-after: always;
+  }
+
+  .checklist-page:last-child {
+    page-break-after: auto;
+  }
+
+  .checklist-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .checklist-table th,
+  .checklist-table td {
+    border: 1px solid black;
+    padding: 6px;
+    text-align: left;
+    font-size: 12px;
+  }
+
+  .stacked-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  input,
+  select {
+    border: none;
+    background: transparent;
+    font-size: 12px;
+  }
+
+  h1 {
+    font-size: 16px;
   }
 }
