@@ -125,7 +125,7 @@ const RepBillOutstanding = () => {
 
     const handleTopDownload = async () => {
         console.log("Download outstanding bill clicked");
-        const result = await handleExportOutstandingReport(selectedRows, billsData, columns, visibleColumnFields);
+        const result = await handleExportOutstandingReport(selectedRows, billsData, columns, visibleColumnFields, false);
     }
 
     const columns = [

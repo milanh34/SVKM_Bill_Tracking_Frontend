@@ -9,7 +9,7 @@ const formatCurrency = (value) => {
     }).format(value);
 };
 
-export const handleExportOutstandingReport = async (selectedRows, filteredData, columns, visibleColumnFields) => {
+export const handleExportOutstandingReport = async (selectedRows, filteredData, columns, visibleColumnFields, toPrint) => {
     try {
         const dataToExport = selectedRows.length > 0
             ? filteredData.filter((item) => selectedRows.includes(item._id))
@@ -156,6 +156,47 @@ export const handleExportOutstandingReport = async (selectedRows, filteredData, 
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+
+
+        // if (toPrint) {
+
+            // Print the report (create a printable HTML version)
+            const printWindow = window.open("", "_blank", "width=800,height=600");
+            printWindow.document.write("<html><head><title>Outstanding Report</title></head><body>");
+            // printWindow.document.write("<h2>Outstanding Report</h2>");
+            printWindow.document.write("<table border='1' cellpadding='5' style='border-collapse: collapse;'>");
+
+            // Add the header row
+            printWindow.document.write("<thead><tr>");
+            printWindow.document.write(`<tr><th colSpan='1'></th>`);
+            printWindow.document.write(`<th>Outstanding Report as on:</th>`);
+            printWindow.document.write(`<th colSpan='2'></th>`);
+            printWindow.document.write(`<th>${timestamp}</th>`);
+            printWindow.document.write(`</tr>`);
+            // printWindow.document.write(`<th>Outstanding Report</th>`);
+            allColumnsToExport.forEach((column) => {
+                printWindow.document.write(`<th>${column.headerName}</th>`);
+            });
+            printWindow.document.write("</tr></thead>");
+
+            // Add the data rows
+            printWindow.document.write("<tbody>");
+            excelData.forEach((row) => {
+                printWindow.document.write("<tr>");
+                allColumnsToExport.forEach((column) => {
+                    printWindow.document.write(`<td>${row[column.headerName]}</td>`);
+                });
+                printWindow.document.write("</tr>");
+            });
+            printWindow.document.write("</tbody>");
+            printWindow.document.write("</table>");
+            printWindow.document.write("</body></html>");
+            printWindow.document.close();
+            printWindow.print();  // Trigger print dialog
+            printWindow.onafterprint = function () {
+                printWindow.close();  // Close the print window after printing
+            };
+        // }
 
         return { success: true, message: "Report downloaded successfully" };
     } catch (error) {
