@@ -68,7 +68,8 @@ function App() {
 
         <Route path='/checklist' element={<Checklist />} />
         <Route path='/checklist-bill-list' element={<ChecklistBillList />} />
-        <Route path='/create-bill' element={<CreateBill />} />
+        {/* <Route path='/create-bill' element={<CreateBill />} /> */}
+        <Route path='/create-bill' element={<FullBillDetails />} />
 
         <Route path="/paidbills" element={<PaidBills />} />
         

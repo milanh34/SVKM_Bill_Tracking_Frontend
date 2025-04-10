@@ -34,13 +34,13 @@ const FullBillDetails = () => {
   }, []);
 
   const [billFormData, setBillFormData] = useState({
-    invoiceType: "",
+    typeOfInv: "",
     region: "",
-    projectDesc: "",
-    gstNo: "",
+    projectDescription: "",
+    gstNumber: "",
     vendorName: "",
     vendorNo: "",
-    compliance206: "",
+    compliance206AB: "",
     panStatus: "",
     poCreated: "No",
     poNo: "",
@@ -49,32 +49,44 @@ const FullBillDetails = () => {
     proformaInvNo: "",
     proformaInvAmt: "",
     proformaInvDate: "",
-    proformaInvRecdDate: "",
+    proformaInvRecdAtSite: "",
+    proformaInvRecdBy: "",
     taxInvNo: "",
     taxInvDate: "",
     taxInvAmt: "",
+    taxInvRecdAtSite: "",
     taxInvRecdBy: "",
     currency: "",
     department: "",
     remarks: "",
-    billImg: "",
-    natureOfWork: "others",
+    attachment: "",
+    natureOfWork: "",
   });
 
   const [billImage, setBillImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
   const handleChange = (e) => {
-    const { id, type, files } = e.target;
+    const { id, type, files, value } = e.target;
 
-    if (id === "billImg" && files && files[0]) {
+    if (id === "attachment" && files && files[0]) {
       setBillImage(files[0]);
       setImagePreview(URL.createObjectURL(files[0]));
       setBillFormData((prevData) => ({
         ...prevData,
-        billImg: files[0].name,
+        attachment: files[0].name,
       }));
     } else {
+      if (id === 'vendorNo' && value.length > 6) {
+        return; 
+      }
+      if (id === 'poNo' && value.length > 10) {
+        return;
+      }
+      if (id === 'taxInvNo' && value.length > 16) {
+        return; 
+      }
+      
       setBillFormData((prevData) => ({
         ...prevData,
         [id]: value,
@@ -82,7 +94,6 @@ const FullBillDetails = () => {
     }
   };
 
-  // Clean up the preview URL when component unmounts
   useEffect(() => {
     return () => {
       if (imagePreview) {
@@ -102,14 +113,37 @@ const FullBillDetails = () => {
 
     const formData = new FormData();
 
-    // Append all form data
     Object.keys(billFormData).forEach((key) => {
       formData.append(key, billFormData[key]);
     });
 
-    // Append bill image if exists
     if (billImage) {
-      formData.append("billImgFile", billImage);
+      formData.append("attachmentFile", billImage);
+    }
+
+    const requiredFields = [
+      "typeOfInv",
+      "region",
+      "projectDescription",
+      "vendorName",
+      "vendorNo",
+      "poCreated",
+      "taxInvRecdAtSite",
+      "taxInvRecdBy",
+      "department",
+    ];
+
+    const missingFields = requiredFields.filter(
+      (field) => !formData[field]
+    );
+
+    if (missingFields.length > 0) {
+      alert(
+        `Please fill in the following required fields: ${missingFields.join(
+          ", "
+        )}`
+      );
+      return;
     }
 
     fetch(bills, {
@@ -120,7 +154,6 @@ const FullBillDetails = () => {
       .then((data) => {
         console.log(data);
         alert("Bill details submitted successfully");
-        // Optional: Reset form after successful submission
         resetForm();
       })
       .catch((error) => {
@@ -131,13 +164,13 @@ const FullBillDetails = () => {
 
   const resetForm = () => {
     setBillFormData({
-      invoiceType: "",
+      typeOfInv: "",
       region: "",
-      projectDesc: "",
-      gstNo: "",
+      projectDescription: "",
+      gstNumber: "",
       vendorName: "",
       vendorNo: "",
-      compliance206: "",
+      compliance206AB: "",
       panStatus: "",
       poCreated: "No",
       poNo: "",
@@ -146,16 +179,18 @@ const FullBillDetails = () => {
       proformaInvNo: "",
       proformaInvAmt: "",
       proformaInvDate: "",
-      proformaInvRecdDate: "",
+      proformaInvRecdAtSite: "",
+      proformaInvRecdBy: "",
       taxInvNo: "",
       taxInvDate: "",
       taxInvAmt: "",
+      taxInvRecdAtSite: "",
       taxInvRecdBy: "",
       currency: "",
       department: "",
       remarks: "",
-      billImg: "",
-      natureOfWork: "others",
+      attachment: "",
+      natureOfWork: "",
     });
     setBillImage(null);
   };
@@ -174,15 +209,15 @@ const FullBillDetails = () => {
           <div className="grid grid-cols-2 gap-[2vw]">
             <div className="relative mb-[4vh]">
               <label
-                htmlFor="invoiceType"
+                htmlFor="typeOfInv"
                 className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
               >
-                Type of Invoice
+                Type of Invoice *
               </label>
               <select
-                id="invoiceType"
+                id="typeOfInv"
                 className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                value={billFormData.invoiceType}
+                value={billFormData.typeOfInv}
                 onChange={handleChange}
                 required
               >
@@ -224,7 +259,7 @@ const FullBillDetails = () => {
                 htmlFor="region"
                 className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
               >
-                Region
+                Region *
               </label>
               <select
                 id="region"
@@ -259,16 +294,16 @@ const FullBillDetails = () => {
           <div className="grid grid-cols-2 gap-[2vw]">
             <div className="relative mb-[4vh]">
               <label
-                htmlFor="projectDesc"
+                htmlFor="projectDescription"
                 className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
               >
-                Project Description
+                Project Description *
               </label>
               <input
                 type="text"
                 className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="projectDesc"
-                value={billFormData.projectDesc}
+                id="projectDescription"
+                value={billFormData.projectDescription}
                 onChange={handleChange}
                 required
               />
@@ -276,7 +311,7 @@ const FullBillDetails = () => {
 
             <div className="relative mb-[2.5vh]">
               <label
-                htmlFor="gstNo"
+                htmlFor="gstNumber"
                 className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
               >
                 GST Number
@@ -284,8 +319,8 @@ const FullBillDetails = () => {
               <input
                 type="text"
                 className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="gstNo"
-                value={billFormData.gstNo}
+                id="gstNumber"
+                value={billFormData.gstNumber}
                 onChange={handleChange}
                 required
               />
@@ -299,7 +334,7 @@ const FullBillDetails = () => {
                 htmlFor="vendorName"
                 className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
               >
-                Vendor Name
+                Vendor Name *
               </label>
               <input
                 type="text"
@@ -316,14 +351,17 @@ const FullBillDetails = () => {
                 htmlFor="vendorNo"
                 className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
               >
-                Vendor No
+                Vendor No *
               </label>
               <input
-                type="number"
+                type="text"
                 className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="vendorNo"
                 value={billFormData.vendorNo}
                 onChange={handleChange}
+                pattern="\d{6}"
+                maxLength={6}
+                title="Vendor No must be exactly 6 digits"
                 required
               />
             </div>
@@ -333,15 +371,15 @@ const FullBillDetails = () => {
           <div className="grid grid-cols-2 gap-[2vw]">
             <div className="relative mb-[4vh]">
               <label
-                htmlFor="compliance206"
+                htmlFor="compliance206AB"
                 className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
               >
                 206AB Compliance
               </label>
               <select
-                id="compliance206"
+                id="compliance206AB"
                 className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                value={billFormData.compliance206}
+                value={billFormData.compliance206AB}
                 onChange={handleChange}
                 required
               >
@@ -398,7 +436,7 @@ const FullBillDetails = () => {
                 htmlFor="poCreated"
                 className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
               >
-                Is PO already Created?
+                Is PO already Created? *
               </label>
               <select
                 id="poCreated"
@@ -423,11 +461,14 @@ const FullBillDetails = () => {
                 PO No.
               </label>
               <input
-                type="number"
+                type="text"
                 className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="poNo"
                 value={billFormData.poNo}
                 onChange={handleChange}
+                pattern="\d{10}"
+                maxLength={10}
+                title="PO No must be exactly 10 digits"
                 required
               />
             </div>
@@ -526,7 +567,7 @@ const FullBillDetails = () => {
 
             <div className="relative mb-[4vh]">
               <label
-                htmlFor="proformaInvRecdDate"
+                htmlFor="proformaInvRecdAtSite"
                 className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
               >
                 Proforma Inv Recd at Site
@@ -534,12 +575,32 @@ const FullBillDetails = () => {
               <input
                 type="date"
                 className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="proformaInvRecdDate"
-                value={billFormData.proformaInvRecdDate}
+                id="proformaInvRecdAtSite"
+                value={billFormData.proformaInvRecdAtSite}
                 onChange={handleChange}
                 required
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-[2vw]">
+            <div className="relative mb-[4vh]">
+              <label
+                htmlFor="proformaInvRecdBy"
+                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+              >
+                Proforma Invoice Received By
+              </label>
+              <input
+                type="number"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                id="proformaInvRecdBy"
+                value={billFormData.proformaInvRecdBy}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div></div>
           </div>
         </div>
 
@@ -559,6 +620,9 @@ const FullBillDetails = () => {
                 id="taxInvNo"
                 value={billFormData.taxInvNo}
                 onChange={handleChange}
+                pattern="[A-Za-z0-9]{16}"
+                maxLength={16}
+                title="Tax Invoice No must be exactly 16 alphanumeric characters"
                 required
               />
             </div>
@@ -623,6 +687,22 @@ const FullBillDetails = () => {
                 required
               />
             </div>
+            <div className="relative mb-[4vh]">
+              <label
+                htmlFor="taxInvRecdAtSite"
+                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+              >
+                Tax Invoice Received At Site *
+              </label>
+              <input
+                type="date"
+                className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                id="taxInvRecdAtSite"
+                value={billFormData.taxInvRecdAtSite}
+                onChange={handleChange}
+                required
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-[2vw]">
@@ -631,7 +711,7 @@ const FullBillDetails = () => {
                 htmlFor="taxInvRecdBy"
                 className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
               >
-                Tax Inv Received By
+                Tax Inv Received By *
               </label>
               <input
                 type="text"
@@ -650,7 +730,7 @@ const FullBillDetails = () => {
                 htmlFor="department"
                 className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
               >
-                Department
+                Department *
               </label>
               <input
                 type="text"
@@ -686,7 +766,7 @@ const FullBillDetails = () => {
         {/* File Upload Section */}
         <div className="border border-dashed border-[#ccc] p-[2vh_2vw] text-center rounded-[0.5vw] mt-[2vh] w-[57vw] h-[45vh] relative">
           <label
-            htmlFor="billImg"
+            htmlFor="attachment"
             className="absolute inset-0 w-full h-full cursor-pointer flex flex-col items-center justify-center"
           >
             {imagePreview ? (
@@ -715,7 +795,7 @@ const FullBillDetails = () => {
           </label>
           <input
             type="file"
-            id="billImg"
+            id="attachment"
             onChange={handleChange}
             accept="image/*"
             className="hidden"
