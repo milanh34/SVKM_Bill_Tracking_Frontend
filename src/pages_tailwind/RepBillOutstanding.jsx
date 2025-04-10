@@ -313,7 +313,7 @@ const RepBillOutstanding = () => {
             </div>
 
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+                <div className="fixed inset-0 bg-black/25 backdrop-blur-sm flex justify-center items-center z-[1000]">
                     <SendBox
                         closeWindow={() => setIsModalOpen(false)}
                         selectedBills={selectedRows}

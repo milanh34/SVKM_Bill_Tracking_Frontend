@@ -13,12 +13,14 @@ import {
   Send,
   AlertTriangle,
   CheckSquare,
+  ArrowLeftFromLine,
+  ArrowRightFromLine,
 } from "lucide-react";
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnView";
 import { FilterModal } from "../components_tailwind/dashboard/FilterModal";
 import { SendToModal } from "../components_tailwind/dashboard/SendToModal";
-import { SendBoxModal } from "../components_tailwind/dashboard/SendBoxModal";
+import SendBox from "../components/Sendbox";
 import Loader from "../components/Loader";
 import Cookies from "js-cookie";
 import ImportModal from "../components_tailwind/dashboard/ImportModal";
@@ -82,7 +84,13 @@ const Dashboard = () => {
   ];
 
   const roleWorkflow = {
-    site_officer: [{ value: "site_pimo", label: "Site PIMO Team" }],
+    site_officer: [
+      { value: "quantity_inspector", label: "Quantity Inspector" },
+      { value: "architect", label: "Architect" },
+      { value: "engineer", label: "Site Engineer" },
+      { value: "incharge", label: "Site Incharge" },
+      { value: "site_pimo", label: "Site PIMO" }
+    ],
     site_pimo: [{ value: "qs_site", label: "QS Site Team" }],
     qs_site: [{ value: "pimo_mumbai", label: "PIMO Mumbai Team" }],
     pimo_mumbai: [{ value: "director", label: "Director" }],
@@ -595,10 +603,20 @@ const Dashboard = () => {
               <div className="flex items-center space-x-3">
                 {showIncomingBillsButton && (
                   <button
-                    className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    className="flex items-center hover:cursor-pointer space-x-1.5 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                     onClick={() => setShowIncomingBills(!showIncomingBills)}
                   >
-                    <span>{showIncomingBills ? 'Go Back' : 'Incoming Bills'}</span>
+                    {showIncomingBills ? (
+                      <>
+                        <ArrowLeftFromLine className="w-4 h-4" />
+                        <span>Go Back</span>
+                      </>
+                    ) : (
+                      <>
+                        <ArrowRightFromLine className="w-4 h-4" />
+                        <span>Incoming Bills</span>
+                      </>
+                    )}
                   </button>
                 )}
 
@@ -917,17 +935,19 @@ const Dashboard = () => {
         handleSendToRole={handleSendToRole}
       />
 
-      <SendBoxModal
-        isOpen={isWindowOpen}
-        onClose={() => {
-          setIsWindowOpen(false);
-          setSelectedRole(null);
-        }}
-        selectedBills={selectedRows}
-        billsData={billsData}
-        singleRole={selectedRole}
-        handleSend={handleSendBills}
-      />
+      {isWindowOpen && (
+        <div className="fixed inset-0 bg-black/25 backdrop-blur-sm flex justify-center items-center z-[1000]">
+          <SendBox
+            closeWindow={() => {
+              setIsWindowOpen(false);
+              setSelectedRole(null);
+            }}
+            selectedBills={selectedRows}
+            billsData={filteredData}  // Changed from billsData to filteredData
+            singleRole={selectedRole}
+          />
+        </div>
+      )}
 
       <ImportModal
         isOpen={isImportModalOpen}

@@ -1,21 +1,20 @@
 import React, { useState, useRef, useEffect } from "react";
-import "../styles/SendBox.css";
 import cross from "../assets/cross.svg";
 
 const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
-    const [isRolesDropdownOpen, setIsRolesDropdownOpen] = useState(false);
+        const [isRolesDropdownOpen, setIsRolesDropdownOpen] = useState(false);
     const rolesDropdownRef = useRef(null);
     const [showToast, setShowToast] = useState(false);
 
     const roles = [
-        { value: "Site_Officer", label: "Site Officer" },
-        { value: "QS_Team", label: "QS Team" },
-        { value: "PIMO_Mumbai_&_MIGO/SES_Team", label: "PIMO Mumbai & MIGO/SES Team" },
-        { value: "PIMO_Mumbai_for_Advance_&_FI_Entry", label: "PIMO Mumbai for Advance & FI Entry" },
-        { value: "Accounts_Team", label: "Accounts Team" },
-        { value: "Trustee,_Advisor_&_Director", label: "Trustee, Advisor & Director" },
-        { value: "Admin", label: "Admin" }
-    ];
+            { value: "Site_Officer", label: "Site Officer" },
+            { value: "QS_Team", label: "QS Team" },
+            { value: "PIMO_Mumbai_&_MIGO/SES_Team", label: "PIMO Mumbai & MIGO/SES Team" },
+            { value: "PIMO_Mumbai_for_Advance_&_FI_Entry", label: "PIMO Mumbai for Advance & FI Entry" },
+            { value: "Accounts_Team", label: "Accounts Team" },
+            { value: "Trustee,_Advisor_&_Director", label: "Trustee, Advisor & Director" },
+            { value: "Admin", label: "Admin" }
+          ];
 
     const [selectedRoles, setSelectedRoles] = useState(singleRole ? [singleRole.value] : []);
 
@@ -50,7 +49,12 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
 
     const selectedBillDetails = selectedBills.map(billId => {
         const bill = billsData.find(b => b._id === billId);
-        return bill ? `Bill ID: ${billId} - ${bill.taxInvNo} (${bill.vendorName})` : billId;
+        return bill 
+            ? `${bill.srNo} - ${bill.vendorName} (₹${bill.taxInvAmt?.toLocaleString('en-IN', { 
+                minimumFractionDigits: 2, 
+                maximumFractionDigits: 2 
+              })})`
+            : billId;
     });
 
     const handleSubmit = (e) => {
@@ -73,19 +77,19 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
 
     return (
         <>
-            <div className="form-container">
-                <button className="close-button">
-                    <img src={cross} onClick={closeWindow} alt="close" />
+            <div className="relative bg-white p-6 rounded-lg w-full max-w-[500px] z-[1001] shadow-xl max-h-[90vh] overflow-y-auto">
+                <button className="absolute top-2 right-2 bg-transparent border-none cursor-pointer p-1 hover:bg-gray-100 rounded-full" onClick={closeWindow}>
+                    <img src={cross} alt="close" />
                 </button>
 
-                <form className="send-form" style={{ marginTop: '10px' }} onSubmit={handleSubmit}>
+                <form className="flex flex-col gap-4 mt-2.5" onSubmit={handleSubmit}>
                     {!singleRole && (
-                        <div className="form-group">
-                            <label>Send to:</label>
-                            <div className="custom-dropdown" ref={rolesDropdownRef}>
+                        <div className="flex flex-col gap-2">
+                            <label className="text-base font-medium text-gray-700">Send to:</label>
+                            <div className="relative w-full" ref={rolesDropdownRef}>
                                 <button
                                     type="button"
-                                    className="dropdown-button"
+                                    className="w-full p-3 bg-white border border-gray-300 rounded text-left text-base cursor-pointer outline-none transition-all duration-200 text-gray-700 appearance-none pr-8 hover:border-gray-400"
                                     onClick={() => setIsRolesDropdownOpen(!isRolesDropdownOpen)}
                                 >
                                     {selectedRoles.length === 0
@@ -96,8 +100,8 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
                                 </button>
 
                                 {isRolesDropdownOpen && (
-                                    <div className="dropdown-content">
-                                        <div className="dropdown-option" onClick={handleSelectAllRoles}>
+                                    <div className="absolute top-full mt-1 left-0 right-0 bg-white border border-gray-300 rounded p-1.5 shadow-lg max-h-[250px] overflow-y-auto z-50">
+                                        <div className="flex items-center p-2 gap-2.5 cursor-pointer transition-colors duration-200 rounded hover:bg-gray-50" onClick={handleSelectAllRoles}>
                                             <input
                                                 type="checkbox"
                                                 checked={selectedRoles.length === roles.length && roles.length > 0}
@@ -108,7 +112,7 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
                                         {roles.map((role) => (
                                             <div
                                                 key={role.value}
-                                                className="dropdown-option"
+                                                className="flex items-center p-2 gap-2.5 cursor-pointer transition-colors duration-200 rounded hover:bg-gray-50"
                                                 onClick={() => handleRoleToggle(role)}
                                             >
                                                 <input
@@ -125,31 +129,31 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
                         </div>
                     )}
 
-                    <div className="form-group">
-                        <label>Selected Bills:</label>
-                        <div className="bills-display">
+                    <div className="flex flex-col gap-2">
+                        <label className="text-base font-medium text-gray-700">Selected Bills:</label>
+                        <div className="max-h-[200px] overflow-y-auto bg-white border border-gray-300 rounded p-2">
                             {selectedBillDetails.map((bill, index) => (
-                                <div key={index} className="bill-item">
-                                    {bill}
+                                <div key={index} className="p-2 border-b border-gray-200 text-sm last:border-b-0 text-gray-700 flex justify-between items-center">
+                                    <span className="flex-1">{bill}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    <div className="form-group">
-                        <label>Remarks:</label>
-                        <textarea className="form-textarea"></textarea>
+                    <div className="flex flex-col gap-2">
+                        <label className="text-base font-medium text-gray-700">Remarks:</label>
+                        <textarea className="w-full p-3 bg-white border border-gray-300 rounded text-base min-h-[120px] resize-y focus:outline-none focus:border-gray-400 text-gray-700"></textarea>
                     </div>
 
-                    <div className="send-button-group">
-                        <button type="submit" className="btn btn-send">
+                    <div className="flex gap-4 justify-end">
+                        <button type="submit" className="px-8 py-2.5 rounded text-base cursor-pointer text-white transition-all duration-200 bg-[#1a8d1a] hover:bg-[#158515] focus:ring-2 focus:ring-offset-2 focus:ring-[#1a8d1a]">
                             Send
                         </button>
                     </div>
                 </form>
             </div>
             {showToast && (
-                <div className="toast-notification">
+                <div className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-[#1a8d1a] text-white px-6 py-3 rounded-lg shadow-lg z-[2000] animate-[slideUp_0.3s_ease-out,fadeOut_0.3s_ease-out_2.7s] text-sm max-w-[80%] text-center">
                     {`${selectedBills.length} bills sent to ${selectedRoles
                         .map(roleValue => roles.find(r => r.value === roleValue)?.label)
                         .join(", ")}`}
