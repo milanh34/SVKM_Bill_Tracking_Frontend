@@ -7,6 +7,7 @@ import send from "../assets/send.svg";
 import print from "../assets/print.svg";
 import axios from 'axios';
 import { billJourney } from '../apis/report.api';
+import { handleExportRepBillJourney } from '../utils/exportExcelReportBillJourney';
 
 const BillJourney = () => {
 
@@ -40,6 +41,42 @@ const BillJourney = () => {
         fetchBills();
     }, [fromDate, toDate]);
 
+    const handleTopDownload = async () => {
+        console.log("Rep given to acc dept download clicked");
+        // setSelectedRows(bills.map(bill => bill.srNo));
+        const result = await handleExportRepBillJourney(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, false);
+        console.log("Result = " + result.message);
+    };
+
+    const handleTopPrint = async () => {
+        console.log("Rep given to acc dept print clicked");
+        // if(selectedRows.length === 0){
+        //     setSelectedRows(bills.map(bill => bill.srNo));
+        // }
+        const result = await handleExportRepBillJourney(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, true);
+        console.log("Result = " + result.message);
+    }
+
+    const columns = [
+        { field: "srNo", headerName: "Sr. No" },
+        { field: "region", headerName: "Region" },
+        { field: "projectDescription", headerName: "Project Description" },
+        { field: "vendorName", headerName: "Vendor Name" },
+        // { field: "vendorNo", headerName: "Vendor No." },
+        { field: "invoiceDate", headerName: "Invoice Date" },
+        { field: "invoiceAmount", headerName: "Invoice Amount" },
+        { field: "delay_for_receiving_invoice", headerName: "Delay for Receiving Invoice" },
+        { field: "no_of_Days_Site", headerName: "No. of Days Site" },
+        { field: "no_of_Days_at_Mumbai", headerName: "No. of Days at Mumbai" },
+        { field: "no_of_Days_at_AC", headerName: "No. of Days at AC" },
+        { field: "days_for_payment", headerName: "Days for Payment" }
+    ]
+
+    const visibleColumnFields = [
+        "srNo", "region", "projectDescription", "vendorName", "invoiceDate", "invoiceAmount", "delay_for_receiving_invoice", "no_of_Days_Site", "no_of_Days_at_Mumbai", "no_of_Days_at_AC", "days_for_payment"
+    ]
+
+
     return (
         <div className='mb-[12vh]'>
             <Header />
@@ -49,11 +86,11 @@ const BillJourney = () => {
                 <div className="flex justify-between items-center mb-[2vh]">
                     <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Bill Journey Report</h2>
                     <div className="flex gap-[1vw] w-[50%]">
-                        <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]">
+                        <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]" onClick={handleTopPrint}>
                             Print
                             <img src={print} />
                         </button>
-                        <button className="w-[300px] bg-[#F48D02] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#e6c200]">
+                        <button className="w-[300px] bg-[#F48D02] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#e6c200]" onClick={handleTopDownload}>
                             Download
                             <img src={download} />
                         </button>

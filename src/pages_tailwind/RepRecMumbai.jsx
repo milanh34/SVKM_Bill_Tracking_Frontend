@@ -7,7 +7,7 @@ import download from "../assets/download.svg";
 import send from "../assets/send.svg";
 import print from "../assets/print.svg";
 import { receivedAtMumbai } from '../apis/report.api';
-import { handleExportRepCourierToMumbai } from '../utils/exportExcelReportCourierMumbai';
+import { handleExportRepRecdAtMumbai } from '../utils/exportExcelReportRecdMumbai';
 
 const RepRecMumbai = () => {
 
@@ -49,7 +49,7 @@ const RepRecMumbai = () => {
     const handleTopDownload = async () => {
         console.log("Rep recd at site download clicked");
         // setSelectedRows(bills.map(bill => bill.srNo));
-        const result = await handleExportRepCourierToMumbai(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, false);
+        const result = await handleExportRepRecdAtMumbai(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, false);
         console.log("Result = " + result.message);
     };
 
@@ -58,7 +58,7 @@ const RepRecMumbai = () => {
         // if(selectedRows.length === 0){
         //     setSelectedRows(bills.map(bill => bill.srNo));
         // }
-        const result = await handleExportRepCourierToMumbai(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, true);
+        const result = await handleExportRepRecdAtMumbai(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, true);
         console.log("Result = " + result.message);
     }
 
@@ -71,13 +71,13 @@ const RepRecMumbai = () => {
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
         { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
-        { field: "dtTaxInvRecdAtSite", headerName: "Date Tax Inv recd at Site" },
-        { field: "dtTaxInvCourierToMumbai", headerName: "Dt Tax Inv Courier To Mumbai" },
+        { field: "dtTaxInvRecdAtSite", headerName: "Dt Tax Inv recd at Site" },
+        { field: "dtTaxInvRecdAtMumbai", headerName: "Dt Tax Inv recd at Mumbai" },
         { field: "poNo", headerName: "PO No" }
     ]
 
     const visibleColumnFields = [
-        "srNo", "projectDescription", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dtTaxInvRecdAtSite", "dtTaxInvCourierToMumbai", "poNo"
+        "srNo", "projectDescription", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dtTaxInvRecdAtSite", "dtTaxInvRecdAtMumbai", "poNo"
     ]
 
     return (

@@ -7,6 +7,7 @@ import send from "../assets/send.svg";
 import print from "../assets/print.svg";
 import axios from 'axios';
 import { givenToAccounts } from '../apis/report.api';
+import { handleExportRepGivenToAccounts } from '../utils/exportExcelReportGivenToAccounts';
 
 const InvoicesGivenToAccountDept = () => {
 
@@ -40,6 +41,39 @@ const InvoicesGivenToAccountDept = () => {
         fetchBills();
     }, [fromDate, toDate]);
 
+    const handleTopDownload = async () => {
+        console.log("Rep given to acc dept download clicked");
+        // setSelectedRows(bills.map(bill => bill.srNo));
+        const result = await handleExportRepGivenToAccounts(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, false);
+        console.log("Result = " + result.message);
+    };
+
+    const handleTopPrint = async () => {
+        console.log("Rep given to acc dept print clicked");
+        // if(selectedRows.length === 0){
+        //     setSelectedRows(bills.map(bill => bill.srNo));
+        // }
+        const result = await handleExportRepGivenToAccounts(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, true);
+        console.log("Result = " + result.message);
+    }
+
+    const columns = [
+        { field: "srNo", headerName: "Sr. No" },
+        { field: "projectDescription", headerName: "Project Description" },
+        { field: "vendorName", headerName: "Vendor Name" },
+        // { field: "vendorNo", headerName: "Vendor No." },
+        { field: "taxInvNo", headerName: "Tax Invoice No." },
+        { field: "taxInvDate", headerName: "Tax Invoice Date" },
+        { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
+        { field: "dtGivenToAcctsDept", headerName: "Dt given to Accts Dept" },
+        { field: "copAmt", headerName: "COP Amount" },
+        { field: "poNo", headerName: "PO No" }
+    ]
+
+    const visibleColumnFields = [
+        "srNo", "projectDescription", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dtGivenToAcctsDept", "copAmt", "poNo"
+    ]
+
     return (
         <div className='mb-[12vh]'>
             <Header />
@@ -49,11 +83,11 @@ const InvoicesGivenToAccountDept = () => {
                 <div className="flex justify-between items-center mb-[2vh]">
                     <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Invoices Given to Account Department</h2>
                     <div className="flex gap-[1vw] w-[50%]">
-                        <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]">
+                        <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]" onClick={handleTopPrint}>
                             Print
                             <img src={print} />
                         </button>
-                        <button className="w-[300px] bg-[#F48D02] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#e6c200]">
+                        <button className="w-[300px] bg-[#F48D02] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#e6c200]" onClick={handleTopDownload}>
                             Download
                             <img src={download} />
                         </button>
