@@ -305,7 +305,8 @@ const RepBillOutstanding = () => {
                                             <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.dateRecdInAcctsDept}</td>
                                             <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.natureOfWorkSupply}</td>
                                         </tr>
-                                    ))}
+                                    ))
+                                }
                             </tbody>
                         </table>
                     )}
