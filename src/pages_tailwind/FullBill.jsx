@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import Header from "../components/Header";
+import Header from '../components/Header';
 import { bills } from "../apis/bills.api";
 import { vendors } from "../apis/vendor.api";
 import imageBox from "../assets/img-box.svg";

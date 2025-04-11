@@ -6,11 +6,11 @@ import { bills } from "../apis/bills.api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import * as XLSX from "xlsx";
-import DataTable from "../components_tailwind/dashboard/DataTable";
+import DataTable from "../components/dashboard/DataTable";
 import { Funnel, Grid3x3, Download } from "lucide-react";
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnView";
-import { FilterModal } from "../components_tailwind/dashboard/FilterModal";
+import { FilterModal } from "../components/dashboard/FilterModal";
 import Loader from "../components/Loader";
 import Cookies from "js-cookie";
 

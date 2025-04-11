@@ -1,4 +1,4 @@
-import Header from '../components/Header'
+import Header from '../components/Header';
 import { useState, useEffect } from 'react'
 import { importReport } from '../apis/bills.api'
 import axios from 'axios'

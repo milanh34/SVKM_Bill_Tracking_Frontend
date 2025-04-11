@@ -4,9 +4,8 @@ import ContactsTable from '../components/ContactsTable';
 
 const ContactPage = () => {
   return (
-    <div style={{width:'100%', backgroundColor:'#f0f0f0', color:'black'}}>
+    <div className="w-full bg-[#f0f0f0] text-black">
         <Header />
-
         <ContactsTable />
     </div>
   )
