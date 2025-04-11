@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import "../styles/InvoiceTable.css";
-import Header from '../components/Header';
-// import SendBox from '../components/SendBox';
-import Filters from "../components/Filters"
+import Header from '../components_tailwind/Header';
+// import SendBox from '../components_tailwind/SendBox';
+import Filters from "../components_tailwind/Filters";
 
 const InvoiceTable = () => {
     // const [searchQuery, setSearchQuery] = useState("");

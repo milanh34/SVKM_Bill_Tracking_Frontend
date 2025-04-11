@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import Header from '../components/Header';
+import Header from '../components_tailwind/Header';
 import { useLocation, useNavigate } from "react-router-dom";
 import print from "../assets/print.svg";
 import Checklist from './AdvancedChecklist';

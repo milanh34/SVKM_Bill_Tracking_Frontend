@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
+import Header from "../components_tailwind/Header";
 import axios from "axios";
 import { bills } from "../apis/bills.api";
 import { toast, ToastContainer } from "react-toastify";
@@ -11,7 +11,7 @@ import { Funnel, Grid3x3, Download } from "lucide-react";
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnView";
 import { FilterModal } from "../components_tailwind/dashboard/FilterModal";
-import Loader from "../components/Loader";
+import Loader from "../components_tailwind/Loader";
 import Cookies from "js-cookie";
 
 const PaidBills = () => {

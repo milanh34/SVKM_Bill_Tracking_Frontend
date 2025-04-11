@@ -1,7 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages_tailwind/Login";
-import Reports2 from "./pages_tailwind/Reports2_old";
-import Reports3 from "./pages_tailwind/Reports3_old";
 import Dashboard from "./pages_tailwind/Dashboard";
 import Admin from "./pages_tailwind/Admin";
 import FullBillDetails from "./pages_tailwind/FullBill";
@@ -41,8 +39,6 @@ function App() {
 
         {/* Tailwind Routes */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/r2" element={<Reports2 />} />
-        <Route path="/r3" element={<Reports3 />} />
         <Route path="/" element={<Dashboard />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/fullbill" element={<FullBillDetails />} />

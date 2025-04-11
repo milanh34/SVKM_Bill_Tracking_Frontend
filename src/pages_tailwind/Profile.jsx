@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
+import Header from "../components_tailwind/Header";
 import { toast, ToastContainer } from "react-toastify";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { user } from "../apis/user.apis";
 import { User, Mail, Building2, MapPin, Clock, Calendar } from "lucide-react";
-import Loader from "../components/Loader";
+import Loader from "../components_tailwind/Loader";
 
 const Profile = () => {
   const [userData, setUserData] = useState(null);

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { outstanding } from '../apis/report.api';
-import Header from "../components/Header";
-import FiltersOutstanding from '../components/FiltersOutstanding';
+import Header from "../components_tailwind/Header";
+import FiltersOutstanding from '../components_tailwind/FiltersOutstanding';
 import ReportBtns from '../components_tailwind/ReportBtns';
-import SendBox from "../components/Sendbox";
+import SendBox from "../components_tailwind/Sendbox";
 import download from "../assets/download.svg";
 import send from "../assets/send.svg";
 import print from "../assets/print.svg";

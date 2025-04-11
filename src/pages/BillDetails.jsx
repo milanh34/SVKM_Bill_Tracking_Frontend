@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import '../styles/BillDetails.css'
-import Header from '../components/Header';
+import Header from '../components_tailwind/Header';
 
 // Bill No 1
 // Bill Date 2 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
+import Header from '../components_tailwind/Header';
 
 const CreateBill = () => {
   const navigate = useNavigate();

@@ -1,5 +1,5 @@
 import React from "react";
-import Header from "../components/Header";
+import Header from '../components_tailwind/Header';
 import ReportBtns from "../components_tailwind/ReportBtns";
 import Cookies from "js-cookie";
 

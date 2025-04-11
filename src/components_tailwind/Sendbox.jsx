@@ -2,19 +2,19 @@ import React, { useState, useRef, useEffect } from "react";
 import cross from "../assets/cross.svg";
 
 const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
-    const [isRolesDropdownOpen, setIsRolesDropdownOpen] = useState(false);
+        const [isRolesDropdownOpen, setIsRolesDropdownOpen] = useState(false);
     const rolesDropdownRef = useRef(null);
     const [showToast, setShowToast] = useState(false);
 
     const roles = [
-        { value: "site_office", label: "Site Officer" },
-        { value: "qs_site", label: "QS Team" },
-        { value: "site_pimo", label: "PIMO Mumbai & MIGO/SES Team" },
-        { value: "pimo_mumbai", label: "PIMO Mumbai for Advance & FI Entry" },
-        { value: "accounts", label: "Accounts Team" },
-        { value: "director", label: "Trustee, Advisor & Director" },
-        { value: "admin", label: "Admin" }
-    ];
+            { value: "Site_Officer", label: "Site Officer" },
+            { value: "QS_Team", label: "QS Team" },
+            { value: "PIMO_Mumbai_&_MIGO/SES_Team", label: "PIMO Mumbai & MIGO/SES Team" },
+            { value: "PIMO_Mumbai_for_Advance_&_FI_Entry", label: "PIMO Mumbai for Advance & FI Entry" },
+            { value: "Accounts_Team", label: "Accounts Team" },
+            { value: "Trustee,_Advisor_&_Director", label: "Trustee, Advisor & Director" },
+            { value: "Admin", label: "Admin" }
+          ];
 
     const [selectedRoles, setSelectedRoles] = useState(singleRole ? [singleRole.value] : []);
 
@@ -49,7 +49,12 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
 
     const selectedBillDetails = selectedBills.map(billId => {
         const bill = billsData.find(b => b._id === billId);
-        return bill ? `Bill ID: ${billId} - ${bill.taxInvNo} (${bill.vendorName})` : billId;
+        return bill 
+            ? `${bill.srNo} - ${bill.vendorName} (₹${bill.taxInvAmt?.toLocaleString('en-IN', { 
+                minimumFractionDigits: 2, 
+                maximumFractionDigits: 2 
+              })})`
+            : billId;
     });
 
     const handleSubmit = (e) => {
@@ -72,28 +77,20 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
 
     return (
         <>
-            <div className="relative bg-white p-6 rounded-lg shadow-md max-w-lg mx-auto z-50">
-                <button 
-                    className="absolute top-2 right-2 bg-transparent border-none cursor-pointer p-1"
-                    onClick={closeWindow}
-                >
+            <div className="relative bg-white p-6 rounded-lg w-full max-w-[500px] z-[1001] shadow-xl max-h-[90vh] overflow-y-auto">
+                <button className="absolute top-2 right-2 bg-transparent border-none cursor-pointer p-1 hover:bg-gray-100 rounded-full" onClick={closeWindow}>
                     <img src={cross} alt="close" />
                 </button>
 
-                <form className="flex flex-col mt-10" onSubmit={handleSubmit}>
+                <form className="flex flex-col gap-4 mt-2.5" onSubmit={handleSubmit}>
                     {!singleRole && (
-                        <div className="flex flex-col mb-4 space-y-2">
-                            <label className="text-base font-medium text-black">Send to:</label>
+                        <div className="flex flex-col gap-2">
+                            <label className="text-base font-medium text-gray-700">Send to:</label>
                             <div className="relative w-full" ref={rolesDropdownRef}>
                                 <button
                                     type="button"
-                                    className="bg-gray-200 rounded text-left w-full py-3 px-3 text-base cursor-pointer outline-none transition-all duration-200 ease-in-out text-gray-700 appearance-none pr-8"
+                                    className="w-full p-3 bg-white border border-gray-300 rounded text-left text-base cursor-pointer outline-none transition-all duration-200 text-gray-700 appearance-none pr-8 hover:border-gray-400"
                                     onClick={() => setIsRolesDropdownOpen(!isRolesDropdownOpen)}
-                                    style={{
-                                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23666666' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
-                                        backgroundRepeat: 'no-repeat',
-                                        backgroundPosition: 'right 12px center'
-                                    }}
                                 >
                                     {selectedRoles.length === 0
                                         ? "Select Roles"
@@ -103,32 +100,27 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
                                 </button>
 
                                 {isRolesDropdownOpen && (
-                                    <div className="absolute top-full mt-1 left-0 right-0 bg-white border border-gray-300 rounded p-1.5 shadow-lg max-h-60 overflow-y-auto z-50">
-                                        <div 
-                                            className="flex items-center p-2 gap-2.5 cursor-pointer transition-colors duration-200 rounded hover:bg-gray-100"
-                                            onClick={handleSelectAllRoles}
-                                        >
+                                    <div className="absolute top-full mt-1 left-0 right-0 bg-white border border-gray-300 rounded p-1.5 shadow-lg max-h-[250px] overflow-y-auto z-50">
+                                        <div className="flex items-center p-2 gap-2.5 cursor-pointer transition-colors duration-200 rounded hover:bg-gray-50" onClick={handleSelectAllRoles}>
                                             <input
                                                 type="checkbox"
                                                 checked={selectedRoles.length === roles.length && roles.length > 0}
                                                 readOnly
-                                                className="cursor-pointer"
                                             />
-                                            <label className="cursor-pointer">Select All</label>
+                                            <label>Select All</label>
                                         </div>
                                         {roles.map((role) => (
                                             <div
                                                 key={role.value}
-                                                className="flex items-center p-2 gap-2.5 cursor-pointer transition-colors duration-200 rounded hover:bg-gray-100"
+                                                className="flex items-center p-2 gap-2.5 cursor-pointer transition-colors duration-200 rounded hover:bg-gray-50"
                                                 onClick={() => handleRoleToggle(role)}
                                             >
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedRoles.includes(role.value)}
                                                     readOnly
-                                                    className="cursor-pointer"
                                                 />
-                                                <label className="cursor-pointer">{role.label}</label>
+                                                <label>{role.label}</label>
                                             </div>
                                         ))}
                                     </div>
@@ -137,35 +129,31 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
                         </div>
                     )}
 
-                    <div className="flex flex-col mb-4 space-y-2">
-                        <label className="text-base font-medium text-black">Selected Bills:</label>
-                        <div className="max-h-48 overflow-y-auto bg-gray-200 rounded p-2 scrollbar scrollbar-track-gray-100 scrollbar-thumb-gray-400 scrollbar-thumb-rounded">
+                    <div className="flex flex-col gap-2">
+                        <label className="text-base font-medium text-gray-700">Selected Bills:</label>
+                        <div className="max-h-[200px] overflow-y-auto bg-white border border-gray-300 rounded p-2">
                             {selectedBillDetails.map((bill, index) => (
-                                <div key={index} className="py-2 px-2 border-b border-gray-300 text-sm last:border-b-0">
-                                    {bill}
+                                <div key={index} className="p-2 border-b border-gray-200 text-sm last:border-b-0 text-gray-700 flex justify-between items-center">
+                                    <span className="flex-1">{bill}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    <div className="flex flex-col mb-4 space-y-2">
-                        <label className="text-base font-medium text-black">Remarks:</label>
-                        <textarea className="w-full py-3 px-3 border-none bg-gray-200 rounded text-base min-h-32 resize-y"></textarea>
+                    <div className="flex flex-col gap-2">
+                        <label className="text-base font-medium text-gray-700">Remarks:</label>
+                        <textarea className="w-full p-3 bg-white border border-gray-300 rounded text-base min-h-[120px] resize-y focus:outline-none focus:border-gray-400 text-gray-700"></textarea>
                     </div>
 
-                    <div className="flex justify-end gap-4 bg-white">
-                        <button 
-                            type="submit" 
-                            className="py-2 px-8 border-none rounded text-base cursor-pointer text-white transition-opacity duration-200 bg-green-700 hover:opacity-90"
-                        >
+                    <div className="flex gap-4 justify-end">
+                        <button type="submit" className="px-8 py-2.5 rounded text-base cursor-pointer text-white transition-all duration-200 bg-[#1a8d1a] hover:bg-[#158515] focus:ring-2 focus:ring-offset-2 focus:ring-[#1a8d1a]">
                             Send
                         </button>
                     </div>
                 </form>
             </div>
-            
             {showToast && (
-                <div className="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-green-700 text-white py-3 px-6 rounded-lg shadow-md z-50 max-w-4/5 text-center text-sm animate-toast">
+                <div className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-[#1a8d1a] text-white px-6 py-3 rounded-lg shadow-lg z-[2000] animate-[slideUp_0.3s_ease-out,fadeOut_0.3s_ease-out_2.7s] text-sm max-w-[80%] text-center">
                     {`${selectedBills.length} bills sent to ${selectedRoles
                         .map(roleValue => roles.find(r => r.value === roleValue)?.label)
                         .join(", ")}`}
@@ -176,3 +164,4 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
 };
 
 export default SendBox;
+
