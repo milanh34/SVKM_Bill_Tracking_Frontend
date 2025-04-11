@@ -16,21 +16,18 @@ import RepBillOutstandingSubtotal from './pages_tailwind/RepBillOutstandingSubto
 import InvoicesGivenToAccountDept from './pages_tailwind/InvoiceAccountDepartment'
 import InvoicesPaid from './pages_tailwind/InvoicePaid'
 import BillJourney from './pages_tailwind/BillJourney'
-import CreateBill from './pages_tailwind/CreateBill'
+// import CreateBill from './pages_tailwind/CreateBill'
 import BillDetailsQS from './pages_tailwind/BillDetailsQS'
 import BillDetailsSISO from './pages_tailwind/BillDetailsSISO'
 import BillDetailsPIMO from './pages_tailwind/BillDetailsPIMO'
 
-import BillDetails from './pages/BillDetails'
-import ContactPage from './pages/ContactPage'
-import Checklist from './pages/AdvancedChecklist'
-import InvoiceTable from './pages/InvoiceTable'
-import BillSend from './pages/BillSend'
-import ChecklistBillList from "./pages/ChecklistBillList";
-import ChecklistDirectFI from "./pages/ChecklistDirectFI";
+import ContactPage from './pages_tailwind/ContactPage'
+import InvoiceTable from './pages_tailwind/InvoiceTable'
+import ChecklistBillList from "./pages_tailwind/ChecklistBillList";
+import ChecklistDirectFI from "./pages_tailwind/ChecklistDirectFI";
 import AdvancedChecklist from "./pages/AdvancedChecklist";
-import ChecklistAccount from "./pages/ChecklistAccount";
-import ChecklistBillJourney from "./pages/ChecklistBillJourney";
+import ChecklistAccount from "./pages_tailwind/ChecklistAccount";
+import ChecklistBillJourney from "./pages_tailwind/ChecklistBillJourney";
 
 function App() {
   return (
@@ -44,10 +41,8 @@ function App() {
         <Route path="/fullbill" element={<FullBillDetails />} />
 
         {/* Other Routes */}
-        <Route path='/bill' element={<BillDetails />} />
         <Route path='/reports' element={<ReportsEmpty />} />
         <Route path='/contact' element={<ContactPage />} />
-        <Route path='/billsend' element={<BillSend />} />
 
         <Route path='/reportsrecatsite' element={<RepRecAtSite />} />
         <Route path='/reportsbilloutstanding' element={<RepBillOutstanding />} />
