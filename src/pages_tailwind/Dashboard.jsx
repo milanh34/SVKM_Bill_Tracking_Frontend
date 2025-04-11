@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components_tailwind/Header";
+import Header from "../components/Header";
 import axios from "axios";
 import { bills, billWorkflow, importReport } from "../apis/bills.api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import DataTable from "../components_tailwind/dashboard/DataTable";
+import DataTable from "../components/dashboard/DataTable";
 import {
   Funnel,
   Grid3x3,
@@ -18,12 +18,12 @@ import {
 } from "lucide-react";
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnView";
-import { FilterModal } from "../components_tailwind/dashboard/FilterModal";
-import { SendToModal } from "../components_tailwind/dashboard/SendToModal";
-import SendBox from "../components_tailwind/Sendbox";
-import Loader from "../components_tailwind/Loader";
+import { FilterModal } from "../components/dashboard/FilterModal";
+import { SendToModal } from "../components/dashboard/SendToModal";
+import SendBox from "../components/Sendbox";
+import Loader from "../components/Loader";
 import Cookies from "js-cookie";
-import ImportModal from "../components_tailwind/dashboard/ImportModal";
+import ImportModal from "../components/dashboard/ImportModal";
 import { handleExportReport } from "../utils/exportExcelDashboard";
 
 const Dashboard = () => {

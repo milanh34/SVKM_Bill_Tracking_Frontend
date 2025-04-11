@@ -1,6 +1,6 @@
 import React from 'react'
-import Header from '../components_tailwind/Header';
-import ContactsTable from '../components_tailwind/ContactsTable';
+import Header from '../components/Header';
+import ContactsTable from '../components/ContactsTable';
 
 const ContactPage = () => {
   return (

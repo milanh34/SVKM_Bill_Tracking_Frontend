@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import emailIcon from "../assets/email.svg";
 import passwordIcon from "../assets/password.svg";
 import eyeIcon from "../assets/eye.svg";
-import LoginHeader from "../components_tailwind/login/LoginHeader";
+import LoginHeader from "../components/login/LoginHeader";
 import { ChevronDown } from "lucide-react";
 import { login } from "../apis/user.apis";
 import axios from "axios";

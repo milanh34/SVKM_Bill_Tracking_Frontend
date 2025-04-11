@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../components_tailwind/Header';
-import Filters from "../components_tailwind/Filters";
-import ReportBtns from '../components_tailwind/ReportBtns';
+import Header from '../components/Header';
+import Filters from "../components/Filters";
+import ReportBtns from '../components/ReportBtns';
 import download from "../assets/download.svg";
 import send from "../assets/send.svg";
 import print from "../assets/print.svg";
