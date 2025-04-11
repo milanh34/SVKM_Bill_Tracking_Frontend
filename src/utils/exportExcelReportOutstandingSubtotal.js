@@ -28,8 +28,8 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
             "taxInvNo",
             "taxInvDate",
             "taxInvAmt",
-            "copAmount",
-            "dtRecdAccts"
+            "copAmt",
+            "dateRecdInAcctsDept"
         ];
 
         const essentialColumns = essentialFields
@@ -54,47 +54,46 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
         ];
 
         // Create worksheet with data
-        const excelData = dataToExport.map((row) => {
-            const formattedRow = {};
-            allColumnsToExport.forEach((column) => {
-                let value;
-                if (column.field.includes(".")) {
-                    const [parentField, childField] = column.field.split(".");
-                    value = row[parentField] ? row[parentField][childField] : "";
-                } else {
-                    value = row[column.field];
-                }
-
-                // Format dates
-                if (
-                    column.field.includes("date") ||
-                    column.field.includes("Date") ||
-                    column.field.endsWith("Dt") ||
-                    column.field.endsWith("_dt")
-                ) {
-                    if (value) {
-                        const date = new Date(value);
-                        if (!isNaN(date)) {
-                            value = date.toISOString(); //.split("T")[0];
-                        }
-                    }
-                }
-
-                // Format currency values
-                if (
-                    column.field.includes("amount") ||
-                    column.field.includes("Amount") ||
-                    column.field.endsWith("Amt") ||
-                    column.field.endsWith("amt")
-                ) {
-                    if (typeof value === "number") {
-                        value = formatCurrency(value);
-                    }
-                }
-
-                formattedRow[column.headerName] = (value !== undefined && value !== null) ? value : "no";
-            });
-            return formattedRow;
+        const excelData = [];
+        
+        dataToExport.forEach((item) => {
+            if (!item.isSubtotal && !item.isGrandTotal) {
+                excelData.push({
+                    "Sr. No": item.srNo,
+                    "Region": item.region,
+                    "Vendor No.": item.vendorNo,
+                    "Vendor Name": item.vendorName,
+                    "Tax Invoice No.": item.taxInvNo,
+                    "Tax Invoice Date": item.taxInvDate,
+                    "Tax Invoice Amount": formatCurrency(item.taxInvAmt),
+                    "Cop Amount": formatCurrency(item.copAmt),
+                    "Date Received in Accts Dept": item.dateRecdInAcctsDept
+                });
+            } else if (item.isSubtotal) {
+                excelData.push({
+                    "Sr. No": "",
+                    "Region": "",
+                    "Vendor No.": `Count: ${item.count}`,
+                    "Vendor Name": item.vendorName,
+                    "Tax Invoice No.": "",
+                    "Tax Invoice Date": "",
+                    "Tax Invoice Amount": formatCurrency(item.subtotalAmount),
+                    "Cop Amount": formatCurrency(item.subtotalCopAmt),
+                    "Date Received in Accts Dept": ""
+                });
+            } else if (item.isGrandTotal) {
+                excelData.push({
+                    "Sr. No": "",
+                    "Region": "",
+                    "Vendor No.": `Total Count: ${item.totalCount}`,
+                    "Vendor Name": "",
+                    "Tax Invoice No.": "",
+                    "Tax Invoice Date": "",
+                    "Tax Invoice Amount": formatCurrency(item.grandTotalAmount),
+                    "Cop Amount": formatCurrency(item.grandTotalCopAmt),
+                    "Date Received in Accts Dept": ""
+                });
+            }
         });
 
         // Create and format worksheet
@@ -139,6 +138,22 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                     alignment: { horizontal: "left" }
                 };
             }
+
+            excelData.forEach((row, idx) => {
+                if (row["Vendor No."]?.startsWith("Count:") || row["Vendor No."]?.startsWith("Total Count:")) {
+                    const rowIndex = idx + 2;
+                    for (let col = 0; col < Object.keys(row).length; col++) {
+                        const cellRef = XLSX.utils.encode_cell({ r: rowIndex, c: col });
+                        if (!worksheet[cellRef]) worksheet[cellRef] = {};
+                        worksheet[cellRef].s = {
+                            font: { bold: true },
+                            fill: { 
+                                fgColor: { rgb: row["Vendor No."].startsWith("Total Count:") ? "E9ECEF" : "F8F9FA" }
+                            }
+                        };
+                    }
+                }
+            });
 
             // Add worksheet to workbook
             XLSX.utils.book_append_sheet(workbook, worksheet, "Bills Report");

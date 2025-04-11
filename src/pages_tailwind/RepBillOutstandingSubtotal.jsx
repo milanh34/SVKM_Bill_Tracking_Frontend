@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { report } from "../apis/bills.api";
 import { outstanding } from '../apis/report.api';
 import { handleExportOutstandingSubtotalReport } from "../utils/exportExcelReportOutstandingSubtotal.js";
 import Header from "../components/Header";
 import Filters from '../components/Filters';
 import ReportBtns from '../components_tailwind/ReportBtns';
-import SendBox from "../components/Sendbox";
 import download from "../assets/download.svg";
-import send from "../assets/send.svg";
 import print from "../assets/print.svg";
 
 const RepBillOutstandingSubtotal = () => {
@@ -29,83 +26,24 @@ const RepBillOutstandingSubtotal = () => {
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [sortBy, setSortBy] = useState("");
     const [fromDate, setFromDate] = useState(getFormattedDate());
     const [toDate, setToDate] = useState(getFormattedDate());
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedRows, setSelectedRows] = useState([]);
 
     useEffect(() => {
         const fetchBills = async () => {
             try {
-                const response = await axios.get(`${outstanding}`);
-                const rawData = response.data.report.data.map(report => ({
-                    srNo: report.srNo || '',
-                    region: report.region || '',
-                    vendorNo: report.vendorNo || '',
-                    vendorName: report.vendorName || '',
-                    taxInvNo: report.taxInvNo || '',
-                    taxInvDate: report.taxInvDate || '',
-                    taxInvAmt: parseFloat(report.taxInvAmt || 0),
-                    copAmount: report.copAmt?.amount || 0,
-                    dtRecdAccts: report.dateRecdInAcctsDept || ''
-                }));
-
-                console.log(rawData);
-
-                const filteredData = rawData
-                    .filter(report =>
-                        isWithinDateRange(report.taxInvDate)
-                    )
-                    .sort((a, b) => {
-                        if (sortBy === "amount") {
-                            return a.taxInvAmt - b.taxInvAmt;
-                        } else if (sortBy === "date") {
-                            return new Date(a.taxInvDate) - new Date(b.taxInvDate);
-                        }
-                        return 0;
+                const response = await axios.get(`${outstanding}?startDate=${fromDate}&endDate=${toDate}`);
+                setBillsData(response.data.report.data);
+                
+                const grandTotal = response.data.report.data.find(item => item.isGrandTotal);
+                if (grandTotal) {
+                    setTotals({
+                        totalSubtotal: grandTotal.grandTotalAmount,
+                        totalSubtotalCopAmt: grandTotal.grandTotalCopAmt,
+                        totalVendorCount: grandTotal.totalCount
                     });
-
-                const groupedByVendor = filteredData.reduce((acc, bill) => {
-                    if (!acc[bill.vendorName]) {
-                        acc[bill.vendorName] = [];
-                    }
-                    acc[bill.vendorName].push(bill);
-                    return acc;
-                }, {});
-
-                const processedData = Object.entries(groupedByVendor).map(([vendorName, bills]) => ({
-                    billdets: bills,
-                    subtotal: bills.reduce((sum, bill) => sum + bill.taxInvAmt, 0),
-                    subtotalCopAmt: bills.reduce((sums, bill) => sums + bill.copAmount, 0),
-                    vendorCount: bills.length
-                }));
-
-                setBillsData(processedData);
-
-                const totals = processedData.reduce(
-                    (acc, { subtotal, subtotalCopAmt, vendorCount }) => {
-                        acc.totalSubtotal += subtotal;
-                        acc.totalSubtotalCopAmt += subtotalCopAmt;
-                        acc.totalVendorCount += vendorCount;
-                        return acc;
-                    },
-                    {
-                        totalSubtotal: 0,
-                        totalSubtotalCopAmt: 0,
-                        totalVendorCount: 0
-                    }
-                );
-
-                setTotals({
-                    totalSubtotal: totals.totalSubtotal,
-                    totalSubtotalCopAmt: totals.totalSubtotalCopAmt,
-                    totalVendorCount: totals.totalVendorCount
-                });
-
-                setSelectedRows(billsData.map(bill => bill.srNo));
-
+                }
             } catch (error) {
                 setError("Failed to load data");
                 console.error(error);
@@ -116,29 +54,29 @@ const RepBillOutstandingSubtotal = () => {
         fetchBills();
     }, [fromDate, toDate]);
 
-    const handleSelectAll = (e) => {
-        if (e.target.checked) {
-            const allRows = billsData.flatMap(group => group.billdets.map(bill => bill._id));
-            setSelectedRows(allRows);
-        } else {
-            setSelectedRows([]);
-        }
-    };
+    // const handleSelectAll = (e) => {
+    //     if (e.target.checked) {
+    //         const allRows = billsData.flatMap(group => group.billdets.map(bill => bill._id));
+    //         setSelectedRows(allRows);
+    //     } else {
+    //         setSelectedRows([]);
+    //     }
+    // };
 
-    const handleSelectRow = (e, id) => {
-        if (e.target.checked) {
-            setSelectedRows(prev => [...prev, id]);
-        } else {
-            setSelectedRows(prev => prev.filter(rowId => rowId !== id));
-        }
-    };
+    // const handleSelectRow = (e, id) => {
+    //     if (e.target.checked) {
+    //         setSelectedRows(prev => [...prev, id]);
+    //     } else {
+    //         setSelectedRows(prev => prev.filter(rowId => rowId !== id));
+    //     }
+    // };
 
-    const isWithinDateRange = (date) => {
-        const from = new Date(fromDate);
-        const to = new Date(toDate);
-        const currentDate = new Date(date);
-        return (!fromDate || currentDate >= from) && (!toDate || currentDate <= to);
-    };
+    // const isWithinDateRange = (date) => {
+    //     const from = new Date(fromDate);
+    //     const to = new Date(toDate);
+    //     const currentDate = new Date(date);
+    //     return (!fromDate || currentDate >= from) && (!toDate || currentDate <= to);
+    // };
 
     // const handleTopDownload = async () => {
     //     let billIdsToDownload = [];
@@ -193,7 +131,6 @@ const RepBillOutstandingSubtotal = () => {
     }
 
     const columns = [
-        // { field: "copAmt", headerName: "COP Amount" },
         { field: "srNo", headerName: "Sr. No" },
         { field: "region", headerName: "Region" },
         { field: "vendorNo", headerName: "Vendor No." },
@@ -201,12 +138,12 @@ const RepBillOutstandingSubtotal = () => {
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
         { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
-        { field: "copAmount", headerName: "Cop Amount" },
-        { field: "dtRecdAccts", headerName: "Date Received in Accts Dept" }
+        { field: "copAmt", headerName: "Cop Amount" },
+        { field: "dateRecdInAcctsDept", headerName: "Date Received in Accts Dept" }
     ]
 
     const visibleColumnFields = [
-        "srNo", "region", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "copAmount", "dtRecdAccts"
+        "srNo", "region", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "copAmt", "dateRecdInAcctsDept"
     ]
 
     return (
@@ -264,38 +201,51 @@ const RepBillOutstandingSubtotal = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {billsData.map((group, groupIndex) => (
-                                    <React.Fragment key={groupIndex}>
-                                        {group.billdets.map((bill) => (
-                                            <tr key={bill._id} className="hover:bg-[#f5f5f5]">
-                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.srNo}</td>
-                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.region}</td>
-                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorNo}</td>
-                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorName}</td>
-                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvNo}</td>
-                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvDate}</td>
-                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.taxInvAmt.toLocaleString('en-IN')}</td>
-                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{typeof bill.copAmount === 'number' ? bill.copAmount.toLocaleString('en-IN') : bill.copAmount}</td>
-                                                <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.dtRecdAccts}</td>
-                                            </tr>
-                                        ))}
-                                        <tr className='bg-[#f8f9fa]'>
+                                {billsData.map((item, index) => (
+                                    item.isSubtotal ? (
+                                        <tr key={`subtotal-${index}`} className='bg-[#f8f9fa]'>
                                             <td colSpan={2} className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw]'></td>
-                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'><strong>Count: {group.vendorCount.toLocaleString('en-IN')}</strong></td>
-                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'><strong>{group.billdets[0].vendorName}</strong></td>
+                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'>
+                                                <strong>Count: {item.count.toLocaleString('en-IN')}</strong>
+                                            </td>
+                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'>
+                                                <strong>{item.vendorName}</strong>
+                                            </td>
                                             <td colSpan={2}></td>
-                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'><strong>Total: {group.subtotal.toLocaleString('en-IN')}</strong></td>
-                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'><strong>Total: {group.subtotalCopAmt.toLocaleString('en-IN')}</strong></td>
+                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'>
+                                                <strong>Total: {item.subtotalAmount.toLocaleString('en-IN')}</strong>
+                                            </td>
+                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'>
+                                                <strong>Total: {item.subtotalCopAmt.toLocaleString('en-IN')}</strong>
+                                            </td>
                                             <td colSpan={1}></td>
                                         </tr>
-                                    </React.Fragment>
+                                    ) : !item.isGrandTotal ? (
+                                        <tr key={`bill-${index}`} className="hover:bg-[#f5f5f5]">
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.srNo}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.region}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.vendorNo}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.vendorName}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.taxInvNo}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.taxInvDate}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{item.taxInvAmt.toLocaleString('en-IN')}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{item.copAmt.toLocaleString('en-IN')}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.dateRecdInAcctsDept}</td>
+                                        </tr>
+                                    ) : null
                                 ))}
                                 <tr className='bg-[#e9ecef] font-semibold'>
                                     <td colSpan={2} className='border border-black text-[14px] py-[1.5vh] px-[1vw]'></td>
-                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'><strong>Total Count: {totals.totalVendorCount.toLocaleString('en-IN')}</strong></td>
+                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'>
+                                        <strong>Total Count: {totals.totalVendorCount.toLocaleString('en-IN')}</strong>
+                                    </td>
                                     <td colSpan={3}></td>
-                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'><strong>Grand Total: {totals.totalSubtotal.toLocaleString('en-IN')}</strong></td>
-                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'><strong>Grand Total: {totals.totalSubtotalCopAmt.toLocaleString('en-IN')}</strong></td>
+                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'>
+                                        <strong>Grand Total: {totals.totalSubtotal.toLocaleString('en-IN')}</strong>
+                                    </td>
+                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'>
+                                        <strong>Grand Total: {totals.totalSubtotalCopAmt.toLocaleString('en-IN')}</strong>
+                                    </td>
                                     <td colSpan={1}></td>
                                 </tr>
                             </tbody>
@@ -303,16 +253,6 @@ const RepBillOutstandingSubtotal = () => {
                     )}
                 </div>
             </div>
-
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-                    <SendBox
-                        closeWindow={() => setIsModalOpen(false)}
-                        selectedBills={selectedRows}
-                        billsData={billsData}
-                    />
-                </div>
-            )}
         </div>
     );
 };
