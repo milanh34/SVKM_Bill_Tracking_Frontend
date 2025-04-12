@@ -22,13 +22,13 @@ export const handleExportRepPendingBills = async (selectedRows, filteredData, co
         }
 
         const essentialFields = [
-            "srNo", 
-            "projectDescription", 
+            "srNo",
+            "projectDescription",
             "vendorName",
-            "invoiceNo", 
-            "invoiceDate", 
-            "invoiceAmount", 
-            "dateInvoiceReceivedAtSite", 
+            "invoiceNo",
+            "invoiceDate",
+            "invoiceAmount",
+            "dateInvoiceReceivedAtSite",
             "dateBillReceivedAtPimoRrrm",
             "poNo"
         ];
@@ -79,7 +79,8 @@ export const handleExportRepPendingBills = async (selectedRows, filteredData, co
                     if (value) {
                         const date = new Date(value);
                         if (!isNaN(date)) {
-                            value = date.toISOString(); //.split("T")[0];
+                            // value = date.toISOString(); //.split("T")[0];
+                            value = date.toString();
                         }
                     }
                 }

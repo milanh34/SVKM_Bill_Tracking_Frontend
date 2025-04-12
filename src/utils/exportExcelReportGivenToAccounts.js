@@ -22,13 +22,13 @@ export const handleExportRepGivenToAccounts = async (selectedRows, filteredData,
         }
 
         const essentialFields = [
-            "srNo", 
-            "projectDescription", 
-            "vendorName", 
-            "taxInvNo", 
-            "taxInvDate", 
+            "srNo",
+            "projectDescription",
+            "vendorName",
+            "taxInvNo",
+            "taxInvDate",
             "taxInvAmt",
-            "dtGivenToAcctsDept", 
+            "dtGivenToAcctsDept",
             "copAmt",
             "poNo"
         ];
@@ -79,7 +79,8 @@ export const handleExportRepGivenToAccounts = async (selectedRows, filteredData,
                     if (value) {
                         const date = new Date(value);
                         if (!isNaN(date)) {
-                            value = date.toISOString(); //.split("T")[0];
+                            // value = date.toISOString(); //.split("T")[0];
+                            value = date.toString();
                         }
                     }
                 }

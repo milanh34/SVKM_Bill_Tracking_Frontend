@@ -22,16 +22,16 @@ export const handleExportRepBillJourney = async (selectedRows, filteredData, col
         }
 
         const essentialFields = [
-            "srNo", 
-            "region", 
-            "projectDescription", 
-            "vendorName", 
-            "invoiceDate", 
-            "invoiceAmount", 
-            "delay_for_receiving_invoice", 
-            "no_of_Days_Site", 
-            "no_of_Days_at_Mumbai", 
-            "no_of_Days_at_AC", 
+            "srNo",
+            "region",
+            "projectDescription",
+            "vendorName",
+            "invoiceDate",
+            "invoiceAmount",
+            "delay_for_receiving_invoice",
+            "no_of_Days_Site",
+            "no_of_Days_at_Mumbai",
+            "no_of_Days_at_AC",
             "days_for_payment"
         ];
 
@@ -81,7 +81,8 @@ export const handleExportRepBillJourney = async (selectedRows, filteredData, col
                     if (value) {
                         const date = new Date(value);
                         if (!isNaN(date)) {
-                            value = date.toISOString(); //.split("T")[0];
+                            // value = date.toISOString(); //.split("T")[0];
+                            value = date.toString();
                         }
                     }
                 }

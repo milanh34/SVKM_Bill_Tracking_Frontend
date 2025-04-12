@@ -75,7 +75,8 @@ export const handleExportOutstandingReport = async (selectedRows, filteredData, 
                     if (value) {
                         const date = new Date(value);
                         if (!isNaN(date)) {
-                            value = date.toISOString(); //.split("T")[0];
+                            // value = date.toISOString(); //.split("T")[0];
+                            value = date.toString();
                         }
                     }
                 }

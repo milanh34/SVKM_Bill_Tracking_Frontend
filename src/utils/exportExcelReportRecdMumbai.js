@@ -22,12 +22,12 @@ export const handleExportRepRecdAtMumbai = async (selectedRows, filteredData, co
         }
 
         const essentialFields = [
-            "srNo", 
-            "projectDescription", 
-            "vendorName", 
-            "taxInvNo", 
-            "taxInvDate", 
-            "taxInvAmt", 
+            "srNo",
+            "projectDescription",
+            "vendorName",
+            "taxInvNo",
+            "taxInvDate",
+            "taxInvAmt",
             "dtTaxInvRecdAtSite",
             "dtTaxInvRecdAtMumbai",
             "poNo"
@@ -79,7 +79,8 @@ export const handleExportRepRecdAtMumbai = async (selectedRows, filteredData, co
                     if (value) {
                         const date = new Date(value);
                         if (!isNaN(date)) {
-                            value = date.toISOString(); //.split("T")[0];
+                            // value = date.toISOString(); //.split("T")[0];
+                            value = date.toString();
                         }
                     }
                 }

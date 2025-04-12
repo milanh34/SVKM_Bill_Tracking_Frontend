@@ -22,15 +22,15 @@ export const handleExportRepPaid = async (selectedRows, filteredData, columns, v
         }
 
         const essentialFields = [
-            "srNo", 
-            "projectDescription", 
-            "vendorName", 
-            "taxInvNo", 
-            "taxInvDate", 
+            "srNo",
+            "projectDescription",
+            "vendorName",
+            "taxInvNo",
+            "taxInvDate",
             "taxInvAmt",
-            "dtGivenToAcctsDept", 
-            "dtRecdInAcctsDept", 
-            "dtOfPayment", 
+            "dtGivenToAcctsDept",
+            "dtRecdInAcctsDept",
+            "dtOfPayment",
             "paymentAmt",
             "poNo"
         ];
@@ -81,7 +81,8 @@ export const handleExportRepPaid = async (selectedRows, filteredData, columns, v
                     if (value) {
                         const date = new Date(value);
                         if (!isNaN(date)) {
-                            value = date.toISOString(); //.split("T")[0];
+                            // value = date.toISOString(); //.split("T")[0];
+                            value = date.toString();
                         }
                     }
                 }
