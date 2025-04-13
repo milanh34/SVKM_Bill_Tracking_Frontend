@@ -15,10 +15,6 @@ const ChecklistBillList = () => {
   const totalPages = Math.ceil(billList.length / ITEMS_PER_PAGE);
   const printRef = useRef();
 
-  const handleChecklist = (item) => {
-    navigate('/checklist', { state: { item } });
-  };
-
   const handlePrint = () => {
     const printContent = printRef.current.innerHTML;
     const win = window.open('', '', 'width=800,height=600');
