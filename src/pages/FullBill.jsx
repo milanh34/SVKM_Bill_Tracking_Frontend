@@ -39,8 +39,8 @@ const FullBillDetails = () => {
     attachment: "",
     natureOfWork: "",
     vendor: null,
-    billDate: new Date().toISOString().split("T")[0],
-    amount: "0",
+    billDate: "",
+    amount: "",
   });
   const [vendorsData, setVendorsData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -233,13 +233,18 @@ const FullBillDetails = () => {
         return;
       }
 
-      await setBillFormData((prevData) => ({
-        ...prevData,
+      const updatedFormData = {
+        ...billFormData,
         billDate: new Date().toISOString().split("T")[0],
-        amount: 0
-      }));
+        amount: 0,  // change this
+        siteStatus: "hold",
+        currency: billFormData.currency || "INR",
+        natureOfWork: billFormData.typeOfInv,
+      };
 
-      const res = await axios.post(bills, billFormData, {
+      setBillFormData(updatedFormData);
+      
+      const res = await axios.post(bills, updatedFormData, {
         headers: { Authorization: `Bearer ${Cookies.get("token")}` }
       });
 
