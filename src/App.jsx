@@ -1,33 +1,33 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import LoginPage from "./pages_tailwind/Login";
-import Dashboard from "./pages_tailwind/Dashboard";
-import Admin from "./pages_tailwind/Admin";
-import FullBillDetails from "./pages_tailwind/FullBill";
-import PaidBills from "./pages_tailwind/PaidBills";
-import Profile from "./pages_tailwind/Profile";
-import RepRecAtSite from './pages_tailwind/RepRecAtSite'
-import RepRecMumbai from './pages_tailwind/RepRecMumbai'
-import ReportsEmpty from './pages_tailwind/ReportsEmpty'
-import ReportsPending from './pages_tailwind/ReportsPending'
-import InvoicesGivenToQSSite from './pages_tailwind/InvoiceQSSite'
-import RepCourier from './pages_tailwind/RepCourier'
-import RepBillOutstanding from './pages_tailwind/RepBillOutstanding'
-import RepBillOutstandingSubtotal from './pages_tailwind/RepBillOutstandingSubtotal'
-import InvoicesGivenToAccountDept from './pages_tailwind/InvoiceAccountDepartment'
-import InvoicesPaid from './pages_tailwind/InvoicePaid'
-import BillJourney from './pages_tailwind/BillJourney'
-// import CreateBill from './pages_tailwind/CreateBill'
-import BillDetailsQS from './pages_tailwind/BillDetailsQS'
-import BillDetailsSISO from './pages_tailwind/BillDetailsSISO'
-import BillDetailsPIMO from './pages_tailwind/BillDetailsPIMO'
+import LoginPage from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Admin from "./pages/Admin";
+import FullBillDetails from "./pages/FullBill";
+import PaidBills from "./pages/PaidBills";
+import Profile from "./pages/Profile";
+import RepRecAtSite from './pages/RepRecAtSite'
+import RepRecMumbai from './pages/RepRecMumbai'
+import ReportsEmpty from './pages/ReportsEmpty'
+import ReportsPending from './pages/ReportsPending'
+import InvoicesGivenToQSSite from './pages/InvoiceQSSite'
+import RepCourier from './pages/RepCourier'
+import RepBillOutstanding from './pages/RepBillOutstanding'
+import RepBillOutstandingSubtotal from './pages/RepBillOutstandingSubtotal'
+import InvoicesGivenToAccountDept from './pages/InvoiceAccountDepartment'
+import InvoicesPaid from './pages/InvoicePaid'
+import BillJourney from './pages/BillJourney'
+// import CreateBill from './pages/CreateBill'
+import BillDetailsQS from './pages/BillDetailsQS'
+import BillDetailsSISO from './pages/BillDetailsSISO'
+import BillDetailsPIMO from './pages/BillDetailsPIMO'
 
-import ContactPage from './pages_tailwind/ContactPage'
-import InvoiceTable from './pages_tailwind/InvoiceTable'
-import ChecklistBillList from "./pages_tailwind/ChecklistBillList";
-import ChecklistDirectFI from "./pages_tailwind/ChecklistDirectFI";
-import AdvancedChecklist from "./pages_tailwind/AdvancedChecklist";
-import ChecklistAccount from "./pages_tailwind/ChecklistAccount";
-import ChecklistBillJourney from "./pages_tailwind/ChecklistBillJourney";
+import ContactPage from './pages/ContactPage'
+import InvoiceTable from './pages/InvoiceTable'
+import ChecklistBillList from "./pages/ChecklistBillList";
+import ChecklistDirectFI from "./pages/ChecklistDirectFI";
+import AdvancedChecklist from "./pages/AdvancedChecklist";
+import ChecklistAccount from "./pages/ChecklistAccount";
+import ChecklistBillJourney from "./pages/ChecklistBillJourney";
 
 function App() {
   return (
