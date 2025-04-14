@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import Header from '../components/Header';
-import BillDetails from "../pages/BillDetails";
+import Header from "../components/Header";
 import { bills } from "../apis/bills.api";
 import imageBox from "../assets/img-box.svg";
 
@@ -184,50 +183,40 @@ const BillDetailsSISO = () => {
                 <select
                   id="invoiceType"
                   className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                  value={BillDetails.invoiceType}
+                  value={billFormData.invoiceType}
                   onChange={handleChange}
                   required
                 >
-                  <option value="" selected disabled hidden>
-                    Select Invoice Type
+                  <option value="" disabled hidden selected>
+                    Select Type of Invoice
                   </option>
-                  <option value={BillDetails.invoiceType}>
-                    Proforma Invoice
-                  </option>
-                  <option value={BillDetails.invoiceType}>Credit Note</option>
-                  <option value={BillDetails.invoiceType}>Advance/LC/BG</option>
-                  <option value={BillDetails.invoiceType}>
-                    Direct FI Entry
-                  </option>
-                  <option value={BillDetails.invoiceType}>Utility Work</option>
-                  <option value={BillDetails.invoiceType}>Petty cash</option>
-                  <option value={BillDetails.invoiceType}>
-                    Hold/Ret Release
-                  </option>
-                  <option value={BillDetails.invoiceType}>Imports</option>
-                  <option value={BillDetails.invoiceType}>Equipments</option>
-                  <option value={BillDetails.invoiceType}>Materials</option>
-                  <option value={BillDetails.invoiceType}>IT related</option>
-                  <option value={BillDetails.invoiceType}>IBMS</option>
-                  <option value={BillDetails.invoiceType}>
-                    Consultancy bill
-                  </option>
-                  <option value={BillDetails.invoiceType}>Civil Works</option>
-                  <option value={BillDetails.invoiceType}>Petrol/Diesel</option>
-                  <option value={BillDetails.invoiceType}>STP Work</option>
-                  <option value={BillDetails.invoiceType}>HVAC Work</option>
-                  <option value={BillDetails.invoiceType}>MEP Work</option>
-                  <option value={BillDetails.invoiceType}>
-                    Fire Fighting Work
-                  </option>
-                  <option value={BillDetails.invoiceType}>Painting work</option>
-                  <option value={BillDetails.invoiceType}>Site Infra</option>
-                  <option value={BillDetails.invoiceType}>Carpentry</option>
-                  <option value={BillDetails.invoiceType}>
+                  <option value="Proforma Invoice">Proforma Invoice</option>
+                  <option value="Credit Note">Credit Note</option>
+                  <option value="Advance/LC/BG">Advance/LC/BG</option>
+                  <option value="Direct FI Entry">Direct FI Entry</option>
+                  <option value="Utility Work">Utility Work</option>
+                  <option value="Petty cash">Petty cash</option>
+                  <option value="Hold/Ret Release">Hold/Ret Release</option>
+                  <option value="Imports">Imports</option>
+                  <option value="Equipments">Equipments</option>
+                  <option value="Materials">Materials</option>
+                  <option value="IT related">IT related</option>
+                  <option value="IBMS">IBMS</option>
+                  <option value="Consultancy bill">Consultancy bill</option>
+                  <option value="Civil Works">Civil Works</option>
+                  <option value="Petrol/Diesel">Petrol/Diesel</option>
+                  <option value="STP Work">STP Work</option>
+                  <option value="HVAC Work">HVAC Work</option>
+                  <option value="MEP Work">MEP Work</option>
+                  <option value="Fire Fighting Work">Fire Fighting Work</option>
+                  <option value="Painting work">Painting work</option>
+                  <option value="Site Infra">Site Infra</option>
+                  <option value="Carpentry">Carpentry</option>
+                  <option value="Housekeeping/Security">
                     Housekeeping/Security
                   </option>
-                  <option value={BillDetails.invoiceType}>Overheads</option>
-                  <option value={BillDetails.invoiceType}>Others</option>
+                  <option value="Overheads">Overheads</option>
+                  <option value="Others">Others</option>
                 </select>
               </div>
 
@@ -241,28 +230,28 @@ const BillDetailsSISO = () => {
                 <select
                   id="region"
                   className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                  value={BillDetails.region}
+                  value={billFormData.region}
                   onChange={handleChange}
                   required
                 >
                   <option value="" selected disabled hidden>
                     Select Region
                   </option>
-                  <option value={BillDetails.region}>MUMBAI</option>
-                  <option value={BillDetails.region}>KHARGHAR</option>
-                  <option value={BillDetails.region}>AHMEDABAD</option>
-                  <option value={BillDetails.region}>BANGALURU</option>
-                  <option value={BillDetails.region}>BHUBANESHWAR</option>
-                  <option value={BillDetails.region}>CHANDIGARH</option>
-                  <option value={BillDetails.region}>DELHI</option>
-                  <option value={BillDetails.region}>NOIDA</option>
-                  <option value={BillDetails.region}>NAGPUR</option>
-                  <option value={BillDetails.region}>GANSOLI</option>
-                  <option value={BillDetails.region}>HOSPITAL</option>
-                  <option value={BillDetails.region}>DHULE</option>
-                  <option value={BillDetails.region}>SHIRPUR</option>
-                  <option value={BillDetails.region}>INDORE</option>
-                  <option value={BillDetails.region}>HYDERABAD</option>
+                  <option value="MUMBAI">MUMBAI</option>
+                  <option value="KHARGHAR">KHARGHAR</option>
+                  <option value="AHMEDABAD">AHMEDABAD</option>
+                  <option value="BANGALURU">BANGALURU</option>
+                  <option value="BHUBANESHWAR">BHUBANESHWAR</option>
+                  <option value="CHANDIGARH">CHANDIGARH</option>
+                  <option value="DELHI">DELHI</option>
+                  <option value="NOIDA">NOIDA</option>
+                  <option value="NAGPUR">NAGPUR</option>
+                  <option value="GANSOLI">GANSOLI</option>
+                  <option value="HOSPITAL">HOSPITAL</option>
+                  <option value="DHULE">DHULE</option>
+                  <option value="SHIRPUR">SHIRPUR</option>
+                  <option value="INDORE">INDORE</option>
+                  <option value="HYDERABAD">HYDERABAD</option>
                 </select>
               </div>
             </div>
@@ -349,25 +338,25 @@ const BillDetailsSISO = () => {
                 <select
                   id="compliance206"
                   className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                  value={BillDetails.compliance206}
+                  value={billFormData.compliance206}
                   onChange={handleChange}
                 >
                   <option value="" selected disabled hidden>
                     Select 206AB Compliance
                   </option>
-                  <option value={BillDetails.compliance206}>
+                  <option value="206AB Check on Website">
                     206AB Check on Website
                   </option>
-                  <option value={BillDetails.compliance206}>
+                  <option value="2024-Specified Person U/S 206AB">
                     2024-Specified Person U/S 206AB
                   </option>
-                  <option value={BillDetails.compliance206}>
+                  <option value="2024-Non-Specified Person U/S 206AB">
                     2024-Non-Specified Person U/S 206AB
                   </option>
-                  <option value={BillDetails.compliance206}>
+                  <option value="2025-Specified Person U/S 206AB">
                     2025-Specified Person U/S 206AB
                   </option>
-                  <option value={BillDetails.compliance206}>
+                  <option value="2025-Non-Specified Person U/S 206AB">
                     2025-Non-Specified Person U/S 206AB
                   </option>
                 </select>
@@ -383,16 +372,14 @@ const BillDetailsSISO = () => {
                 <select
                   id="panStatus"
                   className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                  value={BillDetails.panStatus}
+                  value={billFormData.panStatus}
                   onChange={handleChange}
                 >
                   <option value="" selected disabled hidden>
                     Select PAN Status
                   </option>
-                  <option value={BillDetails.panStatus}>
-                    PAN operative/N.A
-                  </option>
-                  <option value={BillDetails.panStatus}>PAN inoperative</option>
+                  <option value="PAN operative/N.A">PAN operative/N.A</option>
+                  <option value="PAN inoperative">PAN inoperative</option>
                 </select>
               </div>
             </div>
@@ -410,12 +397,12 @@ const BillDetailsSISO = () => {
                 <select
                   id="poCreated"
                   className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                  value={BillDetails.poCreated}
+                  value={billFormData.poCreated}
                   onChange={handleChange}
                   required
                 >
-                  <option value={BillDetails.poCreated}>No</option>
-                  <option value={BillDetails.poCreated}>Yes</option>
+                  <option value="No">No</option>
+                  <option value="Yes">Yes</option>
                 </select>
               </div>
               <div></div>
@@ -591,16 +578,16 @@ const BillDetailsSISO = () => {
                 <select
                   id="currency"
                   className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                  value={BillDetails.currency}
+                  value={billFormData.currency}
                   onChange={handleChange}
                 >
                   <option value="" selected disabled hidden>
                     Select Currency
                   </option>
-                  <option value={BillDetails.currency}>INR</option>
-                  <option value={BillDetails.currency}>USD</option>
-                  <option value={BillDetails.currency}>RMB</option>
-                  <option value={BillDetails.currency}>EURO</option>
+                  <option value="INR">INR</option>
+                  <option value="USD">USD</option>
+                  <option value="RMB">RMB</option>
+                  <option value="EURO">EURO</option>
                 </select>
               </div>
               <div className="relative mb-[4vh]">
@@ -760,7 +747,10 @@ const BillDetailsSISO = () => {
               </div>
 
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="dateGivenToQualEng">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateGivenToQualEng"
+                >
                   Date Given to Quality Engineer
                 </label>
                 <input
@@ -774,7 +764,10 @@ const BillDetailsSISO = () => {
               </div>
 
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="nameQualEng">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="nameQualEng"
+                >
                   Name of Quality Engineer
                 </label>
                 <input
@@ -788,7 +781,10 @@ const BillDetailsSISO = () => {
               </div>
 
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="dateGivenToQSforInspect">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateGivenToQSforInspect"
+                >
                   Date Given to QS for Inspection
                 </label>
                 <input
@@ -802,7 +798,10 @@ const BillDetailsSISO = () => {
               </div>
 
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="nameQS">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="nameQS"
+                >
                   Name of QS
                 </label>
                 <input
@@ -818,11 +817,16 @@ const BillDetailsSISO = () => {
           </div>
 
           <div className="ml-[1vw] w-1/2">
-            <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">MIGO Details</h1>
+            <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">
+              MIGO Details
+            </h1>
 
             <div>
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="dateGivenForMigo">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateGivenForMigo"
+                >
                   Date Given for MIGO
                 </label>
                 <input
@@ -836,7 +840,10 @@ const BillDetailsSISO = () => {
               </div>
 
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="migoDate">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="migoDate"
+                >
                   MIGO Date
                 </label>
                 <input
@@ -850,7 +857,10 @@ const BillDetailsSISO = () => {
               </div>
 
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="migoNo">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="migoNo"
+                >
                   MIGO No
                 </label>
                 <input
@@ -864,7 +874,10 @@ const BillDetailsSISO = () => {
               </div>
 
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="migoAmt">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="migoAmt"
+                >
                   MIGO Amount
                 </label>
                 <input
@@ -878,7 +891,10 @@ const BillDetailsSISO = () => {
               </div>
 
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="migoDoneBy">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="migoDoneBy"
+                >
                   MIGO Done By
                 </label>
                 <input
@@ -896,11 +912,16 @@ const BillDetailsSISO = () => {
 
         <div className="w-full flex">
           <div className="w-1/2">
-            <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">Transfering Details</h1>
+            <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">
+              Transfering Details
+            </h1>
 
             <div>
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="invDateReturnSiteOff">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="invDateReturnSiteOff"
+                >
                   Invoice returned to Site Office
                 </label>
                 <input
@@ -914,7 +935,10 @@ const BillDetailsSISO = () => {
               </div>
 
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="dateGivenToSiteEng">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateGivenToSiteEng"
+                >
                   Date Given to Site Engineer
                 </label>
                 <input
@@ -928,7 +952,10 @@ const BillDetailsSISO = () => {
               </div>
 
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="nameSiteEng">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="nameSiteEng"
+                >
                   Name of Site Engineer
                 </label>
                 <input
@@ -942,7 +969,10 @@ const BillDetailsSISO = () => {
               </div>
 
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="dateGivenToArchi">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateGivenToArchi"
+                >
                   Date Given to Architech
                 </label>
                 <input
@@ -956,7 +986,10 @@ const BillDetailsSISO = () => {
               </div>
 
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="nameArchi">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="nameArchi"
+                >
                   Name of Architech
                 </label>
                 <input
@@ -970,7 +1003,10 @@ const BillDetailsSISO = () => {
               </div>
 
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="dateGivenToSiteIncharge">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="dateGivenToSiteIncharge"
+                >
                   Date Given - Site Incharge
                 </label>
                 <input
@@ -984,7 +1020,10 @@ const BillDetailsSISO = () => {
               </div>
 
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="nameSiteIncharge">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="nameSiteIncharge"
+                >
                   Name - Site Incharge
                 </label>
                 <input
@@ -1002,7 +1041,10 @@ const BillDetailsSISO = () => {
           <div className="mt-[12vh] w-1/2">
             <div className="form-section">
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="remarksSiteEng">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="remarksSiteEng"
+                >
                   Remarks
                 </label>
                 <textarea
@@ -1016,7 +1058,10 @@ const BillDetailsSISO = () => {
               </div>
 
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="remarksArchi">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="remarksArchi"
+                >
                   Remarks
                 </label>
                 <textarea
@@ -1030,7 +1075,10 @@ const BillDetailsSISO = () => {
               </div>
 
               <div className="relative mb-[4vh]">
-                <label className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none" htmlFor="remarksSiteIncharge">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="remarksSiteIncharge"
+                >
                   Remarks
                 </label>
                 <textarea

@@ -343,7 +343,7 @@ const FullBillDetails = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="" disabled hidden>
+                <option value="" disabled hidden selected>
                   Select Type of Invoice
                 </option>
                 <option value="Proforma Invoice">Proforma Invoice</option>
@@ -390,7 +390,7 @@ const FullBillDetails = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="" disabled hidden>
+                <option value="" disabled hidden selected>
                   Select Region
                 </option>
                 <option value="MUMBAI">MUMBAI</option>
@@ -506,7 +506,7 @@ const FullBillDetails = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="" disabled hidden>
+                <option value="" disabled hidden selected>
                   Select 206AB Compliance
                 </option>
                 <option value="206AB Check on Website">
@@ -541,7 +541,7 @@ const FullBillDetails = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="" disabled hidden>
+                <option value="" disabled hidden selected>
                   Select PAN Status
                 </option>
                 <option value="PAN operative/N.A">PAN operative/N.A</option>
@@ -782,7 +782,7 @@ const FullBillDetails = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="" disabled hidden>
+                <option value="" disabled hidden selected>
                   Select Currency
                 </option>
                 <option value="INR">INR</option>

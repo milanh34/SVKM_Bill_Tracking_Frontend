@@ -25,7 +25,7 @@ import ContactPage from './pages_tailwind/ContactPage'
 import InvoiceTable from './pages_tailwind/InvoiceTable'
 import ChecklistBillList from "./pages_tailwind/ChecklistBillList";
 import ChecklistDirectFI from "./pages_tailwind/ChecklistDirectFI";
-import AdvancedChecklist from "./pages/AdvancedChecklist";
+import AdvancedChecklist from "./pages_tailwind/AdvancedChecklist";
 import ChecklistAccount from "./pages_tailwind/ChecklistAccount";
 import ChecklistBillJourney from "./pages_tailwind/ChecklistBillJourney";
 
