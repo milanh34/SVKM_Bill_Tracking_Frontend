@@ -65,63 +65,32 @@ const RepBillOutstanding = () => {
     }, [fromDate, toDate]);
 
     const handleSelectAll = () => {
-        if (selectAll) {
-            setSelectedRows([]);
+        const newSelectAll = !selectAll;
+        setSelectAll(newSelectAll);
+        
+        const filteredBills = billsData.filter(bill => !bill.isSubtotal && bill.srNo);
+        if (newSelectAll) {
+            setSelectedRows(filteredBills.map(bill => bill.srNo));
         } else {
-            setSelectedRows(billsData.map(bill => bill.id));
+            setSelectedRows([]);
         }
-        setSelectAll(!selectAll);
     };
 
     const handleSelectRow = (id) => {
-        if (selectedRows.includes(id)) {
-            setSelectedRows(selectedRows.filter(rowId => rowId !== id));
-        } else {
-            setSelectedRows([...selectedRows, id]);
-        }
+        const newSelectedRows = selectedRows.includes(id)
+            ? selectedRows.filter(rowId => rowId !== id)
+            : [...selectedRows, id];
+        
+        setSelectedRows(newSelectedRows);
+        
+        const validBills = billsData.filter(bill => !bill.isSubtotal && bill.srNo);
+        setSelectAll(newSelectedRows.length === validBills.length);
     };
 
-    // const handleTopDownload = async () => {
-    //     let billIdsToDownload = [];
-
-    //     if (selectedRows.length === 0) {
-    //         billIdsToDownload = billsData.map(bill => bill.srNo);
-
-    //         if (billIdsToDownload.length > 0) {
-    //             if (!window.confirm(`No bills selected. Download all ${billIdsToDownload.length} filtered bills?`)) {
-    //                 return;
-    //             }
-    //         } else {
-    //             alert("No bills available to download.");
-    //             return;
-    //         }
-    //     } else {
-    //         billIdsToDownload = selectedRows;
-    //     }
-
-    //     try {
-    //         const response = await axios.post(
-    //             report,
-    //             { billIds: billIdsToDownload, format: "excel" },
-    //             { responseType: "blob" }
-    //         );
-
-    //         const url = window.URL.createObjectURL(
-    //             new Blob([response.data], {
-    //                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    //             })
-    //         );
-    //         const link = document.createElement("a");
-    //         link.href = url;
-    //         link.setAttribute("download", "report.xlsx");
-    //         document.body.appendChild(link);
-    //         link.click();
-    //         document.body.removeChild(link);
-    //     } catch (error) {
-    //         console.error("Error downloading the report:", error);
-    //         alert("Failed to download report: " + (error.message || "Unknown error"));
-    //     }
-    // };
+    useEffect(() => {
+        const validBills = billsData.filter(bill => !bill.isSubtotal && bill.srNo);
+        setSelectAll(selectedRows.length === validBills.length && validBills.length > 0);
+    }, [selectedRows, billsData]);
 
     const handleTopDownload = async () => {
         console.log("Download outstanding bill clicked");
@@ -151,62 +120,6 @@ const RepBillOutstanding = () => {
     const visibleColumnFields = [
         "srNo", "region", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dateRecdInAcctsDept", "natureOfWorkSupply"
     ]
-
-
-    // const handleTopDownload = async () => {
-    //     const generateReport = async (billIds, format = 'excel') => {
-    //         try {
-    //             // Prepare the request body
-    //             const requestBody = { billIds, format };
-
-    //             // Send the POST request to generate the report
-    //             const response = await fetch(report, {
-    //                 method: 'POST',
-    //                 headers: {
-    //                     'Content-Type': 'application/json',
-    //                 },
-    //                 body: JSON.stringify(requestBody),
-    //             });
-
-    //             // Check if the request was successful
-    //             if (!response.ok) {
-    //                 const errorData = await response.json();
-    //                 alert(`Error: ${errorData.message}`);
-    //                 return;
-    //             }
-
-    //             // Get the response as a Blob (binary data) for file download
-    //             const blob = await response.blob();
-
-    //             // Extract the file name from the Content-Disposition header
-    //             const contentDisposition = response.headers.get('Content-Disposition');
-    //             const fileName = contentDisposition
-    //                 ? contentDisposition.split('filename=')[1].replace(/"/g, '')
-    //                 : `report-${new Date().toISOString()}`;
-
-    //             // Create a URL for the Blob and trigger the download
-    //             const downloadUrl = URL.createObjectURL(blob);
-    //             const link = document.createElement('a');
-    //             link.href = downloadUrl;
-    //             link.download = fileName;
-    //             document.body.appendChild(link);
-    //             link.click();
-
-    //             // Clean up the link element
-    //             document.body.removeChild(link);
-    //             URL.revokeObjectURL(downloadUrl);
-    //         } catch (error) {
-    //             console.error('Error generating the report:', error);
-    //             alert('An error occurred while generating the report.');
-    //         }
-    //     };
-
-    //     // const ids = selectedRows.map(bill => bill.srNo);
-    //     const ids = ["67cad20efe125d9d5be9a7f3","67cad20efe125d9d5be9a7f5"]
-    //     const format = 'excel';
-    //     // call function
-    //     generateReport(ids, format);
-    // }
 
     const handleSendClick = () => {
         setIsModalOpen(true);
@@ -321,7 +234,12 @@ const RepBillOutstanding = () => {
                     <SendBox
                         closeWindow={() => setIsModalOpen(false)}
                         selectedBills={selectedRows}
-                        billsData={billsData}
+                        billsData={billsData.map(bill => ({
+                            _id: bill.srNo,
+                            srNo: bill.srNo,
+                            vendorName: bill.vendorName,
+                            taxInvAmt: bill.taxInvAmt
+                        }))}
                     />
                 </div>
             )}

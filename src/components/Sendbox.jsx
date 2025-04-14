@@ -2,19 +2,20 @@ import React, { useState, useRef, useEffect } from "react";
 import cross from "../assets/cross.svg";
 
 const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
-        const [isRolesDropdownOpen, setIsRolesDropdownOpen] = useState(false);
+    const [isRolesDropdownOpen, setIsRolesDropdownOpen] = useState(false);
+    const [recipientName, setRecipientName] = useState('');
     const rolesDropdownRef = useRef(null);
     const [showToast, setShowToast] = useState(false);
 
     const roles = [
-            { value: "Site_Officer", label: "Site Officer" },
-            { value: "QS_Team", label: "QS Team" },
-            { value: "PIMO_Mumbai_&_MIGO/SES_Team", label: "PIMO Mumbai & MIGO/SES Team" },
-            { value: "PIMO_Mumbai_for_Advance_&_FI_Entry", label: "PIMO Mumbai for Advance & FI Entry" },
-            { value: "Accounts_Team", label: "Accounts Team" },
-            { value: "Trustee,_Advisor_&_Director", label: "Trustee, Advisor & Director" },
-            { value: "Admin", label: "Admin" }
-          ];
+        { value: "Site_Officer", label: "Site Officer" },
+        { value: "QS_Team", label: "QS Team" },
+        { value: "PIMO_Mumbai_&_MIGO/SES_Team", label: "PIMO Mumbai & MIGO/SES Team" },
+        { value: "PIMO_Mumbai_for_Advance_&_FI_Entry", label: "PIMO Mumbai for Advance & FI Entry" },
+        { value: "Accounts_Team", label: "Accounts Team" },
+        { value: "Trustee,_Advisor_&_Director", label: "Trustee, Advisor & Director" },
+        { value: "Admin", label: "Admin" }
+    ];
 
     const [selectedRoles, setSelectedRoles] = useState(singleRole ? [singleRole.value] : []);
 
@@ -61,6 +62,10 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
         e.preventDefault();
         if (selectedRoles.length === 0) {
             alert("Please select at least one role");
+            return;
+        }
+        if (!recipientName.trim()) {
+            alert("Please enter recipient name");
             return;
         }
 
@@ -128,6 +133,18 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
                             </div>
                         </div>
                     )}
+
+                    <div className="flex flex-col gap-2">
+                        <label className="text-base font-medium text-gray-700">Send To:</label>
+                        <input
+                            type="text"
+                            placeholder="Enter recipient name"
+                            value={recipientName}
+                            onChange={(e) => setRecipientName(e.target.value)}
+                            className="w-full p-3 bg-white border border-gray-300 rounded text-base focus:outline-none focus:border-gray-400"
+                            required
+                        />
+                    </div>
 
                     <div className="flex flex-col gap-2">
                         <label className="text-base font-medium text-gray-700">Selected Bills:</label>
