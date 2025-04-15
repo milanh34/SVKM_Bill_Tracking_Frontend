@@ -26,6 +26,40 @@ import Cookies from "js-cookie";
 import ImportModal from "../components/dashboard/ImportModal";
 import { handleExportReport } from "../utils/exportExcelDashboard";
 
+const ChecklistModal = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/25 backdrop-blur-sm flex justify-center items-center z-[1000]">
+      <div className="bg-white rounded-lg p-6 w-96">
+        <h2 className="text-xl font-semibold mb-4">Select Checklist Type</h2>
+        <div className="space-y-3">
+          <button
+            onClick={() => navigate("/checklist-directFI", {state: { selectedRows }})}
+            className="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          >
+            Direct FI Checklist
+          </button>
+          <button
+            onClick={() => navigate("/checklist-advance", {state: { selectedRows }})}
+            className="w-full py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+          >
+            Advanced Checklist
+          </button>
+        </div>
+        <button
+          onClick={onClose}
+          className="mt-4 w-full py-2 px-4 border border-gray-300 rounded hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const Dashboard = () => {
   const currentUserRole = Cookies.get("userRole");
   
@@ -56,13 +90,20 @@ const Dashboard = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [columnSearchQuery, setColumnSearchQuery] = useState("");
   const [showIncomingBills, setShowIncomingBills] = useState(false);
+  const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
 
   const navigate = useNavigate();
 
   console.log(selectedRows);
 
   const handleChecklist = () => {
-    navigate("/checklist-bill-list", { state: { selectedRows } });
+    if (currentUserRole === 'site_officer') {
+      navigate("/checklist-bill-journey", {state: { selectedRows, bills: billsData.filter((bill) => selectedRows?.includes(bill._id)) }});
+    } else if (currentUserRole === 'pimo_mumbai') {
+      setIsChecklistModalOpen(true);
+    } else if (currentUserRole === 'accounts') {
+      navigate("/checklist-account", {state: { selectedRows }});
+    }
   };
 
   const roles = [
@@ -620,13 +661,16 @@ const Dashboard = () => {
                   </button>
                 )}
 
-                <button
-                  className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                  onClick={handleChecklist}
-                >
-                  <CheckSquare className="w-4 h-4" />
-                  <span>Checklist</span>
-                </button>
+                {['site_officer', 'pimo_mumbai', 'accounts'].includes(currentUserRole) && (
+                  <button
+                    className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    onClick={handleChecklist}
+                  >
+                    <CheckSquare className="w-4 h-4" />
+                    <span>Checklist</span>
+                  </button>
+                )}
+
                 {/* 
                 <button
                   className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
@@ -953,6 +997,11 @@ const Dashboard = () => {
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         onImport={handleImportBills}
+      />
+
+      <ChecklistModal
+        isOpen={isChecklistModalOpen}
+        onClose={() => setIsChecklistModalOpen(false)}
       />
     </div>
   );
