@@ -32,7 +32,8 @@ const PaidBills = () => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
   const [totalFilteredItems, setTotalFilteredItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10); // Changed to 10 rows per page
+  const [itemsPerPage, setItemsPerPage] = useState(10); // Default to 10 rows per page
+  const rowsPerPageOptions = [10, 20, 30, 50, 100]; // Options for rows per page
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -70,10 +71,10 @@ const PaidBills = () => {
     fetchBills();
   }, []);
 
-  // Reset to first page when search query or filters change
+  // Reset to first page when search query, filters or items per page change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedRegion, fromDate, toDate]);
+  }, [searchQuery, selectedRegion, fromDate, toDate, itemsPerPage]);
 
   const columns = useMemo(() => {
     const userRole = Cookies.get("userRole");
@@ -170,6 +171,11 @@ const PaidBills = () => {
     setCurrentPage(page);
   };
 
+  const handleRowsPerPageChange = (e) => {
+    setItemsPerPage(parseInt(e.target.value, 10));
+    setCurrentPage(1); // Reset to first page when changing rows per page
+  };
+
   // Calculate total pages for pagination
   const totalPages = Math.ceil(totalFilteredItems / itemsPerPage);
 
@@ -217,6 +223,20 @@ const PaidBills = () => {
       }
     });
   };
+
+  // Close column dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (columnSelectorRef.current && !columnSelectorRef.current.contains(event.target)) {
+        setIsColumnDropdownOpen(false);
+      }
+    };
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [columnSelectorRef]);
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -322,10 +342,27 @@ const PaidBills = () => {
             )}
           </div>
 
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-            <div className="flex items-center text-sm text-gray-600">
+          {/* Pagination Section */}
+          <div className="flex flex-wrap items-center justify-between px-4 py-3 border-t border-gray-200">
+            <div className="flex items-center text-sm text-gray-600 mb-2 sm:mb-0">
+              <div className="flex items-center mr-4">
+                <span className="mr-2">Show</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={handleRowsPerPageChange}
+                  className="border border-gray-300 rounded px-2 py-1 text-sm"
+                >
+                  {rowsPerPageOptions.map(option => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <span className="ml-2">per page</span>
+              </div>
+              
               <span>
-                Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalFilteredItems)} to {Math.min(currentPage * itemsPerPage, totalFilteredItems)} of {totalFilteredItems} entries
+                Showing {totalFilteredItems === 0 ? 0 : Math.min((currentPage - 1) * itemsPerPage + 1, totalFilteredItems)} to {Math.min(currentPage * itemsPerPage, totalFilteredItems)} of {totalFilteredItems} entries
               </span>
             </div>
             
