@@ -270,8 +270,8 @@ const ChecklistBillJourney = () => {
             <div key={index}>
               <div className="w-full max-w-[90%] mx-auto">
                 <div className="border border-gray-300 bg-white font-semibold">
-                  <div className="grid grid-cols-3 bg-gray-200 items-center">
-                    <div className="p-2 border-b border-gray-300 flex items-center">
+                  <div className="grid grid-cols-4 bg-gray-200 items-center">
+                    <div className="p-2 border-b col-span-2 border-gray-300 flex items-center">
                       <div className="text-sm font-semibold">
                         <img src={logo} alt="" className="h-10" />
                       </div>
@@ -294,7 +294,7 @@ const ChecklistBillJourney = () => {
                   <div className="p-2 border-b border-gray-300">
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       <div>Proforma Invoice No: {item?.proformaInvNo}</div>
-                      <div>Dt: {formatDate(item?.proformaInvDate)}</div>
+                      <div className="text-center">Dt: {formatDate(item?.proformaInvDate)}</div>
                       <div>Proforma Invoice Amt: {item?.proformaInvAmt}</div>
                     </div>
                   </div>
@@ -302,7 +302,7 @@ const ChecklistBillJourney = () => {
                   <div className="p-2 border-b border-gray-300">
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       <div>Invoice No: {item?.taxInvNo}</div>
-                      <div>Dt: {formatDate(item?.taxInvDate)}</div>
+                      <div className="text-center">Dt: {formatDate(item?.taxInvDate)}</div>
                       <div>
                         Invoice Amt: {item?.currency} {item?.taxInvAmt}
                       </div>
@@ -311,21 +311,18 @@ const ChecklistBillJourney = () => {
 
                   <div className="p-2 border-b border-gray-300">
                     <div className="grid grid-cols-4 text-sm">
-                      <div>Vendor Description: {item?.vendorName}</div>
-                      <div></div>
-                      <div></div>
+                      <div className="col-span-3">Vendor Description: {item?.vendorName}</div>
                       <div>Vendor code: {item?.vendorNo}</div>
                     </div>
                   </div>
 
                   <div className="p-2 border-b border-gray-300">
                     <div className="grid grid-cols-4 text-sm">
-                      <div>
+                      <div className="col-span-3">
                         PO Number and Date: {item?.poNo}{" "}
+                        &nbsp; &nbsp;
                         {formatDate(item?.poDate)}
                       </div>
-                      <div></div>
-                      <div></div>
                       <div>
                         PO Amt: {item?.currency} {item?.poAmt}
                       </div>

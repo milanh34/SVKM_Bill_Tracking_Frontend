@@ -720,7 +720,7 @@ const FullBillDetails = () => {
                 Proforma Invoice Received By
               </label>
               <input
-                type="number"
+                type="text"
                 className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="proformaInvRecdBy"
                 value={billFormData.proformaInvRecdBy}

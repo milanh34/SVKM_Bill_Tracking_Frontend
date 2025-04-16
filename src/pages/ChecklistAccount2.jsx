@@ -190,8 +190,8 @@ const ChecklistAccount = () => {
           <div key={index}>
             <div className="w-full max-w-[90%] mx-auto">
               <div className="border border-gray-300 bg-white font-semibold">
-                <div className="grid grid-cols-3 bg-gray-200 items-center">
-                  <div className="p-2 border-b border-gray-300 flex items-center">
+                <div className="grid grid-cols-4 bg-gray-200 items-center">
+                  <div className="p-2 border-b col-span-2 border-gray-300 flex items-center">
                     <div className="text-sm font-semibold">
                       <img src={logo} alt="" className="h-10" />
                     </div>
