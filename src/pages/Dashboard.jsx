@@ -102,7 +102,7 @@ const Dashboard = () => {
     } else if (currentUserRole === 'pimo_mumbai') {
       setIsChecklistModalOpen(true);
     } else if (currentUserRole === 'accounts') {
-      navigate("/checklist-account", {state: { selectedRows }});
+      navigate("/checklist-account2", {state: { selectedRows, bills: billsData.filter((bill) => selectedRows?.includes(bill._id)) }});
     }
   };
 

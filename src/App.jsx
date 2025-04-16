@@ -27,6 +27,7 @@ import ChecklistBillList from "./pages/ChecklistBillList";
 import ChecklistDirectFI from "./pages/ChecklistDirectFI";
 import AdvancedChecklist from "./pages/AdvancedChecklist";
 import ChecklistAccount from "./pages/ChecklistAccount";
+import ChecklistAccount2 from "./pages/ChecklistAccount2";
 import ChecklistBillJourney from "./pages/ChecklistBillJourney";
 
 function App() {
@@ -64,6 +65,7 @@ function App() {
         <Route path='/checklist-advance' element={<AdvancedChecklist />} />
         <Route path='/checklist-directFI' element={<ChecklistDirectFI />} />
         <Route path='/checklist-account' element={<ChecklistAccount />} />
+        <Route path='/checklist-account2' element={<ChecklistAccount2 />} />  {/* just trying */}
         <Route path='/checklist-bill-list' element={<ChecklistBillList />} />
         <Route path='/checklist-bill-journey' element={<ChecklistBillJourney />} />
         {/* <Route path='/create-bill' element={<CreateBill />} /> */}

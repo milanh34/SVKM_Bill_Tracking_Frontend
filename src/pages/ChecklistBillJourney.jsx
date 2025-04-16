@@ -1,13 +1,12 @@
 import React, { useRef, useState } from "react";
 import Header from "../components/Header";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import print from "../assets/print.svg";
 import logo from "../assets/logo.png";
 
 const ITEMS_PER_PAGE = 1;
 
 const ChecklistBillJourney = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const billList = location.state?.selectedRows || [];
   const billsData = location.state?.bills || [];
@@ -171,7 +170,7 @@ const ChecklistBillJourney = () => {
           <div class="grid-row grid-3">
             <div class="grid-span-2">PO Number and Date: ${
               item?.poNo || ""
-            } ${formatDate(item?.poDate)}</div>
+            } &nbsp; ${formatDate(item?.poDate)}</div>
             <div>PO Amt: ${item?.currency || ""} ${item?.poAmt || ""}</div>
           </div>
 
@@ -219,7 +218,6 @@ const ChecklistBillJourney = () => {
     win.document.write("</body></html>");
     win.document.close();
 
-    // Set filename and print
     const style = document.createElement("style");
     style.textContent = "@page { size: auto; margin: 0mm; }";
     win.document.head.appendChild(style);
