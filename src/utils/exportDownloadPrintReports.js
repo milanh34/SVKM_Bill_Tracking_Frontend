@@ -10,7 +10,7 @@ const formatCurrency = (value) => {
     }).format(value);
 };
 
-export const handleExportOutstandingReport = async (
+export const handleExportAllReports = async (
     selectedRows,
     filteredData,
     columns,
@@ -19,9 +19,11 @@ export const handleExportOutstandingReport = async (
     toPrint
 ) => {
     try {
-        const dataToExport = selectedRows.length > 0
-            ? filteredData.filter((item) => selectedRows.includes(item._id))
-            : filteredData;
+        // const dataToExport = selectedRows.length > 0
+        //     ? filteredData.filter((item) => selectedRows.includes(item._id))
+        //     : filteredData;
+
+        const dataToExport = filteredData.filter((item) => selectedRows.includes(item.srNo))
 
         if (dataToExport.length === 0) {
             throw new Error("Please select at least one row to download");
@@ -51,7 +53,7 @@ export const handleExportOutstandingReport = async (
 
             const workbook = new ExcelJS.Workbook();
             // console.log(titleName.replace(/\s+/g, ''));
-            const worksheet = workbook.addWorksheet(titleName.replace(/\s+/g, ''));
+            const worksheet = workbook.addWorksheet(titleName.replace(/\//g, '_'));
 
             // // Title Row
             // const titleRow = worksheet.addRow([titleName]);
@@ -216,8 +218,9 @@ export const handleExportOutstandingReport = async (
                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             });
 
-            const now1 = new Date();
-            const filename = `${now1.getDate().toString().padStart(2, '0')}${(now1.getMonth() + 1).toString().padStart(2, '0')}${now1.getFullYear().toString().slice(-2)}_${now1.getHours().toString().padStart(2, '0')}${now1.getMinutes().toString().padStart(2, '0')}${now1.getSeconds().toString().padStart(2, '0')}.xlsx`;
+            // const now1 = new Date();
+            // const filename = `${now1.getDate().toString().padStart(2, '0')}${(now1.getMonth() + 1).toString().padStart(2, '0')}${now1.getFullYear().toString().slice(-2)}_${now1.getHours().toString().padStart(2, '0')}${now1.getMinutes().toString().padStart(2, '0')}${now1.getSeconds().toString().padStart(2, '0')}.xlsx`;
+            const filename = `${titleName.replace(/[\/ ]/g, '_')}.xlsx`;        // replace '/' and 'space' with _
 
             saveAs(blob, filename);
 
@@ -364,6 +367,8 @@ export const handleExportOutstandingReport = async (
                 printWindow.close();  // Close the print window after printing
             };
         }
+
+        return { success: true, message: "Successful execution" };
 
     } catch (error) {
         console.error(error);

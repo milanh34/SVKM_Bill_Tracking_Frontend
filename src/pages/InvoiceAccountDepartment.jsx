@@ -8,6 +8,7 @@ import print from "../assets/print.svg";
 import axios from 'axios';
 import { givenToAccounts } from '../apis/report.api';
 import { handleExportRepGivenToAccounts } from '../utils/exportExcelReportGivenToAccounts';
+import { handleExportAllReports } from '../utils/exportDownloadPrintReports';
 
 const InvoicesGivenToAccountDept = () => {
 
@@ -44,7 +45,7 @@ const InvoicesGivenToAccountDept = () => {
     const handleTopDownload = async () => {
         console.log("Rep given to acc dept download clicked");
         // setSelectedRows(bills.map(bill => bill.srNo));
-        const result = await handleExportRepGivenToAccounts(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, false);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, false);
         console.log("Result = " + result.message);
     };
 
@@ -53,9 +54,11 @@ const InvoicesGivenToAccountDept = () => {
         // if(selectedRows.length === 0){
         //     setSelectedRows(bills.map(bill => bill.srNo));
         // }
-        const result = await handleExportRepGivenToAccounts(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, true);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, true);
         console.log("Result = " + result.message);
     }
+
+    const titleName = "Invoices Given to Accts Dept";
 
     const columns = [
         { field: "srNo", headerName: "Sr. No" },

@@ -8,6 +8,7 @@ import print from "../assets/print.svg";
 import axios from 'axios';
 import { pendingBills } from '../apis/report.api';
 import { handleExportRepPendingBills } from '../utils/exportExcelReportPendingBills';
+import { handleExportAllReports } from '../utils/exportDownloadPrintReports';
 
 const ReportsPending = () => {
 
@@ -44,7 +45,7 @@ const ReportsPending = () => {
     const handleTopDownload = async () => {
         console.log("Rep given to acc dept download clicked");
         // setSelectedRows(bills.map(bill => bill.srNo));
-        const result = await handleExportRepPendingBills(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, false);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, false);
         console.log("Result = " + result.message);
     };
 
@@ -53,9 +54,12 @@ const ReportsPending = () => {
         // if(selectedRows.length === 0){
         //     setSelectedRows(bills.map(bill => bill.srNo));
         // }
-        const result = await handleExportRepPendingBills(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, true);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, true);
         console.log("Result = " + result.message);
     }
+
+    const titleName = "Reports of Pending Bills with PIMO/SVKM site Office/QS Mumbai Office/QS site Office";
+    // const titleName = "Reports of Pending Bills";
 
     const columns = [
         { field: "srNo", headerName: "Sr. No" },

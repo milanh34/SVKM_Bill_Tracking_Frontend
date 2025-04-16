@@ -8,6 +8,7 @@ import print from "../assets/print.svg";
 import axios from 'axios';
 import { billJourney } from '../apis/report.api';
 import { handleExportRepBillJourney } from '../utils/exportExcelReportBillJourney';
+import { handleExportAllReports } from '../utils/exportDownloadPrintReports';
 
 const BillJourney = () => {
 
@@ -44,7 +45,7 @@ const BillJourney = () => {
     const handleTopDownload = async () => {
         console.log("Rep given to acc dept download clicked");
         // setSelectedRows(bills.map(bill => bill.srNo));
-        const result = await handleExportRepBillJourney(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, false);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, false);
         console.log("Result = " + result.message);
     };
 
@@ -53,9 +54,11 @@ const BillJourney = () => {
         // if(selectedRows.length === 0){
         //     setSelectedRows(bills.map(bill => bill.srNo));
         // }
-        const result = await handleExportRepBillJourney(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, true);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, true);
         console.log("Result = " + result.message);
     }
+
+    const titleName = "Bill Journey";
 
     const columns = [
         { field: "srNo", headerName: "Sr. No" },

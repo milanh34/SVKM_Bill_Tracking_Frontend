@@ -179,7 +179,7 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
 
             // Print the report (create a printable HTML version)
             const printWindow = window.open("", "_blank", "width=800,height=600");
-            printWindow.document.write("<html><head><title>Outstanding Report</title></head><body>");
+            printWindow.document.write("<html><head><title>Outstanding Report Subtotal as on:</title></head><body>");
             // printWindow.document.write("<h2>Outstanding Report</h2>");
             printWindow.document.write("<table border='1' cellpadding='5' style='border-collapse: collapse;'>");
 

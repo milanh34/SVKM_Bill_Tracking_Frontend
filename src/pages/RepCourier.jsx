@@ -9,6 +9,7 @@ import axios from 'axios';
 import { courieredMumbai } from '../apis/report.api';
 import { report } from "../apis/bills.api";
 import { handleExportRepCourierToMumbai } from '../utils/exportExcelReportCourierMumbai';
+import { handleExportAllReports } from '../utils/exportDownloadPrintReports';
 
 const RepCourier = () => {
 
@@ -51,7 +52,7 @@ const RepCourier = () => {
     const handleTopDownload = async () => {
         console.log("Rep recd at site download clicked");
         // setSelectedRows(bills.map(bill => bill.srNo));
-        const result = await handleExportRepCourierToMumbai(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, false);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, false);
         console.log("Result = " + result.message);
     };
 
@@ -60,9 +61,11 @@ const RepCourier = () => {
         // if(selectedRows.length === 0){
         //     setSelectedRows(bills.map(bill => bill.srNo));
         // }
-        const result = await handleExportRepCourierToMumbai(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, true);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, true);
         console.log("Result = " + result.message);
     }
+
+    const titleName = "Invoices Courier to Mumbai";
 
     const columns = [
         // { field: "copAmt", headerName: "COP Amount" },

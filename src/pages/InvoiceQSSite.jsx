@@ -8,6 +8,7 @@ import print from "../assets/print.svg";
 import axios from 'axios';
 import { givenToQSSite } from '../apis/report.api';
 import { handleExportRepGivenToQS } from '../utils/exportExcelReportGivenToQS';
+import { handleExportAllReports } from '../utils/exportDownloadPrintReports';
 
 const InvoicesGivenToQSSite = () => {
 
@@ -44,7 +45,7 @@ const InvoicesGivenToQSSite = () => {
 const handleTopDownload = async () => {
         console.log("Rep given to acc dept download clicked");
         // setSelectedRows(bills.map(bill => bill.srNo));
-        const result = await handleExportRepGivenToQS(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, false);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, false);
         console.log("Result = " + result.message);
     };
 
@@ -53,9 +54,11 @@ const handleTopDownload = async () => {
         // if(selectedRows.length === 0){
         //     setSelectedRows(bills.map(bill => bill.srNo));
         // }
-        const result = await handleExportRepGivenToQS(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, true);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, true);
         console.log("Result = " + result.message);
     }
+
+    const titleName = "Invoices Given to QS site";
 
     const columns = [
         { field: "srNo", headerName: "Sr. No" },

@@ -8,6 +8,7 @@ import print from "../assets/print.svg";
 import axios from 'axios';
 import { invoicesPaid } from '../apis/report.api';
 import { handleExportRepPaid } from '../utils/exportExcelReportPaid';
+import { handleExportAllReports } from '../utils/exportDownloadPrintReports';
 
 const InvoicesPaid = () => {
 
@@ -45,7 +46,7 @@ const InvoicesPaid = () => {
     const handleTopDownload = async () => {
         console.log("Rep given to acc dept download clicked");
         // setSelectedRows(bills.map(bill => bill.srNo));
-        const result = await handleExportRepPaid(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, false);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, false);
         console.log("Result = " + result.message);
     };
 
@@ -54,9 +55,11 @@ const InvoicesPaid = () => {
         // if(selectedRows.length === 0){
         //     setSelectedRows(bills.map(bill => bill.srNo));
         // }
-        const result = await handleExportRepPaid(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, true);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, true);
         console.log("Result = " + result.message);
     }
+
+    const titleName = "Invoices Paid";
 
     const columns = [
         { field: "srNo", headerName: "Sr. No" },

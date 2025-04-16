@@ -8,6 +8,7 @@ import send from "../assets/send.svg";
 import print from "../assets/print.svg";
 import { receivedAtMumbai } from '../apis/report.api';
 import { handleExportRepRecdAtMumbai } from '../utils/exportExcelReportRecdMumbai';
+import { handleExportAllReports } from '../utils/exportDownloadPrintReports';
 
 const RepRecMumbai = () => {
 
@@ -49,7 +50,7 @@ const RepRecMumbai = () => {
     const handleTopDownload = async () => {
         console.log("Rep recd at site download clicked");
         // setSelectedRows(bills.map(bill => bill.srNo));
-        const result = await handleExportRepRecdAtMumbai(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, false);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, false);
         console.log("Result = " + result.message);
     };
 
@@ -58,9 +59,11 @@ const RepRecMumbai = () => {
         // if(selectedRows.length === 0){
         //     setSelectedRows(bills.map(bill => bill.srNo));
         // }
-        const result = await handleExportRepRecdAtMumbai(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, true);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, true);
         console.log("Result = " + result.message);
     }
+
+    const titleName = "Invoices Received at Mumbai";
 
     const columns = [
         // { field: "copAmt", headerName: "COP Amount" },

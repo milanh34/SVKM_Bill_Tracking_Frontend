@@ -9,6 +9,7 @@ import download from "../assets/download.svg";
 import send from "../assets/send.svg";
 import print from "../assets/print.svg";
 import { handleExportOutstandingReport } from "../utils/exportExcelReportOutstanding";
+import { handleExportAllReports } from '../utils/exportDownloadPrintReports';
 
 const RepBillOutstanding = () => {
 
@@ -94,15 +95,17 @@ const RepBillOutstanding = () => {
 
     const handleTopDownload = async () => {
         console.log("Download outstanding bill clicked");
-        const result = await handleExportOutstandingReport(selectedRows, billsData, columns, visibleColumnFields, false);
+        const result = await handleExportAllReports(selectedRows, billsData.filter(bill => !bill.isSubtotal && bill.srNo), columns, visibleColumnFields, titleName, false);
         console.log(result.message);
     }
 
     const handleTopPrint = async () => {
         console.log("Print outstanding bill clicked");
-        const result = await handleExportOutstandingReport(selectedRows, billsData, columns, visibleColumnFields, true);
+        const result = await handleExportAllReports(selectedRows, billsData.filter(bill => !bill.isSubtotal && bill.srNo), columns, visibleColumnFields, titleName, true);
         console.log(result.message);
     }
+
+    const titleName = "Outstanding Bills Report as on";
 
     const columns = [
         // { field: "copAmt", headerName: "COP Amount" },
@@ -113,7 +116,7 @@ const RepBillOutstanding = () => {
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
         { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
-        { field: "dateRecdInAcctsDept", headerName: "Date Received in Accts Dept" },
+        { field: "dateRecdInAcctsDept", headerName: "Dt Recd in Accts Dept" },
         { field: "natureOfWorkSupply", headerName: "Nature of Work" }
     ]
 
@@ -195,7 +198,7 @@ const RepBillOutstanding = () => {
                                     <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv no</th>
                                     <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Date</th>
                                     <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Amt</th>
-                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt Tax Inv recd at Accounts</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt Recd in Accounts Dept.</th>
                                     <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Nature of Work</th>
                                 </tr>
                             </thead>

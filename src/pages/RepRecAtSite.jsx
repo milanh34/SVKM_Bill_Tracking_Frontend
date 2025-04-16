@@ -11,6 +11,7 @@ import send from "../assets/send.svg";
 import print from "../assets/print.svg";
 import Cookies from "js-cookie";
 import { handleExportRepRecdAtSite } from '../utils/exportExcelReportRecdSite';
+import { handleExportAllReports } from '../utils/exportDownloadPrintReports';
 
 const RepRecAtSite = () => {
 
@@ -77,7 +78,7 @@ const RepRecAtSite = () => {
     const handleTopDownload = async () => {
         console.log("Rep recd at site download clicked");
         // setSelectedRows(bills.map(bill => bill.srNo));
-        const result = await handleExportRepRecdAtSite(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, false);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, false);
         console.log("Result = " + result.message);
     };
 
@@ -86,9 +87,11 @@ const RepRecAtSite = () => {
         // if(selectedRows.length === 0){
         //     setSelectedRows(bills.map(bill => bill.srNo));
         // }
-        const result = await handleExportRepRecdAtSite(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, true);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, true);
         console.log("Result = " + result.message);
     }
+
+    const titleName = "Invoices Received at Site";
 
     const columns = [
         // { field: "copAmt", headerName: "COP Amount" },
@@ -99,7 +102,7 @@ const RepRecAtSite = () => {
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
         { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
-        { field: "dtTaxInvRecdAtSite", headerName: "Date Tax Inv recd at Site" },
+        { field: "dtTaxInvRecdAtSite", headerName: "Dt Tax Inv recd at Site" },
         { field: "poNo", headerName: "PO No" }
     ]
 
