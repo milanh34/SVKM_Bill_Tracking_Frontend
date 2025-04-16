@@ -25,6 +25,7 @@ import ContactPage from './pages/ContactPage'
 import InvoiceTable from './pages/InvoiceTable'
 import ChecklistBillList from "./pages/ChecklistBillList";
 import ChecklistDirectFI from "./pages/ChecklistDirectFI";
+import ChecklistDirectFI2 from "./pages/ChecklistDirectFI2";
 import AdvancedChecklist from "./pages/AdvancedChecklist";
 import ChecklistAccount from "./pages/ChecklistAccount";
 import ChecklistAccount2 from "./pages/ChecklistAccount2";
@@ -64,6 +65,7 @@ function App() {
         <Route path='/reportsbilljourney' element={<BillJourney />}/>
         <Route path='/checklist-advance' element={<AdvancedChecklist />} />
         <Route path='/checklist-directFI' element={<ChecklistDirectFI />} />
+        <Route path='/checklist-directFI2' element={<ChecklistDirectFI2 />} />  {/* just trying */}
         <Route path='/checklist-account' element={<ChecklistAccount />} />
         <Route path='/checklist-account2' element={<ChecklistAccount2 />} />  {/* just trying */}
         <Route path='/checklist-bill-list' element={<ChecklistBillList />} />

@@ -185,7 +185,7 @@ const ChecklistAccount = () => {
         </button>
       </div>
 
-      <div className="overflow-x-auto p-6 bg-gray-50 min-h-screen">
+      <div className="overflow-x-auto p-6 min-h-screen">
         {currentItems.map((item, index) => (
           <div key={index}>
             <div className="w-full max-w-[90%] mx-auto">
@@ -257,13 +257,10 @@ const ChecklistAccount = () => {
 
             {/* Your existing table code */}
             <div className="w-full max-w-[90%] mx-auto flex flex-col gap-4">
-              <div className="bg-white rounded shadow p-6 max-w-6xl mx-auto">
-                <div className="checklist-header">
-                  <h1 className="text-xl font-bold text-blue-800 mb-6">
-                    Account Checklist
-                  </h1>
+              <div className="bg-white rounded shadow">
+                <div className="flex justify-end pr-5 py-1">
                   <button
-                    className="edit-button no-print"
+                    className="px-4 py-2 flex gap-2"
                     onClick={toggleEditMode}
                     style={{
                       backgroundColor: isEditable ? "green" : "#011A99",
@@ -1027,7 +1024,7 @@ const ChecklistAccount = () => {
                     </table>
                   </div>
 
-                  <div className="checklist-footer">
+                  {/* <div className="checklist-footer">
                     <button
                       className="download-button no-print"
                       style={{ color: "white" }}
@@ -1069,7 +1066,7 @@ const ChecklistAccount = () => {
                         />
                       </svg>
                     </button>
-                  </div>
+                  </div> */}
                 </form>
               </div>
             </div>

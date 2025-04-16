@@ -26,7 +26,7 @@ import Cookies from "js-cookie";
 import ImportModal from "../components/dashboard/ImportModal";
 import { handleExportReport } from "../utils/exportExcelDashboard";
 
-const ChecklistModal = ({ isOpen, onClose }) => {
+const ChecklistModal = ({ isOpen, onClose, selectedRows, billsData }) => {
   const navigate = useNavigate();
 
   if (!isOpen) return null;
@@ -37,14 +37,14 @@ const ChecklistModal = ({ isOpen, onClose }) => {
         <h2 className="text-xl font-semibold mb-4">Select Checklist Type</h2>
         <div className="space-y-3">
           <button
-            onClick={() => navigate("/checklist-directFI", {state: { selectedRows }})}
-            className="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            onClick={() => navigate("/checklist-directFI2", {state: { selectedRows, bills: billsData.filter((bill) => selectedRows?.includes(bill._id)) }})}
+            className="bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors hover:cursor-pointer w-full py-2 px-4"
           >
             Direct FI Checklist
           </button>
           <button
-            onClick={() => navigate("/checklist-advance", {state: { selectedRows }})}
-            className="w-full py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+            onClick={() => navigate("/checklist-advance", {state: { selectedRows, bills: billsData.filter((bill) => selectedRows?.includes(bill._id)) }})}
+            className="bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors hover:cursor-pointer w-full py-2 px-4"
           >
             Advanced Checklist
           </button>
@@ -1002,6 +1002,8 @@ const Dashboard = () => {
       <ChecklistModal
         isOpen={isChecklistModalOpen}
         onClose={() => setIsChecklistModalOpen(false)}
+        selectedRows={selectedRows}
+        billsData={billsData}
       />
     </div>
   );

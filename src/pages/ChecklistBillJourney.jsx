@@ -264,7 +264,7 @@ const ChecklistBillJourney = () => {
         </button>
       </div>
 
-      <div className="overflow-x-auto p-6 bg-gray-50 min-h-screen">
+      <div className="overflow-x-auto p-6 min-h-screen">
         <div>
           {currentItems.map((item, index) => (
             <div key={index}>
