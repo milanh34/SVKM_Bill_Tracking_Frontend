@@ -57,43 +57,239 @@ const ChecklistDirectFI = () => {
     const win = window.open("", "_blank");
 
     const printStyles = `
-            <style>
-                @media print {
-                    @page {
-                        margin: 10mm;
-                        size: A4;
-                    }
-                    body { 
-                        padding: 5px;
-                        margin: 10px;
-                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-                    }
-                    .checklist-page {
-                        width: 100%;
-                        margin: 0 auto;
-                        page-break-after: always;
-                    }
-                    .content-row {
-                        padding: 8px;
-                        font-size: 0.875rem;
-                        border-bottom: 1px solid #e5e7eb;
-                    }
-                    .grid-row {
-                        display: grid;
-                        padding: 8px;
-                        font-size: 0.875rem;
-                        border-bottom: 1px solid #e5e7eb;
-                    }
-                    .grid-3 {
-                        grid-template-columns: repeat(3, 1fr);
-                        gap: 16px;
-                    }
-                    // ... rest of your print styles
-                }
-            </style>
-        `;
+      <style>
+        @media print {
+          @page {
+            margin: 10mm;
+            size: A4;
+          }
+          body { 
+            padding: 5px;
+            margin: 10px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+          }
+          .checklist-page {
+            width: 100%;
+            margin: 0 auto;
+            page-break-after: always;
+          }
+          .checklist-page:last-child {
+            page-break-after: avoid;
+          }
+          .content-row {
+            padding: 8px;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #e5e7eb;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            border: 1px solid #e5e7eb;
+          }
+          th, td {
+            border: 1px solid #e5e7eb;
+            padding: 6px 8px;
+            font-size: 0.875rem;
+          }
+          th {
+            background-color: #f3f4f6;
+            text-align: left;
+          }
+          tr:nth-child(even) { background-color: #f9fafb; }
+          .logo-img { height: 40px; }
+          .grid-row {
+            display: grid;
+            padding: 8px;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #e5e7eb;
+          }
+          .grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+          }
+          .grid-4 {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+          }
+          .grid-span-2 {
+            grid-column: span 2;
+          }
+        }
+      </style>
+    `;
 
-    // ... rest of print function implementation similar to ChecklistBillJourney
+    win.document.write(`
+      <html>
+        <head>
+          <title>Direct FI Checklist</title>
+          ${printStyles}
+        </head>
+        <body>
+    `);
+
+    billsData.forEach((item) => {
+      const content = `
+        <div class="checklist-page">
+          <div class="content-row">
+            <img src="${logo}" alt="" class="logo-img" style="height: 40px; vertical-align: middle;" />
+            &nbsp;&nbsp;&nbsp;
+            ${item?.srNo || ""}
+          </div>
+
+          <div class="grid-row">Check List - Direct FI entry</div>
+          <div class="grid-row">Project Name: ${
+            item?.projectDescription || ""
+          }</div>
+          <div class="grid-row">Campus: ${item?.region || ""}</div>
+          <div class="grid-row">Project ID in SAP:</div>
+
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 8%">Sr. No.</th>
+                <th style="width: 32%">Description</th>
+                <th style="width: 32%">Remarks</th>
+                <th style="width: 28%">Additional Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td></td>
+                <td style="text-decoration: underline; font-weight: 500">To be filled in by Project Dept:</td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>1</td>
+                <td>SAP Code & Vendor Name</td>
+                <td>${item?.vendorNo || ""} ${item?.vendorName || ""}</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Purpose of expenses</td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Amount</td>
+                <td>${item?.taxInvAmt || ""}</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>WBS No.</td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Network & Activity No</td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>Cost Element</td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>Is Budget available</td>
+                <td>Yes / No</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>Approved by</td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td>Submitted by</td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>Original invoice/intimation/etc attached</td>
+                <td>Yes / No</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>11</td>
+                <td>Whether exp of SVKM to be recovered from contractor</td>
+                <td>Expenses of SVKM/to be recovered from contractor</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>12</td>
+                <td>Compliances</td>
+                <td>${item?.compliance206AB || ""}</td>
+                <td>${item?.panStatus || ""}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td style="text-decoration: underline; font-weight: 500">To be filled in by Accounts Dept:</td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>1</td>
+                <td>Is GST charged in invoice</td>
+                <td>Yes / No</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Is RCM applicable</td>
+                <td>Yes / No</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Approved by</td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Document no in SAP</td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Posting date in SAP</td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+      win.document.write(content);
+    });
+
+    win.document.write("</body></html>");
+    win.document.close();
+
+    const style = document.createElement("style");
+    style.textContent = "@page { size: auto; margin: 0mm; }";
+    win.document.head.appendChild(style);
+
+    win.onload = () => {
+      setTimeout(() => {
+        win.document.title = "Direct FI Checklist";
+        win.focus();
+        win.print();
+        win.close();
+      }, 250);
+    };
   };
 
   const goToNextPage = () => {
@@ -213,12 +409,12 @@ const ChecklistDirectFI = () => {
                   <tbody>
                     {/* Project Dept Section */}
                     <tr>
-                      <td
-                        colSpan="4"
-                        className="border border-gray-300 p-2 bg-gray-100 font-bold"
-                      >
+                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border border-gray-300 p-2 underline font-medium">
                         To be filled in by Project Dept:
                       </td>
+                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                     <tr>
                       <td className="border border-gray-300 p-2">1</td>
@@ -226,143 +422,47 @@ const ChecklistDirectFI = () => {
                         SAP Code & Vendor Name
                       </td>
                       <td className="border border-gray-300 p-2">
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="Column 6"
-                            className="border border-gray-300 p-1 w-1/2"
-                            value={formData.sapCode}
-                            onChange={(e) =>
-                              handleInputChange("sapCode", e.target.value)
-                            }
-                          />
-                          <input
-                            type="text"
-                            placeholder="Column 7"
-                            className="border border-gray-300 p-1 w-1/2"
-                            value={formData.vendorName}
-                            onChange={(e) =>
-                              handleInputChange("vendorName", e.target.value)
-                            }
-                          />
-                        </div>
+                        {item?.vendorNo} &nbsp; &nbsp; {item?.vendorName}
                       </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                        />
-                      </td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                     <tr>
                       <td className="border border-gray-300 p-2">2</td>
                       <td className="border border-gray-300 p-2">
                         Purpose of expenses
                       </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                          value={formData.purpose}
-                          onChange={(e) =>
-                            handleInputChange("purpose", e.target.value)
-                          }
-                        />
-                      </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                        />
-                      </td>
+                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                     <tr>
                       <td className="border border-gray-300 p-2">3</td>
                       <td className="border border-gray-300 p-2">Amount</td>
                       <td className="border border-gray-300 p-2">
-                        <input
-                          type="number"
-                          placeholder="Column 23"
-                          className="border border-gray-300 p-1 w-full"
-                          value={formData.amount}
-                          onChange={(e) =>
-                            handleInputChange("amount", e.target.value)
-                          }
-                        />
+                        {item?.taxInvAmt}
                       </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                        />
-                      </td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                     <tr>
                       <td className="border border-gray-300 p-2">4</td>
                       <td className="border border-gray-300 p-2">WBS No.</td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                          value={formData.wbsNo}
-                          onChange={(e) =>
-                            handleInputChange("wbsNo", e.target.value)
-                          }
-                        />
-                      </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                        />
-                      </td>
+                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                     <tr>
                       <td className="border border-gray-300 p-2">5</td>
                       <td className="border border-gray-300 p-2">
                         Network & Activity No
                       </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                          value={formData.networkActivityNo}
-                          onChange={(e) =>
-                            handleInputChange(
-                              "networkActivityNo",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                        />
-                      </td>
+                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                     <tr>
                       <td className="border border-gray-300 p-2">6</td>
                       <td className="border border-gray-300 p-2">
                         Cost Element
                       </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                          value={formData.costElement}
-                          onChange={(e) =>
-                            handleInputChange("costElement", e.target.value)
-                          }
-                        />
-                      </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                        />
-                      </td>
+                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                     <tr>
                       <td className="border border-gray-300 p-2">7</td>
@@ -370,88 +470,25 @@ const ChecklistDirectFI = () => {
                         Is Budget available
                       </td>
                       <td className="border border-gray-300 p-2">
-                        <div className="flex gap-4">
-                          <label className="flex items-center">
-                            <input
-                              type="radio"
-                              name="budget"
-                              value="Yes"
-                              checked={formData.isBudgetAvailable === "Yes"}
-                              onChange={() =>
-                                handleRadioChange("isBudgetAvailable", "Yes")
-                              }
-                              className="mr-1"
-                            />
-                            Yes
-                          </label>
-                          <label className="flex items-center">
-                            <input
-                              type="radio"
-                              name="budget"
-                              value="No"
-                              checked={formData.isBudgetAvailable === "No"}
-                              onChange={() =>
-                                handleRadioChange("isBudgetAvailable", "No")
-                              }
-                              className="mr-1"
-                            />
-                            No
-                          </label>
-                        </div>
+                        Yes &nbsp; / &nbsp; No
                       </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                        />
-                      </td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                     <tr>
                       <td className="border border-gray-300 p-2">8</td>
                       <td className="border border-gray-300 p-2">
                         Approved by
                       </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                          value={formData.approvedByProject}
-                          onChange={(e) =>
-                            handleInputChange(
-                              "approvedByProject",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                        />
-                      </td>
+                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                     <tr>
                       <td className="border border-gray-300 p-2">9</td>
                       <td className="border border-gray-300 p-2">
                         Submitted by
                       </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                          value={formData.submittedBy}
-                          onChange={(e) =>
-                            handleInputChange("submittedBy", e.target.value)
-                          }
-                        />
-                      </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                        />
-                      </td>
+                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                     <tr>
                       <td className="border border-gray-300 p-2">10</td>
@@ -459,41 +496,9 @@ const ChecklistDirectFI = () => {
                         Original invoice/intimation/etc attached
                       </td>
                       <td className="border border-gray-300 p-2">
-                        <div className="flex gap-4">
-                          <label className="flex items-center">
-                            <input
-                              type="radio"
-                              name="invoice"
-                              value="Yes"
-                              checked={formData.isInvoiceAttached === "Yes"}
-                              onChange={() =>
-                                handleRadioChange("isInvoiceAttached", "Yes")
-                              }
-                              className="mr-1"
-                            />
-                            Yes
-                          </label>
-                          <label className="flex items-center">
-                            <input
-                              type="radio"
-                              name="invoice"
-                              value="No"
-                              checked={formData.isInvoiceAttached === "No"}
-                              onChange={() =>
-                                handleRadioChange("isInvoiceAttached", "No")
-                              }
-                              className="mr-1"
-                            />
-                            No
-                          </label>
-                        </div>
+                        Yes &nbsp; / &nbsp; No
                       </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                        />
-                      </td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                     <tr>
                       <td className="border border-gray-300 p-2">11</td>
@@ -501,25 +506,9 @@ const ChecklistDirectFI = () => {
                         Whether exp of SVKM to be recovered from contractor
                       </td>
                       <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          placeholder="Expenses of SVKM/to be recovered from contractor"
-                          className="border border-gray-300 p-1 w-full"
-                          value={formData.expensesRecovered}
-                          onChange={(e) =>
-                            handleInputChange(
-                              "expensesRecovered",
-                              e.target.value
-                            )
-                          }
-                        />
+                        Expenses of SVKM/to be recovered from contractor
                       </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                        />
-                      </td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                     <tr>
                       <td className="border border-gray-300 p-2">12</td>
@@ -527,190 +516,65 @@ const ChecklistDirectFI = () => {
                         Compliances
                       </td>
                       <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          placeholder="Column 9"
-                          className="border border-gray-300 p-1 w-full"
-                          value={formData.compliances1}
-                          onChange={(e) =>
-                            handleInputChange("compliances1", e.target.value)
-                          }
-                        />
+                        {item?.compliance206AB}
                       </td>
                       <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          placeholder="Column 10"
-                          className="border border-gray-300 p-1 w-full"
-                          value={formData.compliances2}
-                          onChange={(e) =>
-                            handleInputChange("compliances2", e.target.value)
-                          }
-                        />
+                        {item?.panStatus}
                       </td>
                     </tr>
 
                     {/* Accounts Dept Section */}
                     <tr>
-                      <td
-                        colSpan="4"
-                        className="border border-gray-300 p-2 bg-gray-100 font-bold"
-                      >
+                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border border-gray-300 p-2 underline font-medium">
                         To be filled in by Accounts Dept:
                       </td>
+                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">13</td>
+                      <td className="border border-gray-300 p-2">1</td>
                       <td className="border border-gray-300 p-2">
                         Is GST charged in invoice
                       </td>
                       <td className="border border-gray-300 p-2">
-                        <div className="flex gap-4">
-                          <label className="flex items-center">
-                            <input
-                              type="radio"
-                              name="gst"
-                              value="Yes"
-                              checked={formData.isGstCharged === "Yes"}
-                              onChange={() =>
-                                handleRadioChange("isGstCharged", "Yes")
-                              }
-                              className="mr-1"
-                            />
-                            Yes
-                          </label>
-                          <label className="flex items-center">
-                            <input
-                              type="radio"
-                              name="gst"
-                              value="No"
-                              checked={formData.isGstCharged === "No"}
-                              onChange={() =>
-                                handleRadioChange("isGstCharged", "No")
-                              }
-                              className="mr-1"
-                            />
-                            No
-                          </label>
-                        </div>
+                        Yes &nbsp; / &nbsp; No
                       </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                        />
-                      </td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">14</td>
+                      <td className="border border-gray-300 p-2">2</td>
                       <td className="border border-gray-300 p-2">
                         Is RCM applicable
                       </td>
                       <td className="border border-gray-300 p-2">
-                        <div className="flex gap-4">
-                          <label className="flex items-center">
-                            <input
-                              type="radio"
-                              name="rcm"
-                              value="Yes"
-                              checked={formData.isRcmApplicable === "Yes"}
-                              onChange={() =>
-                                handleRadioChange("isRcmApplicable", "Yes")
-                              }
-                              className="mr-1"
-                            />
-                            Yes
-                          </label>
-                          <label className="flex items-center">
-                            <input
-                              type="radio"
-                              name="rcm"
-                              value="No"
-                              checked={formData.isRcmApplicable === "No"}
-                              onChange={() =>
-                                handleRadioChange("isRcmApplicable", "No")
-                              }
-                              className="mr-1"
-                            />
-                            No
-                          </label>
-                        </div>
+                        Yes &nbsp; / &nbsp; No
                       </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                        />
-                      </td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">15</td>
+                      <td className="border border-gray-300 p-2">3</td>
                       <td className="border border-gray-300 p-2">
                         Approved by
                       </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                          value={formData.approvedByAccounts}
-                          onChange={(e) =>
-                            handleInputChange(
-                              "approvedByAccounts",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                        />
-                      </td>
+                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">16</td>
+                      <td className="border border-gray-300 p-2">4</td>
                       <td className="border border-gray-300 p-2">
                         Document no in SAP
                       </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                          value={formData.documentNo}
-                          onChange={(e) =>
-                            handleInputChange("documentNo", e.target.value)
-                          }
-                        />
-                      </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                        />
-                      </td>
+                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">17</td>
+                      <td className="border border-gray-300 p-2">5</td>
                       <td className="border border-gray-300 p-2">
                         Posting date in SAP
                       </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                          value={formData.postingDate}
-                          onChange={(e) =>
-                            handleInputChange("postingDate", e.target.value)
-                          }
-                        />
-                      </td>
-                      <td className="border border-gray-300 p-2">
-                        <input
-                          type="text"
-                          className="border border-gray-300 p-1 w-full"
-                        />
-                      </td>
+                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                   </tbody>
                 </table>
