@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
 import { useLocation } from "react-router-dom";
 import print from "../assets/print.svg";
@@ -15,7 +15,6 @@ const ChecklistAccount = () => {
   const billsData = location.state?.bills || [];
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(billList.length / ITEMS_PER_PAGE);
-  const [isEditable, setIsEditable] = useState(false);
   const [vendorPANMap, setVendorPANMap] = useState({});
 
   const formatDate = (dateString) => {
@@ -53,32 +52,6 @@ const ChecklistAccount = () => {
     fetchVendors();
   }, []);
 
-  const [formData, setFormData] = useState({
-    taxInvoiceAttached: "",
-    projectInchargeApproval: "",
-    projectLocation: "",
-    trusteeApproval: "",
-    invoiceAmount: "",
-    tdsCement: "",
-    gstCharged: "",
-    deliveryChallan: "",
-    deliveryChallanStamp: "",
-    ewayBill: "",
-    loadingUnloadingAmount: "",
-    purchaseOrderAttached: "",
-    vendorGst: "",
-    gstStatus: "",
-    gleedsCertificationAmount: "",
-    retentionAmount: "",
-    billHoldAmount: "",
-    earlierBillHoldReleaseAmount: "",
-    measurementSheet: "",
-    others: "",
-    advanceVendorAccount: "",
-    advanceAdjustThisInvoice: "",
-    netPayable: "",
-    projectCampus: "",
-  });
 
   console.log("Bills Data:", billsData);
 
@@ -364,12 +337,6 @@ const ChecklistAccount = () => {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentItems = billsData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Add submission logic here
-  };
-
   return (
     <>
       <Header />
@@ -470,7 +437,7 @@ const ChecklistAccount = () => {
 
             <div className="w-full max-w-[90%] mx-auto flex flex-col gap-4">
               <div className="bg-white rounded shadow">
-                <form onSubmit={handleSubmit}>
+                <div>
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
                       <thead>
@@ -823,7 +790,7 @@ const ChecklistAccount = () => {
                       </tbody>
                     </table>
                   </div>
-                </form>
+                </div>
               </div>
             </div>
           </div>

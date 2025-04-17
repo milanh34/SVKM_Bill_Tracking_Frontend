@@ -43,7 +43,7 @@ const ChecklistModal = ({ isOpen, onClose, selectedRows, billsData }) => {
             Direct FI Checklist
           </button>
           <button
-            onClick={() => navigate("/checklist-advance", {state: { selectedRows, bills: billsData.filter((bill) => selectedRows?.includes(bill._id)) }})}
+            onClick={() => navigate("/checklist-advance2", {state: { selectedRows, bills: billsData.filter((bill) => selectedRows?.includes(bill._id)) }})}
             className="bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors hover:cursor-pointer w-full py-2 px-4"
           >
             Advanced Checklist

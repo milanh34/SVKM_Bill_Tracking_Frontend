@@ -27,6 +27,7 @@ import ChecklistBillList from "./pages/ChecklistBillList";
 import ChecklistDirectFI from "./pages/ChecklistDirectFI";
 import ChecklistDirectFI2 from "./pages/ChecklistDirectFI2";
 import AdvancedChecklist from "./pages/AdvancedChecklist";
+import AdvancedChecklist2 from "./pages/AdvancedChecklist2";
 import ChecklistAccount from "./pages/ChecklistAccount";
 import ChecklistAccount2 from "./pages/ChecklistAccount2";
 import ChecklistBillJourney from "./pages/ChecklistBillJourney";
@@ -64,6 +65,7 @@ function App() {
         <Route path='/billpimo' element={<BillDetailsPIMO />}/>
         <Route path='/reportsbilljourney' element={<BillJourney />}/>
         <Route path='/checklist-advance' element={<AdvancedChecklist />} />
+        <Route path='/checklist-advance2' element={<AdvancedChecklist2 />} />
         <Route path='/checklist-directFI' element={<ChecklistDirectFI />} />
         <Route path='/checklist-directFI2' element={<ChecklistDirectFI2 />} />  {/* just trying */}
         <Route path='/checklist-account' element={<ChecklistAccount />} />

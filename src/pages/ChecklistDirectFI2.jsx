@@ -1,9 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import Header from "../components/Header";
 import { useLocation } from "react-router-dom";
 import print from "../assets/print.svg";
 import logo from "../assets/logo.png";
-import pen from "../assets/pen.svg";
 
 const ITEMS_PER_PAGE = 1;
 
@@ -13,8 +12,6 @@ const ChecklistDirectFI = () => {
   const billsData = location.state?.bills || [];
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(billList.length / ITEMS_PER_PAGE);
-  const printRef = useRef();
-  const [isEditable, setIsEditable] = useState(false);
 
   const formatDate = (dateString) => {
     if (!dateString) return "";
@@ -28,28 +25,6 @@ const ChecklistDirectFI = () => {
       })
       .replace(/\//g, "-");
   };
-
-  const [formData, setFormData] = useState({
-    sapCode: "",
-    vendorName: "",
-    purpose: "",
-    amount: "",
-    wbsNo: "",
-    networkActivityNo: "",
-    costElement: "",
-    isBudgetAvailable: "",
-    approvedByProject: "",
-    submittedBy: "",
-    isInvoiceAttached: "",
-    expensesRecovered: "",
-    compliances1: "",
-    compliances2: "",
-    isGstCharged: "",
-    isRcmApplicable: "",
-    approvedByAccounts: "",
-    documentNo: "",
-    postingDate: "",
-  });
 
   console.log("Bills Data:", billsData);
 
@@ -303,30 +278,6 @@ const ChecklistDirectFI = () => {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentItems = billsData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  const handleInputChange = (field, value) => {
-    setFormData({
-      ...formData,
-      [field]: value,
-    });
-  };
-
-  const toggleEditMode = () => {
-    setIsEditable(!isEditable);
-  };
-
-  const handleRadioChange = (field, value) => {
-    setFormData({
-      ...formData,
-      [field]: value,
-    });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Add submission logic here
-  };
-
   return (
     <>
       <Header />
@@ -349,7 +300,6 @@ const ChecklistDirectFI = () => {
         </button>
       </div>
 
-      {/* Main Content */}
       <main className="flex-grow p-4">
         {currentItems.map((item, index) => (
           <div key={index}>
@@ -384,8 +334,7 @@ const ChecklistDirectFI = () => {
               </div>
             </div>
 
-            <form
-              onSubmit={handleSubmit}
+            <div
               className="w-full max-w-[90%] mx-auto"
             >
               <div className="overflow-x-auto">
@@ -594,7 +543,7 @@ const ChecklistDirectFI = () => {
                   Submit ≫
                 </button>
               </div> */}
-            </form>
+            </div>
           </div>
         ))}
         {totalPages > 1 && (
