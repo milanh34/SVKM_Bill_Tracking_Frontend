@@ -3,7 +3,6 @@ import Header from "../components/Header";
 import { useLocation } from "react-router-dom";
 import print from "../assets/print.svg";
 import logo from "../assets/logo.png";
-import pen from "../assets/pen.svg";
 import { vendors } from "../apis/vendor.api";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -16,7 +15,6 @@ const ChecklistAccount = () => {
   const billsData = location.state?.bills || [];
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(billList.length / ITEMS_PER_PAGE);
-  const printRef = useRef();
   const [isEditable, setIsEditable] = useState(false);
   const [vendorPANMap, setVendorPANMap] = useState({});
 
@@ -40,10 +38,9 @@ const ChecklistAccount = () => {
           headers: { Authorization: `Bearer ${Cookies.get("token")}` },
         });
         console.log("Vendors data:", response.data);
-        
-        // Create map of vendor numbers to their PANs
+
         const panMap = {};
-        response.data.forEach(vendor => {
+        response.data.forEach((vendor) => {
           if (vendor.vendorNo && vendor.PAN) {
             panMap[vendor.vendorNo] = vendor.PAN;
           }
@@ -89,43 +86,271 @@ const ChecklistAccount = () => {
     const win = window.open("", "_blank");
 
     const printStyles = `
-            <style>
-                @media print {
-                    @page {
-                        margin: 10mm;
-                        size: A4;
-                    }
-                    body { 
-                        padding: 5px;
-                        margin: 10px;
-                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-                    }
-                    .checklist-page {
-                        width: 100%;
-                        margin: 0 auto;
-                        page-break-after: always;
-                    }
-                    .content-row {
-                        padding: 8px;
-                        font-size: 0.875rem;
-                        border-bottom: 1px solid #e5e7eb;
-                    }
-                    .grid-row {
-                        display: grid;
-                        padding: 8px;
-                        font-size: 0.875rem;
-                        border-bottom: 1px solid #e5e7eb;
-                    }
-                    .grid-3 {
-                        grid-template-columns: repeat(3, 1fr);
-                        gap: 16px;
-                    }
-                    // ... rest of your print styles
-                }
-            </style>
-        `;
+      <style>
+        @media print {
+          @page {
+            margin: 10mm;
+            size: A4;
+          }
+          body { 
+            padding: 5px;
+            margin: 10px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+          }
+          .checklist-page {
+            width: 100%;
+            margin: 0 auto;
+            page-break-after: always;
+          }
+          .checklist-page:last-child {
+            page-break-after: avoid;
+          }
+          .content-row {
+            padding: 8px;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #e5e7eb;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            border: 1px solid #e5e7eb;
+          }
+          th, td {
+            border: 1px solid #e5e7eb;
+            padding: 4px 6px;
+            font-size: 0.875rem;
+          }
+          th {
+            background-color: #f3f4f6;
+            text-align: left;
+          }
+          tr:nth-child(even) { background-color: #f9fafb; }
+          .logo-img { height: 40px; }
+          .grid-row {
+            display: grid;
+            padding: 8px;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #e5e7eb;
+          }
+          .grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+          }
+          .grid-6 {
+            grid-template-columns: repeat(6, 1fr);
+            gap: 16px;
+          }
+          .grid-span-2 {
+            grid-column: span 2;
+          }
+          .grid-span-4 {
+            grid-column: span 4;
+          }
+        }
+      </style>
+    `;
 
-    // ... rest of print function implementation similar to ChecklistBillJourney
+    win.document.write(`
+      <html>
+        <head>
+          <title>Account Checklist</title>
+          ${printStyles}
+        </head>
+        <body>
+    `);
+
+    billsData.forEach((item) => {
+      const content = `
+        <div class="checklist-page">
+          <div class="content-row">
+            <img src="${logo}" alt="" class="logo-img" style="height: 40px; vertical-align: middle;" />
+            &nbsp;&nbsp;&nbsp;
+            Region-Project Name: ${item?.region || ""} - ${
+        item?.projectDescription || ""
+      }
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            ${item?.srNo || ""}
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            Due Date:
+          </div>
+
+          <div class="grid-row grid-3">
+            <div>Invoice No: ${item?.taxInvNo || ""}</div>
+            <div>Dt: ${formatDate(item?.taxInvDate)}</div>
+            <div>Nature of Work: ${
+              item?.typeOfInv || item?.natureOfWork || ""
+            }</div>
+          </div>
+
+          <div class="grid-row grid-6">
+            <div class="grid-span-4">Vendor Description: ${
+              item?.vendorName || ""
+            }</div>
+            <div class="grid-span-2">Vendor code: ${item?.vendorNo || ""}</div>
+          </div>
+
+          <div class="grid-row grid-6">
+            <div class="grid-span-4">PO Number and Date: ${
+              item?.poNo || ""
+            } &nbsp; ${formatDate(item?.poDate)}</div>
+            <div class="grid-span-2">PO Amt: ${item?.currency || ""} ${
+        item?.poAmt || ""
+      }</div>
+          </div>
+
+          <div class="grid-row grid-6">
+            <div class="grid-span-4">Vendor GST No & PAN as per SAP: ${
+              item?.gstNumber || ""
+            } / ${vendorPANMap[item?.vendorNo] || ""}</div>
+            <div class="grid-span-2">LC exists in vendor A/c: &nbsp; Yes / No</div>
+          </div>
+
+          <div class="grid-row grid-6">
+            <div class="grid-span-4">Compliance u/s 206AB: ${
+              item?.compliance206AB || ""
+            }</div>
+            <div class="grid-span-2">Pan Status: ${item?.panStatus || ""}</div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 33.333333%">Description</th>
+                <th style="width: 33.333333%">Remarks</th>
+                <th style="width: 33.333333%">Additional remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Vendor Original Tax Invoice attached</td>
+                <td>Yes / No</td>
+                <td>SAP doc no.</td>
+              </tr>
+              <tr>
+                <td>Invoice Approved By Project Incharge</td>
+                <td>VP / JKB / RB / DG / PP /<br/>Shirpur/Dhule</td>
+                <td>Same bill no.in vendor ledger: Yes / No<br/>Is Migo Entry done: Yes / No</td>
+              </tr>
+              <tr>
+                <td>Invoice Approved By Trustee</td>
+                <td>HS / HC / JP / JK / BP / RB / Member -LMC</td>
+                <td>IS PO no mentioned on Bill? Yes / No<br/>IS PO no mentioned is correct? Yes / No</td>
+              </tr>
+              <tr>
+                <td>Invoice Amount</td>
+                <td>${item?.currency} ${item?.taxInvAmt}</td>
+                <td>Bill for Material / services / material + services<br/>Total Material Purchases -&lt;50lacs / &gt;50 lacs</td>
+              </tr>
+              <tr>
+                <td>TDS u/s 194C / 194J/194I or 194Q + TDS deducted-cement/steel,etc<br/>TDS deducted on cement/steel,etc.</td>
+                <td>Rs.</td>
+                <td>Net Amount: Rs.</td>
+              </tr>
+              <tr>
+                <td>Is GST charged in bill</td>
+                <td>Yes / No / RCM(Consult Mr Mekap)</td>
+                <td>SVKM GST no mentioned on bill ? Yes / No</td>
+              </tr>
+              <tr>
+                <td>Vendor Original Delivery Challan</td>
+                <td>Yes - with stamp / Yes - w/o stamp</td>
+                <td>No- with stamp on bill / No-Services<br/>No - w/o stamp on bill</td>
+              </tr>
+              <tr>
+                <td>E-Way bill attached</td>
+                <td>Yes - Part A avbl & Part B avbl<br/>Yes - bill to ship to E-Way bill avbl<br/>Yes - Works Contract E-way bill avbl</td>
+                <td>No - distance &lt; 50 kms / No- Mat couriered<br/>No - inter state; amt &lt; 50,000/No-Mat hand delivery<br/>No - intra state; amt &lt; 1,00,000 /No -Services</td>
+              </tr>
+              <tr>
+                <td>Loading/Unloading/Debris/Debit Note - by SVKM or Vendor</td>
+                <td>Rs.</td>
+                <td>G L Account:480<br/>Network:<br/>Activity:</td>
+              </tr>
+              <tr>
+                <td>Purchase Order Copy attached</td>
+                <td>Yes / No</td>
+                <td>Is PO signed by authorised? Yes / No</td>
+              </tr>
+              <tr>
+                <td>Vendor GST No as per Invoice</td>
+                <td>Same / different</td>
+                <td>Venor GST Validity : Yes / No</td>
+              </tr>
+              <tr>
+                <td>Gleed's Certification Amount</td>
+                <td>INR ${
+                  item?.copDetails?.amount
+                }<br/>N.A. for Mumbai; amt &lt; 50,000</td>
+                <td>Is certificate signed & stamped? Yes / No<br/>Is PO no correct? Yes / No</td>
+              </tr>
+              <tr>
+                <td>Retention Amount</td>
+                <td>Rs.</td>
+                <td>Gleeds COP amt : Rs.<br/>SAP Doc no : 35/<br/>Rs.</td>
+              </tr>
+              <tr>
+                <td>This bill hold amount</td>
+                <td>Rs.</td>
+                <td>SAP Doc no : 35/<br/>Rs.</td>
+              </tr>
+              <tr>
+                <td>Earlier bill hold release amount</td>
+                <td>Rs.</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>Measurment Sheet/Drawings</td>
+                <td>Yes / No</td>
+                <td>PO no on measurement sheet same?<br/>Yes / No / Not mentioned</td>
+              </tr>
+              <tr>
+                <td>Others</td>
+                <td></td>
+                <td>Declaration for no TDS :u/s 194 © received/ under notification 21/dated 13.06.12 received</td>
+              </tr>
+              <tr>
+                <td>Advance in Vendor Account</td>
+                <td>Rs.</td>
+                <td>In various POs as on</td>
+              </tr>
+              <tr>
+                <td>Advance adj. agst this Invoice</td>
+                <td>Rs.</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>Net Payable</td>
+                <td>Rs.</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>Project/Campus on Bill,PO and Certificate</td>
+                <td>Same / different</td>
+                <td>Not for payment since adjusted against advance. Email sent ? ________ /Entered in Access ___________</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+      win.document.write(content);
+    });
+
+    win.document.write("</body></html>");
+    win.document.close();
+
+    const style = document.createElement("style");
+    style.textContent = "@page { size: auto; margin: 0mm; }";
+    win.document.head.appendChild(style);
+
+    win.onload = () => {
+      setTimeout(() => {
+        win.document.title = "Account Checklist";
+        win.focus();
+        win.print();
+        win.close();
+      }, 250);
+    };
   };
 
   const goToNextPage = () => {
@@ -138,24 +363,6 @@ const ChecklistAccount = () => {
 
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentItems = billsData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-  const handleInputChange = (field, value) => {
-    setFormData({
-      ...formData,
-      [field]: value,
-    });
-  };
-
-  const handleRadioChange = (field, value) => {
-    setFormData({
-      ...formData,
-      [field]: value,
-    });
-  };
-
-  const toggleEditMode = () => {
-    setIsEditable(!isEditable);
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -221,7 +428,9 @@ const ChecklistAccount = () => {
 
                 <div className="p-2 border-b border-gray-300">
                   <div className="grid grid-cols-4 text-sm">
-                    <div className="col-span-3">Vendor Description: {item?.vendorName}</div>
+                    <div className="col-span-3">
+                      Vendor Description: {item?.vendorName}
+                    </div>
                     <div>Vendor code: {item?.vendorNo}</div>
                   </div>
                 </div>
@@ -229,8 +438,7 @@ const ChecklistAccount = () => {
                 <div className="p-2 border-b border-gray-300">
                   <div className="grid grid-cols-4 text-sm">
                     <div className="col-span-3">
-                      PO Number and Date: {item?.poNo}{" "}
-                      &nbsp;  &nbsp;    
+                      PO Number and Date: {item?.poNo} &nbsp; &nbsp;
                       {formatDate(item?.poDate)}
                     </div>
                     <div>
@@ -241,41 +449,27 @@ const ChecklistAccount = () => {
 
                 <div className="p-2 border-b border-gray-300">
                   <div className="grid grid-cols-4 text-sm">
-                    <div className="col-span-3">Vendor GST No & PAN as per SAP: {item?.gstNumber || ''} / {vendorPANMap[item?.vendorNo] || ''}</div>
+                    <div className="col-span-3">
+                      Vendor GST No & PAN as per SAP: {item?.gstNumber || ""} /{" "}
+                      {vendorPANMap[item?.vendorNo] || ""}
+                    </div>
                     <div>LC exists in vendor A/c: &nbsp; Yes / No</div>
                   </div>
                 </div>
 
                 <div className="p-2 border-b border-gray-300">
                   <div className="grid grid-cols-4 text-sm">
-                    <div className="col-span-3">Compliance u/s 206AB: {item?.compliance206AB}</div>
+                    <div className="col-span-3">
+                      Compliance u/s 206AB: {item?.compliance206AB}
+                    </div>
                     <div>Pan Status: {item?.panStatus}</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Your existing table code */}
             <div className="w-full max-w-[90%] mx-auto flex flex-col gap-4">
               <div className="bg-white rounded shadow">
-                <div className="flex justify-end pr-5 py-1">
-                  <button
-                    className="px-4 py-2 flex gap-2"
-                    onClick={toggleEditMode}
-                    style={{
-                      backgroundColor: isEditable ? "green" : "#011A99",
-                      color: "white",
-                    }}
-                  >
-                    {isEditable ? "Save" : "Edit"}
-                    <img
-                      src={pen}
-                      style={{ background: "transparent" }}
-                      alt="edit icon"
-                    />
-                  </button>
-                </div>
-
                 <form onSubmit={handleSubmit}>
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
@@ -299,50 +493,15 @@ const ChecklistAccount = () => {
                             Vendor Original Tax Invoice attached
                           </td>
                           <td className="border border-gray-300 p-2">
-                            <div className="flex gap-4">
-                              <label className="flex items-center">
-                                <input
-                                  type="radio"
-                                  name="taxInvoice"
-                                  value="Yes"
-                                  checked={
-                                    formData.taxInvoiceAttached === "Yes"
-                                  }
-                                  onChange={() =>
-                                    handleRadioChange(
-                                      "taxInvoiceAttached",
-                                      "Yes"
-                                    )
-                                  }
-                                  className="mr-1"
-                                />
-                                Yes
-                              </label>
-                              <label className="flex items-center">
-                                <input
-                                  type="radio"
-                                  name="taxInvoice"
-                                  value="No"
-                                  checked={formData.taxInvoiceAttached === "No"}
-                                  onChange={() =>
-                                    handleRadioChange(
-                                      "taxInvoiceAttached",
-                                      "No"
-                                    )
-                                  }
-                                  className="mr-1"
-                                />
-                                No
-                              </label>
+                            <div className="flex gap-2">
+                              <div>Yes</div>
+                              <div>/</div>
+                              <div>No</div>
                             </div>
                           </td>
                           <td className="border border-gray-300 p-2">
                             <div className="flex flex-col gap-1">
                               <span>SAP doc no.</span>
-                              <input
-                                type="text"
-                                className="border border-gray-300 p-1 w-full"
-                              />
                             </div>
                           </td>
                         </tr>
@@ -354,86 +513,19 @@ const ChecklistAccount = () => {
                           </td>
                           <td className="border border-gray-300 p-2">
                             <div className="flex flex-col gap-2">
-                              <select
-                                className="border border-gray-300 p-1 w-full"
-                                value={formData.projectInchargeApproval}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    "projectInchargeApproval",
-                                    e.target.value
-                                  )
-                                }
-                              >
-                                <option value="">Select</option>
-                                <option value="VP">VP</option>
-                                <option value="JKB">JKB</option>
-                                <option value="RB">RB</option>
-                                <option value="DG">DG</option>
-                                <option value="PP">PP</option>
-                              </select>
-
-                              <select
-                                className="border border-gray-300 p-1 w-full"
-                                value={formData.projectLocation}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    "projectLocation",
-                                    e.target.value
-                                  )
-                                }
-                              >
-                                <option value="">Select Location</option>
-                                <option value="Shirpur">Shirpur</option>
-                                <option value="Dhule">Dhule</option>
-                              </select>
+                              <div>VP / JKB / RB / DG / PP /</div>
+                              <div>Shirpur/Dhule</div>
                             </div>
                           </td>
                           <td className="border border-gray-300 p-2">
                             <div className="flex flex-col gap-2">
-                              <div className="flex items-center">
-                                <span className="mr-2">
-                                  Same bill no.in vendor ledger:
-                                </span>
-                                <label className="flex items-center mr-2">
-                                  <input
-                                    type="radio"
-                                    name="sameBillNo"
-                                    value="Yes"
-                                    className="mr-1"
-                                  />
-                                  Yes
-                                </label>
-                                <label className="flex items-center">
-                                  <input
-                                    type="radio"
-                                    name="sameBillNo"
-                                    value="No"
-                                    className="mr-1"
-                                  />
-                                  No
-                                </label>
+                              <div>
+                                Same bill no.in vendor ledger: &nbsp; Yes &nbsp;
+                                / &nbsp; No
                               </div>
-
-                              <div className="flex items-center">
-                                <span className="mr-2">Migo Entry done:</span>
-                                <label className="flex items-center mr-2">
-                                  <input
-                                    type="radio"
-                                    name="migoEntry"
-                                    value="Yes"
-                                    className="mr-1"
-                                  />
-                                  Yes
-                                </label>
-                                <label className="flex items-center">
-                                  <input
-                                    type="radio"
-                                    name="migoEntry"
-                                    value="No"
-                                    className="mr-1"
-                                  />
-                                  No
-                                </label>
+                              <div>
+                                Is Migo Entry done: &nbsp; Yes &nbsp; / &nbsp;
+                                No
                               </div>
                             </div>
                           </td>
@@ -445,74 +537,17 @@ const ChecklistAccount = () => {
                             Invoice Approved By Trustee
                           </td>
                           <td className="border border-gray-300 p-2">
-                            <select
-                              className="border border-gray-300 p-1 w-full"
-                              value={formData.trusteeApproval}
-                              onChange={(e) =>
-                                handleInputChange(
-                                  "trusteeApproval",
-                                  e.target.value
-                                )
-                              }
-                            >
-                              <option value="">Select</option>
-                              <option value="HS">HS</option>
-                              <option value="HC">HC</option>
-                              <option value="JP">JP</option>
-                              <option value="JK">JK</option>
-                              <option value="BP">BP</option>
-                              <option value="RB">RB</option>
-                              <option value="Member-LMC">Member-LMC</option>
-                            </select>
+                            <div>HS / HC / JP / JK / BP / RB / Member -LMC</div>
                           </td>
                           <td className="border border-gray-300 p-2">
                             <div className="flex flex-col gap-2">
-                              <div className="flex items-center">
-                                <span className="mr-2">
-                                  IS PO no mentioned on Bill?
-                                </span>
-                                <label className="flex items-center mr-2">
-                                  <input
-                                    type="radio"
-                                    name="poMentioned"
-                                    value="Yes"
-                                    className="mr-1"
-                                  />
-                                  Yes
-                                </label>
-                                <label className="flex items-center">
-                                  <input
-                                    type="radio"
-                                    name="poMentioned"
-                                    value="No"
-                                    className="mr-1"
-                                  />
-                                  No
-                                </label>
+                              <div>
+                                IS PO no mentioned on Bill? &nbsp; Yes &nbsp; /
+                                &nbsp; No
                               </div>
-
-                              <div className="flex items-center">
-                                <span className="mr-2">
-                                  IS PO no mentioned is correct?
-                                </span>
-                                <label className="flex items-center mr-2">
-                                  <input
-                                    type="radio"
-                                    name="poCorrect"
-                                    value="Yes"
-                                    className="mr-1"
-                                  />
-                                  Yes
-                                </label>
-                                <label className="flex items-center">
-                                  <input
-                                    type="radio"
-                                    name="poCorrect"
-                                    value="No"
-                                    className="mr-1"
-                                  />
-                                  No
-                                </label>
+                              <div>
+                                IS PO no mentioned is correct? &nbsp; Yes &nbsp;
+                                / &nbsp; No
                               </div>
                             </div>
                           </td>
@@ -524,42 +559,20 @@ const ChecklistAccount = () => {
                             Invoice Amount
                           </td>
                           <td className="border border-gray-300 p-2">
-                            <input
-                              type="text"
-                              placeholder="Column 22 -Column 23"
-                              className="border border-gray-300 p-1 w-full"
-                              value={formData.invoiceAmount}
-                              onChange={(e) =>
-                                handleInputChange(
-                                  "invoiceAmount",
-                                  e.target.value
-                                )
-                              }
-                            />
+                            <div>
+                              {item?.currency} {item?.taxInvAmt}
+                            </div>
                           </td>
                           <td className="border border-gray-300 p-2">
                             <div className="flex flex-col gap-1">
-                              <span>
+                              <div>
+                                {" "}
                                 Bill for Material / services / material +
                                 services
-                              </span>
-                              <select className="border border-gray-300 p-1 w-full">
-                                <option value="">Select</option>
-                                <option value="Material">Material</option>
-                                <option value="Services">Services</option>
-                                <option value="Material_Services">
-                                  Material + Services
-                                </option>
-                              </select>
-                              <div className="mt-1">
-                                <span>
-                                  Total Material Purchases -&lt;50lacs/&gt;50
-                                  lacs
-                                </span>
-                                <select className="border border-gray-300 p-1 w-full mt-1">
-                                  <option value="">&lt;50lacs</option>
-                                  <option value="gt50lacs">&gt;50lacs</option>
-                                </select>
+                              </div>
+                              <div>
+                                Total Material Purchases -&lt;50lacs / &gt;50
+                                lacs
                               </div>
                             </div>
                           </td>
@@ -567,50 +580,18 @@ const ChecklistAccount = () => {
 
                         {/* Row 5 */}
                         <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            TDS u/s 194C / 194J/194I or 194Q + TDS
-                            deducted-cement/steel,etc
-                          </td>
-                          <td className="border border-gray-300 p-2">
+                          <td className="border border-gray-300 p-2 font-medium flex-col">
                             <div>
-                              <select className="border border-gray-300 p-1 w-full">
-                                <option value="">Select TDS Section</option>
-                                <option value="194C">194C</option>
-                                <option value="194J">194J</option>
-                                <option value="194I">194I</option>
-                                <option value="194Q">194Q</option>
-                              </select>
+                              TDS u/s 194C / 194J/194I or 194Q + TDS
+                              deducted-cement/steel,etc
                             </div>
-                          </td>
-                          <td className="border border-gray-300 p-2"></td>
-                        </tr>
-
-                        {/* Row 6 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            TDS deducted on cement/steel,etc.
+                            <div>TDS deducted on cement/steel,etc.</div>
                           </td>
                           <td className="border border-gray-300 p-2">
-                            <div className="flex items-center">
-                              <span className="mr-2">Rs.</span>
-                              <input
-                                type="number"
-                                className="border border-gray-300 p-1 w-full"
-                                value={formData.tdsCement || ""}
-                                onChange={(e) =>
-                                  handleInputChange("tdsCement", e.target.value)
-                                }
-                              />
-                            </div>
+                            <div>Rs.</div>
                           </td>
                           <td className="border border-gray-300 p-2">
-                            <div className="flex items-center">
-                              <span className="mr-2">Net amount : Rs.</span>
-                              <input
-                                type="number"
-                                className="border border-gray-300 p-1 w-full"
-                              />
-                            </div>
+                            Net Amount: Rs.
                           </td>
                         </tr>
 
@@ -620,77 +601,11 @@ const ChecklistAccount = () => {
                             Is GST charged in bill
                           </td>
                           <td className="border border-gray-300 p-2">
-                            <div className="flex flex-col gap-2">
-                              <div className="flex gap-4">
-                                <label className="flex items-center">
-                                  <input
-                                    type="radio"
-                                    name="gstCharged"
-                                    value="Yes"
-                                    checked={formData.gstCharged === "Yes"}
-                                    onChange={() =>
-                                      handleRadioChange("gstCharged", "Yes")
-                                    }
-                                    className="mr-1"
-                                  />
-                                  Yes
-                                </label>
-                                <label className="flex items-center">
-                                  <input
-                                    type="radio"
-                                    name="gstCharged"
-                                    value="No"
-                                    checked={formData.gstCharged === "No"}
-                                    onChange={() =>
-                                      handleRadioChange("gstCharged", "No")
-                                    }
-                                    className="mr-1"
-                                  />
-                                  No
-                                </label>
-                                <label className="flex items-center">
-                                  <input
-                                    type="radio"
-                                    name="gstCharged"
-                                    value="RCM"
-                                    checked={formData.gstCharged === "RCM"}
-                                    onChange={() =>
-                                      handleRadioChange("gstCharged", "RCM")
-                                    }
-                                    className="mr-1"
-                                  />
-                                  RCM
-                                </label>
-                              </div>
-                              <div className="text-sm">(Consult Mr Mekap)</div>
-                            </div>
+                            Yes / No / RCM(Consult Mr Mekap)
                           </td>
                           <td className="border border-gray-300 p-2">
-                            <div className="flex flex-col gap-2">
-                              <div className="flex items-center">
-                                <span className="mr-2">
-                                  SVKM GST no mentioned on bill ?
-                                </span>
-                                <label className="flex items-center mr-2">
-                                  <input
-                                    type="radio"
-                                    name="svkmGst"
-                                    value="Yes"
-                                    className="mr-1"
-                                  />
-                                  Yes
-                                </label>
-                                <label className="flex items-center">
-                                  <input
-                                    type="radio"
-                                    name="svkmGst"
-                                    value="No"
-                                    className="mr-1"
-                                  />
-                                  No
-                                </label>
-                              </div>
-                            </div>
+                            SVKM GST no mentioned on bill ? Yes &nbsp; / &nbsp;
+                            No
                           </td>
                         </tr>
 
@@ -699,82 +614,15 @@ const ChecklistAccount = () => {
                           <td className="border border-gray-300 p-2 font-medium">
                             Vendor Original Delivery Challan
                           </td>
-                          <td className="border border-gray-300 p-2">
-                            <div className="flex gap-4">
-                              <label className="flex items-center">
-                                <input
-                                  type="radio"
-                                  name="deliveryChallan"
-                                  value="Yes-with stamp"
-                                  checked={
-                                    formData.deliveryChallan ===
-                                    "Yes-with stamp"
-                                  }
-                                  onChange={() =>
-                                    handleRadioChange(
-                                      "deliveryChallan",
-                                      "Yes-with stamp"
-                                    )
-                                  }
-                                  className="mr-1"
-                                />
-                                Yes- with stamp
-                              </label>
-                            </div>
+                          <td className="border-0 border-gray-300 p-2 flex justify-between  w-full">
+                            <div>Yes - with stamp</div>
+                            <div>Yes - w/o stamp</div>
                           </td>
-                          <td className="border border-gray-300 p-2">
-                            <div className="flex flex-col gap-2">
-                              <div className="flex items-center">
-                                <label className="flex items-center mr-4">
-                                  <input
-                                    type="radio"
-                                    name="deliveryChallanStamp"
-                                    value="Yes- w/o stamp"
-                                    checked={
-                                      formData.deliveryChallanStamp ===
-                                      "Yes- w/o stamp"
-                                    }
-                                    onChange={() =>
-                                      handleRadioChange(
-                                        "deliveryChallanStamp",
-                                        "Yes- w/o stamp"
-                                      )
-                                    }
-                                    className="mr-1"
-                                  />
-                                  Yes- w/o stamp
-                                </label>
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <label className="flex items-center">
-                                  <input
-                                    type="radio"
-                                    name="stampBill"
-                                    value="No-with stamp on bill"
-                                    className="mr-1"
-                                  />
-                                  No- with stamp on bill
-                                </label>
-                                <label className="flex items-center">
-                                  <input
-                                    type="radio"
-                                    name="stampBill"
-                                    value="No-Services"
-                                    className="mr-1"
-                                  />
-                                  No-Services
-                                </label>
-                                <label className="flex items-center">
-                                  <input
-                                    type="radio"
-                                    name="stampBill"
-                                    value="No-w/o stamp on bill"
-                                    className="mr-1"
-                                  />
-                                  No- w/o stamp on bill
-                                </label>
-                              </div>
+                          <td className="border border-gray-300 p-2 flex-col">
+                            <div>
+                              No- with stamp on bill &nbsp; / No-Services{" "}
                             </div>
+                            <div>No - w/o stamp on bill</div>
                           </td>
                         </tr>
 
@@ -785,145 +633,29 @@ const ChecklistAccount = () => {
                           </td>
                           <td className="border border-gray-300 p-2">
                             <div className="flex flex-col gap-1">
-                              <label className="flex items-center">
-                                <input
-                                  type="radio"
-                                  name="ewayBill"
-                                  value="Yes - Part A avbl & Part B avbl"
-                                  checked={
-                                    formData.ewayBill ===
-                                    "Yes - Part A avbl & Part B avbl"
-                                  }
-                                  onChange={() =>
-                                    handleRadioChange(
-                                      "ewayBill",
-                                      "Yes - Part A avbl & Part B avbl"
-                                    )
-                                  }
-                                  className="mr-1"
-                                />
-                                Yes - Part A avbl & Part B avbl
-                              </label>
-                              <label className="flex items-center">
-                                <input
-                                  type="radio"
-                                  name="ewayBill"
-                                  value="Yes - bill to ship to E-Way bill avbl"
-                                  checked={
-                                    formData.ewayBill ===
-                                    "Yes - bill to ship to E-Way bill avbl"
-                                  }
-                                  onChange={() =>
-                                    handleRadioChange(
-                                      "ewayBill",
-                                      "Yes - bill to ship to E-Way bill avbl"
-                                    )
-                                  }
-                                  className="mr-1"
-                                />
-                                Yes - bill to ship to E-Way bill avbl
-                              </label>
-                              <label className="flex items-center">
-                                <input
-                                  type="radio"
-                                  name="ewayBill"
-                                  value="Yes - Works Contract E-way bill avbl"
-                                  checked={
-                                    formData.ewayBill ===
-                                    "Yes - Works Contract E-way bill avbl"
-                                  }
-                                  onChange={() =>
-                                    handleRadioChange(
-                                      "ewayBill",
-                                      "Yes - Works Contract E-way bill avbl"
-                                    )
-                                  }
-                                  className="mr-1"
-                                />
-                                Yes - Works Contract E-way bill avbl
-                              </label>
+                              <div>Yes - Part A avbl & Part B avbl</div>
+                              <div>Yes - bill to ship to E-Way bill avbl</div>
+                              <div>Yes - Works Contract E-way bill avbl</div>
                             </div>
                           </td>
                           <td className="border border-gray-300 p-2">
                             <div className="flex flex-col gap-1">
-                              <label className="flex items-center">
-                                <input
-                                  type="radio"
-                                  name="ewayStatus"
-                                  value="No - distance < 50 kms"
-                                  className="mr-1"
-                                />
-                                No - distance &lt; 50 kms
-                              </label>
-                              <label className="flex items-center">
-                                <input
-                                  type="radio"
-                                  name="ewayStatus"
-                                  value="No- Mat counered"
-                                  className="mr-1"
-                                />
-                                No- Mat counered
-                              </label>
-                              <label className="flex items-center">
-                                <input
-                                  type="radio"
-                                  name="ewayStatus"
-                                  value="No- inter state, amt < 50,000"
-                                  className="mr-1"
-                                />
-                                No- inter state, amt &lt; 50,000
-                              </label>
-                              <label className="flex items-center">
-                                <input
-                                  type="radio"
-                                  name="ewayStatus"
-                                  value="No-Mat hand delivery"
-                                  className="mr-1"
-                                />
-                                No-Mat hand delivery
-                              </label>
-                              <label className="flex items-center">
-                                <input
-                                  type="radio"
-                                  name="ewayStatus"
-                                  value="No- intra state, amt < 1,00,000"
-                                  className="mr-1"
-                                />
-                                No- intra state, amt &lt; 1,00,000
-                              </label>
-                              <label className="flex items-center">
-                                <input
-                                  type="radio"
-                                  name="ewayStatus"
-                                  value="No-Services"
-                                  className="mr-1"
-                                />
-                                No-Services
-                              </label>
-                              <div className="mt-2">
-                                <span>G L Account: 480</span>
+                              <div>
+                                No - distance &lt; 50 kms / No- Mat couriered
                               </div>
-                              <div className="flex gap-2">
-                                <div>
-                                  <span>Network:</span>
-                                  <input
-                                    type="text"
-                                    className="border border-gray-300 p-1 w-full mt-1"
-                                  />
-                                </div>
-                                <div>
-                                  <span>Activity:</span>
-                                  <input
-                                    type="text"
-                                    className="border border-gray-300 p-1 w-full mt-1"
-                                  />
-                                </div>
+                              <div>
+                                No - inter state; amt &lt; 50,000/No-Mat hand
+                                delivery
+                              </div>
+                              <div>
+                                No - intra state; amt &lt; 1,00,000 /No
+                                -Services
                               </div>
                             </div>
                           </td>
                         </tr>
 
-                        {/* Continue with the rest of the rows... */}
+                        {/* Row 10 */}
                         <tr>
                           <td className="border border-gray-300 p-2 font-medium">
                             Loading/Unloading/Debris/Debit Note - by SVKM or
@@ -932,141 +664,165 @@ const ChecklistAccount = () => {
                           <td className="border border-gray-300 p-2">
                             <div className="flex items-center">
                               <span className="mr-2">Rs.</span>
-                              <input
-                                type="number"
-                                className="border border-gray-300 p-1 w-full"
-                                value={formData.loadingUnloadingAmount || ""}
-                                onChange={(e) =>
-                                  handleInputChange(
-                                    "loadingUnloadingAmount",
-                                    e.target.value
-                                  )
-                                }
-                              />
                             </div>
                           </td>
-                          <td className="border border-gray-300 p-2"></td>
+                          <td className="border border-gray-300 p-2 flex-col">
+                            <div>G L Account:480</div>
+                            <div className="grid grid-cols-2">
+                              <div>Network:</div>
+                              <div>Activity:</div>
+                            </div>
+                          </td>
                         </tr>
 
+                        {/* Row 11 */}
                         <tr>
                           <td className="border border-gray-300 p-2 font-medium">
                             Purchase Order Copy attached
                           </td>
                           <td className="border border-gray-300 p-2">
-                            <div className="flex gap-4">
-                              <label className="flex items-center">
-                                <input
-                                  type="radio"
-                                  name="purchaseOrder"
-                                  value="Yes"
-                                  checked={
-                                    formData.purchaseOrderAttached === "Yes"
-                                  }
-                                  onChange={() =>
-                                    handleRadioChange(
-                                      "purchaseOrderAttached",
-                                      "Yes"
-                                    )
-                                  }
-                                  className="mr-1"
-                                />
-                                Yes
-                              </label>
-                              <label className="flex items-center">
-                                <input
-                                  type="radio"
-                                  name="purchaseOrder"
-                                  value="No"
-                                  checked={
-                                    formData.purchaseOrderAttached === "No"
-                                  }
-                                  onChange={() =>
-                                    handleRadioChange(
-                                      "purchaseOrderAttached",
-                                      "No"
-                                    )
-                                  }
-                                  className="mr-1"
-                                />
-                                No
-                              </label>
-                            </div>
+                            Yes &nbsp; / &nbsp; No
                           </td>
                           <td className="border border-gray-300 p-2">
-                            <div className="flex items-center">
-                              <span className="mr-2">
-                                Is PO signed by authorised?
-                              </span>
-                              <label className="flex items-center mr-2">
-                                <input
-                                  type="radio"
-                                  name="poSigned"
-                                  value="Yes"
-                                  className="mr-1"
-                                />
-                                Yes
-                              </label>
-                              <label className="flex items-center">
-                                <input
-                                  type="radio"
-                                  name="poSigned"
-                                  value="No"
-                                  className="mr-1"
-                                />
-                                No
-                              </label>
+                            Is PO signed by authorised? Yes &nbsp; / &nbsp; No
+                          </td>
+                        </tr>
+
+                        {/* Row 12 */}
+                        <tr>
+                          <td className="border border-gray-300 p-2 font-medium">
+                            Vendor GST No as per Invoice
+                          </td>
+                          <td className="border border-gray-300 p-2">
+                            Same &nbsp; / &nbsp; different
+                          </td>
+                          <td className="border border-gray-300 p-2">
+                            <div className="flex flex-col gap-1">
+                              <div>Venor GST Validity : Yes / No</div>
                             </div>
                           </td>
                         </tr>
 
-                        {/* Add the rest of the rows following the same pattern */}
+                        {/* Row 14 */}
+                        <tr>
+                          <td className="border border-gray-300 p-2 font-medium">
+                            Gleed's Certification Amount
+                          </td>
+                          <td className="border border-gray-300 p-2">
+                            <div>INR {item?.copDetails?.amount}</div>
+                            <div>N.A. for Mumbai; amt &lt; 50,000</div>
+                          </td>
+                          <td className="border border-gray-300 p-2">
+                            <div>Is certificate signed & stamped? Yes / No</div>
+                            <div>Is PO no correct? Yes / No</div>
+                          </td>
+                        </tr>
+
+                        {/* Row 15 */}
+                        <tr>
+                          <td className="border border-gray-300 p-2 font-medium">
+                            Retention Amount
+                          </td>
+                          <td className="border border-gray-300 p-2">Rs.</td>
+                          <td className="border border-gray-300 p-2">
+                            <div>Gleeds COP amt : Rs.</div>
+                            <div>SAP Doc no : 35/</div>
+                            <div>Rs.</div>
+                          </td>
+                        </tr>
+
+                        {/* Row 16 */}
+                        <tr>
+                          <td className="border border-gray-300 p-2 font-medium">
+                            This bill hold amount
+                          </td>
+                          <td className="border border-gray-300 p-2">Rs.</td>
+                          <td className="border border-gray-300 p-2">
+                            <div>SAP Doc no : 35/</div>
+                            <div>Rs.</div>
+                          </td>
+                        </tr>
+
+                        {/* Row 17 */}
+                        <tr>
+                          <td className="border border-gray-300 p-2 font-medium">
+                            Earlier bill hold release amount
+                          </td>
+                          <td className="border border-gray-300 p-2">Rs.</td>
+                          <td className="border border-gray-300 p-2"></td>
+                        </tr>
+
+                        {/* Row 18 */}
+                        <tr>
+                          <td className="border border-gray-300 p-2 font-medium">
+                            Measurment Sheet/Drawings
+                          </td>
+                          <td className="border border-gray-300 p-2">
+                            Yes / No
+                          </td>
+                          <td className="border border-gray-300 p-2">
+                            <div>PO no on measurement sheet same?</div>
+                            <div>Yes / No / Not mentioned</div>
+                          </td>
+                        </tr>
+
+                        {/* Row 19 */}
+                        <tr>
+                          <td className="border border-gray-300 p-2 font-medium">
+                            Others
+                          </td>
+                          <td className="border border-gray-300 p-2"></td>
+                          <td className="border border-gray-300 p-2">
+                            Declaration for no TDS :u/s 194 © received/ under
+                            notification 21/dated 13.06.12 received
+                          </td>
+                        </tr>
+
+                        {/* Row 20 */}
+                        <tr>
+                          <td className="border border-gray-300 p-2 font-medium">
+                            Advance in Vendor Account
+                          </td>
+                          <td className="border border-gray-300 p-2">Rs.</td>
+                          <td className="border border-gray-300 p-2">
+                            In various POs as on
+                          </td>
+                        </tr>
+
+                        {/* Row 21 */}
+                        <tr>
+                          <td className="border border-gray-300 p-2 font-medium">
+                            Advance adj. agst this Invoice
+                          </td>
+                          <td className="border border-gray-300 p-2">Rs.</td>
+                          <td className="border border-gray-300 p-2"></td>
+                        </tr>
+
+                        {/* Row 22 */}
+                        <tr>
+                          <td className="border border-gray-300 p-2 font-medium">
+                            Net Payable
+                          </td>
+                          <td className="border border-gray-300 p-2">Rs.</td>
+                          <td className="border border-gray-300 p-2"></td>
+                        </tr>
+
+                        {/* Row 23 */}
+                        <tr>
+                          <td className="border border-gray-300 p-2 font-medium">
+                            Project/Campus on Bill,PO and Certificate
+                          </td>
+                          <td className="border border-gray-300 p-2">
+                            Same / different
+                          </td>
+                          <td className="border border-gray-300 p-2">
+                            Not for payment since adjusted against advance.
+                            Email sent ? ________ /Entered in Access ___________
+                          </td>
+                        </tr>
                       </tbody>
                     </table>
                   </div>
-
-                  {/* <div className="checklist-footer">
-                    <button
-                      className="download-button no-print"
-                      style={{ color: "white" }}
-                    >
-                      Download
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        style={{ background: "transparent" }}
-                      >
-                        <path
-                          d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15M7 10L12 15M12 15L17 10M12 15V3"
-                          stroke="#fff"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
-                    <button className="send-button no-print">
-                      Send to
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        style={{ background: "transparent" }}
-                      >
-                        <path
-                          d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9"
-                          stroke="#fff"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
-                  </div> */}
                 </form>
               </div>
             </div>
