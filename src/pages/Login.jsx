@@ -119,10 +119,10 @@ const LoginPage = () => {
       Cookies.set("userId", response.data.user.id, { expires: cookieExpiry });
       Cookies.set("userName", response.data.user.name, { expires: cookieExpiry });
 
-      toast.success("Login successful!");
+      toast.success("Login Successfull!");
       setTimeout(() => {
         navigate("/");
-      }, 1000);
+      }, 1500);
     } catch (error) {
       console.error("Login error:", error);
       toast.error(

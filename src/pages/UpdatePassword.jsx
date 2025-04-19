@@ -74,7 +74,10 @@ const UpdatePassword = () => {
                 Cookies.set('token', data.token, {
                     expires: 1 / 3  // 8 hours 
                 });
-                navigate('/login');
+                toast.success("Update Password Successfull!");
+                setTimeout(() => {
+                    navigate('/login');
+                }, 1500);
             }
         }
         catch (err) {
