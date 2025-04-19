@@ -7,7 +7,7 @@ import passwordIcon from "../assets/password.svg";
 import eyeIcon from "../assets/eye.svg";
 import LoginHeader from "../components/login/LoginHeader";
 import { ChevronDown, Cookie } from "lucide-react";
-import { login } from "../apis/user.apis";
+import { updatePassword } from "../apis/user.apis";
 import axios from "axios";
 import Cookies from "js-cookie";
 
@@ -16,11 +16,11 @@ const UpdatePassword = () => {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    
+
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    
+
     const [passwordError, setPasswordError] = useState(false);
     const navigate = useNavigate();
 
@@ -44,13 +44,14 @@ const UpdatePassword = () => {
         // setNewPassword(newPassword.trim());
         // setConfirmPassword(confirmPassword.trim());
 
-        if (newPassword !== confirmPassword) {
+        if (newPassword.replace(/\s+/g, '') !== confirmPassword.replace(/\s+/g, '')) {
+            toast.error("New and confirm passwords do not match");
             setPasswordError("New and confirm passwords do not match");
             return;
         }
 
         try {
-            const response = await fetch('http://localhost:5000/auth/update-password', {
+            const response = await fetch(updatePassword, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -59,19 +60,26 @@ const UpdatePassword = () => {
                 body: JSON.stringify({
                     "currentPassword": currentPassword.replace(/\s+/g, ''),
                     "newPassword": newPassword.replace(/\s+/g, '')
+                    // currentPassword, newPassword
                 })
             });
             const data = await response.json();
             console.log(data);
+            console.log(data.token);
 
             if (!response.ok) {
+                toast.error(data.message || "Failed to update password")
                 setPasswordError(data.message || "Failed to update password");
-            } else{
+            } else {
+                Cookies.set('token', data.token, {
+                    expires: 1 / 3  // 8 hours 
+                });
                 navigate('/login');
             }
         }
         catch (err) {
             console.error(err);
+            toast.error(err);
             setPasswordError(err);
         }
     }
