@@ -130,13 +130,13 @@ const RepBillOutstandingSubtotal = () => {
 
     const handleTopDownload = async () => {
         console.log("Subtotal download clicked");
-        const result = await handleExportOutstandingSubtotalReport(billsData.map(bill => bill.srNo), billsData, columns, visibleColumnFields, titleName, false);
+        const result = await handleExportOutstandingSubtotalReport(billsData.map(bill => bill.srNo), billsData, columns, visibleColumnFields, false);
         console.log(result);
     }
 
     const handleTopPrint = async () => {
         console.log("Subtotal print clicked");
-        const result = await handleExportOutstandingSubtotalReport(billsData.map(bill => bill.srNo), billsData, columns, visibleColumnFields, titleName, true);
+        const result = await handleExportOutstandingSubtotalReport(billsData.map(bill => bill.srNo), billsData, columns, visibleColumnFields, true);
         console.log(result);
     }
 
