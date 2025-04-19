@@ -52,25 +52,7 @@ export const handleExportAllReports = async (
         if (!toPrint) {
 
             const workbook = new ExcelJS.Workbook();
-            // console.log(titleName.replace(/\s+/g, ''));
             const worksheet = workbook.addWorksheet(titleName.replace(/\//g, '_'));
-
-            // // Title Row
-            // const titleRow = worksheet.addRow([titleName]);
-            // titleRow.font = { size: 14, bold: true };
-            // worksheet.mergeCells(`A1:${String.fromCharCode(64 + allColumnsToExport.length)}1`);
-            // titleRow.alignment = { vertical: "left", horizontal: "center" };
-            // titleRow.font = { bold: true, color: { argb: "000000" } };
-            // worksheet.addRow([]);
-
-            // // Timestamp Row
-            // const now = new Date();
-            // const timestampText = `Report generated on: ${now.toLocaleDateString('en-IN')} ${now.toLocaleTimeString('en-IN')}`;
-            // const timestampRow = worksheet.addRow([timestampText]);
-            // worksheet.mergeCells(`A3:${String.fromCharCode(64 + allColumnsToExport.length)}3`);
-            // timestampRow.font = { italic: true };
-            // timestampRow.alignment = { horizontal: "right" };
-            // worksheet.addRow([]);
 
             const columnCount = allColumnsToExport.length;
 
@@ -115,7 +97,6 @@ export const handleExportAllReports = async (
             // Optionally, add spacing below
             worksheet.addRow([]);
 
-
             // Header Row
             const headerRow = worksheet.addRow(allColumnsToExport.map(col => col.headerName));
             headerRow.eachCell((cell) => {
@@ -136,41 +117,90 @@ export const handleExportAllReports = async (
 
             // Data Rows
             dataToExport.forEach((rowData, rowIndex) => {
-                const rowValues = allColumnsToExport.map((column) => {
-                    let value;
-                    if (column.field.includes(".")) {
-                        const [parentField, childField] = column.field.split(".");
-                        value = rowData[parentField]?.[childField] ?? "";
-                    } else {
-                        value = rowData[column.field];
-                    }
+                let rowValues;
+                console.log(rowData);
 
-                    // Format currency
-                    if (
-                        column.field.includes("amount") ||
-                        column.field.includes("Amount") ||
-                        column.field.endsWith("Amt") ||
-                        column.field.endsWith("amt")
-                    ) {
-                        if (typeof value === "number") {
-                            return value;
+                if (rowData.isSubtotal) {
+                    // Subtotal row
+                    console.log("In subtotal row");
+                    rowValues = allColumnsToExport.map((column) => {
+                        const field = column.field;
+
+                        if (field === "vendorName") {
+                            return rowData.subtotalLabel || `Subtotal for ${rowData.vendorName}`;
                         }
-                    }
+                        if (field === "taxInvAmt") {
+                            return rowData.subtotalAmount || 0;
+                        }
+                        if (field === "copAmt") {
+                            return rowData.subtotalCopAmt || 0;
+                        }
+                        if (field === "srNo") {
+                            return ""; // You can return empty or '—'
+                        }
 
-                    return value ?? "no";
-                });
+                        return ""; // Empty for other columns
+                    });
+                } else if (rowData.isGrandTotal) {
+                    rowValues = allColumnsToExport.map((column) => {
+                        const field = column.field;
+
+                        if(field === "vendorName"){
+                            return `Total Count: ${rowData.grandTotalCount}`
+                        }
+                        if (field === "taxInvAmt") {
+                            return `Grand Total: ${rowData.grandInvTotal}` || 0;
+                        }
+                        if (field === "copAmt") {
+                            return `Grand Total: ${rowData.grandTotalCop}` || 0;
+                        }
+
+                        return ""; // Empty for other columns
+                    });
+                } else {
+                    // Normal data row
+                    rowValues = allColumnsToExport.map((column) => {
+                        let value;
+                        if (column.field.includes(".")) {
+                            const [parentField, childField] = column.field.split(".");
+                            value = rowData[parentField]?.[childField] ?? "";
+                        } else {
+                            value = rowData[column.field];
+                        }
+
+                        if (
+                            column.field.includes("amount") ||
+                            column.field.includes("Amount") ||
+                            column.field.endsWith("Amt") ||
+                            column.field.endsWith("amt")
+                        ) {
+                            return typeof value === "number" ? value : 0;
+                        }
+
+                        return value ?? "";
+                    });
+                }
 
                 const newRow = worksheet.addRow(rowValues);
 
-                // Row styling
+                // ✨ Row Styling
                 newRow.eachCell((cell, colNumber) => {
                     const colField = allColumnsToExport[colNumber - 1].field;
 
-                    if ((rowIndex + 1) % 2 === 0) {
+                    if (rowData.isSubtotal) {
+                        // Subtotal styling
+                        cell.font = { bold: true };
                         cell.fill = {
                             type: "pattern",
                             pattern: "solid",
-                            fgColor: { argb: "FFF9F9F9" }, // lighter gray
+                            fgColor: { argb: "FFF9F9F9" }, // Light orange
+                        };
+                    } else if ((rowIndex + 1) % 2 === 0) {
+                        // Zebra striping for normal rows
+                        cell.fill = {
+                            type: "pattern",
+                            pattern: "solid",
+                            fgColor: { argb: "FFF9F9F9" },
                         };
                     }
 
@@ -183,22 +213,9 @@ export const handleExportAllReports = async (
                         cell.numFmt = '#,##0.00';
                         cell.alignment = { horizontal: "right" };
                     }
-
-                    // if (
-                    //     colField.includes("date") ||
-                    //     colField.includes("Date") ||
-                    //     colField.endsWith("Dt") ||
-                    //     colField.endsWith("_dt")
-                    // ) {
-                    //     if (cell.value && !isNaN(Date.parse(cell.value))) {
-                    //         const date = new Date(cell.value);
-                    //         cell.value = date;
-                    //         cell.numFmt = 'dd-mmm-yyyy';
-                    //         cell.alignment = { horizontal: "center" };
-                    //     }
-                    // }
                 });
             });
+
 
             // Auto column widths
             worksheet.columns.forEach((column) => {
@@ -218,10 +235,7 @@ export const handleExportAllReports = async (
                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             });
 
-            // const now1 = new Date();
-            // const filename = `${now1.getDate().toString().padStart(2, '0')}${(now1.getMonth() + 1).toString().padStart(2, '0')}${now1.getFullYear().toString().slice(-2)}_${now1.getHours().toString().padStart(2, '0')}${now1.getMinutes().toString().padStart(2, '0')}${now1.getSeconds().toString().padStart(2, '0')}.xlsx`;
             const filename = `${titleName.replace(/[\/ ]/g, '_')}.xlsx`;        // replace '/' and 'space' with _
-
             saveAs(blob, filename);
 
             return { success: true, message: "Report downloaded successfully" };
@@ -240,9 +254,6 @@ export const handleExportAllReports = async (
                         value = row[column.field];
                     }
 
-                    // Format dates
-
-
                     // Format currency values
                     if (
                         column.field.includes("amount") ||
@@ -255,7 +266,7 @@ export const handleExportAllReports = async (
                         }
                     }
 
-                    formattedRow[column.headerName] = (value !== undefined && value !== null) ? value : "no";
+                    formattedRow[column.headerName] = (value !== undefined && value !== null) ? value : "";
                 });
                 return formattedRow;
             });

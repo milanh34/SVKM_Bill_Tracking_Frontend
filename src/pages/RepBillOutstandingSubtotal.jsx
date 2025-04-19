@@ -7,6 +7,7 @@ import Filters from "../components/Filters.jsx";
 import ReportBtns from '../components/ReportBtns.jsx';
 import download from "../assets/download.svg";
 import print from "../assets/print.svg";
+import { handleExportAllReports } from '../utils/exportDownloadPrintReports.js';
 
 const RepBillOutstandingSubtotal = () => {
 
@@ -35,7 +36,14 @@ const RepBillOutstandingSubtotal = () => {
             try {
                 const response = await axios.get(`${outstanding}?startDate=${fromDate}&endDate=${toDate}`);
                 setBillsData(response.data.report.data);
-                
+                // setBillsData({
+                //     ...billsData,
+                //     isGrandTotal: true,
+                //     grandInvTotal: response.data.report.summary.totalInvoiceAmount,
+                //     grandTotalCop: response.data.report.summary.totalCopAmount,
+                //     grandTotalCount: response.data.report.summary.recordCount
+                // })
+
                 const grandTotal = response.data.report.data.find(item => item.isGrandTotal);
                 if (grandTotal) {
                     setTotals({
@@ -122,13 +130,17 @@ const RepBillOutstandingSubtotal = () => {
 
     const handleTopDownload = async () => {
         console.log("Subtotal download clicked");
-        const result = await handleExportOutstandingSubtotalReport(selectedRows, billsData, columns, visibleColumnFields, false);
+        const result = await handleExportOutstandingSubtotalReport(billsData.map(bill => bill.srNo), billsData, columns, visibleColumnFields, titleName, false);
+        console.log(result);
     }
 
     const handleTopPrint = async () => {
         console.log("Subtotal print clicked");
-        const result = await handleExportOutstandingSubtotalReport(selectedRows, billsData, columns, visibleColumnFields, true);
+        const result = await handleExportOutstandingSubtotalReport(billsData.map(bill => bill.srNo), billsData, columns, visibleColumnFields, titleName, true);
+        console.log(result);
     }
+
+    const titleName = "Outstanding Bills Report Subtotal as on";
 
     const columns = [
         { field: "srNo", headerName: "Sr. No" },

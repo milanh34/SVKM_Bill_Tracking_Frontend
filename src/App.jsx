@@ -31,6 +31,7 @@ import AdvancedChecklist2 from "./pages/AdvancedChecklist2";
 import ChecklistAccount from "./pages/ChecklistAccount";
 import ChecklistAccount2 from "./pages/ChecklistAccount2";
 import ChecklistBillJourney from "./pages/ChecklistBillJourney";
+import UpdatePassword from "./pages/UpdatePassword";
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
 
         {/* Tailwind Routes */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/updatepass" element={<UpdatePassword />} />
         <Route path="/" element={<Dashboard />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/fullbill" element={<FullBillDetails />} />
