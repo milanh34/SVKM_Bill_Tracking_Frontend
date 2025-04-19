@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import axios from "axios";
 import { bills, billWorkflow, importReport } from "../apis/bills.api";
+import { workflowUpdate } from "../apis/workflow.api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DataTable from "../components/dashboard/DataTable";
@@ -37,13 +38,31 @@ const ChecklistModal = ({ isOpen, onClose, selectedRows, billsData }) => {
         <h2 className="text-xl font-semibold mb-4">Select Checklist Type</h2>
         <div className="space-y-3">
           <button
-            onClick={() => navigate("/checklist-directFI2", {state: { selectedRows, bills: billsData.filter((bill) => selectedRows?.includes(bill._id)) }})}
+            onClick={() =>
+              navigate("/checklist-directFI2", {
+                state: {
+                  selectedRows,
+                  bills: billsData.filter((bill) =>
+                    selectedRows?.includes(bill._id)
+                  ),
+                },
+              })
+            }
             className="bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors hover:cursor-pointer w-full py-2 px-4"
           >
             Direct FI Checklist
           </button>
           <button
-            onClick={() => navigate("/checklist-advance2", {state: { selectedRows, bills: billsData.filter((bill) => selectedRows?.includes(bill._id)) }})}
+            onClick={() =>
+              navigate("/checklist-advance2", {
+                state: {
+                  selectedRows,
+                  bills: billsData.filter((bill) =>
+                    selectedRows?.includes(bill._id)
+                  ),
+                },
+              })
+            }
             className="bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors hover:cursor-pointer w-full py-2 px-4"
           >
             Advanced Checklist
@@ -62,7 +81,7 @@ const ChecklistModal = ({ isOpen, onClose, selectedRows, billsData }) => {
 
 const Dashboard = () => {
   const currentUserRole = Cookies.get("userRole");
-  
+
   const [billsData, setBillsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -97,12 +116,22 @@ const Dashboard = () => {
   console.log(selectedRows);
 
   const handleChecklist = () => {
-    if (currentUserRole === 'site_officer') {
-      navigate("/checklist-bill-journey", {state: { selectedRows, bills: billsData.filter((bill) => selectedRows?.includes(bill._id)) }});
-    } else if (currentUserRole === 'pimo_mumbai') {
+    if (currentUserRole === "site_officer") {
+      navigate("/checklist-bill-journey", {
+        state: {
+          selectedRows,
+          bills: billsData.filter((bill) => selectedRows?.includes(bill._id)),
+        },
+      });
+    } else if (currentUserRole === "pimo_mumbai") {
       setIsChecklistModalOpen(true);
-    } else if (currentUserRole === 'accounts') {
-      navigate("/checklist-account2", {state: { selectedRows, bills: billsData.filter((bill) => selectedRows?.includes(bill._id)) }});
+    } else if (currentUserRole === "accounts") {
+      navigate("/checklist-account2", {
+        state: {
+          selectedRows,
+          bills: billsData.filter((bill) => selectedRows?.includes(bill._id)),
+        },
+      });
     }
   };
 
@@ -126,14 +155,21 @@ const Dashboard = () => {
 
   const roleWorkflow = {
     site_officer: [
-      { value: "quantity_inspector", label: "Quantity Inspector" },
-      { value: "architect", label: "Architect" },
-      { value: "engineer", label: "Site Engineer" },
-      { value: "incharge", label: "Site Incharge" },
-      { value: "site_pimo", label: "Site PIMO" }
+      { value: "quantity_surveyor", label: "Quantity Surveyor" },
+      { value: "quality_inspector", label: "Quality Inspector" },
+      { value: "site_architect", label: "Site Architect" },
+      { value: "site_engineer", label: "Site Engineer" },
+      { value: "site_incharge", label: "Site Incharge" },
+      { value: "site_pimo", label: "Site PIMO" },
     ],
-    site_pimo: [{ value: "qs_site", label: "QS Site Team" }],
-    qs_site: [{ value: "pimo_mumbai", label: "PIMO Mumbai Team" }],
+    site_pimo: [
+      { value: "qs_site", label: "QS Site Team" },
+      { value: "pimo_mumbai", label: "PIMO Mumbai Team" },
+    ],
+    qs_site: [
+      { value: "pimo_mumbai", label: "PIMO Mumbai Team" },
+      { value: "site_pimo", label: "Site PIMO" },
+    ],
     pimo_mumbai: [{ value: "director", label: "Director" }],
     director: [{ value: "accounts", label: "Accounts Team" }],
     accounts: [{ value: "completed", label: "Complete Payment" }],
@@ -235,30 +271,37 @@ const Dashboard = () => {
     }
   }, [navigate]);
 
-  // const filterBillsByWorkflowState = (bills, userRole) => {
-  //   return bills.filter((bill) => {
-  //     const currentState = bill.workflowState?.currentState;
+  const filterBillsByRole = (bills, userRole) => {
+    return bills.filter(bill => {
+      const maxCount = bill.maxCount || 0;
 
-  //     if (currentState === "Completed" || currentState === "Rejected") {
-  //       return ["pimo_mumbai", "accounts", "director", "admin"].includes(
-  //         userRole
-  //       );
-  //     }
+      switch(userRole) {
+        case 'site_officer':
+          return maxCount === 1 || maxCount === 2;
 
-  //     const stateToRoleMap = {
-  //       Site_Officer: ["site_officer"],
-  //       Site_PIMO: ["site_pimo"],
-  //       QS_Site: ["qs_site"],
-  //       PIMO_Mumbai: ["pimo_mumbai"],
-  //       Directors: ["director"],
-  //       Accounts: ["accounts"],
-  //     };
-
-  //     if (userRole === "admin") return true;
-
-  //     return stateToRoleMap[currentState]?.includes(userRole) || false;
-  //   });
-  // };
+        case 'site_pimo':
+          return maxCount === 1 || maxCount === 2;
+        
+        case 'pimo_mumbai':
+          return maxCount === 2 || maxCount === 3 || maxCount === 4 || maxCount === 5 || maxCount === 6;
+        
+        case 'qs_site':
+          return maxCount === 3 || maxCount === 4;
+        
+        case 'director':
+          return maxCount === 5 || maxCount === 6;
+        
+        case 'accounts':
+          return maxCount === 7;
+        
+        case 'admin':
+          return true;
+        
+        default:
+          return false;
+      }
+    });
+  };
 
   const fetchBills = async () => {
     try {
@@ -269,22 +312,23 @@ const Dashboard = () => {
 
       console.log("Received response data:", response.data);
 
-      // const filteredBills = filterBillsByWorkflowState(response.data, userRole);
+      const filteredBills = filterBillsByRole(response.data, userRole);
 
-      const sortedData = response.data.sort((a, b) => {
+      console.log("Filtered bills on maxCount:", filteredBills);
+
+      const sortedData = filteredBills.sort((a, b) => {
         const aHasHistory = (a.workflowState?.history?.length || 0) > 0;
         const bHasHistory = (b.workflowState?.history?.length || 0) > 0;
-        
+
         if (aHasHistory !== bHasHistory) {
           return aHasHistory ? 1 : -1;
         }
-        
+
         const aDate = new Date(a.taxInvDate || 0);
         const bDate = new Date(b.taxInvDate || 0);
         return bDate - aDate;
       });
 
-      console.log("Sorted & Filtered Data", sortedData);
       setBillsData(sortedData);
     } catch (error) {
       console.log(error);
@@ -391,13 +435,14 @@ const Dashboard = () => {
 
     // Filter for incoming bills when showIncomingBills is true
     if (showIncomingBills) {
-      if (currentUserRole === 'accounts') {
-        result = result.filter(bill => 
-          bill.accountsDept?.dateGiven && !bill.accountsDept?.dateReceived
+      if (currentUserRole === "accounts") {
+        result = result.filter(
+          (bill) =>
+            bill.accountsDept?.dateGiven && !bill.accountsDept?.dateReceived
         );
-      } else if (currentUserRole === 'pimo_mumbai') {
-        result = result.filter(bill => 
-          bill.pimoMumbai?.dateGiven && !bill.pimoMumbai?.dateReceived
+      } else if (currentUserRole === "pimo_mumbai") {
+        result = result.filter(
+          (bill) => bill.pimoMumbai?.dateGiven && !bill.pimoMumbai?.dateReceived
         );
       }
     } else {
@@ -407,10 +452,17 @@ const Dashboard = () => {
       }
       result = result.filter(isWithinDateRange);
     }
-    
+
     result = sortData(result, sortConfig);
     return result;
-  }, [billsData, selectedRegion, sortConfig, isWithinDateRange, showIncomingBills, currentUserRole]);
+  }, [
+    billsData,
+    selectedRegion,
+    sortConfig,
+    isWithinDateRange,
+    showIncomingBills,
+    currentUserRole,
+  ]);
 
   const handleSelectAll = (e) => {
     const isChecked = e.target.checked;
@@ -661,7 +713,9 @@ const Dashboard = () => {
                   </button>
                 )}
 
-                {['site_officer', 'pimo_mumbai', 'accounts'].includes(currentUserRole) && (
+                {["site_officer", "pimo_mumbai", "accounts"].includes(
+                  currentUserRole
+                ) && (
                   <button
                     className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                     onClick={handleChecklist}
@@ -987,7 +1041,7 @@ const Dashboard = () => {
               setSelectedRole(null);
             }}
             selectedBills={selectedRows}
-            billsData={filteredData}  // Changed from billsData to filteredData
+            billsData={filteredData} // Changed from billsData to filteredData
             singleRole={selectedRole}
           />
         </div>
