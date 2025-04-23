@@ -21,7 +21,7 @@ import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnView";
 import { FilterModal } from "../components/dashboard/FilterModal";
 import { SendToModal } from "../components/dashboard/SendToModal";
-import SendBox from "../components/Sendbox";
+import SendBoxModal from "../components/dashboard/SendBoxModal";
 import Loader from "../components/Loader";
 import Cookies from "js-cookie";
 import ImportModal from "../components/dashboard/ImportModal";
@@ -1035,13 +1035,13 @@ const Dashboard = () => {
 
       {isWindowOpen && (
         <div className="fixed inset-0 bg-black/25 backdrop-blur-sm flex justify-center items-center z-[1000]">
-          <SendBox
+          <SendBoxModal
             closeWindow={() => {
               setIsWindowOpen(false);
               setSelectedRole(null);
             }}
             selectedBills={selectedRows}
-            billsData={filteredData} // Changed from billsData to filteredData
+            billsData={filteredData.filter(bill => selectedRows.includes(bill._id))}
             singleRole={selectedRole}
           />
         </div>
