@@ -62,6 +62,10 @@ const LoginPage = () => {
     return roleMap[selectedRole] === userRole;
   };
 
+  const handleForgotPass = () => {
+    navigate('/forgotpass');
+  }
+
   const handleLogin = async () => {
     setEmailError(false);
     setPasswordError(false);
@@ -233,7 +237,7 @@ const LoginPage = () => {
                 </div>
               </div>
 
-              <div className="flex justify-end mt-3">
+              <div className="flex justify-end mt-3" onClick={handleForgotPass}>
                 <p className="text-[#011A99] text-xs sm:text-sm xl:text-base cursor-pointer hover:text-[#021678]">
                   forgot password?
                 </p>

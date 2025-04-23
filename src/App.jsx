@@ -32,6 +32,7 @@ import ChecklistAccount from "./pages/ChecklistAccount";
 import ChecklistAccount2 from "./pages/ChecklistAccount2";
 import ChecklistBillJourney from "./pages/ChecklistBillJourney";
 import UpdatePassword from "./pages/UpdatePassword";
+import ForgotPassword from "./pages/ForgotPassword";
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
         {/* Tailwind Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/updatepass" element={<UpdatePassword />} />
+        <Route path="/forgotpass" element={<ForgotPassword />} />
         <Route path="/" element={<Dashboard />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/fullbill" element={<FullBillDetails />} />
