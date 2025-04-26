@@ -4,6 +4,8 @@ import { importReport } from '../apis/bills.api'
 import axios from 'axios'
 import Cookies from 'js-cookie'
 import { useNavigate } from 'react-router-dom'
+import UserTable from "./UserTable";
+import VendorTable from "./VendorTable";
 
 const Admin = () => {
     const [isAdmin, setIsAdmin] = useState(false)
@@ -12,7 +14,7 @@ const Admin = () => {
     useEffect(() => {
         const userRole = Cookies.get('userRole')
         const token = Cookies.get('token')
-        
+
         if (!userRole || !token) {
             navigate('/login')
             return
@@ -48,8 +50,8 @@ const Admin = () => {
                 <div className="mt-5 p-5">
                     <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
                     <div className="mt-5">
-                        <label 
-                            htmlFor="fileInput" 
+                        <label
+                            htmlFor="fileInput"
                             className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md cursor-pointer transition-colors duration-300 hover:bg-blue-700"
                         >
                             Import Flat File
@@ -67,6 +69,14 @@ const Admin = () => {
                     You are not authorized. This page is only accessible to administrators.
                 </div>
             )}
+
+            {isAdmin &&
+                <div>
+                    <UserTable />
+                    <VendorTable />
+                </div>
+            }
+
         </div>
     )
 }

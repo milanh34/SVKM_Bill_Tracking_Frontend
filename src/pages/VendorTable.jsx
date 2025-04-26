@@ -8,11 +8,9 @@ import Cookies from "js-cookie";
 
 const VendorTable = () => {
     const [vendorData, setVendorData] = useState([]);
+    const [filteredData, setFilteredData] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-
-    // Pagination states
-    const [currentPage, setCurrentPage] = useState(1);
-    const [vendorsPerPage] = useState(10);
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Modal states
     const [showEditModal, setShowEditModal] = useState(false);
@@ -34,6 +32,7 @@ const VendorTable = () => {
                 }
             });
             setVendorData(response.data);
+            setFilteredData(response.data);
         } catch (error) {
             console.error("Error fetching vendors:", error);
         } finally {
@@ -41,13 +40,28 @@ const VendorTable = () => {
         }
     };
 
-    // Pagination logic
-    const indexOfLastVendor = currentPage * vendorsPerPage;
-    const indexOfFirstVendor = indexOfLastVendor - vendorsPerPage;
-    const currentVendors = vendorData.slice(indexOfFirstVendor, indexOfLastVendor);
-    const totalPages = Math.ceil(vendorData.length / vendorsPerPage);
+    // Search functionality
+    useEffect(() => {
+        if (!searchTerm) {
+            setFilteredData(vendorData);
+            return;
+        }
 
-    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+        const lowerSearch = searchTerm.toLowerCase();
+
+        const filtered = vendorData.filter(v => 
+            (v.vendorNo?.toString().toLowerCase().includes(lowerSearch)) ||
+            (v.vendorName?.toLowerCase().includes(lowerSearch)) ||
+            (v.PAN?.toLowerCase().includes(lowerSearch)) ||
+            (v.GSTNumber?.toLowerCase().includes(lowerSearch)) ||
+            (v.complianceStatus?.toLowerCase().includes(lowerSearch)) ||
+            (v.PANStatus?.toLowerCase().includes(lowerSearch)) ||
+            (Array.isArray(v.emailIds) && v.emailIds.join(', ').toLowerCase().includes(lowerSearch)) ||
+            (Array.isArray(v.phoneNumbers) && v.phoneNumbers.join(', ').toLowerCase().includes(lowerSearch))
+        );
+
+        setFilteredData(filtered);
+    }, [searchTerm, vendorData]);
 
     // Modal handlers
     const handleEditClick = (vendor) => {
@@ -83,12 +97,10 @@ const VendorTable = () => {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                credentials: 'include', // Similar to withCredentials in axios
+                credentials: 'include',
                 body: JSON.stringify(editVendor)
             });
 
-            console.log(response);
-            
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
@@ -101,7 +113,6 @@ const VendorTable = () => {
             setEditVendor(null);
         } catch (err) {
             console.error("Edit error:", err);
-            // Add user feedback for error
             alert("Failed to update vendor. Please try again later.");
         } finally {
             setIsLoading(false);
@@ -130,107 +141,82 @@ const VendorTable = () => {
     };
 
     return (
-        <div>
-            <Header />
-            <div className="px-10 py-6">
+        <div className="px-10 py-6">
+
+            <div className="mb-4 flex items-center justify-between">
                 <h1 className="text-xl font-bold text-blue-800 mb-6">List Of Vendors</h1>
-
-                {isLoading ? (
-                    <div className="text-center py-8">
-                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-                        <p className="mt-2 text-gray-600">Loading vendors...</p>
-                    </div>
-                ) : (
-                    <>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full bg-white border border-black-400">
-                                <thead className="bg-gray-200">
-                                    <tr>
-                                        <th className="py-2 px-4 border text-left">Vendor No</th>
-                                        <th className="py-2 px-4 border text-left">Vendor Name</th>
-                                        <th className="py-2 px-4 border text-left">PAN</th>
-                                        <th className="py-2 px-4 border text-left">GST Number</th>
-                                        <th className="py-2 px-4 border text-left">Compliance Status</th>
-                                        <th className="py-2 px-4 border text-left">PAN Status</th>
-                                        <th className="py-2 px-4 border text-left">Emails</th>
-                                        <th className="py-2 px-4 border text-left">Phone Numbers</th>
-                                        <th className="py-2 px-4 border text-left">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {currentVendors.length > 0 ? currentVendors.map(v => (
-                                        <tr key={v._id} className="hover:bg-gray-50">
-                                            <td className="py-2 px-4 border">{v.vendorNo}</td>
-                                            <td className="py-2 px-4 border">{v.vendorName}</td>
-                                            <td className="py-2 px-4 border">{v.PAN}</td>
-                                            <td className="py-2 px-4 border">{v.GSTNumber}</td>
-                                            <td className="py-2 px-4 border">{v.complianceStatus}</td>
-                                            <td className="py-2 px-4 border">{v.PANStatus}</td>
-                                            <td className="py-2 px-4 border">{v.emailIds.join(', ')}</td>
-                                            <td className="py-2 px-4 border">{v.phoneNumbers.join(', ')}</td>
-                                            <td className="py-2 px-4 border">
-                                                <div className="flex space-x-2">
-                                                    <button
-                                                        onClick={() => handleEditClick(v)}
-                                                        className="bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded text-sm"
-                                                    >
-                                                        <img src={pen} alt="edit" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteClick(v)}
-                                                        className="bg-red-500 hover:bg-red-600 text-white py-1 px-2 rounded text-sm"
-                                                    >
-                                                        <img src={bin} alt="delete" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )) : (
-                                        <tr>
-                                            <td colSpan="9" className="text-center py-4 text-gray-500">No vendors found</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Pagination Controls */}
-                        <div className="flex justify-between items-center mt-4">
-                            <div className="text-sm text-gray-600">
-                                Showing {indexOfFirstVendor + 1} to {Math.min(indexOfLastVendor, vendorData.length)} of {vendorData.length} vendors
-                            </div>
-                            <div className="flex space-x-1">
-                                <button
-                                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                                    disabled={currentPage === 1}
-                                    className={`px-3 py-1 rounded ${currentPage === 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-                                >
-                                    Prev
-                                </button>
-
-                                {[...Array(totalPages).keys()].map(number => (
-                                    <button
-                                        key={number + 1}
-                                        onClick={() => paginate(number + 1)}
-                                        className={`px-3 py-1 rounded ${currentPage === number + 1 ? 'bg-blue-700 text-white' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-                                    >
-                                        {number + 1}
-                                    </button>
-                                ))}
-
-                                <button
-                                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                                    disabled={currentPage === totalPages}
-                                    className={`px-3 py-1 rounded ${currentPage === totalPages ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        </div>
-                    </>
-                )}
+                <input
+                    type="text"
+                    placeholder="Search vendors..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="border border-gray-300 rounded-lg py-2 px-4 w-[80%] focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
             </div>
 
+            {isLoading ? (
+                <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+                    <p className="mt-2 text-gray-600">Loading vendors...</p>
+                </div>
+            ) : (
+                <div className="overflow-x-auto">
+                    <div className="max-h-[500px] overflow-y-auto border rounded-lg">
+                        <table className="min-w-full bg-white">
+                            <thead className="bg-gray-200 sticky top-0">
+                                <tr>
+                                    <th className="py-2 px-4 border text-left">Vendor No</th>
+                                    <th className="py-2 px-4 border text-left">Vendor Name</th>
+                                    <th className="py-2 px-4 border text-left">PAN</th>
+                                    <th className="py-2 px-4 border text-left">GST Number</th>
+                                    <th className="py-2 px-4 border text-left">Compliance Status</th>
+                                    <th className="py-2 px-4 border text-left">PAN Status</th>
+                                    <th className="py-2 px-4 border text-left">Emails</th>
+                                    <th className="py-2 px-4 border text-left">Phone Numbers</th>
+                                    <th className="py-2 px-4 border text-left">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredData.length > 0 ? filteredData.map(v => (
+                                    <tr key={v._id} className="hover:bg-gray-50">
+                                        <td className="py-2 px-4 border">{v.vendorNo}</td>
+                                        <td className="py-2 px-4 border">{v.vendorName}</td>
+                                        <td className="py-2 px-4 border">{v.PAN}</td>
+                                        <td className=" py-2 px-4 border">{v.GSTNumber}</td>
+                                        <td className="py-2 px-4 border">{v.complianceStatus}</td>
+                                        <td className="py-2 px-4 border">{v.PANStatus}</td>
+                                        <td className="py-2 px-4 border">{v.emailIds?.join(', ')}</td>
+                                        <td className="py-2 px-4 border">{v.phoneNumbers?.join(', ')}</td>
+                                        <td className="py-2 px-4 border">
+                                            <div className="flex space-x-1">
+                                                <button
+                                                    
+                                                    onClick={() => handleEditClick(v)}
+                                                    className="bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded cursor-pointer"
+                                                >
+                                                    <img src={pen} alt="edit" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteClick(v)}
+                                                    className="bg-red-500 hover:bg-red-600 text-white py-1 px-2 rounded cursor-pointer"
+                                                >
+                                                    <img src={bin} alt="delete" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )) : (
+                                    <tr>
+                                        <td colSpan="9" className="text-center py-4 text-gray-500">No vendors found</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {/* Your Modals will stay same, below */}
             {/* Edit Modal */}
             {showEditModal && (
                 <div className="fixed inset-0 bg-transparent backdrop-blur-[10px] bg-opacity-50 flex items-center justify-center z-50">
