@@ -12,7 +12,6 @@ const Header = () => {
   const menuItems = [
     { name: "Home", path: "/", allowedRoles: ['all'] },
     { name: "Create Bill", path: "/create-bill", allowedRoles: ['site_officer', 'admin'] },
-    { name: "Checklist", path: "/checklist", allowedRoles: ['all'] },
     { name: "Reports", path: "/reports", allowedRoles: ['all'] },
     { name: "Paid Bills", path: "/paidbills", allowedRoles: ['admin', 'director', 'accounts'] },
     { name: "Admin", path: "/admin", allowedRoles: ['admin'] },
@@ -100,10 +99,10 @@ const Header = () => {
             ))}
           </div>
           <div className="inline-flex items-center gap-2 px-2 sm:px-4 md:px-6 py-1 shrink-0">
-            <div className="w-40 min-w-[120px]">
+            <div className="min-w-[120px]">
               <select 
                 className="w-full bg-[#011a99] outline-none text-white rounded-2xl font-medium 
-                text-xs sm:text-sm appearance-none px-2 py-1 hover:bg-[#011889] cursor-pointer"
+                text-xs sm:text-sm appearance-none pr-6 px-2 py-1 hover:bg-[#011889] cursor-pointer"
               onChange={handleRoleChange}
                 defaultValue=""
                 style={{
@@ -112,7 +111,7 @@ const Header = () => {
                   backgroundPosition: 'right 8px center'
                 }}
               >
-                <option value="" disabled hidden>Switch Role</option>
+                <option value="" disabled hidden>{roles.find(r => r.value === Object.keys(roleMap).find(key => roleMap[key] === Cookies.get('userRole')))?.label}</option>
                 {roles.map((role) => (
                   <option key={role.value} value={role.value} className="bg-white text-black">
                     {role.label}
