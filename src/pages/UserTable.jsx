@@ -217,7 +217,7 @@ const UserTable = () => {
                                     className="w-full p-2 border rounded"
                                 >
                                     <option value="admin">Admin</option>
-                                    <option value="site_officer">Site Officer</option>
+                                    <option value="site_officer">Site Team</option>
                                     <option value="project_manager">Project Manager</option>
                                 </select>
                             </div>

@@ -8,7 +8,7 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
     const [showToast, setShowToast] = useState(false);
 
     const roles = [
-        { value: "Site_Officer", label: "Site Officer" },
+        { value: "Site_Officer", label: "Site Team" },
         { value: "QS_Team", label: "QS Team" },
         { value: "PIMO_Mumbai_&_MIGO/SES_Team", label: "PIMO Mumbai & MIGO/SES Team" },
         { value: "PIMO_Mumbai_for_Advance_&_FI_Entry", label: "PIMO Mumbai for Advance & FI Entry" },
