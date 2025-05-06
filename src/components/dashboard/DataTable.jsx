@@ -54,6 +54,22 @@ const DataTable = ({
     };
   }, []);
 
+  useEffect(() => {
+    const handleGlobalEscape = (event) => {
+      if (event.key === 'Escape' && editingRow) {
+        setEditingRow(null);
+        setEditedValues(prev => {
+          const newValues = { ...prev };
+          delete newValues[editingRow];
+          return newValues;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalEscape);
+    return () => window.removeEventListener('keydown', handleGlobalEscape);
+  }, [editingRow]);
+
   const visibleColumns = useMemo(() => {
     return availableColumns.filter((col) =>
       visibleColumnFields.includes(col.field)
@@ -97,17 +113,6 @@ const DataTable = ({
   };
 
   const isDateField = (field) => {
-    // const dateIndicators = [
-    //   'date', 'Date', 'Dt', '_dt',
-    //   'Recd', 'Given', 'Dispatch',
-    //   'Payment',
-    //   'advance', 'Advance', 'Returned',
-    //   'Booking', 'Check',
-    //   'invReturnedToSite',
-    //   'invBookingChecking',
-    //   'dateGiven', 'dateReceived',
-    //   'returnedToPimo', 'receivedBack'
-    // ];
     const dateIndicators = [
       'taxInvDate', 'poDate', 'proformaInvDate', 'taxInvRecdAtSite', 'advanceDate', 'Date', 'invReturnedToSite', 'dateReceived'
     ];
@@ -611,6 +616,18 @@ const DataTable = ({
             type={inputType}
             value={editedValue !== undefined ? editedValue : (value || '')}
             onChange={(e) => handleCellEdit(column.field, e.target.value, row._id)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                setEditingRow(null);
+                setEditedValues(prev => {
+                  const newValues = { ...prev };
+                  delete newValues[row._id];
+                  return newValues;
+                });
+              }
+            }}
             className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
