@@ -286,7 +286,6 @@ export const handleExportAllReports = async (
                       table {
                         width: 100%;
                         border-collapse: collapse;
-                        
                       }
                       thead {
                         background-color: #f2f2f2;
@@ -294,6 +293,7 @@ export const handleExportAllReports = async (
                       th {
                         background-color: #f8f9fa;
                         color: #000000;
+                        font-size: 14px;
                         font-weight: bold;
                         text-align: center;
                         padding: 8px;
@@ -301,6 +301,7 @@ export const handleExportAllReports = async (
                       }
                       td {
                         padding: 8px;
+                        font-size: 10.5px;
                         border: 1px solid #ddd;
                         text-align: left;
                       }
