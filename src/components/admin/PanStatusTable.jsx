@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { EditIcon, CheckIcon } from '../dashboard/Icons';
 import axios from 'axios';
-import { compliances } from '../../apis/master.api';
+import { panstatus } from '../../apis/master.api';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Cookies from 'js-cookie';
 
-const ComplianceTable = () => {
-    const [complianceData, setComplianceData] = useState([]);
+const PanStatusTable = () => {
+    const [panStatusData, setPanStatusData] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -16,32 +16,30 @@ const ComplianceTable = () => {
 
     // Modal states
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [complianceToDelete, setComplianceToDelete] = useState(null);
+    const [statusToDelete, setStatusToDelete] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
-    const [newCompliance, setNewCompliance] = useState({
-        compliance206AB: ''
+    const [newStatus, setNewStatus] = useState({
+        name: ''
     });
 
-    // Fetch compliances on component mount
+    // Fetch pan statuses on component mount
     useEffect(() => {
-        fetchCompliances();
+        fetchPanStatuses();
     }, []);
 
-    const fetchCompliances = async () => {
+    const fetchPanStatuses = async () => {
         setIsLoading(true);
         try {
             const token = Cookies.get("token");
-            const response = await axios.get(compliances, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+            const response = await axios.get(panstatus, {
+                headers: { Authorization: `Bearer ${token}` }
             });
-            console.log("Compliance data:", response.data);
-            setComplianceData(response.data);
+            console.log("Fetched PAN statuses:", response.data);
+            setPanStatusData(response.data);
             setFilteredData(response.data);
         } catch (error) {
-            console.error("Error fetching compliances:", error);
-            toast.error('Failed to fetch compliances');
+            console.error("Error fetching PAN statuses:", error);
+            toast.error('Failed to fetch PAN statuses');
         } finally {
             setIsLoading(false);
         }
@@ -49,19 +47,13 @@ const ComplianceTable = () => {
 
     // Search functionality
     useEffect(() => {
-        if (!searchTerm) {
-            setFilteredData(complianceData);
-            return;
-        }
-
-        const filtered = complianceData.filter(compliance =>
-            Object.values(compliance)
-                .join(' ')
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase())
-        );
+        const filtered = !searchTerm 
+            ? panStatusData 
+            : panStatusData.filter(status =>
+                Object.values(status).join(' ').toLowerCase().includes(searchTerm.toLowerCase())
+            );
         setFilteredData(filtered);
-    }, [searchTerm, complianceData]);
+    }, [searchTerm, panStatusData]);
 
     // Escape key handler
     useEffect(() => {
@@ -86,69 +78,60 @@ const ComplianceTable = () => {
         setIsLoading(true);
         try {
             const token = Cookies.get("token");
-            const response = await axios.post(compliances, newCompliance, {
+            const response = await axios.post(panstatus, newStatus, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-
-            fetchCompliances();
+            fetchPanStatuses();
             setShowAddModal(false);
-            setNewCompliance({ compliance206AB: '' });
-            toast.success(`Compliance "${newCompliance.compliance206AB}" added successfully!`);
+            setNewStatus({ name: '' });
+            toast.success('PAN status added successfully!');
         } catch (err) {
             console.error("Add error:", err);
-            toast.error('Failed to add compliance');
+            toast.error('Failed to add PAN status');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleEditClick = (compliance) => {
-        if (editingRow === compliance._id) {
-            const editedFieldsForRow = editedValues[compliance._id];
+    const handleEditClick = (status) => {
+        if (editingRow === status._id) {
+            const editedFieldsForRow = editedValues[status._id];
             if (!editedFieldsForRow) {
                 setEditingRow(null);
                 return;
             }
 
-            const payload = { ...editedFieldsForRow };
-            delete payload._id;
-
-            if (Object.keys(payload).length > 0) {
-                const token = Cookies.get("token");
-                axios.put(`${compliances}/${compliance._id}`, payload, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => {
-                    const updated = complianceData.map(c =>
-                        c._id === compliance._id ? { ...c, ...response.data } : c
-                    );
-                    fetchCompliances();
-                    toast.success('Compliance updated successfully!');
-                })
-                .catch(error => {
-                    console.error("Edit error:", error);
-                    toast.error('Failed to update compliance');
-                })
-                .finally(() => {
-                    setEditingRow(null);
-                    setEditedValues(prev => {
-                        const newValues = { ...prev };
-                        delete newValues[compliance._id];
-                        return newValues;
-                    });
+            const token = Cookies.get("token");
+            axios.put(`${panstatus}/${status._id}`, editedFieldsForRow, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(() => {
+                fetchPanStatuses();
+                toast.success('PAN status updated successfully!');
+            })
+            .catch(error => {
+                console.error("Edit error:", error);
+                toast.error('Failed to update PAN status');
+            })
+            .finally(() => {
+                setEditingRow(null);
+                setEditedValues(prev => {
+                    const newValues = { ...prev };
+                    delete newValues[status._id];
+                    return newValues;
                 });
-            }
+            });
         } else {
-            setEditingRow(compliance._id);
+            setEditingRow(status._id);
             setEditedValues(prev => ({
                 ...prev,
-                [compliance._id]: {}
+                [status._id]: {}
             }));
         }
     };
@@ -157,23 +140,24 @@ const ComplianceTable = () => {
         setIsLoading(true);
         try {
             const token = Cookies.get("token");
-            await axios.delete(`${compliances}/${complianceToDelete._id}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+            await axios.delete(`${panstatus}/${statusToDelete._id}`, {
+                headers: { Authorization: `Bearer ${token}` }
             });
-
-            fetchCompliances();
+            fetchPanStatuses();
             setShowDeleteModal(false);
-            setComplianceToDelete(null);
-            toast.success(`Compliance "${complianceToDelete.compliance206AB}" deleted successfully!`);
+            setStatusToDelete(null);
+            toast.success('PAN status deleted successfully!');
         } catch (err) {
             console.error("Delete error:", err);
-            toast.error('Failed to delete compliance');
+            toast.error('Failed to delete PAN status');
         } finally {
             setIsLoading(false);
         }
     };
+
+    const columns = [
+        { field: 'name', headerName: 'Particulars' }
+    ];
 
     const handleCellEdit = (field, value, rowId) => {
         setEditedValues(prev => ({
@@ -185,21 +169,17 @@ const ComplianceTable = () => {
         }));
     };
 
-    const columns = [
-        { field: 'compliance206AB', headerName: 'Particulars' }
-    ];
-
-    const renderCell = (compliance, column) => {
-        const isEditing = editingRow === compliance._id;
-        const value = compliance[column.field];
-        const editedValue = editedValues[compliance._id]?.[column.field];
+    const renderCell = (status, column) => {
+        const isEditing = editingRow === status._id;
+        const value = status[column.field];
+        const editedValue = editedValues[status._id]?.[column.field];
 
         if (isEditing) {
             return (
                 <input
                     type="text"
                     value={editedValue !== undefined ? editedValue : (value || '')}
-                    onChange={(e) => handleCellEdit(column.field, e.target.value, compliance._id)}
+                    onChange={(e) => handleCellEdit(column.field, e.target.value, status._id)}
                     className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
             );
@@ -211,12 +191,12 @@ const ComplianceTable = () => {
     const AddModalContent = () => (
         <form onSubmit={handleAddSubmit} className="space-y-4">
             <div>
-                <label className="block text-sm font-medium text-gray-700">Compliance 206AB</label>
+                <label className="block text-sm font-medium text-gray-700">PAN Status Name</label>
                 <input
                     type="text"
-                    value={newCompliance.compliance206AB}
-                    onChange={(e) => setNewCompliance({
-                        compliance206AB: e.target.value
+                    value={newStatus.name}
+                    onChange={(e) => setNewStatus({
+                        name: e.target.value
                     })}
                     className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     required
@@ -237,7 +217,7 @@ const ComplianceTable = () => {
                     className="px-4 py-2 bg-[#364cbb] hover:bg-[#364cdd] text-white rounded-md cursor-pointer"
                     disabled={isLoading}
                 >
-                    {isLoading ? 'Adding...' : 'Add Compliance'}
+                    {isLoading ? 'Adding...' : 'Add Status'}
                 </button>
             </div>
         </form>
@@ -245,15 +225,14 @@ const ComplianceTable = () => {
 
     return (
         <div className="relative w-full flex flex-col border border-gray-200 rounded-lg">
-        <ToastContainer />
-            {/* Header */}
+            <ToastContainer />
             <div className="p-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-xl font-bold text-gray-800">Compliance Management</h1>
+                    <h1 className="text-xl font-bold text-gray-800">PAN Status Management</h1>
                     <div className="flex items-center gap-4">
                         <input
                             type="text"
-                            placeholder="Search compliances..."
+                            placeholder="Search PAN status..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-[300px] p-2 border border-gray-300 rounded-md focus:outline-none"
@@ -262,13 +241,12 @@ const ComplianceTable = () => {
                             onClick={() => setShowAddModal(true)}
                             className="bg-[#364cbb] hover:bg-[#364cdd] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
                         >
-                            Add Compliance
+                            Add PAN Status
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* Table */}
             <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-250px)] scrollbar-thin scrollbar-thumb-gray-300">
                 <table className="w-full border-collapse">
                     <thead>
@@ -293,25 +271,25 @@ const ComplianceTable = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
-                        {filteredData.map((compliance, index) => (
-                            <tr key={compliance._id} className="hover:bg-gray-50">
+                        {filteredData.map((status, index) => (
+                            <tr key={status._id} className="hover:bg-gray-50">
                                 <td className="sticky left-0 z-30 px-4 py-3 text-sm text-gray-900 bg-white whitespace-nowrap">
                                     <div className="absolute inset-0 bg-white border-b border-r-2 border-gray-200"></div>
                                     <div className="relative z-[31]">{index + 1}</div>
                                 </td>
                                 {columns.map(column => (
                                     <td key={column.field} className="px-4 py-3 text-sm text-gray-900 border-b border-r border-gray-200 whitespace-nowrap">
-                                        {renderCell(compliance, column)}
+                                        {renderCell(status, column)}
                                     </td>
                                 ))}
                                 <td className="sticky right-0 z-30 px-4 py-3 text-sm text-gray-900 bg-white">
                                     <div className="absolute inset-0 bg-white border-b border-l-2 border-gray-200"></div>
                                     <div className="relative z-[31] flex justify-center space-x-2">
                                         <button
-                                            onClick={() => handleEditClick(compliance)}
-                                            className={`${editingRow === compliance._id ? 'text-green-600 hover:text-green-800' : 'text-blue-600 hover:text-blue-800 cursor-pointer'}`}
+                                            onClick={() => handleEditClick(status)}
+                                            className={`${editingRow === status._id ? 'text-green-600 hover:text-green-800' : 'text-blue-600 hover:text-blue-800 cursor-pointer'}`}
                                         >
-                                            {editingRow === compliance._id ? (
+                                            {editingRow === status._id ? (
                                                 <CheckIcon className="w-5 h-5 cursor-pointer" />
                                             ) : (
                                                 <EditIcon className="w-5 h-5" />
@@ -320,7 +298,7 @@ const ComplianceTable = () => {
                                         {!editingRow && (
                                             <button
                                                 onClick={() => {
-                                                    setComplianceToDelete(compliance);
+                                                    setStatusToDelete(status);
                                                     setShowDeleteModal(true);
                                                 }}
                                                 className="text-red-600 hover:text-red-800 cursor-pointer"
@@ -338,12 +316,11 @@ const ComplianceTable = () => {
                 </table>
             </div>
 
-            {/* Add Modal */}
             {showAddModal && (
                 <div className="fixed inset-0 bg-gray-300/50 backdrop-blur-[10px] flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-4 w-full max-w-md">
                         <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-lg font-bold">Add New Compliance</h2>
+                            <h2 className="text-lg font-bold">Add New PAN Status</h2>
                             <button onClick={() => setShowAddModal(false)} className="text-gray-600 hover:text-gray-800 cursor-pointer">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -355,7 +332,6 @@ const ComplianceTable = () => {
                 </div>
             )}
 
-            {/* Delete Modal */}
             {showDeleteModal && (
                 <div className="fixed inset-0 bg-gray-300/50 backdrop-blur-[10px] flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-6 w-full max-w-md">
@@ -366,7 +342,7 @@ const ComplianceTable = () => {
 
                             <h3 className="text-xl font-bold mb-2">Confirm Delete</h3>
                             <p className="text-gray-600 mb-6">
-                                Are you sure you want to delete compliance "{complianceToDelete?.compliance206AB}"? This action cannot be undone.
+                                Are you sure you want to delete PAN status "{statusToDelete?.name}"? This action cannot be undone.
                             </p>
 
                             <div className="flex justify-center space-x-3">
@@ -392,4 +368,4 @@ const ComplianceTable = () => {
     );
 };
 
-export default ComplianceTable;
+export default PanStatusTable;

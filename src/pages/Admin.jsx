@@ -8,6 +8,7 @@ import UserTable from "../components/admin/UserTable";
 import VendorTable from "../components/admin/VendorTable";
 import ComplianceTable from '../components/admin/ComplianceTable';
 import AdminBtns from '../components/admin/AdminBtns';
+import PanStatusTable from "../components/admin/PanStatusTable";
 
 const Admin = () => {
     const [isAdmin, setIsAdmin] = useState(false)
@@ -54,7 +55,8 @@ const Admin = () => {
                 return <VendorTable />;
             case 'compliances':
                 return <ComplianceTable />;
-            // Add more cases for other tables as they are created
+            case 'panstatus':
+                return <PanStatusTable />;
             default:
                 return <div className="text-center mt-4">Table component not yet implemented</div>;
         }
