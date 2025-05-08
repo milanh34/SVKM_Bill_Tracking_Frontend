@@ -310,7 +310,63 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
             const generateHTMLFromExcel = (workbook) => {
                 // Convert Excel to HTML format
                 const htmlOptions = {
-                    header: "<html><head><style>table { border-collapse: collapse; width: 100%; } th, td { font-size: 10.5px; border: 1px solid #ddd; padding: 8px; } th { font-size: 14px; background-color: #f8f9fa; color: black; } .timestamp { font-weight: bold; font-style: italic; padding: 15px; padding-right: 4px;} .count-row { background-color: #F8F9FA; font-weight: bold; } .total-row { background-color: #E9ECEF; font-weight: bold; } .report-header { background-color: #D3D3D3; margin-bottom: 0px; display: flex; justify-content: space-between; } .report-title {  font-size: 24px;  font-weight: bold; text-align: left; padding: 15px; }</style></head><body>",
+                    header: `<html><head><style>
+                    @media print{
+                        table { 
+                            page-break-inside: auto; 
+                        } 
+                        tr {
+                            page-break-inside: avoid; 
+                            page-break-after: auto; 
+                        }
+                        thead { display: table-header-group; }
+                    tfoot { display: table-footer-group; }
+                    .no-break { page-break-inside: avoid; }
+                    .page-break { page-break-before: always; }
+                    .report-header { page-break-after: avoid; }
+                    }
+                    table {
+                        border-collapse: collapse; 
+                        width: 100%;
+                    }
+                    th, td { 
+                        font-size: 10.5px; 
+                        border: 1px solid #ddd; 
+                        padding: 8px; 
+                    } 
+                    th { 
+                        font-size: 14px; 
+                        background-color: #f8f9fa; 
+                        color: black; 
+                    } 
+                    .timestamp { 
+                        font-weight: bold; 
+                        font-style: italic; 
+                        padding: 15px; 
+                        padding-right: 4px;
+                    } 
+                    .count-row { 
+                        background-color: #F8F9FA; 
+                        font-weight: bold; 
+                    } 
+                    .total-row { 
+                        background-color: #E9ECEF; 
+                        font-weight: bold;
+                    } 
+                    .report-header { 
+                        background-color: #D3D3D3;
+                        margin-bottom: 0px; 
+                        display: flex; 
+                        justify-content: space-between; 
+                    } 
+                    .report-title {  
+                        font-size: 24px;  
+                        font-weight: bold; 
+                        text-align: left; 
+                        padding: 15px; 
+                    }
+                    
+                    </style></head><body>`,
                     footer: "</body></html>"
                 };
 

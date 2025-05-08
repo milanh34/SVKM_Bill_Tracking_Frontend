@@ -312,6 +312,7 @@ export const handleExportAllReports = async (
                         // background-color: #EADDCA;
                         background-color: #D3D3D3;
                         margin-bottom: 0px;
+                        display: table-header-group;
                         display: flex;
                         justify-content: space-between;
                       }
