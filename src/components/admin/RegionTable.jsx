@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { EditIcon, CheckIcon } from '../dashboard/Icons';
 import axios from 'axios';
-import { panstatus } from '../../apis/master.api';
+import { regions } from '../../apis/master.api';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Cookies from 'js-cookie';
 
-const PanStatusTable = () => {
-    const [panStatusData, setPanStatusData] = useState([]);
+const RegionTable = () => {
+    const [regionData, setRegionData] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -16,30 +16,30 @@ const PanStatusTable = () => {
 
     // Modal states
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [statusToDelete, setStatusToDelete] = useState(null);
+    const [regionToDelete, setRegionToDelete] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
-    const [newStatus, setNewStatus] = useState({
+    const [newRegion, setNewRegion] = useState({
         name: ''
     });
 
-    // Fetch pan statuses on component mount
+    // Fetch regions on component mount
     useEffect(() => {
-        fetchPanStatuses();
+        fetchRegions();
     }, []);
 
-    const fetchPanStatuses = async () => {
+    const fetchRegions = async () => {
         setIsLoading(true);
         try {
             const token = Cookies.get("token");
-            const response = await axios.get(panstatus, {
+            const response = await axios.get(regions, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            console.log("Fetched PAN statuses:", response.data);
-            setPanStatusData(response.data);
+            console.log("Fetched regions:", response.data);
+            setRegionData(response.data);
             setFilteredData(response.data);
         } catch (error) {
-            console.error("Error fetching PAN statuses:", error);
-            toast.error('Failed to fetch PAN statuses');
+            console.error("Error fetching regions:", error);
+            toast.error('Failed to fetch regions');
         } finally {
             setIsLoading(false);
         }
@@ -48,12 +48,12 @@ const PanStatusTable = () => {
     // Search functionality
     useEffect(() => {
         const filtered = !searchTerm 
-            ? panStatusData 
-            : panStatusData.filter(status =>
-                Object.values(status).join(' ').toLowerCase().includes(searchTerm.toLowerCase())
+            ? regionData 
+            : regionData.filter(region =>
+                Object.values(region).join(' ').toLowerCase().includes(searchTerm.toLowerCase())
             );
         setFilteredData(filtered);
-    }, [searchTerm, panStatusData]);
+    }, [searchTerm, regionData]);
 
     // Escape key handler
     useEffect(() => {
@@ -78,60 +78,60 @@ const PanStatusTable = () => {
         setIsLoading(true);
         try {
             const token = Cookies.get("token");
-            const response = await axios.post(panstatus, newStatus, {
+            await axios.post(regions, newRegion, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-            fetchPanStatuses();
+            fetchRegions();
             setShowAddModal(false);
-            setNewStatus({ name: '' });
-            toast.success(`PAN status "${newStatus.name.toUpperCase()}" added successfully!`);
+            setNewRegion({ name: '' });
+            toast.success(`Region "${newRegion.name.toUpperCase()}" added successfully!`);
         } catch (err) {
             console.error("Add error:", err);
-            toast.error('Failed to add PAN status');
+            toast.error(err.response?.data?.error || 'Failed to add region');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleEditClick = (status) => {
-        if (editingRow === status._id) {
-            const editedFieldsForRow = editedValues[status._id];
+    const handleEditClick = (region) => {
+        if (editingRow === region._id) {
+            const editedFieldsForRow = editedValues[region._id];
             if (!editedFieldsForRow) {
                 setEditingRow(null);
                 return;
             }
 
             const token = Cookies.get("token");
-            axios.put(`${panstatus}/${status._id}`, editedFieldsForRow, {
+            axios.put(`${regions}/${region._id}`, editedFieldsForRow, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             })
             .then(() => {
-                fetchPanStatuses();
-                toast.success('PAN status updated successfully!');
+                fetchRegions();
+                toast.success('Region updated successfully!');
             })
             .catch(error => {
                 console.error("Edit error:", error);
-                toast.error('Failed to update PAN status');
+                toast.error(error.response?.data?.error || 'Failed to update region');
             })
             .finally(() => {
                 setEditingRow(null);
                 setEditedValues(prev => {
                     const newValues = { ...prev };
-                    delete newValues[status._id];
+                    delete newValues[region._id];
                     return newValues;
                 });
             });
         } else {
-            setEditingRow(status._id);
+            setEditingRow(region._id);
             setEditedValues(prev => ({
                 ...prev,
-                [status._id]: {}
+                [region._id]: {}
             }));
         }
     };
@@ -140,24 +140,20 @@ const PanStatusTable = () => {
         setIsLoading(true);
         try {
             const token = Cookies.get("token");
-            await axios.delete(`${panstatus}/${statusToDelete._id}`, {
+            await axios.delete(`${regions}/${regionToDelete._id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            fetchPanStatuses();
+            fetchRegions();
             setShowDeleteModal(false);
-            setStatusToDelete(null);
-            toast.success(`PAN status "${statusToDelete.name}" deleted successfully!`);
+            setRegionToDelete(null);
+            toast.success(`Region "${regionToDelete.name}" deleted successfully!`);
         } catch (err) {
             console.error("Delete error:", err);
-            toast.error('Failed to delete PAN status');
+            toast.error(err.response?.data?.error || 'Failed to delete region');
         } finally {
             setIsLoading(false);
         }
     };
-
-    const columns = [
-        { field: 'name', headerName: 'Particulars' }
-    ];
 
     const handleCellEdit = (field, value, rowId) => {
         setEditedValues(prev => ({
@@ -169,17 +165,21 @@ const PanStatusTable = () => {
         }));
     };
 
-    const renderCell = (status, column) => {
-        const isEditing = editingRow === status._id;
-        const value = status[column.field];
-        const editedValue = editedValues[status._id]?.[column.field];
+    const columns = [
+        { field: 'name', headerName: 'Region' }
+    ];
+
+    const renderCell = (region, column) => {
+        const isEditing = editingRow === region._id;
+        const value = region[column.field];
+        const editedValue = editedValues[region._id]?.[column.field];
 
         if (isEditing) {
             return (
                 <input
                     type="text"
                     value={editedValue !== undefined ? editedValue : (value || '')}
-                    onChange={(e) => handleCellEdit(column.field, e.target.value, status._id)}
+                    onChange={(e) => handleCellEdit(column.field, e.target.value, region._id)}
                     className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
             );
@@ -191,11 +191,11 @@ const PanStatusTable = () => {
     const AddModalContent = () => (
         <form onSubmit={handleAddSubmit} className="space-y-4">
             <div>
-                <label className="block text-sm font-medium text-gray-700">PAN Status Name</label>
+                <label className="block text-sm font-medium text-gray-700">Region Name</label>
                 <input
                     type="text"
-                    value={newStatus.name}
-                    onChange={(e) => setNewStatus({
+                    value={newRegion.name}
+                    onChange={(e) => setNewRegion({
                         name: e.target.value
                     })}
                     className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -217,7 +217,7 @@ const PanStatusTable = () => {
                     className="px-4 py-2 bg-[#364cbb] hover:bg-[#364cdd] text-white rounded-md cursor-pointer"
                     disabled={isLoading}
                 >
-                    {isLoading ? 'Adding...' : 'Add Status'}
+                    {isLoading ? 'Adding...' : 'Add Region'}
                 </button>
             </div>
         </form>
@@ -228,11 +228,11 @@ const PanStatusTable = () => {
             <ToastContainer />
             <div className="p-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-xl font-bold text-gray-800">PAN Status Management</h1>
+                    <h1 className="text-xl font-bold text-gray-800">Region Management</h1>
                     <div className="flex items-center gap-4">
                         <input
                             type="text"
-                            placeholder="Search PAN status..."
+                            placeholder="Search regions..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-[300px] p-2 border border-gray-300 rounded-md focus:outline-none"
@@ -241,7 +241,7 @@ const PanStatusTable = () => {
                             onClick={() => setShowAddModal(true)}
                             className="bg-[#364cbb] hover:bg-[#364cdd] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
                         >
-                            Add PAN Status
+                            Add Region
                         </button>
                     </div>
                 </div>
@@ -271,25 +271,25 @@ const PanStatusTable = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
-                        {filteredData.map((status, index) => (
-                            <tr key={status._id} className="hover:bg-gray-50">
+                        {filteredData.map((region, index) => (
+                            <tr key={region._id} className="hover:bg-gray-50">
                                 <td className="sticky left-0 z-30 px-4 py-3 text-sm text-gray-900 bg-white whitespace-nowrap">
                                     <div className="absolute inset-0 bg-white border-b border-r-2 border-gray-200"></div>
                                     <div className="relative z-[31]">{index + 1}</div>
                                 </td>
                                 {columns.map(column => (
                                     <td key={column.field} className="px-4 py-3 text-sm text-gray-900 border-b border-r border-gray-200 whitespace-nowrap">
-                                        {renderCell(status, column)}
+                                        {renderCell(region, column)}
                                     </td>
                                 ))}
                                 <td className="sticky right-0 z-30 px-4 py-3 text-sm text-gray-900 bg-white">
                                     <div className="absolute inset-0 bg-white border-b border-l-2 border-gray-200"></div>
                                     <div className="relative z-[31] flex justify-center space-x-2">
                                         <button
-                                            onClick={() => handleEditClick(status)}
-                                            className={`${editingRow === status._id ? 'text-green-600 hover:text-green-800' : 'text-blue-600 hover:text-blue-800 cursor-pointer'}`}
+                                            onClick={() => handleEditClick(region)}
+                                            className={`${editingRow === region._id ? 'text-green-600 hover:text-green-800' : 'text-blue-600 hover:text-blue-800 cursor-pointer'}`}
                                         >
-                                            {editingRow === status._id ? (
+                                            {editingRow === region._id ? (
                                                 <CheckIcon className="w-5 h-5 cursor-pointer" />
                                             ) : (
                                                 <EditIcon className="w-5 h-5" />
@@ -298,7 +298,7 @@ const PanStatusTable = () => {
                                         {!editingRow && (
                                             <button
                                                 onClick={() => {
-                                                    setStatusToDelete(status);
+                                                    setRegionToDelete(region);
                                                     setShowDeleteModal(true);
                                                 }}
                                                 className="text-red-600 hover:text-red-800 cursor-pointer"
@@ -320,7 +320,7 @@ const PanStatusTable = () => {
                 <div className="fixed inset-0 bg-gray-300/50 backdrop-blur-[10px] flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-4 w-full max-w-md">
                         <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-lg font-bold">Add New PAN Status</h2>
+                            <h2 className="text-lg font-bold">Add New Region</h2>
                             <button onClick={() => setShowAddModal(false)} className="text-gray-600 hover:text-gray-800 cursor-pointer">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -342,7 +342,7 @@ const PanStatusTable = () => {
 
                             <h3 className="text-xl font-bold mb-2">Confirm Delete</h3>
                             <p className="text-gray-600 mb-6">
-                                Are you sure you want to delete PAN status "{statusToDelete?.name}"? This action cannot be undone.
+                                Are you sure you want to delete region "{regionToDelete?.name}"? This action cannot be undone.
                             </p>
 
                             <div className="flex justify-center space-x-3">
@@ -368,4 +368,4 @@ const PanStatusTable = () => {
     );
 };
 
-export default PanStatusTable;
+export default RegionTable;
