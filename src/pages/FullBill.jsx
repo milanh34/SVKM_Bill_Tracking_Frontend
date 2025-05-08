@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Header from '../components/Header';
 import { bills } from "../apis/bills.api";
-import { vendors } from "../apis/vendor.api";
+import { natureOfWorks, vendors, regions, currencies } from "../apis/master.api";
 import imageBox from "../assets/img-box.svg";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -47,6 +47,9 @@ const FullBillDetails = () => {
     amount: "",
   });
   const [vendorsData, setVendorsData] = useState([]);
+  const [natureOfWorkOptions, setNatureOfWorkOptions] = useState([]);
+  const [regionOptions, setRegionOptions] = useState([]);
+  const [currencyOptions, setCurrencyOptions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [vendorSuggestions, setVendorSuggestions] = useState([]);
@@ -65,6 +68,30 @@ const FullBillDetails = () => {
       }
     };
     fetchVendors();
+  }, []);
+
+  useEffect(() => {
+    const fetchDropdownData = async () => {
+      try {
+        const token = Cookies.get("token");
+        const headers = { Authorization: `Bearer ${token}` };
+
+        const [naturesRes, regionsRes, currenciesRes] = await Promise.all([
+          axios.get(natureOfWorks, { headers }),
+          axios.get(regions, { headers }),
+          axios.get(currencies, { headers })
+        ]);
+
+        setNatureOfWorkOptions(naturesRes.data || []);
+        setRegionOptions(regionsRes.data || []);
+        setCurrencyOptions(currenciesRes.data || []);
+      } catch (error) {
+        console.error("Error fetching dropdown data:", error);
+        toast.error("Failed to fetch some dropdown options");
+      }
+    };
+
+    fetchDropdownData();
   }, []);
 
   const handleVendorLookup = async (e) => {
@@ -462,36 +489,12 @@ const FullBillDetails = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="" disabled hidden selected>
-                  Select Type of Invoice
-                </option>
-                <option value="Proforma Invoice">Proforma Invoice</option>
-                <option value="Credit Note">Credit Note</option>
-                <option value="Advance/LC/BG">Advance/LC/BG</option>
-                <option value="Direct FI Entry">Direct FI Entry</option>
-                <option value="Utility Work">Utility Work</option>
-                <option value="Petty cash">Petty cash</option>
-                <option value="Hold/Ret Release">Hold/Ret Release</option>
-                <option value="Imports">Imports</option>
-                <option value="Equipments">Equipments</option>
-                <option value="Materials">Materials</option>
-                <option value="IT related">IT related</option>
-                <option value="IBMS">IBMS</option>
-                <option value="Consultancy bill">Consultancy bill</option>
-                <option value="Civil Works">Civil Works</option>
-                <option value="Petrol/Diesel">Petrol/Diesel</option>
-                <option value="STP Work">STP Work</option>
-                <option value="HVAC Work">HVAC Work</option>
-                <option value="MEP Work">MEP Work</option>
-                <option value="Fire Fighting Work">Fire Fighting Work</option>
-                <option value="Painting work">Painting work</option>
-                <option value="Site Infra">Site Infra</option>
-                <option value="Carpentry">Carpentry</option>
-                <option value="Housekeeping/Security">
-                  Housekeeping/Security
-                </option>
-                <option value="Overheads">Overheads</option>
-                <option value="Others">Others</option>
+                <option value="" disabled hidden>Select Type of Invoice</option>
+                {natureOfWorkOptions.map(nature => (
+                  <option key={nature._id} value={nature.natureOfWork}>
+                    {nature.natureOfWork}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -509,24 +512,12 @@ const FullBillDetails = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="" disabled hidden selected>
-                  Select Region
-                </option>
-                <option value="MUMBAI">MUMBAI</option>
-                <option value="KHARGHAR">KHARGHAR</option>
-                <option value="AHMEDABAD">AHMEDABAD</option>
-                <option value="BANGALURU">BANGALURU</option>
-                <option value="BHUBANESHWAR">BHUBANESHWAR</option>
-                <option value="CHANDIGARH">CHANDIGARH</option>
-                <option value="DELHI">DELHI</option>
-                <option value="NOIDA">NOIDA</option>
-                <option value="NAGPUR">NAGPUR</option>
-                <option value="GANSOLI">GANSOLI</option>
-                <option value="HOSPITAL">HOSPITAL</option>
-                <option value="DHULE">DHULE</option>
-                <option value="SHIRPUR">SHIRPUR</option>
-                <option value="INDORE">INDORE</option>
-                <option value="HYDERABAD">HYDERABAD</option>
+                <option value="" disabled hidden>Select Region</option>
+                {regionOptions.map(region => (
+                  <option key={region._id} value={region.name}>
+                    {region.name}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -893,13 +884,12 @@ const FullBillDetails = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="" disabled hidden selected>
-                  Select Currency
-                </option>
-                <option value="INR">INR</option>
-                <option value="USD">USD</option>
-                <option value="RMB">RMB</option>
-                <option value="EURO">EURO</option>
+                <option value="" disabled hidden>Select Currency</option>
+                {currencyOptions.map(currency => (
+                  <option key={currency._id} value={currency.currency}>
+                    {currency.currency}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
