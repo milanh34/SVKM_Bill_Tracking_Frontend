@@ -10,6 +10,7 @@ import ComplianceTable from '../components/admin/ComplianceTable';
 import AdminBtns from '../components/admin/AdminBtns';
 import PanStatusTable from "../components/admin/PanStatusTable";
 import RegionTable from "../components/admin/RegionTable";
+import NatureOfWorkTable from "../components/admin/NatureOfWorkTable";
 
 const Admin = () => {
     const [isAdmin, setIsAdmin] = useState(false)
@@ -60,6 +61,8 @@ const Admin = () => {
                 return <PanStatusTable />;
             case 'regions':
                 return <RegionTable />;
+            case 'nature-of-works':
+                return <NatureOfWorkTable />;
             default:
                 return <div className="text-center mt-4">Table component not yet implemented</div>;
         }
