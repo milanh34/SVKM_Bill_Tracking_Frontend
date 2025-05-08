@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { outstanding } from '../apis/report.api';
 import Header from "../components/Header";
 import FiltersOutstanding from '../components/FiltersOutstanding';
@@ -94,12 +96,18 @@ const RepBillOutstanding = () => {
     }, [selectedRows, billsData]);
 
     const handleTopDownload = async () => {
+        if(selectedRows.length === 0) {
+            toast.error("Select atleast one row to download");
+        }
         console.log("Download outstanding bill clicked");
         const result = await handleExportAllReports(selectedRows, billsData.filter(bill => !bill.isSubtotal && bill.srNo), columns, visibleColumnFields, titleName, false);
         console.log(result.message);
     }
 
     const handleTopPrint = async () => {
+        if(selectedRows.length === 0) {
+            toast.error("Select atleast one row to print");
+        }
         console.log("Print outstanding bill clicked");
         const result = await handleExportAllReports(selectedRows, billsData.filter(bill => !bill.isSubtotal && bill.srNo), columns, visibleColumnFields, titleName, true);
         console.log(result.message);
@@ -140,6 +148,7 @@ const RepBillOutstanding = () => {
     return (
         <div className='mb-[12vh]'>
             <Header />
+            <ToastContainer />
             <ReportBtns />
 
             <div className="p-[2vh_2vw] mx-auto font-sans h-[100vh] bg-white text-black">
