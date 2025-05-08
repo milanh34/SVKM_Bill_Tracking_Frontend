@@ -652,13 +652,19 @@ const DataTable = ({
       delete payload.billId;
       delete payload._id;
       delete payload.srNo;
-
+  
       // Only make the API call if there are changes
       if (Object.keys(payload).length > 0) {
         axios.put(`${bills}/${row._id}`, payload)
-          .then(() => {
+          .then((response) => {
+            // Get the updated bill from the response
+            const updatedBill = response.data.data;
+            
             toast.success("Bill updated successfully!");
-            onEdit && onEdit(row, editedValues[row._id]);
+            
+            // Pass the updated bill from the server response to the parent component
+            onEdit && onEdit(updatedBill);
+            
             // Clear edit state
             setEditingRow(null);
             setEditedValues(prev => {
@@ -681,7 +687,6 @@ const DataTable = ({
       }
     } else {
       // Starting edit mode
-      const editableFields = getEditableFields();
       console.log('Starting edit for row:', row.srNo);
       setEditingRow(row._id);
       setEditedValues(prev => ({
