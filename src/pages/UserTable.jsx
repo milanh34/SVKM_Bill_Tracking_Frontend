@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../components/Header';
-import pen from "../assets/pen.svg";
-import bin from "../assets/bin.svg";
+import { EditIcon, CheckIcon } from '../components/dashboard/Icons';
 import { authUsers } from '../apis/user.apis';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const UserTable = () => {
     const [userData, setUserData] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
-    const [isEditing, setIsEditing] = useState(false);
-    const [editUser, setEditUser] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [userToDelete, setUserToDelete] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
+    const [editingRow, setEditingRow] = useState(null);
+    const [editedValues, setEditedValues] = useState({});
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -30,6 +29,22 @@ const UserTable = () => {
         fetchUserData();
     }, []);
 
+    useEffect(() => {
+        const handleGlobalEscape = (event) => {
+            if (event.key === 'Escape' && editingRow) {
+                setEditingRow(null);
+                setEditedValues(prev => {
+                    const newValues = { ...prev };
+                    delete newValues[editingRow];
+                    return newValues;
+                });
+            }
+        };
+
+        window.addEventListener('keydown', handleGlobalEscape);
+        return () => window.removeEventListener('keydown', handleGlobalEscape);
+    }, [editingRow]);
+
     const handleSearchChange = (e) => {
         const query = e.target.value.toLowerCase();
         setSearchQuery(query);
@@ -43,44 +58,69 @@ const UserTable = () => {
         setFilteredData(filtered);
     };
 
+    const handleCellEdit = (field, value, rowId) => {
+        setEditedValues(prev => ({
+            ...prev,
+            [rowId]: {
+                ...prev[rowId],
+                [field]: value
+            }
+        }));
+    };
+
     const handleEditClick = (user) => {
-        setEditUser({ ...user });
-        setIsEditing(true);
+        if (editingRow === user._id) {
+            const editedFieldsForRow = editedValues[user._id];
+            if (!editedFieldsForRow) {
+                setEditingRow(null);
+                return;
+            }
+
+            const payload = { ...editedFieldsForRow };
+            delete payload._id;
+
+            if (Object.keys(payload).length > 0) {
+                axios.put(`${authUsers}/${user._id}`, payload)
+                    .then(response => {
+                        const updated = userData.map(u =>
+                            u._id === user._id ? { ...u, ...response.data } : u
+                        );
+                        setUserData(updated);
+                        setFilteredData(updated);
+                        toast.success('User updated successfully!');
+                    })
+                    .catch(error => {
+                        console.error("Edit error:", error);
+                        toast.error('Failed to update user');
+                    })
+                    .finally(() => {
+                        setEditingRow(null);
+                        setEditedValues(prev => {
+                            const newValues = { ...prev };
+                            delete newValues[user._id];
+                            return newValues;
+                        });
+                    });
+            } else {
+                setEditingRow(null);
+                setEditedValues(prev => {
+                    const newValues = { ...prev };
+                    delete newValues[user._id];
+                    return newValues;
+                });
+            }
+        } else {
+            setEditingRow(user._id);
+            setEditedValues(prev => ({
+                ...prev,
+                [user._id]: {}
+            }));
+        }
     };
 
     const handleDeleteClick = (user) => {
         setUserToDelete(user);
         setShowDeleteConfirm(true);
-    };
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setEditUser(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleEditSubmit = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-        try {
-            await fetch(`${authUsers}/${editUser._id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(editUser)
-            });
-
-            const updatedUsers = userData.map(user =>
-                user._id === editUser._id ? editUser : user
-            );
-            setUserData(updatedUsers);
-            setFilteredData(updatedUsers);
-            setIsEditing(false);
-            setEditUser(null);
-            console.log("User updated successfully:", editUser);
-        } catch (error) {
-            console.error("Error updating user:", error);
-        } finally {
-            setIsLoading(false);
-        }
     };
 
     const handleDeleteConfirm = async () => {
@@ -108,163 +148,131 @@ const UserTable = () => {
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     };
 
-    return (
-        <div className="px-10 py-6">
+    const renderCell = (user, column) => {
+        const isEditing = editingRow === user._id;
+        const value = user[column.field];
+        const editedValue = editedValues[user._id]?.[column.field];
 
-            {/* Search Bar */}
-            <div className="mb-4 flex items-center justify-between">
-                <h1 className="text-xl font-bold text-blue-800 mb-6">List Of Users</h1>
+        if (isEditing) {
+            if (column.field === 'role') {
+                return (
+                    <select
+                        value={editedValue !== undefined ? editedValue : value}
+                        onChange={(e) => handleCellEdit(column.field, e.target.value, user._id)}
+                        className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    >
+                        <option value="admin">Admin</option>
+                        <option value="site_officer">Site Team</option>
+                        <option value="project_manager">Project Manager</option>
+                    </select>
+                );
+            }
+
+            return (
                 <input
                     type="text"
-                    placeholder="Search by name, email, role, department, region..."
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    className="w-[80%] p-2 border border-gray-400 rounded"
+                    value={editedValue !== undefined ? editedValue : (value || '')}
+                    onChange={(e) => handleCellEdit(column.field, e.target.value, user._id)}
+                    className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
+            );
+        }
+
+        if (column.field === 'lastLogin') return formatDate(value);
+        if (column.field === 'role') return value.replace('_', ' ').toLowerCase();
+        return value;
+    };
+
+    const columns = [
+        { field: 'name', headerName: 'Name' },
+        { field: 'email', headerName: 'Email' },
+        { field: 'role', headerName: 'Role' },
+        { field: 'department', headerName: 'Department' },
+        { field: 'region', headerName: 'Region' },
+        { field: 'lastLogin', headerName: 'Last Login' }
+    ];
+
+    return (
+        <div className="relative w-full flex flex-col border border-gray-200 rounded-lg">
+            <div className="p-4 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                    <h1 className="text-xl font-bold text-gray-800">User Management</h1>
+                    <input
+                        type="text"
+                        placeholder="Search users..."
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        className="w-1/2 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
             </div>
 
-            {/* User Table */}
-            <div className="overflow-x-auto">
-                <div className="max-h-[500px] overflow-y-auto border border-gray-300 rounded">
-                    <table className="min-w-full bg-white">
-                        <thead className="sticky top-0 bg-gray-200 z-10">
-                            <tr>
-                                <th className="py-2 px-4 border text-left">Name</th>
-                                <th className="py-2 px-4 border text-left">Email</th>
-                                <th className="py-2 px-4 border text-left">Role</th>
-                                <th className="py-2 px-4 border text-left">Department</th>
-                                <th className="py-2 px-4 border text-left">Region</th>
-                                <th className="py-2 px-4 border text-left">Last Login</th>
-                                <th className="py-2 px-4 border text-left">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredData.length > 0 ? (
-                                filteredData.map((user) => (
-                                    <tr key={user._id} className="hover:bg-gray-50">
-                                        <td className="py-2 px-4 border">{user.name}</td>
-                                        <td className="py-2 px-4 border">{user.email}</td>
-                                        <td className="py-2 px-4 border capitalize">{user.role.replace('_', ' ')}</td>
-                                        <td className="py-2 px-4 border">{user.department}</td>
-                                        <td className="py-2 px-4 border">{user.region}</td>
-                                        <td className="py-2 px-4 border">{formatDate(user.lastLogin)}</td>
-                                        <td className="py-2 px-4 border">
-                                            <div className="flex space-x-2">
-                                                <button
-                                                    onClick={() => handleEditClick(user)}
-                                                    className="bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded text-sm cursor-pointer"
-                                                >
-                                                    <img src={pen} alt="edit" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteClick(user)}
-                                                    className="bg-red-500 hover:bg-red-600 text-white py-1 px-2 rounded text-sm cursor-pointer"
-                                                >
-                                                    <img src={bin} alt="delete" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="7" className="py-4 px-4 text-center text-gray-500">
-                                        No users found
+            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-250px)] scrollbar-thin scrollbar-thumb-gray-300">
+                <table className="w-full border-collapse">
+                    <thead>
+                        <tr className="divide-x divide-gray-200">
+                            <th className="sticky left-0 top-0 z-50 px-4 py-3 text-left text-sm font-semibold text-gray-900 bg-gray-50 border-b border-gray-200">
+                                <div className="absolute inset-0 bg-gray-50 border-b border-r-2 border-gray-200"></div>
+                                <div className="relative z-[51]">Sr No.</div>
+                            </th>
+                            {columns.map(column => (
+                                <th
+                                    key={column.field}
+                                    className="sticky top-0 z-40 px-4 py-3 text-left text-sm font-semibold text-gray-900 bg-gray-50 border-b border-r border-gray-200"
+                                >
+                                    <div className="absolute inset-0 bg-gray-50 border-b border-r border-gray-200"></div>
+                                    <div className="relative z-[41]">{column.headerName}</div>
+                                </th>
+                            ))}
+                            <th className="sticky right-0 top-0 z-50 w-20 px-4 py-3 text-center text-sm font-semibold text-gray-900 bg-gray-50 border-b border-gray-200">
+                                <div className="absolute inset-0 bg-gray-50 border-b border-l-2 border-gray-200"></div>
+                                <div className="relative z-[51]">Actions</div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                        {filteredData.map((user, index) => (
+                            <tr key={user._id} className="hover:bg-gray-50">
+                                <td className="sticky left-0 z-30 px-4 py-3 text-sm text-gray-900 bg-white whitespace-nowrap">
+                                    <div className="absolute inset-0 bg-white border-b border-r-2 border-gray-200"></div>
+                                    <div className="relative z-[31]">{index + 1}</div>
+                                </td>
+                                {columns.map(column => (
+                                    <td key={column.field} className="px-4 py-3 text-sm text-gray-900 border-b border-r border-gray-200 whitespace-nowrap">
+                                        {renderCell(user, column)}
                                     </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                ))}
+                                <td className="sticky right-0 z-30 px-4 py-3 text-sm text-gray-900 bg-white">
+                                    <div className="absolute inset-0 bg-white border-b border-l-2 border-gray-200"></div>
+                                    <div className="relative z-[31] flex justify-center space-x-2">
+                                        <button
+                                            onClick={() => handleEditClick(user)}
+                                            className={`${editingRow === user._id ? 'text-green-600 hover:text-green-800' : 'text-blue-600 hover:text-blue-800'}`}
+                                        >
+                                            {editingRow === user._id ? (
+                                                <CheckIcon className="w-5 h-5" />
+                                            ) : (
+                                                <EditIcon className="w-5 h-5" />
+                                            )}
+                                        </button>
+                                        {!editingRow && (
+                                            <button
+                                                onClick={() => handleDeleteClick(user)}
+                                                className="text-red-600 hover:text-red-800"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
 
-            {/* Edit Modal */}
-            {isEditing && (
-                <div className="fixed inset-0 bg-transparent backdrop-blur-[10px] bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg w-[60%]">
-                        <h2 className="text-xl font-bold mb-4">Edit User</h2>
-                        <form onSubmit={handleEditSubmit}>
-                            <div className="flex gap-4">
-                                <div className="w-1/2 mb-4">
-                                    <label className="block text-gray-700 text-sm font-bold mb-2">Name</label>
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        value={editUser.name}
-                                        onChange={handleInputChange}
-                                        className="w-full p-2 border rounded"
-                                        required
-                                    />
-                                </div>
-                                <div className="w-1/2 mb-4">
-                                    <label className="block text-gray-700 text-sm font-bold mb-2">Email</label>
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        value={editUser.email}
-                                        onChange={handleInputChange}
-                                        className="w-full p-2 border rounded"
-                                        required
-                                    />
-                                </div>
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-700 text-sm font-bold mb-2">Role</label>
-                                <select
-                                    name="role"
-                                    value={editUser.role}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                >
-                                    <option value="admin">Admin</option>
-                                    <option value="site_officer">Site Team</option>
-                                    <option value="project_manager">Project Manager</option>
-                                </select>
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-700 text-sm font-bold mb-2">Department</label>
-                                <input
-                                    type="text"
-                                    name="department"
-                                    value={editUser.department}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                    required
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-700 text-sm font-bold mb-2">Region</label>
-                                <input
-                                    type="text"
-                                    name="region"
-                                    value={editUser.region}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                    required
-                                />
-                            </div>
-                            <div className="flex justify-end gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsEditing(false)}
-                                    className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-                                    disabled={isLoading}
-                                >
-                                    {isLoading ? 'Saving...' : 'Save Changes'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Delete Confirmation Modal */}
             {showDeleteConfirm && (
                 <div className="fixed inset-0 bg-transparent backdrop-blur-[10px] bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-lg w-full max-w-md">
