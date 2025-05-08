@@ -180,7 +180,7 @@ const RegionTable = () => {
                     type="text"
                     value={editedValue !== undefined ? editedValue : (value || '')}
                     onChange={(e) => handleCellEdit(column.field, e.target.value, region._id)}
-                    className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none"
                 />
             );
         }

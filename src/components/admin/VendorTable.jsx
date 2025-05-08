@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { EditIcon, CheckIcon } from '../dashboard/Icons';
 import axios from 'axios';
-import { vendors } from '../../apis/master.api';
-import { toast } from 'react-toastify';
+import { vendors, compliances, panstatus } from '../../apis/master.api';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Cookies from 'js-cookie';
 
 const VendorTable = () => {
@@ -28,8 +29,14 @@ const VendorTable = () => {
         phoneNumbers: []
     });
 
+    // Dropdown options states
+    const [complianceOptions, setComplianceOptions] = useState([]);
+    const [panStatusOptions, setPanStatusOptions] = useState([]);
+
+    // Fetch vendors and dropdown options on component mount
     useEffect(() => {
         fetchVendors();
+        fetchDropdownOptions();
     }, []);
 
     const fetchVendors = async () => {
@@ -37,11 +44,8 @@ const VendorTable = () => {
         try {
             const token = Cookies.get("token");
             const response = await axios.get(vendors, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+                headers: { Authorization: `Bearer ${token}` }
             });
-            console.log("Vendors fetched:", response.data);
             setVendorData(response.data);
             setFilteredData(response.data);
         } catch (error) {
@@ -49,6 +53,24 @@ const VendorTable = () => {
             toast.error('Failed to fetch vendors');
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const fetchDropdownOptions = async () => {
+        try {
+            const token = Cookies.get("token");
+            const headers = { Authorization: `Bearer ${token}` };
+
+            const [compliancesRes, panStatusRes] = await Promise.all([
+                axios.get(compliances, { headers }),
+                axios.get(panstatus, { headers })
+            ]);
+
+            setComplianceOptions(compliancesRes.data);
+            setPanStatusOptions(panStatusRes.data);
+        } catch (error) {
+            console.error("Error fetching dropdown options:", error);
+            toast.error('Failed to fetch dropdown options');
         }
     };
 
@@ -75,6 +97,7 @@ const VendorTable = () => {
         setFilteredData(filtered);
     }, [searchTerm, vendorData]);
 
+    // Escape key handler
     useEffect(() => {
         const handleGlobalEscape = (event) => {
             if (event.key === 'Escape' && editingRow) {
@@ -103,55 +126,36 @@ const VendorTable = () => {
 
     const handleEditClick = (vendor) => {
         if (editingRow === vendor._id) {
-            // Save changes
             const editedFieldsForRow = editedValues[vendor._id];
             if (!editedFieldsForRow) {
                 setEditingRow(null);
                 return;
             }
 
-            // Remove _id from payload
-            const payload = { ...editedFieldsForRow };
-            delete payload._id;
-
-            if (Object.keys(payload).length > 0) {
-                const token = Cookies.get("token");
-                axios.put(`${vendors}/${vendor._id}`, payload, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => {
-                    const updated = vendorData.map(v =>
-                        v._id === vendor._id ? { ...v, ...response.data } : v
-                    );
-                    setVendorData(updated);
-                    setFilteredData(updated);
-                    toast.success('Vendor updated successfully!');
-                })
-                .catch(error => {
-                    console.error("Edit error:", error);
-                    toast.error('Failed to update vendor');
-                })
-                .finally(() => {
-                    setEditingRow(null);
-                    setEditedValues(prev => {
-                        const newValues = { ...prev };
-                        delete newValues[vendor._id];
-                        return newValues;
-                    });
-                });
-            } else {
+            const token = Cookies.get("token");
+            axios.put(`${vendors}/${vendor._id}`, editedFieldsForRow, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(() => {
+                fetchVendors();
+                toast.success('Vendor updated successfully!');
+            })
+            .catch(error => {
+                console.error("Edit error:", error);
+                toast.error(error.response?.data?.error || 'Failed to update vendor');
+            })
+            .finally(() => {
                 setEditingRow(null);
                 setEditedValues(prev => {
                     const newValues = { ...prev };
                     delete newValues[vendor._id];
                     return newValues;
                 });
-            }
+            });
         } else {
-            // Start editing
             setEditingRow(vendor._id);
             setEditedValues(prev => ({
                 ...prev,
@@ -170,20 +174,15 @@ const VendorTable = () => {
         try {
             const token = Cookies.get("token");
             await axios.delete(`${vendors}/${vendorToDelete._id}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+                headers: { Authorization: `Bearer ${token}` }
             });
-
-            const filtered = vendorData.filter(v => v._id !== vendorToDelete._id);
-            setVendorData(filtered);
-            setFilteredData(filtered);
+            fetchVendors();
             setShowDeleteModal(false);
             setVendorToDelete(null);
-            toast.success('Vendor deleted successfully!');
+            toast.success(`Vendor "${vendorToDelete.vendorName}" deleted successfully!`);
         } catch (err) {
             console.error("Delete error:", err);
-            toast.error('Failed to delete vendor');
+            toast.error(err.response?.data?.error || 'Failed to delete vendor');
         } finally {
             setIsLoading(false);
         }
@@ -198,15 +197,13 @@ const VendorTable = () => {
         setIsLoading(true);
         try {
             const token = Cookies.get("token");
-            const response = await axios.post(vendors, newVendor, {
+            await axios.post(vendors, newVendor, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-
-            setVendorData([...vendorData, response.data]);
-            setFilteredData([...vendorData, response.data]);
+            fetchVendors();
             setShowAddModal(false);
             setNewVendor({
                 vendorName: '',
@@ -218,10 +215,10 @@ const VendorTable = () => {
                 emailIds: [],
                 phoneNumbers: []
             });
-            toast.success('Vendor added successfully!');
+            toast.success(`Vendor "${newVendor.vendorName}" added successfully!`);
         } catch (err) {
             console.error("Add error:", err);
-            toast.error('Failed to add vendor');
+            toast.error(err.response?.data?.error || 'Failed to add vendor');
         } finally {
             setIsLoading(false);
         }
@@ -233,26 +230,34 @@ const VendorTable = () => {
         const editedValue = editedValues[vendor._id]?.[column.field];
 
         if (isEditing) {
-            if (column.field === 'complianceStatus' || column.field === 'PANStatus') {
+            if (column.field === 'complianceStatus') {
                 return (
                     <select
                         value={editedValue !== undefined ? editedValue : value}
                         onChange={(e) => handleCellEdit(column.field, e.target.value, vendor._id)}
-                        className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none cursor-pointer"
                     >
-                        {column.field === 'complianceStatus' ? (
-                            <>
-                                <option value="Compliant">Compliant</option>
-                                <option value="Non-Compliant">Non-Compliant</option>
-                                <option value="Pending">Pending</option>
-                            </>
-                        ) : (
-                            <>
-                                <option value="Valid">Valid</option>
-                                <option value="Invalid">Invalid</option>
-                                <option value="Pending">Pending</option>
-                            </>
-                        )}
+                        {complianceOptions.map(option => (
+                            <option key={option._id} value={option.compliance206AB}>
+                                {option.compliance206AB}
+                            </option>
+                        ))}
+                    </select>
+                );
+            }
+
+            if (column.field === 'PANStatus') {
+                return (
+                    <select
+                        value={editedValue !== undefined ? editedValue : value}
+                        onChange={(e) => handleCellEdit(column.field, e.target.value, vendor._id)}
+                        className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none cursor-pointer"
+                    >
+                        {panStatusOptions.map(option => (
+                            <option key={option._id} value={option.name}>
+                                {option.name}
+                            </option>
+                        ))}
                     </select>
                 );
             }
@@ -263,7 +268,7 @@ const VendorTable = () => {
                         type="text"
                         value={editedValue !== undefined ? editedValue : (Array.isArray(value) ? value.join(', ') : '')}
                         onChange={(e) => handleCellEdit(column.field, e.target.value.split(',').map(item => item.trim()), vendor._id)}
-                        className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none"
                     />
                 );
             }
@@ -273,7 +278,7 @@ const VendorTable = () => {
                     type="text"
                     value={editedValue !== undefined ? editedValue : (value || '')}
                     onChange={(e) => handleCellEdit(column.field, e.target.value, vendor._id)}
-                    className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none"
                 />
             );
         }
@@ -286,14 +291,15 @@ const VendorTable = () => {
         { field: 'vendorName', headerName: 'Vendor Name' },
         { field: 'PAN', headerName: 'PAN' },
         { field: 'GSTNumber', headerName: 'GST Number' },
-        { field: 'complianceStatus', headerName: 'Compliance Status' },
+        { field: 'complianceStatus', headerName: '206AB Compliance' },
         { field: 'PANStatus', headerName: 'PAN Status' },
         { field: 'emailIds', headerName: 'Email IDs' },
-        { field: 'phoneNumbers', headerName: 'Phone Numbers' }
+        { field: 'phoneNumbers', headerName: 'Phone No' }
     ];
 
     return (
         <div className="relative w-full flex flex-col border border-gray-200 rounded-lg">
+            <ToastContainer />
             {/* Header with Search and Add Button */}
             <div className="p-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
@@ -304,11 +310,11 @@ const VendorTable = () => {
                             placeholder="Search vendors..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-[300px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-[300px] p-2 border border-gray-300 rounded-md focus:outline-none"
                         />
                         <button
                             onClick={handleAddClick}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors duration-200"
+                            className="bg-[#364cbb] hover:bg-[#364cdd] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
                         >
                             Add Vendor
                         </button>
@@ -357,10 +363,10 @@ const VendorTable = () => {
                                     <div className="relative z-[31] flex justify-center space-x-2">
                                         <button
                                             onClick={() => handleEditClick(vendor)}
-                                            className={`${editingRow === vendor._id ? 'text-green-600 hover:text-green-800' : 'text-blue-600 hover:text-blue-800'}`}
+                                            className={`${editingRow === vendor._id ? 'text-green-600 hover:text-green-800' : 'text-blue-600 hover:text-blue-800 cursor-pointer'}`}
                                         >
                                             {editingRow === vendor._id ? (
-                                                <CheckIcon className="w-5 h-5" />
+                                                <CheckIcon className="w-5 h-5 cursor-pointer" />
                                             ) : (
                                                 <EditIcon className="w-5 h-5" />
                                             )}
@@ -368,7 +374,7 @@ const VendorTable = () => {
                                         {!editingRow && (
                                             <button
                                                 onClick={() => handleDeleteClick(vendor)}
-                                                className="text-red-600 hover:text-red-800"
+                                                className="text-red-600 hover:text-red-800 cursor-pointer"
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -385,111 +391,130 @@ const VendorTable = () => {
 
             {/* Add Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-transparent backdrop-blur-[10px] bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-4 w-full max-w-xl">
-                        <div className="flex justify-between items-center mb-2">
-                            <h2 className="text-lg font-bold">Add New Vendor</h2>
-                            <button onClick={() => setShowAddModal(false)} className="text-gray-600 hover:text-gray-800">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                <div className="fixed inset-0 bg-gray-300/50 backdrop-blur-[10px] flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-4 w-full max-w-4xl">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-bold text-gray-800">Add New Vendor</h2>
+                            <button onClick={() => setShowAddModal(false)} className="text-gray-600 hover:text-gray-800 cursor-pointer">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
 
                         <form onSubmit={handleAddSubmit} className="text-sm">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-gray-700">Vendor Name</label>
-                                    <input
-                                        type="text"
-                                        value={newVendor.vendorName}
-                                        onChange={(e) => setNewVendor({ ...newVendor, vendorName: e.target.value })}
-                                        className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                    />
+                            <div className="grid grid-cols-2 gap-6">
+                                {/* Basic Info Section */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Vendor Name</label>
+                                        <input
+                                            type="text"
+                                            value={newVendor.vendorName}
+                                            onChange={(e) => setNewVendor({ ...newVendor, vendorName: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Vendor No</label>
+                                        <input
+                                            type="text"
+                                            value={newVendor.vendorNo}
+                                            onChange={(e) => setNewVendor({ ...newVendor, vendorNo: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">PAN</label>
+                                        <input
+                                            type="text"
+                                            value={newVendor.PAN}
+                                            onChange={(e) => setNewVendor({ ...newVendor, PAN: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">GST Number</label>
+                                        <input
+                                            type="text"
+                                            value={newVendor.GSTNumber}
+                                            onChange={(e) => setNewVendor({ ...newVendor, GSTNumber: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                                        />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-gray-700">Vendor No</label>
-                                    <input
-                                        type="text"
-                                        value={newVendor.vendorNo}
-                                        onChange={(e) => setNewVendor({ ...newVendor, vendorNo: e.target.value })}
-                                        className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-gray-700">PAN</label>
-                                    <input
-                                        type="text"
-                                        value={newVendor.PAN}
-                                        onChange={(e) => setNewVendor({ ...newVendor, PAN: e.target.value })}
-                                        className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-gray-700">GST Number</label>
-                                    <input
-                                        type="text"
-                                        value={newVendor.GSTNumber}
-                                        onChange={(e) => setNewVendor({ ...newVendor, GSTNumber: e.target.value })}
-                                        className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-gray-700">Compliance Status</label>
-                                    <select
-                                        value={newVendor.complianceStatus}
-                                        onChange={(e) => setNewVendor({ ...newVendor, complianceStatus: e.target.value })}
-                                        className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                    >
-                                        <option value="">Select</option>
-                                        <option value="Compliant">Compliant</option>
-                                        <option value="Non-Compliant">Non-Compliant</option>
-                                        <option value="Pending">Pending</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-gray-700">PAN Status</label>
-                                    <select
-                                        value={newVendor.PANStatus}
-                                        onChange={(e) => setNewVendor({ ...newVendor, PANStatus: e.target.value })}
-                                        className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                    >
-                                        <option value="">Select</option>
-                                        <option value="Valid">Valid</option>
-                                        <option value="Invalid">Invalid</option>
-                                        <option value="Pending">Pending</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-gray-700">Email IDs</label>
-                                    <input
-                                        type="text"
-                                        value={newVendor.emailIds.join(', ')}
-                                        onChange={(e) => setNewVendor({ ...newVendor, emailIds: e.target.value.split(',').map(item => item.trim()) })}
-                                        className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-gray-700">Phone Numbers</label>
-                                    <input
-                                        type="text"
-                                        value={newVendor.phoneNumbers.join(', ')}
-                                        onChange={(e) => setNewVendor({ ...newVendor, phoneNumbers: e.target.value.split(',').map(item => item.trim()) })}
-                                        className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                    />
+
+                                {/* Status and Contact Section */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Compliance Status</label>
+                                        <select
+                                            value={newVendor.complianceStatus}
+                                            onChange={(e) => setNewVendor({ ...newVendor, complianceStatus: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none cursor-pointer bg-white"
+                                            required
+                                        >
+                                            <option value="">Select Status</option>
+                                            {complianceOptions.map(option => (
+                                                <option key={option._id} value={option.compliance206AB}>
+                                                    {option.compliance206AB}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">PAN Status</label>
+                                        <select
+                                            value={newVendor.PANStatus}
+                                            onChange={(e) => setNewVendor({ ...newVendor, PANStatus: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none cursor-pointer bg-white"
+                                            required
+                                        >
+                                            <option value="">Select Status</option>
+                                            {panStatusOptions.map(option => (
+                                                <option key={option._id} value={option.name}>
+                                                    {option.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Email IDs (comma-separated)</label>
+                                        <input
+                                            type="text"
+                                            value={newVendor.emailIds.join(', ')}
+                                            onChange={(e) => setNewVendor({ ...newVendor, emailIds: e.target.value.split(',').map(item => item.trim()) })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                                            placeholder="email1@example.com, email2@example.com"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Numbers (comma-separated)</label>
+                                        <input
+                                            type="text"
+                                            value={newVendor.phoneNumbers.join(', ')}
+                                            onChange={(e) => setNewVendor({ ...newVendor, phoneNumbers: e.target.value.split(',').map(item => item.trim()) })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                                            placeholder="1234567890, 0987654321"
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex justify-end mt-4">
+
+                            <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
                                 <button
                                     type="button"
                                     onClick={() => setShowAddModal(false)}
-                                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded mr-2"
+                                    className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
+                                    className="px-4 py-2 bg-[#364cbb] hover:bg-[#364cdd] text-white rounded-md cursor-pointer"
                                     disabled={isLoading}
                                 >
                                     {isLoading ? 'Adding...' : 'Add Vendor'}
@@ -517,13 +542,13 @@ const VendorTable = () => {
                             <div className="flex justify-center space-x-3">
                                 <button
                                     onClick={() => setShowDeleteModal(false)}
-                                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded"
+                                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleDeleteConfirm}
-                                    className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded"
+                                    className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded cursor-pointer"
                                     disabled={isLoading}
                                 >
                                     {isLoading ? 'Deleting...' : 'Delete Vendor'}
