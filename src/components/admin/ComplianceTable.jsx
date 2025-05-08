@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { EditIcon, CheckIcon } from '../dashboard/Icons';
 import axios from 'axios';
 import { compliances } from '../../apis/master.api';
-import { toast } from 'react-toastify';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Cookies from 'js-cookie';
 
 const ComplianceTable = () => {
@@ -92,11 +93,10 @@ const ComplianceTable = () => {
                 }
             });
 
-            setComplianceData([...complianceData, response.data]);
-            setFilteredData([...complianceData, response.data]);
+            fetchCompliances();
             setShowAddModal(false);
             setNewCompliance({ compliance206AB: '' });
-            toast.success('Compliance added successfully!');
+            toast.success(`Compliance "${newCompliance.compliance206AB}" added successfully!`);
         } catch (err) {
             console.error("Add error:", err);
             toast.error('Failed to add compliance');
@@ -128,8 +128,7 @@ const ComplianceTable = () => {
                     const updated = complianceData.map(c =>
                         c._id === compliance._id ? { ...c, ...response.data } : c
                     );
-                    setComplianceData(updated);
-                    setFilteredData(updated);
+                    fetchCompliances();
                     toast.success('Compliance updated successfully!');
                 })
                 .catch(error => {
@@ -164,12 +163,10 @@ const ComplianceTable = () => {
                 }
             });
 
-            const filtered = complianceData.filter(c => c._id !== complianceToDelete._id);
-            setComplianceData(filtered);
-            setFilteredData(filtered);
+            fetchCompliances();
             setShowDeleteModal(false);
             setComplianceToDelete(null);
-            toast.success('Compliance deleted successfully!');
+            toast.success(`Compliance "${complianceToDelete.compliance206AB}" deleted successfully!`);
         } catch (err) {
             console.error("Delete error:", err);
             toast.error('Failed to delete compliance');
@@ -189,7 +186,7 @@ const ComplianceTable = () => {
     };
 
     const columns = [
-        { field: 'compliance206AB', headerName: 'Compliance 206AB' }
+        { field: 'compliance206AB', headerName: 'Particulars' }
     ];
 
     const renderCell = (compliance, column) => {
@@ -218,9 +215,12 @@ const ComplianceTable = () => {
                 <input
                     type="text"
                     value={newCompliance.compliance206AB}
-                    onChange={(e) => setNewCompliance({ ...newCompliance, compliance206AB: e.target.value })}
+                    onChange={(e) => setNewCompliance({
+                        compliance206AB: e.target.value
+                    })}
                     className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     required
+                    autoFocus
                 />
             </div>
 
@@ -228,13 +228,13 @@ const ComplianceTable = () => {
                 <button
                     type="button"
                     onClick={() => setShowAddModal(false)}
-                    className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md"
+                    className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md cursor-pointer"
                 >
                     Cancel
                 </button>
                 <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md cursor-pointer"
                     disabled={isLoading}
                 >
                     {isLoading ? 'Adding...' : 'Add Compliance'}
@@ -245,6 +245,7 @@ const ComplianceTable = () => {
 
     return (
         <div className="relative w-full flex flex-col border border-gray-200 rounded-lg">
+        <ToastContainer />
             {/* Header */}
             <div className="p-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
@@ -255,11 +256,11 @@ const ComplianceTable = () => {
                             placeholder="Search compliances..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-[300px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-[300px] p-2 border border-gray-300 rounded-md focus:outline-none"
                         />
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors duration-200"
+                            className="bg-[#364cbb] hover:bg-[#364cdd] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
                         >
                             Add Compliance
                         </button>
@@ -308,10 +309,10 @@ const ComplianceTable = () => {
                                     <div className="relative z-[31] flex justify-center space-x-2">
                                         <button
                                             onClick={() => handleEditClick(compliance)}
-                                            className={`${editingRow === compliance._id ? 'text-green-600 hover:text-green-800' : 'text-blue-600 hover:text-blue-800'}`}
+                                            className={`${editingRow === compliance._id ? 'text-green-600 hover:text-green-800' : 'text-blue-600 hover:text-blue-800 cursor-pointer'}`}
                                         >
                                             {editingRow === compliance._id ? (
-                                                <CheckIcon className="w-5 h-5" />
+                                                <CheckIcon className="w-5 h-5 cursor-pointer" />
                                             ) : (
                                                 <EditIcon className="w-5 h-5" />
                                             )}
@@ -322,7 +323,7 @@ const ComplianceTable = () => {
                                                     setComplianceToDelete(compliance);
                                                     setShowDeleteModal(true);
                                                 }}
-                                                className="text-red-600 hover:text-red-800"
+                                                className="text-red-600 hover:text-red-800 cursor-pointer"
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -339,11 +340,11 @@ const ComplianceTable = () => {
 
             {/* Add Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-gray-300/50 backdrop-blur-[10px] bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-gray-300/50 backdrop-blur-[10px] flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-4 w-full max-w-md">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-bold">Add New Compliance</h2>
-                            <button onClick={() => setShowAddModal(false)} className="text-gray-600 hover:text-gray-800">
+                            <button onClick={() => setShowAddModal(false)} className="text-gray-600 hover:text-gray-800 cursor-pointer">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
@@ -356,7 +357,7 @@ const ComplianceTable = () => {
 
             {/* Delete Modal */}
             {showDeleteModal && (
-                <div className="fixed inset-0 bg-gray-300/50 backdrop-blur-[10px] lex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-gray-300/50 backdrop-blur-[10px] flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-6 w-full max-w-md">
                         <div className="text-center">
                             <svg className="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -371,13 +372,13 @@ const ComplianceTable = () => {
                             <div className="flex justify-center space-x-3">
                                 <button
                                     onClick={() => setShowDeleteModal(false)}
-                                    className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md"
+                                    className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleDeleteConfirm}
-                                    className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md"
+                                    className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md cursor-pointer"
                                     disabled={isLoading}
                                 >
                                     {isLoading ? 'Deleting...' : 'Delete'}
