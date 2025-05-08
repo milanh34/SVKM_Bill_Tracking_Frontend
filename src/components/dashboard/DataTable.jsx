@@ -35,8 +35,8 @@ const DataTable = ({
   const [filterPosition, setFilterPosition] = useState("right");
   const filterRef = useRef(null);
   const [selectAllState, setSelectAll] = useState(false);
-  const [filterType, setFilterType] = useState({}); 
-  const [dateRanges, setDateRanges] = useState({}); 
+  const [filterType, setFilterType] = useState({});
+  const [dateRanges, setDateRanges] = useState({});
   const [editingRow, setEditingRow] = useState(null);
   const [editedValues, setEditedValues] = useState({});
 
@@ -101,11 +101,11 @@ const DataTable = ({
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return "-";
       if (date.getFullYear() <= 1971) return "-";
-      
+
       const day = date.getDate().toString().padStart(2, '0');
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const year = date.getFullYear();
-      
+
       return `${day}-${month}-${year}`;
     } catch (e) {
       return "-";
@@ -116,17 +116,17 @@ const DataTable = ({
     const dateIndicators = [
       'taxInvDate', 'poDate', 'proformaInvDate', 'taxInvRecdAtSite', 'advanceDate', 'Date', 'invReturnedToSite', 'dateReceived'
     ];
-    
+
     if (field.includes('.')) {
       const parts = field.split('.');
-      return parts.some(part => 
-        dateIndicators.some(indicator => 
+      return parts.some(part =>
+        dateIndicators.some(indicator =>
           part.toLowerCase().includes(indicator.toLowerCase())
         )
       );
     }
-    
-    return dateIndicators.some(indicator => 
+
+    return dateIndicators.some(indicator =>
       field.toLowerCase().includes(indicator.toLowerCase())
     );
   };
@@ -139,8 +139,8 @@ const DataTable = ({
       'advanceAmt', 'paymentAmt', 'migoDetails.amount',
       'copDetails.amount'
     ];
-    
-    return numericIndicators.some(indicator => 
+
+    return numericIndicators.some(indicator =>
       field.toLowerCase().includes(indicator.toLowerCase())
     );
   };
@@ -174,11 +174,11 @@ const DataTable = ({
 
   const applyFilter = (value, filterValue, operator, field) => {
     if (!value) return false;
-    
+
     if (isDateField(field)) {
       const currentFilterType = filterType[field] || 'individual';
       const dateValue = new Date(value);
-      
+
       if (currentFilterType === 'range') {
         const { from, to } = dateRanges[field] || {};
         if (from && to) {
@@ -194,7 +194,7 @@ const DataTable = ({
     }
 
     const stringValue = value.toString().toLowerCase();
-    
+
     if (value instanceof Date || !isNaN(new Date(value))) {
       const formattedDate = formatDate(value);
       return filterValue.some(val => formattedDate === val);
@@ -358,7 +358,7 @@ const DataTable = ({
         ? selectedRows.filter((rowId) => rowId !== id)
         : [...selectedRows, id];
       onRowSelect(newSelection);
-      
+
       setSelectAll(newSelection.length === filteredData.length);
     }
   };
@@ -370,7 +370,7 @@ const DataTable = ({
   const handleSelectAll = (e) => {
     const isChecked = e.target.checked;
     setSelectAll(isChecked);
-    
+
     if (isChecked) {
       const filteredIds = filteredData.map(row => row._id);
       onRowSelect(filteredIds);
@@ -384,17 +384,17 @@ const DataTable = ({
     if (activeFilter === field) {
       return;
     }
-    
+
     const buttonRect = event.currentTarget.getBoundingClientRect();
     const screenWidth = window.innerWidth;
     const popupWidth = 250;
     const tableBottom = event.currentTarget.closest('.overflow-x-auto').getBoundingClientRect().bottom;
     const availableHeight = tableBottom - buttonRect.bottom - 20;
-    
+
     setFilterPosition(buttonRect.left < screenWidth / 3 ? "right" : "left");
-    
+
     filterRef.current = { maxHeight: availableHeight };
-    
+
     setActiveFilter(field);
     setFilterSearchQuery("");
   };
@@ -423,7 +423,7 @@ const DataTable = ({
     const currentDateRange = dateRanges[column.field] || { from: '', to: '' };
 
     const showDateRange = isDate && (
-      column.headerName.toLowerCase().includes('date') || 
+      column.headerName.toLowerCase().includes('date') ||
       column.headerName.toLowerCase().includes('at site') ||
       column.headerName.toLowerCase().includes('booking')
     );
@@ -431,9 +431,8 @@ const DataTable = ({
     return (
       <div
         ref={filterRef}
-        className={`absolute mt-2.5 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-[250px] flex flex-col ${
-          filterPosition === "right" ? "left-0" : "right-0"
-        }`}
+        className={`absolute mt-2.5 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-[250px] flex flex-col ${filterPosition === "right" ? "left-0" : "right-0"
+          }`}
         style={{ maxHeight: `${Math.min(maxHeight, 400)}px` }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -608,8 +607,8 @@ const DataTable = ({
     const editedValue = editedValues[row._id]?.[column.field];
 
     if (isEditing && isEditable) {
-      const inputType = isDateField(column.field) ? "date" : 
-                       isNumericField(column.field) ? "number" : "text";
+      const inputType = isDateField(column.field) ? "date" :
+        isNumericField(column.field) ? "number" : "text";
       return (
         <div className="relative w-full">
           <input
@@ -646,37 +645,35 @@ const DataTable = ({
     if (editingRow === row._id) {
       // When saving (clicking check icon)
       const editedFieldsForRow = editedValues[row._id];
-      
+
       // Remove billId, _id, srNo from the payload
       const payload = { ...editedFieldsForRow };
       delete payload.billId;
       delete payload._id;
       delete payload.srNo;
-  
+
       // Only make the API call if there are changes
       if (Object.keys(payload).length > 0) {
         axios.put(`${bills}/${row._id}`, payload)
           .then((response) => {
-            // Get the updated bill from the response
-            const updatedBill = response.data.data;
-            
-            toast.success("Bill updated successfully!");
-            
-            // Pass the updated bill from the server response to the parent component
-            onEdit && onEdit(updatedBill);
-            
-            // Clear edit state
-            setEditingRow(null);
-            setEditedValues(prev => {
-              const newValues = { ...prev };
-              delete newValues[row._id];
-              return newValues;
-            });
+            console.log("Full response from backend:", response);
+            const updatedBill = response.data;
+            try {
+              if (!updatedBill) throw new Error("No updated data received");
+
+              toast.success("Bill updated successfully!");
+              onEdit && onEdit(updatedBill);
+              setEditingRow(null);
+              setEditedValues(prev => {
+                const newValues = { ...prev };
+                delete newValues[row._id];
+                return newValues;
+              });
+            } catch (err) {
+              toast.error("Invalid response from server");
+              console.error("Processing error:", err);
+            }
           })
-          .catch((error) => {
-            toast.error(error.response?.data?.message || "Failed to update bill");
-            console.error("Error updating bill:", error);
-          });
       } else {
         setEditingRow(null);
         setEditedValues(prev => {
@@ -698,14 +695,12 @@ const DataTable = ({
 
   return (
     <div
-      className={`relative w-full flex flex-col border border-gray-200 rounded-lg ${
-        data.length > 8 ? "h-full" : ""
-      }`}
+      className={`relative w-full flex flex-col border border-gray-200 rounded-lg ${data.length > 8 ? "h-full" : ""
+        }`}
     >
       <div
-        className={`overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 scrollbar-thumb-rounded-full ${
-          data.length < 10 ? "h-fit" : "flex-1"
-        }`}
+        className={`overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 scrollbar-thumb-rounded-full ${data.length < 10 ? "h-fit" : "flex-1"
+          }`}
       >
         <style jsx>{`
           .scrollbar-thin::-webkit-scrollbar {
@@ -730,8 +725,8 @@ const DataTable = ({
           <thead className="sticky top-0 z-40 bg-gray-50">
             <tr className="divide-x divide-gray-200">
               <th className="sticky left-0 top-0 z-50 w-12 bg-blue-50 px-1.5 py-2.5 border-b border-gray-200">
-                <div className="absolute inset-0 bg-blue-50 border-r border-blue-200" 
-                     style={{ bottom: "-1px", zIndex: -1 }}></div>
+                <div className="absolute inset-0 bg-blue-50 border-r border-blue-200"
+                  style={{ bottom: "-1px", zIndex: -1 }}></div>
                 <div className="relative z-10 flex flex-col items-center">
                   <input
                     type="checkbox"
@@ -765,15 +760,15 @@ const DataTable = ({
                       {column.headerName}
                     </span>
                     <div className="flex items-center space-x-1">
-                      {columnFilters[column.field] && 
-                       columnFilters[column.field].value?.length > 0 && (
-                        <div className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded ml-1">
-                          {`${columnFilters[column.field].value.length} selected`}
-                        </div>
-                      )}
+                      {columnFilters[column.field] &&
+                        columnFilters[column.field].value?.length > 0 && (
+                          <div className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded ml-1">
+                            {`${columnFilters[column.field].value.length} selected`}
+                          </div>
+                        )}
                       <span className="invisible group-hover:visible ml-1">
                         {sortConfig.key === column.field &&
-                        sortConfig.direction ? (
+                          sortConfig.direction ? (
                           sortConfig.direction === "asc" ? (
                             <SortAscIcon />
                           ) : (
@@ -788,11 +783,10 @@ const DataTable = ({
                         className="p-1 hover:bg-gray-200 rounded-md transition-colors duration-150 cursor-pointer focus:outline-none"
                       >
                         <Filter
-                          className={`w-4 h-4 ${
-                            columnFilters[column.field]?.value?.length > 0
+                          className={`w-4 h-4 ${columnFilters[column.field]?.value?.length > 0
                               ? "text-blue-500"
                               : "text-gray-400 hover:text-gray-600"
-                          }`}
+                            }`}
                         />
                       </button>
                     </div>
@@ -801,8 +795,8 @@ const DataTable = ({
                 </th>
               ))}
               <th className="sticky right-0 top-0 z-50 w-16 bg-blue-50 px-1.5 py-2.5 border-b border-gray-200">
-                <div className="absolute inset-0 bg-blue-50 border-l border-blue-200" 
-                     style={{ bottom: "-1px", zIndex: -1 }}></div>
+                <div className="absolute inset-0 bg-blue-50 border-l border-blue-200"
+                  style={{ bottom: "-1px", zIndex: -1 }}></div>
                 <div className="relative z-10 text-center">Actions</div>
               </th>
             </tr>
@@ -820,8 +814,8 @@ const DataTable = ({
                   className={`${bgColor} transition duration-150 ease-in-out divide-x divide-gray-200`}
                 >
                   <td className="sticky left-0 z-20 whitespace-nowrap px-3 py-3 text-center">
-                    <div 
-                      className={`absolute inset-0 ${isSelected ? "bg-blue-50" : "bg-white"} border-r border-blue-200`} 
+                    <div
+                      className={`absolute inset-0 ${isSelected ? "bg-blue-50" : "bg-white"} border-r border-blue-200`}
                       style={{ bottom: "-1px", top: "-1px" }}
                     ></div>
                     <div className="relative z-10">
@@ -838,12 +832,11 @@ const DataTable = ({
                     return (
                       <td
                         key={column.field}
-                        className={`whitespace-nowrap px-1.5 py-2.5 text-sm ${
-                          column.field.includes("amount") ||
-                          column.field.includes("Amount")
+                        className={`whitespace-nowrap px-1.5 py-2.5 text-sm ${column.field.includes("amount") ||
+                            column.field.includes("Amount")
                             ? "text-right"
                             : "text-gray-900"
-                        }`}
+                          }`}
                         style={column.field.includes("status") ? getStatusStyle(value) : {}}
                         data-field={column.field}
                       >
@@ -852,7 +845,7 @@ const DataTable = ({
                     );
                   })}
                   <td className="sticky right-0 z-20 whitespace-nowrap px-1.5 py-2.5 text-center">
-                    <div 
+                    <div
                       className={`absolute inset-0 ${isSelected ? "bg-blue-50" : "bg-white"} border-l border-blue-200`}
                       style={{ bottom: "-1px", top: "-1px" }}
                     ></div>

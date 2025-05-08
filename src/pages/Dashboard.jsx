@@ -110,6 +110,7 @@ const Dashboard = () => {
   const [columnSearchQuery, setColumnSearchQuery] = useState("");
   const [showIncomingBills, setShowIncomingBills] = useState(false);
   const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
+  const [filteredDataBill, setFilteredDataBill] = useState([]);
 
   const navigate = useNavigate();
 
@@ -498,8 +499,24 @@ const Dashboard = () => {
     }
   };
 
-  const handleEditRow = (row) => {
-    console.log("Edit row:", row);
+  const handleEditRow = (updatedBill) => {
+    console.log("Edit row:", updatedBill);
+    
+    // Update the filtered data with the edited bill
+    setFilteredDataBill(prevData => 
+      prevData.map(bill => 
+        bill._id === updatedBill._id ? updatedBill : bill
+      )
+    );
+    
+    // If you also have an original data state that needs updating
+    if (billsData !== filteredData) {
+      setBillsData(prevData => 
+        prevData.map(bill => 
+          bill._id === updatedBill._id ? updatedBill : bill
+        )
+      );
+    }
   };
 
   const handleClearFilters = () => {
