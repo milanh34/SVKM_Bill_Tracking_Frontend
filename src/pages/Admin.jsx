@@ -4,9 +4,10 @@ import { importReport } from '../apis/bills.api'
 import axios from 'axios'
 import Cookies from 'js-cookie'
 import { useNavigate } from 'react-router-dom'
-import UserTable from "./UserTable";
-import VendorTable from "./VendorTable";
-import AdminBtns from '../components/AdminBtns';
+import UserTable from "../components/admin/UserTable";
+import VendorTable from "../components/admin/VendorTable";
+import ComplianceTable from '../components/admin/ComplianceTable';
+import AdminBtns from '../components/admin/AdminBtns';
 
 const Admin = () => {
     const [isAdmin, setIsAdmin] = useState(false)
@@ -51,6 +52,8 @@ const Admin = () => {
                 return <UserTable />;
             case 'vendors':
                 return <VendorTable />;
+            case 'compliances':
+                return <ComplianceTable />;
             // Add more cases for other tables as they are created
             default:
                 return <div className="text-center mt-4">Table component not yet implemented</div>;

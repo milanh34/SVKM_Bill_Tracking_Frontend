@@ -33,8 +33,6 @@ import ChecklistAccount2 from "./pages/ChecklistAccount2";
 import ChecklistBillJourney from "./pages/ChecklistBillJourney";
 import UpdatePassword from "./pages/UpdatePassword";
 import ForgotPassword from "./pages/ForgotPassword";
-import UserTable from "./pages/UserTable";
-import VendorTable from "./pages/VendorTable";
 
 function App() {
   return (
@@ -84,11 +82,7 @@ function App() {
         <Route path="/paidbills" element={<PaidBills />} />
         
         <Route path="/profile" element={<Profile />} />
-
-        {/* temporary a separate route for checking */}
-        <Route path="/user-table" element={<UserTable />} /> 
-        <Route path="/vendor-table" element={<VendorTable />} /> 
-
+        
       </Routes>
     </BrowserRouter>
   );
