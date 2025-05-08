@@ -1,7 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
-import Header from '../components/Header';
+import Header from "../components/Header";
 import { bills } from "../apis/bills.api";
-import { natureOfWorks, vendors, regions, currencies } from "../apis/master.api";
+import {
+  natureOfWorks,
+  vendors,
+  regions,
+  currencies,
+} from "../apis/master.api";
 import imageBox from "../assets/img-box.svg";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -12,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 const FullBillDetails = () => {
   const navigate = useNavigate();
   const [showSuccess, setShowSuccess] = useState(false);
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split("T")[0];
 
   const [billFormData, setBillFormData] = useState({
     typeOfInv: "",
@@ -59,7 +64,7 @@ const FullBillDetails = () => {
     const fetchVendors = async () => {
       try {
         const res = await axios.get(vendors, {
-          headers: { Authorization: `Bearer ${Cookies.get("token")}` }
+          headers: { Authorization: `Bearer ${Cookies.get("token")}` },
         });
         console.log(res.data);
         setVendorsData(res.data);
@@ -79,7 +84,7 @@ const FullBillDetails = () => {
         const [naturesRes, regionsRes, currenciesRes] = await Promise.all([
           axios.get(natureOfWorks, { headers }),
           axios.get(regions, { headers }),
-          axios.get(currencies, { headers })
+          axios.get(currencies, { headers }),
         ]);
 
         setNatureOfWorkOptions(naturesRes.data || []);
@@ -95,17 +100,19 @@ const FullBillDetails = () => {
   }, []);
 
   const handleVendorLookup = async (e) => {
-    if (e.key === 'Enter' && billFormData.vendorNo) {
+    if (e.key === "Enter" && billFormData.vendorNo) {
       e.preventDefault();
       setIsLoading(true);
 
       try {
-        const vendor = vendorsData.find(v => v.vendorNo.toString() === billFormData.vendorNo);
+        const vendor = vendorsData.find(
+          (v) => v.vendorNo.toString() === billFormData.vendorNo
+        );
 
         if (vendor) {
           console.log("Found vendor data:", {
             vendorName: vendor.vendorName,
-            complianceStatus: vendor.complianceStatus
+            complianceStatus: vendor.complianceStatus,
           });
 
           const updates = {
@@ -128,26 +135,25 @@ const FullBillDetails = () => {
 
           console.log("Applying updates:", updates);
 
-          setBillFormData(prev => ({
+          setBillFormData((prev) => ({
             ...prev,
-            ...updates
+            ...updates,
           }));
 
           setTimeout(() => {
             console.log("Form data after update:", billFormData);
           }, 0);
-
         } else {
           const updates = {
             vendorName: "",
             gstNumber: "",
             compliance206AB: "",
-            panStatus: ""
+            panStatus: "",
           };
 
-          setBillFormData(prev => ({
+          setBillFormData((prev) => ({
             ...prev,
-            ...updates
+            ...updates,
           }));
           console.log("Vendor not found");
           toast.error("Vendor not found");
@@ -164,16 +170,18 @@ const FullBillDetails = () => {
 
   const handleVendorNameChange = (e) => {
     const value = e.target.value;
-    setBillFormData(prev => ({ ...prev, vendorName: value }));
+    setBillFormData((prev) => ({ ...prev, vendorName: value }));
 
     if (value.length > 0) {
       const searchTerm = value.toLowerCase();
       const filteredVendors = vendorsData
-        .filter(vendor => vendor.vendorName.toLowerCase().includes(searchTerm))
+        .filter((vendor) =>
+          vendor.vendorName.toLowerCase().includes(searchTerm)
+        )
         .sort((a, b) => {
           const aStartsWith = a.vendorName.toLowerCase().startsWith(searchTerm);
           const bStartsWith = b.vendorName.toLowerCase().startsWith(searchTerm);
-          
+
           if (aStartsWith && !bStartsWith) return -1;
           if (!aStartsWith && bStartsWith) return 1;
           return a.vendorName.localeCompare(b.vendorName);
@@ -189,7 +197,7 @@ const FullBillDetails = () => {
 
   const handleSuggestionClick = async (vendor) => {
     setIsLoading(true);
-    
+
     const updates = {
       vendorName: vendor.vendorName,
       vendorNo: vendor.vendorNo.toString(),
@@ -208,18 +216,18 @@ const FullBillDetails = () => {
       updates.compliance206AB = vendor.complianceStatus;
     }
 
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    setBillFormData(prev => ({
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    setBillFormData((prev) => ({
       ...prev,
-      ...updates
+      ...updates,
     }));
     setShowSuggestions(false);
     setIsLoading(false);
   };
 
   useEffect(() => {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       .bill-form select {
         -webkit-appearance: none;
@@ -289,22 +297,22 @@ const FullBillDetails = () => {
         attachment: files[0].name,
       }));
     } else {
-      if (id === 'vendorNo') {
-        const numericValue = value.replace(/[^0-9]/g, '');
+      if (id === "vendorNo") {
+        const numericValue = value.replace(/[^0-9]/g, "");
         if (numericValue.length > 6) return;
-        setBillFormData(prev => ({
+        setBillFormData((prev) => ({
           ...prev,
-          [id]: numericValue
+          [id]: numericValue,
         }));
         return;
       }
-      if (id === 'poNo' && value.length > 10) {
+      if (id === "poNo" && value.length > 10) {
         return;
       }
-      if (id === 'taxInvNo' && value.length > 16) {
+      if (id === "taxInvNo" && value.length > 16) {
         return;
       }
-      if (id === 'typeOfInv') {
+      if (id === "typeOfInv") {
         setBillFormData((prevData) => ({
           ...prevData,
           natureOfWork: value,
@@ -352,7 +360,9 @@ const FullBillDetails = () => {
       );
 
       if (missingFields.length > 0) {
-        toast.error(`Please fill in required fields: ${missingFields.join(", ")}`);
+        toast.error(
+          `Please fill in required fields: ${missingFields.join(", ")}`
+        );
         return;
       }
 
@@ -368,7 +378,7 @@ const FullBillDetails = () => {
       setBillFormData(updatedFormData);
 
       const res = await axios.post(bills, updatedFormData, {
-        headers: { Authorization: `Bearer ${Cookies.get("token")}` }
+        headers: { Authorization: `Bearer ${Cookies.get("token")}` },
       });
 
       if (res.status === 200 || res.status === 201) {
@@ -377,7 +387,6 @@ const FullBillDetails = () => {
           navigate("/");
         }, 2000);
       }
-
     } catch (error) {
       console.error("Error submitting bill:", error);
       toast.error(error.response?.data?.message || "Error creating bill");
@@ -454,14 +463,18 @@ const FullBillDetails = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 success-overlay">
           <div className="bg-white p-8 rounded-lg shadow-xl text-center success-modal">
             <div className="w-16 h-16 mx-auto mb-4 text-green-500">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path 
-                  d="M20 6L9 17l-5-5"
-                  className="success-checkmark"
-                />
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M20 6L9 17l-5-5" className="success-checkmark" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-800">Bill Created Successfully!</h2>
+            <h2 className="text-2xl font-bold text-gray-800">
+              Bill Created Successfully!
+            </h2>
             <p className="text-gray-600 mt-2">Redirecting to home page...</p>
           </div>
         </div>
@@ -489,8 +502,10 @@ const FullBillDetails = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="" disabled hidden>Select Type of Invoice</option>
-                {natureOfWorkOptions.map(nature => (
+                <option value="" disabled hidden>
+                  Select Type of Invoice
+                </option>
+                {natureOfWorkOptions.map((nature) => (
                   <option key={nature._id} value={nature.natureOfWork}>
                     {nature.natureOfWork}
                   </option>
@@ -512,8 +527,10 @@ const FullBillDetails = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="" disabled hidden>Select Region</option>
-                {regionOptions.map(region => (
+                <option value="" disabled hidden>
+                  Select Region
+                </option>
+                {regionOptions.map((region) => (
                   <option key={region._id} value={region.name}>
                     {region.name}
                   </option>
@@ -683,7 +700,11 @@ const FullBillDetails = () => {
               <input
                 type="text"
                 className={`w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] 
-                  ${billFormData.poCreated === "No" ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
+                  ${
+                    billFormData.poCreated === "No"
+                      ? "bg-gray-100 cursor-not-allowed"
+                      : "bg-white"
+                  }`}
                 id="poNo"
                 value={billFormData.poNo}
                 onChange={handleChange}
@@ -705,7 +726,11 @@ const FullBillDetails = () => {
               <input
                 type="date"
                 className={`w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]
-                  ${billFormData.poCreated === "No" ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
+                  ${
+                    billFormData.poCreated === "No"
+                      ? "bg-gray-100 cursor-not-allowed"
+                      : "bg-white"
+                  }`}
                 id="poDate"
                 value={billFormData.poDate}
                 onChange={handleChange}
@@ -726,7 +751,11 @@ const FullBillDetails = () => {
               <input
                 type="number"
                 className={`w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]
-                  ${billFormData.poCreated === "No" ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
+                  ${
+                    billFormData.poCreated === "No"
+                      ? "bg-gray-100 cursor-not-allowed"
+                      : "bg-white"
+                  }`}
                 id="poAmt"
                 value={billFormData.poAmt}
                 onChange={handleChange}
@@ -831,162 +860,162 @@ const FullBillDetails = () => {
         </div>
 
         {/* Tax Invoice and Final Details */}
-          <div className="grid grid-cols-2 gap-[2vw]">
-            <div className="relative mb-[4vh]">
-              <label
-                htmlFor="taxInvNo"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                Tax Invoice No.
-              </label>
-              <input
-                type="text"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="taxInvNo"
-                value={billFormData.taxInvNo}
-                onChange={handleChange}
-                pattern="[A-Za-z0-9]{16}"
-                maxLength={16}
-                title="Tax Invoice No must be exactly 16 alphanumeric characters"
-                required
-              />
-            </div>
-
-            <div className="relative mb-[2.5vh]">
-              <label
-                htmlFor="taxInvDate"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                Tax Inv Date
-              </label>
-              <input
-                type="date"
-                className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="taxInvDate"
-                value={billFormData.taxInvDate}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-[2vw]">
-            <div className="relative mb-[4vh]">
-              <label
-                htmlFor="currency"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                Currency
-              </label>
-              <select
-                id="currency"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                value={billFormData.currency}
-                onChange={handleChange}
-                required
-              >
-                <option value="" disabled hidden>Select Currency</option>
-                {currencyOptions.map(currency => (
-                  <option key={currency._id} value={currency.currency}>
-                    {currency.currency}
-                  </option>
-                ))}
-              </select>
-            </div>
+        <div className="grid grid-cols-2 gap-[2vw]">
+          <div className="relative mb-[4vh]">
+            <label
+              htmlFor="taxInvNo"
+              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+            >
+              Tax Invoice No.
+            </label>
+            <input
+              type="text"
+              className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+              id="taxInvNo"
+              value={billFormData.taxInvNo}
+              onChange={handleChange}
+              pattern="[A-Za-z0-9]{16}"
+              maxLength={16}
+              title="Tax Invoice No must be exactly 16 alphanumeric characters"
+              required
+            />
           </div>
 
-          <div className="grid grid-cols-2 gap-[2vw]">
-            <div className="relative mb-[4vh]">
-              <label
-                htmlFor="taxInvAmt"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                Tax Invoice Amount
-              </label>
-              <input
-                type="number"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="taxInvAmt"
-                value={billFormData.taxInvAmt}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="relative mb-[4vh]">
-              <label
-                htmlFor="taxInvRecdAtSite"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                Tax Invoice Received At Site *
-              </label>
-              <input
-                type="date"
-                className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="taxInvRecdAtSite"
-                value={billFormData.taxInvRecdAtSite}
-                onChange={handleChange}
-                required
-              />
-            </div>
+          <div className="relative mb-[2.5vh]">
+            <label
+              htmlFor="taxInvDate"
+              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+            >
+              Tax Inv Date
+            </label>
+            <input
+              type="date"
+              className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+              id="taxInvDate"
+              value={billFormData.taxInvDate}
+              onChange={handleChange}
+              required
+            />
           </div>
-
-          <div className="grid grid-cols-2 gap-[2vw]">
-            <div className="relative mb-[4vh]">
-              <label
-                htmlFor="taxInvRecdBy"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                Tax Inv Received By *
-              </label>
-              <input
-                type="text"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="taxInvRecdBy"
-                value={billFormData.taxInvRecdBy}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-[2vw]">
-            <div className="relative mb-[4vh]">
-              <label
-                htmlFor="department"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                Department *
-              </label>
-              <input
-                type="text"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="department"
-                value={billFormData.department}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-[2vw]">
-            <div className="relative mb-[2.5vh]">
-              <label
-                htmlFor="remarks"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                Remarks by Site Team
-              </label>
-              <input
-                type="text"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="remarks"
-                value={billFormData.remarks}
-                onChange={handleChange}
-                required
-              />
-            </div>
+        </div>
+        <div className="grid grid-cols-2 gap-[2vw]">
+          <div className="relative mb-[4vh]">
+            <label
+              htmlFor="currency"
+              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+            >
+              Currency
+            </label>
+            <select
+              id="currency"
+              className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+              value={billFormData.currency}
+              onChange={handleChange}
+              required
+            >
+              <option value="" disabled hidden>
+                Select Currency
+              </option>
+              {currencyOptions.map((currency) => (
+                <option key={currency._id} value={currency.currency}>
+                  {currency.currency}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
+        <div className="grid grid-cols-2 gap-[2vw]">
+          <div className="relative mb-[4vh]">
+            <label
+              htmlFor="taxInvAmt"
+              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+            >
+              Tax Invoice Amount
+            </label>
+            <input
+              type="number"
+              className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+              id="taxInvAmt"
+              value={billFormData.taxInvAmt}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="relative mb-[4vh]">
+            <label
+              htmlFor="taxInvRecdAtSite"
+              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+            >
+              Tax Invoice Received At Site *
+            </label>
+            <input
+              type="date"
+              className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+              id="taxInvRecdAtSite"
+              value={billFormData.taxInvRecdAtSite}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-[2vw]">
+          <div className="relative mb-[4vh]">
+            <label
+              htmlFor="taxInvRecdBy"
+              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+            >
+              Tax Inv Received By *
+            </label>
+            <input
+              type="text"
+              className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+              id="taxInvRecdBy"
+              value={billFormData.taxInvRecdBy}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-[2vw]">
+          <div className="relative mb-[4vh]">
+            <label
+              htmlFor="department"
+              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+            >
+              Department *
+            </label>
+            <input
+              type="text"
+              className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+              id="department"
+              value={billFormData.department}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-[2vw]">
+          <div className="relative mb-[2.5vh]">
+            <label
+              htmlFor="remarks"
+              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+            >
+              Remarks by Site Team
+            </label>
+            <input
+              type="text"
+              className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+              id="remarks"
+              value={billFormData.remarks}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
         {/* File Upload Section */}
         <div className="border border-dashed border-[#ccc] p-[2vh_2vw] text-center rounded-[0.5vw] mt-[2vh] w-[57vw] h-[45vh] relative">
           <label
@@ -1026,17 +1055,18 @@ const FullBillDetails = () => {
             required
           />
         </div>
-
-        {/* Submit Button */}
-        <button
-          className="flex justify-center items-center bg-[#011A99] text-white mt-[12vh] w-[84vw] h-[6.8vh] border-none rounded-[0.5vw] cursor-pointer text-[2.5vh] mx-auto hover:bg-[#021678] active:bg-[#004085]"
-          type="submit"
-          onClick={handleSubmitForm}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Creating..." : "Create"}
-        </button>
       </div>
+
+      {/* Submit Button */}
+      <button
+        className="flex justify-center items-center bg-[#011A99] text-white mt-[12vh] w-[84vw] h-[6.8vh] border-none rounded-[0.5vw] cursor-pointer text-[2.5vh] mx-auto hover:bg-[#021678] active:bg-[#004085]"
+        type="submit"
+        onClick={handleSubmitForm}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? "Creating..." : "Create"}
+      </button>
+    </div>
   );
 };
 

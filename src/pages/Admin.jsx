@@ -4,18 +4,18 @@ import { importReport } from '../apis/bills.api'
 import axios from 'axios'
 import Cookies from 'js-cookie'
 import { useNavigate } from 'react-router-dom'
-import UserTable from "../components/admin/UserTable";
+import AdminBtns from '../components/admin/AdminBtns';
 import VendorTable from "../components/admin/VendorTable";
 import ComplianceTable from '../components/admin/ComplianceTable';
-import AdminBtns from '../components/admin/AdminBtns';
 import PanStatusTable from "../components/admin/PanStatusTable";
 import RegionTable from "../components/admin/RegionTable";
 import NatureOfWorkTable from "../components/admin/NatureOfWorkTable";
+import UserTable from "../components/admin/UserTable";
 import CurrencyTable from "../components/admin/CurrencyTable";
 
 const Admin = () => {
     const [isAdmin, setIsAdmin] = useState(false)
-    const [activeTable, setActiveTable] = useState('users') // Default to users table
+    const [activeTable, setActiveTable] = useState('')
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -67,7 +67,7 @@ const Admin = () => {
             case 'currencies':
                 return <CurrencyTable />;
             default:
-                return <div className="text-center mt-4">Table component not yet implemented</div>;
+                return <div className="text-center mt-4 text-gray-500">Please select a table to view</div>;
         }
     }
 
@@ -76,12 +76,14 @@ const Admin = () => {
             <Header />
             {isAdmin ? (
                 <div className="mt-5 p-5">
-                    <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
-                    <AdminBtns activeTable={activeTable} setActiveTable={setActiveTable} />
-                    <div className="mt-5">
+                    {/* Title Section */}
+                    <h1 className="text-2xl font-bold mb-8">Admin Dashboard</h1>
+
+                    {/* Import File Section */}
+                    <div className="mb-8">
                         <label
                             htmlFor="fileInput"
-                            className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md cursor-pointer transition-colors duration-300 hover:bg-blue-700"
+                            className="bg-[#364cbb] text-white font-semibold px-[1.4vw] py-[0.5vw] rounded-[1vw] border-none cursor-pointer whitespace-nowrap text-[0.9vw] transition-all duration-200 hover:bg-[#2a3c9e] hover:-translate-y-0.5 shadow-md"
                         >
                             Import Flat File
                             <input
@@ -92,7 +94,15 @@ const Admin = () => {
                             />
                         </label>
                     </div>
-                    <div className="mt-5">
+
+                    {/* Master Tables Section */}
+                    <div>
+                        <h2 className="text-xl font-semibold mb-4 text-gray-700">Master Tables</h2>
+                        <AdminBtns activeTable={activeTable} setActiveTable={setActiveTable} />
+                    </div>
+
+                    {/* Table Display Section */}
+                    <div className="mt-8">
                         {renderActiveTable()}
                     </div>
                 </div>
