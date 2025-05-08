@@ -79,8 +79,8 @@ const ChecklistAccount = () => {
             page-break-after: avoid;
           }
           .content-row {
-            padding: 8px;
-            font-size: 0.875rem;
+            padding: 0px;
+            font-size: 0.770rem;
             border-bottom: 1px solid #e5e7eb;
           }
           table {
@@ -92,7 +92,7 @@ const ChecklistAccount = () => {
           th, td {
             border: 1px solid #e5e7eb;
             padding: 4px 6px;
-            font-size: 0.875rem;
+            font-size: 0.770rem;
           }
           th {
             background-color: #f3f4f6;
@@ -102,8 +102,8 @@ const ChecklistAccount = () => {
           .logo-img { height: 40px; }
           .grid-row {
             display: grid;
-            padding: 8px;
-            font-size: 0.875rem;
+            padding: 4px 0px;
+            font-size: 0.770rem;
             border-bottom: 1px solid #e5e7eb;
           }
           .grid-3 {
