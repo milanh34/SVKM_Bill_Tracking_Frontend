@@ -161,7 +161,7 @@ const Dashboard = () => {
 
       switch(userRole) {
         case 'site_officer':
-          return maxCount === 1;
+          return currentCount === 1;
 
         case 'site_pimo':
           return currentCount === 1;
