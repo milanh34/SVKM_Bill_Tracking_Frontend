@@ -3,11 +3,12 @@ import cross from "../../assets/cross.svg";
 import { workflowUpdate } from "../../apis/workflow.api";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
     const [recipientName, setRecipientName] = useState('');
     const [remarks, setRemarks] = useState('');
-    const [showToast, setShowToast] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const selectedBillDetails = selectedBills.map(billId => {
@@ -25,7 +26,7 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!recipientName.trim()) {
-            alert("Please enter recipient name");
+            toast.error("Please enter recipient name");
             return;
         }
 
@@ -38,32 +39,25 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
             };
 
             const toUser = {
-                id: "", // This will be handled by backend
+                id: "",
                 name: recipientName,
                 role: singleRole.value
             };
+            const res = await axios.post(workflowUpdate, {
+                fromUser,
+                toUser,
+                billIds: selectedBills,
+                action: "forward",
+                remarks: remarks || ""
+            });
 
-            const promises = selectedBills.map(billId => 
-                axios.post(workflowUpdate, {
-                    fromUser,
-                    toUser,
-                    billId,
-                    action: "forward",
-                    remarks: remarks || "No remarks added"
-                })
-            );
-
-            await Promise.all(promises);
-
-            setShowToast(true);
-            setTimeout(() => {
-                setShowToast(false);
-                closeWindow();
-            }, 3000);
+            console.log("Response: ", res.data);
+            toast.success(res?.data?.message);
+            setTimeout(() => closeWindow(), 3000);
 
         } catch (error) {
             console.error("Error sending bills:", error);
-            alert(error.response?.data?.message || "Failed to send bills. Please try again.");
+            toast.error(error.response?.data?.message || "Failed to send bills. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -72,6 +66,7 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
     return (
         <>
             <div className="relative bg-white p-6 rounded-lg w-full max-w-[500px] z-[1001] shadow-xl max-h-[90vh] overflow-y-auto">
+                <ToastContainer />
                 <button className="absolute top-2 right-2 bg-transparent border-none cursor-pointer p-1 hover:bg-gray-100 rounded-full" 
                     onClick={closeWindow}
                     disabled={loading}
@@ -127,11 +122,6 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
                     </div>
                 </form>
             </div>
-            {showToast && (
-                <div className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-[#1a8d1a] text-white px-6 py-3 rounded-lg shadow-lg z-[2000] animate-[slideUp_0.3s_ease-out,fadeOut_0.3s_ease-out_2.7s] text-sm max-w-[80%] text-center">
-                    {`${selectedBills.length} bills sent to ${singleRole.label}`}
-                </div>
-            )}
         </>
     );
 };

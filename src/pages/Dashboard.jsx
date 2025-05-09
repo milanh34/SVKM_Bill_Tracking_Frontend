@@ -2,8 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import axios from "axios";
-import { bills, billWorkflow, importReport } from "../apis/bills.api";
-import { workflowUpdate } from "../apis/workflow.api";
+import { bills } from "../apis/bills.api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DataTable from "../components/dashboard/DataTable";
@@ -24,60 +23,8 @@ import { SendToModal } from "../components/dashboard/SendToModal";
 import SendBoxModal from "../components/dashboard/SendBoxModal";
 import Loader from "../components/Loader";
 import Cookies from "js-cookie";
-import ImportModal from "../components/dashboard/ImportModal";
 import { handleExportReport } from "../utils/exportExcelDashboard";
-
-const ChecklistModal = ({ isOpen, onClose, selectedRows, billsData }) => {
-  const navigate = useNavigate();
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/25 backdrop-blur-sm flex justify-center items-center z-[1000]">
-      <div className="bg-white rounded-lg p-6 w-96">
-        <h2 className="text-xl font-semibold mb-4">Select Checklist Type</h2>
-        <div className="space-y-3">
-          <button
-            onClick={() =>
-              navigate("/checklist-directFI2", {
-                state: {
-                  selectedRows,
-                  bills: billsData.filter((bill) =>
-                    selectedRows?.includes(bill._id)
-                  ),
-                },
-              })
-            }
-            className="bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors hover:cursor-pointer w-full py-2 px-4"
-          >
-            Direct FI Checklist
-          </button>
-          <button
-            onClick={() =>
-              navigate("/checklist-advance2", {
-                state: {
-                  selectedRows,
-                  bills: billsData.filter((bill) =>
-                    selectedRows?.includes(bill._id)
-                  ),
-                },
-              })
-            }
-            className="bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors hover:cursor-pointer w-full py-2 px-4"
-          >
-            Advanced Checklist
-          </button>
-        </div>
-        <button
-          onClick={onClose}
-          className="mt-4 w-full py-2 px-4 border border-gray-300 rounded hover:bg-gray-50"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-};
+import ChecklistModal from "../components/dashboard/ChecklistModal";
 
 const Dashboard = () => {
   const currentUserRole = Cookies.get("userRole");
@@ -106,7 +53,6 @@ const Dashboard = () => {
   const [itemsPerPage, setItemsPerPage] = useState(30);
   const [pagesToShow, setPagesToShow] = useState(5);
   const [showDownloadValidation, setShowDownloadValidation] = useState(false);
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [columnSearchQuery, setColumnSearchQuery] = useState("");
   const [showIncomingBills, setShowIncomingBills] = useState(false);
   const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
@@ -136,23 +82,23 @@ const Dashboard = () => {
     }
   };
 
-  const roles = [
-    { value: "site_officer", label: "Team" },
-    { value: "qs_site", label: "QS Team" },
-    {
-      value: "site_pimo",
-      label: "PIMO Mumbai & MIGO/SES Team",
-    },
-    {
-      value: "pimo_mumbai",
-      label: "PIMO Mumbai for Advance & FI Entry",
-    },
-    { value: "accounts", label: "Accounts Team" },
-    {
-      value: "director",
-      label: "Trustee, Advisor & Director",
-    },
-  ];
+  // const roles = [
+  //   { value: "site_officer", label: "Team" },
+  //   { value: "qs_site", label: "QS Team" },
+  //   {
+  //     value: "site_pimo",
+  //     label: "PIMO Mumbai & MIGO/SES Team",
+  //   },
+  //   {
+  //     value: "pimo_mumbai",
+  //     label: "PIMO Mumbai for Advance & FI Entry",
+  //   },
+  //   { value: "accounts", label: "Accounts Team" },
+  //   {
+  //     value: "director",
+  //     label: "Trustee, Advisor & Director",
+  //   },
+  // ];
 
   const roleWorkflow = {
     site_officer: [
@@ -162,6 +108,7 @@ const Dashboard = () => {
       { value: "site_engineer", label: "Site Engineer" },
       { value: "site_incharge", label: "Site Incharge" },
       { value: "site_pimo", label: "Site PIMO" },
+      { value: "pimo_mumbai", label: "PIMO Mumbai Team" },
     ],
     site_pimo: [
       { value: "qs_site", label: "QS Site Team" },
@@ -199,70 +146,6 @@ const Dashboard = () => {
     setIsSendBoxOpen(false);
   };
 
-  const handleSendBills = async (selectedBills, remarks) => {
-    try {
-      const actor = Cookies.get("userName");
-      const promises = selectedBills.map((billId) =>
-        axios.post(`${billWorkflow}/${billId}/advance`, {
-          actor,
-          comments: remarks || "No remarks added",
-        })
-      );
-
-      const results = await Promise.allSettled(promises);
-
-      const failedRequests = results.filter(
-        (result) => result.status === "rejected"
-      );
-      const successfulRequests = results.filter(
-        (result) => result.status === "fulfilled"
-      );
-
-      if (failedRequests.length > 0) {
-        toast.error(
-          <div className="flex items-center gap-2">
-            <AlertTriangle size={18} />
-            <span>
-              Failed to send {failedRequests.length} bill
-              {failedRequests.length > 1 ? "s" : ""}
-            </span>
-          </div>
-        );
-      }
-
-      if (successfulRequests.length > 0) {
-        toast.success(
-          <div className="flex items-center gap-2">
-            <Send size={18} className="text-white" />
-            <span>
-              Successfully sent {successfulRequests.length} bill
-              {successfulRequests.length > 1 ? "s" : ""} to {selectedRole.label}
-            </span>
-          </div>,
-          {
-            style: { background: "#4CAF50", color: "white" },
-            progressStyle: { background: "white" },
-          }
-        );
-      }
-
-      setIsWindowOpen(false);
-      setSelectedRole(null);
-      fetchBills();
-    } catch (error) {
-      console.error("Error advancing bills:", error);
-      toast.error(
-        <div className="flex items-center gap-2">
-          <AlertTriangle size={18} />
-          <span>
-            {error.response?.data?.message ||
-              "Failed to send bills. Please try again."}
-          </span>
-        </div>
-      );
-    }
-  };
-
   useEffect(() => {
     const userRole = Cookies.get("userRole");
     const token = Cookies.get("token");
@@ -274,26 +157,26 @@ const Dashboard = () => {
 
   const filterBillsByRole = (bills, userRole) => {
     return bills.filter(bill => {
-      const maxCount = bill.maxCount || 0;
+      const currentCount = bill.currentCount || 0;
 
       switch(userRole) {
         case 'site_officer':
-          return maxCount === 1 || maxCount === 2;
+          return maxCount === 1;
 
         case 'site_pimo':
-          return maxCount === 1 || maxCount === 2;
+          return currentCount === 1;
         
         case 'pimo_mumbai':
-          return maxCount === 2 || maxCount === 3 || maxCount === 4 || maxCount === 5 || maxCount === 6;
+          return currentCount === 2 || currentCount === 4 || currentCount === 6;
         
         case 'qs_site':
-          return maxCount === 3 || maxCount === 4;
+          return currentCount === 3;
         
         case 'director':
-          return maxCount === 5 || maxCount === 6;
+          return currentCount === 5;
         
         case 'accounts':
-          return maxCount === 7;
+          return currentCount === 7;
         
         case 'admin':
           return true;
@@ -315,16 +198,9 @@ const Dashboard = () => {
 
       const filteredBills = filterBillsByRole(response.data, userRole);
 
-      console.log("Filtered bills on maxCount:", filteredBills);
+      console.log("Filtered bills on currentCount:", filteredBills);
 
       const sortedData = filteredBills.sort((a, b) => {
-        const aHasHistory = (a.workflowState?.history?.length || 0) > 0;
-        const bHasHistory = (b.workflowState?.history?.length || 0) > 0;
-
-        if (aHasHistory !== bHasHistory) {
-          return aHasHistory ? 1 : -1;
-        }
-
         const aDate = new Date(a.taxInvDate || 0);
         const bDate = new Date(b.taxInvDate || 0);
         return bDate - aDate;
@@ -641,29 +517,6 @@ const Dashboard = () => {
   const handleRegionChange = (e) => {
     const region = e.target.value;
     setSelectedRegion(region ? [region] : []);
-  };
-
-  const handleImportBills = async (file) => {
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await axios.post(importReport, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      toast.success("Bills updated successfully");
-    } catch (error) {
-      console.error("Error updating bills:", error);
-      toast.error(
-        <div className="flex items-center gap-2">
-          <AlertTriangle size={18} />
-          <span>Failed to update bills. Please try again.</span>
-        </div>
-      );
-    }
   };
 
   const showIncomingBillsButton = ["accounts", "pimo_mumbai"].includes(
@@ -1063,12 +916,6 @@ const Dashboard = () => {
           />
         </div>
       )}
-
-      <ImportModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-        onImport={handleImportBills}
-      />
 
       <ChecklistModal
         isOpen={isChecklistModalOpen}

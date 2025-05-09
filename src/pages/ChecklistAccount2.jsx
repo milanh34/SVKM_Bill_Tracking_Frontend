@@ -3,7 +3,7 @@ import Header from "../components/Header";
 import { useLocation } from "react-router-dom";
 import print from "../assets/print.svg";
 import logo from "../assets/logo.png";
-import { vendors } from "../apis/vendor.api";
+import { vendors } from "../apis/master.api";
 import axios from "axios";
 import Cookies from "js-cookie";
 
