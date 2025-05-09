@@ -59,7 +59,7 @@ const LoginPage = () => {
       Admin: "admin",
     };
 
-    return roleMap[selectedRole] === userRole;
+    return userRole.includes(roleMap[selectedRole]);
   };
 
   const handleForgotPass = () => {
