@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import Header from "../components/Header";
 import { bills } from "../apis/bills.api";
 import {
@@ -13,6 +13,8 @@ import Cookies from "js-cookie";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+import { useDropzone } from "react-dropzone";
+import { Paperclip, X } from "lucide-react";
 
 const FullBillDetails = () => {
   const navigate = useNavigate();
@@ -59,6 +61,24 @@ const FullBillDetails = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [vendorSuggestions, setVendorSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [files, setFiles] = useState([]);
+
+  const removeFile = (index) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const onDrop = useCallback((acceptedFiles) => {
+    setFiles((prev) => [...prev, ...acceptedFiles]);
+  }, []);
+
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop,
+    accept: {
+      "application/pdf": [".pdf"],
+      "image/*": [".png", ".jpg", ".jpeg"],
+      "application/msword": [".doc", ".docx"],
+    },
+  });
 
   useEffect(() => {
     const fetchVendors = async () => {
@@ -337,12 +357,9 @@ const FullBillDetails = () => {
   const handleSubmitForm = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    const formData = new FormData();
 
     try {
-      if (billImage) {
-        billFormData.append("attachment", billImage);
-      }
-
       const requiredFields = [
         "typeOfInv",
         "region",
@@ -377,8 +394,19 @@ const FullBillDetails = () => {
 
       setBillFormData(updatedFormData);
 
-      const res = await axios.post(bills, updatedFormData, {
+      Object.keys(updatedFormData).forEach((key) => {
+        formData.append(key, updatedFormData[key]);
+      });
+
+      if (files.length > 0) {
+        files.forEach((file) => {
+          formData.append("files", file);
+        });
+      }
+
+      const res = await axios.post(bills, formData, {
         headers: { Authorization: `Bearer ${Cookies.get("token")}` },
+        "Content-Type": "multipart/form-data",
       });
 
       if (res.status === 200 || res.status === 201) {
@@ -484,7 +512,6 @@ const FullBillDetails = () => {
         <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">
           Bill Details
         </h1>
-
         {/* First Section: Invoice and Region */}
         <div>
           <div className="grid grid-cols-2 gap-[2vw]">
@@ -665,7 +692,6 @@ const FullBillDetails = () => {
             </div>
           </div>
         </div>
-
         {/* PO Details Section */}
         <div>
           <div className="grid grid-cols-2 gap-[2vw]">
@@ -765,7 +791,6 @@ const FullBillDetails = () => {
             </div>
           </div>
         </div>
-
         {/* Proforma Invoice Details */}
         <div className="grid grid-cols-2 gap-[2vw]">
           <div className="relative mb-[4vh]">
@@ -802,7 +827,6 @@ const FullBillDetails = () => {
             />
           </div>
         </div>
-
         <div className="grid grid-cols-2 gap-[2vw]">
           <div className="relative mb-[4vh]">
             <label
@@ -838,7 +862,6 @@ const FullBillDetails = () => {
             />
           </div>
         </div>
-
         <div className="grid grid-cols-2 gap-[2vw]">
           <div className="relative mb-[4vh]">
             <label
@@ -858,7 +881,6 @@ const FullBillDetails = () => {
           </div>
           <div></div>
         </div>
-
         {/* Tax Invoice and Final Details */}
         <div className="grid grid-cols-2 gap-[2vw]">
           <div className="relative mb-[4vh]">
@@ -924,7 +946,6 @@ const FullBillDetails = () => {
             </select>
           </div>
         </div>
-
         <div className="grid grid-cols-2 gap-[2vw]">
           <div className="relative mb-[4vh]">
             <label
@@ -959,7 +980,6 @@ const FullBillDetails = () => {
             />
           </div>
         </div>
-
         <div className="grid grid-cols-2 gap-[2vw]">
           <div className="relative mb-[4vh]">
             <label
@@ -978,7 +998,6 @@ const FullBillDetails = () => {
             />
           </div>
         </div>
-
         <div className="grid grid-cols-2 gap-[2vw]">
           <div className="relative mb-[4vh]">
             <label
@@ -997,7 +1016,6 @@ const FullBillDetails = () => {
             />
           </div>
         </div>
-
         <div className="grid grid-cols-2 gap-[2vw]">
           <div className="relative mb-[2.5vh]">
             <label
@@ -1017,7 +1035,7 @@ const FullBillDetails = () => {
           </div>
         </div>
         {/* File Upload Section */}
-        <div className="border border-dashed border-[#ccc] p-[2vh_2vw] text-center rounded-[0.5vw] mt-[2vh] w-[57vw] h-[45vh] relative">
+        {/* <div className="border border-dashed border-[#ccc] p-[2vh_2vw] text-center rounded-[0.5vw] mt-[2vh] w-[57vw] h-[45vh] relative">
           <label
             htmlFor="attachment"
             className="absolute inset-0 w-full h-full cursor-pointer flex flex-col items-center justify-center"
@@ -1054,6 +1072,55 @@ const FullBillDetails = () => {
             className="hidden"
             required
           />
+        </div> */}
+        <div className="bg-card rounded-lg px-6 py-2 space-y-4 ont-semibold text-[#01073F]">
+          <div>
+            <h2 className="text-lg font-semibold">Attachments</h2>
+            <p className="text-sm text-muted-foreground">
+              Add files to your email
+            </p>
+          </div>
+          <div
+            {...getRootProps()}
+            className="border-2 border-dashed border-[#011A99] rounded-lg p-8 text-center cursor-pointer hover:bg-accent/50 transition-colors"
+          >
+            <input {...getInputProps()} />
+            <div className="space-y-4">
+              <Paperclip className="h-8 w-8 mx-auto text-muted-foreground" />
+              <div>
+                <p className="font-medium">Drop files here</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  or click to select files
+                </p>
+              </div>
+            </div>
+          </div>
+          {files.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Selected Files</p>
+              <div className="max-h-[200px] overflow-y-auto space-y-2">
+                {files.map((file, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-2 bg-accent/30 rounded-md"
+                  >
+                    <div className="flex items-center space-x-2 min-w-0">
+                      <Paperclip className="h-4 w-4 shrink-0" />
+                      <span className="text-sm truncate">{file.name}</span>
+                    </div>
+                    <button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeFile(index)}
+                      className="shrink-0"
+                    >
+                      <X className="h-4 w-4 cursor-pointer hover:bg-gray-200 hover:rounded-3xl" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
