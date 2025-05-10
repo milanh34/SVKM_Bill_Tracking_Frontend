@@ -48,7 +48,7 @@ const LoginPage = () => {
     setSelectedRole(event.target.value);
   };
 
-  const validateRole = (selectedRole, userRole) => {
+  const validateRole = (selectedRole, userRoles) => {
     const roleMap = {
       Site_Officer: "site_officer",
       QS_Team: "qs_site",
@@ -59,7 +59,7 @@ const LoginPage = () => {
       Admin: "admin",
     };
 
-    return userRole.includes(roleMap[selectedRole]);
+    return userRoles.includes(roleMap[selectedRole]);
   };
 
   const handleForgotPass = () => {
@@ -114,7 +114,11 @@ const LoginPage = () => {
 
       const cookieExpiry = 0.333;
       Cookies.set("token", response.data.token, { expires: cookieExpiry });
-      Cookies.set("userRole", response.data.user.role, {
+      Cookies.set("userRole", response.data.user.role[0], { // Set first role as active role
+        expires: cookieExpiry,
+      });
+      // Store all available roles
+      Cookies.set("availableRoles", JSON.stringify(response.data.user.role), {
         expires: cookieExpiry,
       });
       Cookies.set("userEmail", response.data.user.email, {

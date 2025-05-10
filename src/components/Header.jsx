@@ -8,6 +8,17 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const userRole = Cookies.get('userRole');
+  const availableRoles = JSON.parse(Cookies.get('availableRoles') || '[]');
+
+  const roleDisplayMap = {
+    'site_officer': 'Site Team',
+    'qs_site': 'QS Team',
+    'site_pimo': 'PIMO Mumbai & MIGO/SES Team',
+    'pimo_mumbai': 'PIMO Mumbai for Advance & FI Entry',
+    'accounts': 'Accounts Team',
+    'director': 'Trustee, Advisor & Director',
+    'admin': 'Admin'
+  };
 
   const menuItems = [
     { name: "Home", path: "/", allowedRoles: ['all'] },
@@ -21,26 +32,6 @@ const Header = () => {
     if (item.allowedRoles.includes('all')) return true;
     return item.allowedRoles.includes(userRole);
   });
-
-  const roles = [
-    { value: "Site_Officer", label: "Site Team" },
-    { value: "QS_Team", label: "QS Team" },
-    { value: "PIMO_Mumbai_&_MIGO/SES_Team", label: "PIMO Mumbai & MIGO/SES Team" },
-    { value: "PIMO_Mumbai_for_Advance_&_FI_Entry", label: "PIMO Mumbai for Advance & FI Entry" },
-    { value: "Accounts_Team", label: "Accounts Team" },
-    { value: "Trustee,_Advisor_&_Director", label: "Trustee, Advisor & Director" },
-    { value: "Admin", label: "Admin" }
-  ];
-
-  const roleMap = {
-    Site_Officer: "site_officer",
-    QS_Team: "qs_site",
-    "PIMO_Mumbai_&_MIGO/SES_Team": "site_pimo",
-    "PIMO_Mumbai_for_Advance_&_FI_Entry": "pimo_mumbai",
-    Accounts_Team: "accounts",
-    "Trustee,_Advisor_&_Director": "director",
-    Admin: "admin",
-  };
 
   const getActiveClass = (path) => {
     if (path === "/") {
@@ -64,10 +55,8 @@ const Header = () => {
 
   const handleRoleChange = (event) => {
     const newRole = event.target.value;
-    const mappedRole = roleMap[newRole];
     const cookieExpiry = 0.333; // 8 hours
-    
-    Cookies.set('userRole', mappedRole, { expires: cookieExpiry });
+    Cookies.set('userRole', newRole, { expires: cookieExpiry });
     window.location.reload();
   };
 
@@ -103,18 +92,17 @@ const Header = () => {
               <select 
                 className="w-full bg-[#011a99] outline-none text-white rounded-2xl font-medium 
                 text-xs sm:text-sm appearance-none pr-6 px-2 py-1 hover:bg-[#011889] cursor-pointer"
-              onChange={handleRoleChange}
-                defaultValue=""
+                onChange={handleRoleChange}
+                value={userRole}
                 style={{
                   backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'right 8px center'
                 }}
               >
-                <option value="" disabled hidden>{roles.find(r => r.value === Object.keys(roleMap).find(key => roleMap[key] === Cookies.get('userRole')))?.label}</option>
-                {roles.map((role) => (
-                  <option key={role.value} value={role.value} className="bg-white text-black">
-                    {role.label}
+                {availableRoles.map((role) => (
+                  <option key={role} value={role} className="bg-white text-black">
+                    {roleDisplayMap[role] || role}
                   </option>
                 ))}
               </select>
