@@ -3,7 +3,7 @@ import LoginPage from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import FullBillDetails from "./pages/FullBill";
-import PaidBills from "./pages/PaidBills";
+import SentBills from "./pages/SentBills";
 import Profile from "./pages/Profile";
 import RepRecAtSite from './pages/RepRecAtSite'
 import RepRecMumbai from './pages/RepRecMumbai'
@@ -79,7 +79,7 @@ function App() {
         {/* <Route path='/create-bill' element={<CreateBill />} /> */}
         <Route path='/create-bill' element={<FullBillDetails />} />
 
-        <Route path="/paidbills" element={<PaidBills />} />
+        <Route path="/sentbills" element={<SentBills />} />
         
         <Route path="/profile" element={<Profile />} />
         

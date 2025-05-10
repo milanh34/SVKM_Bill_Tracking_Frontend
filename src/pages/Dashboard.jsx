@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import axios from "axios";
-import { bills } from "../apis/bills.api";
+import { bills, receiveBills } from "../apis/bills.api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DataTable from "../components/dashboard/DataTable";
@@ -82,24 +82,6 @@ const Dashboard = () => {
     }
   };
 
-  // const roles = [
-  //   { value: "site_officer", label: "Team" },
-  //   { value: "qs_site", label: "QS Team" },
-  //   {
-  //     value: "site_pimo",
-  //     label: "PIMO Mumbai & MIGO/SES Team",
-  //   },
-  //   {
-  //     value: "pimo_mumbai",
-  //     label: "PIMO Mumbai for Advance & FI Entry",
-  //   },
-  //   { value: "accounts", label: "Accounts Team" },
-  //   {
-  //     value: "director",
-  //     label: "Trustee, Advisor & Director",
-  //   },
-  // ];
-
   const roleWorkflow = {
     site_officer: [
       { value: "quantity_surveyor", label: "Quantity Surveyor" },
@@ -146,6 +128,38 @@ const Dashboard = () => {
     setIsSendBoxOpen(false);
   };
 
+  const handleReceiveBills = async () => {
+    if (selectedRows.length === 0) {
+      toast.error("Please select bills to receive");
+      return;
+    }
+
+    try {
+      const token = Cookies.get("token");
+      const promises = selectedRows.map((billId) =>
+        axios.post(
+          receiveBills,
+          { billId },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+      );
+
+      await Promise.all(promises);
+      toast.success("Bills marked as received successfully");
+      await fetchBills(); // Refresh the bills data
+      setSelectedRows([]); // Clear selection
+    } catch (error) {
+      console.error("Error receiving bills:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to mark bills as received"
+      );
+    }
+  };
+
   useEffect(() => {
     const userRole = Cookies.get("userRole");
     const token = Cookies.get("token");
@@ -156,31 +170,31 @@ const Dashboard = () => {
   }, [navigate]);
 
   const filterBillsByRole = (bills, userRole) => {
-    return bills.filter(bill => {
+    return bills.filter((bill) => {
       const currentCount = bill.currentCount || 0;
 
-      switch(userRole) {
-        case 'site_officer':
+      switch (userRole) {
+        case "site_officer":
           return currentCount === 1;
 
-        case 'site_pimo':
+        case "site_pimo":
           return currentCount === 1;
-        
-        case 'pimo_mumbai':
+
+        case "pimo_mumbai":
           return currentCount === 2 || currentCount === 4 || currentCount === 6;
-        
-        case 'qs_site':
+
+        case "qs_site":
           return currentCount === 3;
-        
-        case 'director':
+
+        case "director":
           return currentCount === 5;
-        
-        case 'accounts':
+
+        case "accounts":
           return currentCount === 7;
-        
-        case 'admin':
+
+        case "admin":
           return true;
-        
+
         default:
           return false;
       }
@@ -310,27 +324,38 @@ const Dashboard = () => {
   const filteredData = useMemo(() => {
     let result = billsData;
 
-    // Filter for incoming bills when showIncomingBills is true
-    if (showIncomingBills) {
-      if (currentUserRole === "accounts") {
-        result = result.filter(
-          (bill) =>
-            bill.accountsDept?.dateGiven && !bill.accountsDept?.dateReceived
-        );
-      } else if (currentUserRole === "pimo_mumbai") {
-        result = result.filter(
-          (bill) => bill.pimoMumbai?.dateGiven && !bill.pimoMumbai?.dateReceived
-        );
+    // First filter based on role and received status
+    if (["pimo_mumbai", "accounts"].includes(currentUserRole)) {
+      if (showIncomingBills) {
+        // Show only bills that haven't been received
+        if (currentUserRole === "accounts") {
+          result = result.filter(
+            (bill) =>
+              bill.accountsDept?.dateGiven && !bill.accountsDept?.dateReceived
+          );
+        } else if (currentUserRole === "pimo_mumbai") {
+          result = result.filter(
+            (bill) =>
+              bill.pimoMumbai?.dateGiven && !bill.pimoMumbai?.dateReceived
+          );
+        }
+      } else {
+        // Show only bills that have been received
+        if (currentUserRole === "accounts") {
+          result = result.filter((bill) => bill.accountsDept?.dateReceived);
+        } else if (currentUserRole === "pimo_mumbai") {
+          result = result.filter((bill) => bill.pimoMumbai?.dateReceived);
+        }
       }
-    } else {
-      // Your existing filtering logic
-      if (selectedRegion.length > 0) {
-        result = result.filter((row) => selectedRegion.includes(row.region));
-      }
-      result = result.filter(isWithinDateRange);
     }
 
+    // Apply other existing filters
+    if (selectedRegion.length > 0) {
+      result = result.filter((row) => selectedRegion.includes(row.region));
+    }
+    result = result.filter(isWithinDateRange);
     result = sortData(result, sortConfig);
+
     return result;
   }, [
     billsData,
@@ -377,18 +402,18 @@ const Dashboard = () => {
 
   const handleEditRow = (updatedBill) => {
     console.log("Edit row:", updatedBill);
-    
+
     // Update the filtered data with the edited bill
-    setFilteredDataBill(prevData => 
-      prevData.map(bill => 
+    setFilteredDataBill((prevData) =>
+      prevData.map((bill) =>
         bill._id === updatedBill._id ? updatedBill : bill
       )
     );
-    
+
     // If you also have an original data state that needs updating
     if (billsData !== filteredData) {
-      setBillsData(prevData => 
-        prevData.map(bill => 
+      setBillsData((prevData) =>
+        prevData.map((bill) =>
           bill._id === updatedBill._id ? updatedBill : bill
         )
       );
@@ -404,8 +429,6 @@ const Dashboard = () => {
     setSelectedDateField("taxInvDate");
     setIsFilterPopupOpen(false);
   };
-
-  // const availableRoles = roles.filter((role) => role.value !== currentUserRole);
 
   const columns = useMemo(() => {
     let roleForColumns = currentUserRole;
@@ -595,15 +618,6 @@ const Dashboard = () => {
                   </button>
                 )}
 
-                {/* 
-                <button
-                  className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                  onClick={() => setIsImportModalOpen(true)}
-                >
-                  <Upload className="w-4 h-4" />
-                  <span>Update Bills</span>
-                </button> */}
-
                 <div className="relative" ref={columnSelectorRef}>
                   <button
                     className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
@@ -713,19 +727,34 @@ const Dashboard = () => {
                   <Download className="w-4 h-4" />
                   <span>Export</span>
                 </button>
-
-                <button
-                  className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors ${
-                    selectedRole
-                      ? "relative after:absolute after:top-0 after:right-0 after:w-2 after:h-2 after:bg-green-500 after:rounded-full"
-                      : ""
-                  }`}
-                  onClick={handleSendTo}
-                  title="Send Bills"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>Send To</span>
-                </button>
+                {showIncomingBills ? (
+                  <button
+                    className="inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#1a8d1a] text-white rounded-md hover:bg-[#158515] transition-colors"
+                    onClick={handleReceiveBills}
+                    disabled={selectedRows.length === 0}
+                    title={
+                      selectedRows.length === 0
+                        ? "Select bills to mark as received"
+                        : "Mark selected bills as received"
+                    }
+                  >
+                    <CheckSquare className="w-4 h-4" />
+                    <span>Mark as Received</span>
+                  </button>
+                ) : (
+                  <button
+                    className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors ${
+                      selectedRole
+                        ? "relative after:absolute after:top-0 after:right-0 after:w-2 after:h-2 after:bg-green-500 after:rounded-full"
+                        : ""
+                    }`}
+                    onClick={handleSendTo}
+                    title="Send Bills"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>Send To</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -911,7 +940,9 @@ const Dashboard = () => {
               setSelectedRole(null);
             }}
             selectedBills={selectedRows}
-            billsData={filteredData.filter(bill => selectedRows.includes(bill._id))}
+            billsData={filteredData.filter((bill) =>
+              selectedRows.includes(bill._id)
+            )}
             singleRole={selectedRole}
           />
         </div>

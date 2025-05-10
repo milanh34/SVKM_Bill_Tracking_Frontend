@@ -89,7 +89,16 @@ const Profile = () => {
                     <MapPin className="w-5 h-5 text-[#011a99]" />
                     <div>
                       <p className="text-sm text-gray-500">Region</p>
-                      <p className="font-medium">{userData.region}</p>
+                      <div className="flex flex-wrap gap-1">
+                        {userData.region.map((region, index) => (
+                          <span 
+                            key={index}
+                            className="px-2 py-0.5 bg-gray-100 rounded-full text-sm font-medium"
+                          >
+                            {region}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
@@ -116,12 +125,15 @@ const Profile = () => {
               </div>
 
               <div className="pt-4 border-t border-gray-200">
-                <div className="flex items-center space-x-3">
-                  <div className="px-3 py-1 bg-blue-100 text-[#011a99] rounded-full text-sm font-medium">
-                    {userData.role.charAt(0).toUpperCase() +
-                      userData.role.slice(1)}{" "}
-                    Role
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  {userData.role.map((role, index) => (
+                    <div 
+                      key={index} 
+                      className="px-3 py-1 bg-blue-100 text-[#011a99] rounded-full text-sm font-medium"
+                    >
+                      {role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

@@ -13,7 +13,7 @@ const Header = () => {
     { name: "Home", path: "/", allowedRoles: ['all'] },
     { name: "Create Bill", path: "/create-bill", allowedRoles: ['site_officer', 'admin'] },
     { name: "Reports", path: "/reports", allowedRoles: ['all'] },
-    { name: "Paid Bills", path: "/paidbills", allowedRoles: ['admin', 'director', 'accounts'] },
+    { name: "Sent Bills", path: "/sentbills", allowedRoles: ['all'] },
     { name: "Admin", path: "/admin", allowedRoles: ['admin'] },
   ];
 
