@@ -33,6 +33,7 @@ const DataTable = ({
   searchQuery,
   currentUserRole,
   regionOptions,
+  showActions = true, // Add this prop with default value true
 }) => {
   const [columnFilters, setColumnFilters] = useState({});
   const [activeFilter, setActiveFilter] = useState(null);
@@ -903,13 +904,15 @@ const DataTable = ({
                   {activeFilter === column.field && renderFilterPopup(column)}
                 </th>
               ))}
-              <th className="sticky right-0 top-0 z-50 w-16 bg-blue-50 px-1.5 py-2.5 border-b border-gray-200">
-                <div
-                  className="absolute inset-0 bg-blue-50 border-l border-blue-200"
-                  style={{ bottom: "-1px", zIndex: -1 }}
-                ></div>
-                <div className="relative z-10 text-center">Actions</div>
-              </th>
+              {showActions && (
+                <th className="sticky right-0 top-0 z-50 w-16 bg-blue-50 px-1.5 py-2.5 border-b border-gray-200">
+                  <div
+                    className="absolute inset-0 bg-blue-50 border-l border-blue-200"
+                    style={{ bottom: "-1px", zIndex: -1 }}
+                  ></div>
+                  <div className="relative z-10 text-center">Actions</div>
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">
@@ -962,52 +965,54 @@ const DataTable = ({
                       </td>
                     );
                   })}
-                  <td className="sticky right-0 z-20 whitespace-nowrap px-1.5 py-2.5 text-center">
-                    <div
-                      className={`absolute inset-0 ${
-                        isSelected ? "bg-blue-50" : "bg-white"
-                      } border-l border-blue-200`}
-                      style={{ bottom: "-1px", top: "-1px" }}
-                    ></div>
-                    <div className="relative z-10">
-                      <button
-                        className="rounded-md p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        onClick={() => handleEditClick(row)}
-                        disabled={editSubmitting && editingRow === row._id}
-                      >
-                        {editingRow === row._id ? (
-                          editSubmitting ? (
-                            <span className="inline-block animate-spin">
-                              <svg
-                                className="w-5 h-5 text-green-500"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                              >
-                                <circle
-                                  className="opacity-25"
-                                  cx="12"
-                                  cy="12"
-                                  r="10"
-                                  stroke="currentColor"
-                                  strokeWidth="4"
-                                ></circle>
-                                <path
-                                  className="opacity-75"
-                                  fill="currentColor"
-                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                ></path>
-                              </svg>
-                            </span>
+                  {showActions && (
+                    <td className="sticky right-0 z-20 whitespace-nowrap px-1.5 py-2.5 text-center">
+                      <div
+                        className={`absolute inset-0 ${
+                          isSelected ? "bg-blue-50" : "bg-white"
+                        } border-l border-blue-200`}
+                        style={{ bottom: "-1px", top: "-1px" }}
+                      ></div>
+                      <div className="relative z-10">
+                        <button
+                          className="rounded-md p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          onClick={() => handleEditClick(row)}
+                          disabled={editSubmitting && editingRow === row._id}
+                        >
+                          {editingRow === row._id ? (
+                            editSubmitting ? (
+                              <span className="inline-block animate-spin">
+                                <svg
+                                  className="w-5 h-5 text-green-500"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                  ></circle>
+                                  <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  ></path>
+                                </svg>
+                              </span>
+                            ) : (
+                              <CheckIcon className="w-5 h-5 text-green-500" />
+                            )
                           ) : (
-                            <CheckIcon className="w-5 h-5 text-green-500" />
-                          )
-                        ) : (
-                          <EditIcon className="w-5 h-5" />
-                        )}
-                      </button>
-                    </div>
-                  </td>
+                            <EditIcon className="w-5 h-5" />
+                          )}
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               );
             })}
