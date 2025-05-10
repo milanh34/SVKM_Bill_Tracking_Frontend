@@ -1,14 +1,18 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { EditIcon, SortAscIcon, SortDescIcon, Filter, CheckIcon } from "./Icons";
+import {
+  EditIcon,
+  SortAscIcon,
+  SortDescIcon,
+  Filter,
+  CheckIcon,
+} from "./Icons";
 import { X } from "lucide-react";
 import { getColumnsForRole } from "../../utils/columnEdit";
 import { bills } from "../../apis/bills.api";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const FILTER_OPERATORS = [
-  { value: "multiSelect", label: "Select Values" },
-];
+const FILTER_OPERATORS = [{ value: "multiSelect", label: "Select Values" }];
 
 const DataTable = ({
   data,
@@ -56,9 +60,9 @@ const DataTable = ({
 
   useEffect(() => {
     const handleGlobalEscape = (event) => {
-      if (event.key === 'Escape' && editingRow) {
+      if (event.key === "Escape" && editingRow) {
         setEditingRow(null);
-        setEditedValues(prev => {
+        setEditedValues((prev) => {
           const newValues = { ...prev };
           delete newValues[editingRow];
           return newValues;
@@ -66,8 +70,8 @@ const DataTable = ({
       }
     };
 
-    window.addEventListener('keydown', handleGlobalEscape);
-    return () => window.removeEventListener('keydown', handleGlobalEscape);
+    window.addEventListener("keydown", handleGlobalEscape);
+    return () => window.removeEventListener("keydown", handleGlobalEscape);
   }, [editingRow]);
 
   const visibleColumns = useMemo(() => {
@@ -102,8 +106,8 @@ const DataTable = ({
       if (isNaN(date.getTime())) return "-";
       if (date.getFullYear() <= 1971) return "-";
 
-      const day = date.getDate().toString().padStart(2, '0');
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, "0");
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
       const year = date.getFullYear();
 
       return `${day}-${month}-${year}`;
@@ -114,33 +118,48 @@ const DataTable = ({
 
   const isDateField = (field) => {
     const dateIndicators = [
-      'taxInvDate', 'poDate', 'proformaInvDate', 'taxInvRecdAtSite', 'advanceDate', 'Date', 'invReturnedToSite', 'dateReceived'
+      "taxInvDate",
+      "poDate",
+      "proformaInvDate",
+      "taxInvRecdAtSite",
+      "advanceDate",
+      "Date",
+      "invReturnedToSite",
+      "dateReceived",
     ];
 
-    if (field.includes('.')) {
-      const parts = field.split('.');
-      return parts.some(part =>
-        dateIndicators.some(indicator =>
+    if (field.includes(".")) {
+      const parts = field.split(".");
+      return parts.some((part) =>
+        dateIndicators.some((indicator) =>
           part.toLowerCase().includes(indicator.toLowerCase())
         )
       );
     }
 
-    return dateIndicators.some(indicator =>
+    return dateIndicators.some((indicator) =>
       field.toLowerCase().includes(indicator.toLowerCase())
     );
   };
 
   const isNumericField = (field) => {
     const numericIndicators = [
-      'amount', 'Amount', 'Amt', 'amt',
-      'percentage', 'Percentage',
-      'poAmt', 'taxInvAmt', 'proformaInvAmt',
-      'advanceAmt', 'paymentAmt', 'migoDetails.amount',
-      'copDetails.amount'
+      "amount",
+      "Amount",
+      "Amt",
+      "amt",
+      "percentage",
+      "Percentage",
+      "poAmt",
+      "taxInvAmt",
+      "proformaInvAmt",
+      "advanceAmt",
+      "paymentAmt",
+      "migoDetails.amount",
+      "copDetails.amount",
     ];
 
-    return numericIndicators.some(indicator =>
+    return numericIndicators.some((indicator) =>
       field.toLowerCase().includes(indicator.toLowerCase())
     );
   };
@@ -161,9 +180,9 @@ const DataTable = ({
       }
     });
     return Array.from(values).sort((a, b) => {
-      if (a.includes('-') && b.includes('-')) {
-        const [dayA, monthA, yearA] = a.split('-').map(Number);
-        const [dayB, monthB, yearB] = b.split('-').map(Number);
+      if (a.includes("-") && b.includes("-")) {
+        const [dayA, monthA, yearA] = a.split("-").map(Number);
+        const [dayB, monthB, yearB] = b.split("-").map(Number);
         const dateA = new Date(yearA, monthA - 1, dayA);
         const dateB = new Date(yearB, monthB - 1, dayB);
         return dateA - dateB;
@@ -176,10 +195,10 @@ const DataTable = ({
     if (!value) return false;
 
     if (isDateField(field)) {
-      const currentFilterType = filterType[field] || 'individual';
+      const currentFilterType = filterType[field] || "individual";
       const dateValue = new Date(value);
 
-      if (currentFilterType === 'range') {
+      if (currentFilterType === "range") {
         const { from, to } = dateRanges[field] || {};
         if (from && to) {
           const fromDate = new Date(from);
@@ -189,7 +208,7 @@ const DataTable = ({
         return true;
       } else {
         const formattedDate = formatDate(value);
-        return filterValue.some(val => formattedDate === val);
+        return filterValue.some((val) => formattedDate === val);
       }
     }
 
@@ -197,7 +216,7 @@ const DataTable = ({
 
     if (value instanceof Date || !isNaN(new Date(value))) {
       const formattedDate = formatDate(value);
-      return filterValue.some(val => formattedDate === val);
+      return filterValue.some((val) => formattedDate === val);
     }
 
     switch (operator) {
@@ -291,7 +310,7 @@ const DataTable = ({
         style: "currency",
         currency: "INR",
         minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+        maximumFractionDigits: 2,
       }).format(value);
     } catch (e) {
       return value.toString();
@@ -299,7 +318,7 @@ const DataTable = ({
   };
 
   const formatCellValue = (value, field) => {
-    if (value === undefined || value === null || value === '') return "-";
+    if (value === undefined || value === null || value === "") return "-";
 
     if (isNumericField(field)) {
       const numValue = parseFloat(value);
@@ -309,13 +328,13 @@ const DataTable = ({
     }
 
     if (isDateField(field)) {
-      if (typeof value === 'number') {
+      if (typeof value === "number") {
         const date = new Date(value);
         if (date.getFullYear() > 1971) {
           return formatDate(date);
         }
       }
-      if (typeof value === 'string' && value.includes('T')) {
+      if (typeof value === "string" && value.includes("T")) {
         const date = new Date(value);
         if (!isNaN(date.getTime())) {
           return formatDate(date);
@@ -324,7 +343,7 @@ const DataTable = ({
       return value.toString();
     }
 
-    if (field.includes('status')) {
+    if (field.includes("status")) {
       return value.toString();
     }
 
@@ -372,7 +391,7 @@ const DataTable = ({
     setSelectAll(isChecked);
 
     if (isChecked) {
-      const filteredIds = filteredData.map(row => row._id);
+      const filteredIds = filteredData.map((row) => row._id);
       onRowSelect(filteredIds);
     } else {
       onRowSelect([]);
@@ -388,7 +407,9 @@ const DataTable = ({
     const buttonRect = event.currentTarget.getBoundingClientRect();
     const screenWidth = window.innerWidth;
     const popupWidth = 250;
-    const tableBottom = event.currentTarget.closest('.overflow-x-auto').getBoundingClientRect().bottom;
+    const tableBottom = event.currentTarget
+      .closest(".overflow-x-auto")
+      .getBoundingClientRect().bottom;
     const availableHeight = tableBottom - buttonRect.bottom - 20;
 
     setFilterPosition(buttonRect.left < screenWidth / 3 ? "right" : "left");
@@ -416,23 +437,27 @@ const DataTable = ({
 
   const renderFilterPopup = (column) => {
     const uniqueValues = getUniqueValues(data, column.field);
-    const currentFilter = columnFilters[column.field] || { operator: "multiSelect", value: [] };
+    const currentFilter = columnFilters[column.field] || {
+      operator: "multiSelect",
+      value: [],
+    };
     const maxHeight = filterRef.current?.maxHeight || 400;
     const isDate = isDateField(column.field);
-    const currentFilterType = filterType[column.field] || 'individual';
-    const currentDateRange = dateRanges[column.field] || { from: '', to: '' };
+    const currentFilterType = filterType[column.field] || "individual";
+    const currentDateRange = dateRanges[column.field] || { from: "", to: "" };
 
-    const showDateRange = isDate && (
-      column.headerName.toLowerCase().includes('date') ||
-      column.headerName.toLowerCase().includes('at site') ||
-      column.headerName.toLowerCase().includes('booking')
-    );
+    const showDateRange =
+      isDate &&
+      (column.headerName.toLowerCase().includes("date") ||
+        column.headerName.toLowerCase().includes("at site") ||
+        column.headerName.toLowerCase().includes("booking"));
 
     return (
       <div
         ref={filterRef}
-        className={`absolute mt-2.5 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-[250px] flex flex-col ${filterPosition === "right" ? "left-0" : "right-0"
-          }`}
+        className={`absolute mt-2.5 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-[250px] flex flex-col ${
+          filterPosition === "right" ? "left-0" : "right-0"
+        }`}
         style={{ maxHeight: `${Math.min(maxHeight, 400)}px` }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -453,10 +478,12 @@ const DataTable = ({
             <div className="mt-2">
               <select
                 value={currentFilterType}
-                onChange={(e) => setFilterType(prev => ({
-                  ...prev,
-                  [column.field]: e.target.value
-                }))}
+                onChange={(e) =>
+                  setFilterType((prev) => ({
+                    ...prev,
+                    [column.field]: e.target.value,
+                  }))
+                }
                 className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm"
               >
                 <option value="individual">Select Individual Dates</option>
@@ -465,7 +492,7 @@ const DataTable = ({
             </div>
           )}
 
-          {(!showDateRange || currentFilterType === 'individual') && (
+          {(!showDateRange || currentFilterType === "individual") && (
             <div className="mt-2 relative">
               <input
                 type="text"
@@ -486,17 +513,22 @@ const DataTable = ({
           )}
 
           {/* Update date range inputs condition */}
-          {showDateRange && currentFilterType === 'range' && (
+          {showDateRange && currentFilterType === "range" && (
             <div className="mt-2 space-y-2">
               <div>
                 <label className="text-xs text-gray-500">From</label>
                 <input
                   type="date"
                   value={currentDateRange.from}
-                  onChange={(e) => setDateRanges(prev => ({
-                    ...prev,
-                    [column.field]: { ...currentDateRange, from: e.target.value }
-                  }))}
+                  onChange={(e) =>
+                    setDateRanges((prev) => ({
+                      ...prev,
+                      [column.field]: {
+                        ...currentDateRange,
+                        from: e.target.value,
+                      },
+                    }))
+                  }
                   className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm"
                 />
               </div>
@@ -505,10 +537,15 @@ const DataTable = ({
                 <input
                   type="date"
                   value={currentDateRange.to}
-                  onChange={(e) => setDateRanges(prev => ({
-                    ...prev,
-                    [column.field]: { ...currentDateRange, to: e.target.value }
-                  }))}
+                  onChange={(e) =>
+                    setDateRanges((prev) => ({
+                      ...prev,
+                      [column.field]: {
+                        ...currentDateRange,
+                        to: e.target.value,
+                      },
+                    }))
+                  }
                   className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm"
                 />
               </div>
@@ -517,29 +554,37 @@ const DataTable = ({
         </div>
 
         {/* Content */}
-        {(!showDateRange || currentFilterType === 'individual') && (
+        {(!showDateRange || currentFilterType === "individual") && (
           <div className="flex-1 overflow-y-auto p-2 bg-white">
-            {uniqueValues.filter((value) =>
-              value.toLowerCase().includes(filterSearchQuery.toLowerCase())
-            ).map((value) => (
-              <label
-                key={value}
-                className="flex items-center space-x-2 px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={currentFilter.value?.includes(value)}
-                  onChange={(e) => {
-                    const newValues = e.target.checked
-                      ? [...(currentFilter.value || []), value]
-                      : (currentFilter.value || []).filter((v) => v !== value);
-                    handleFilterChange(column.field, "multiSelect", newValues);
-                  }}
-                  className="rounded border-gray-300"
-                />
-                <span className="text-sm">{value}</span>
-              </label>
-            ))}
+            {uniqueValues
+              .filter((value) =>
+                value.toLowerCase().includes(filterSearchQuery.toLowerCase())
+              )
+              .map((value) => (
+                <label
+                  key={value}
+                  className="flex items-center space-x-2 px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={currentFilter.value?.includes(value)}
+                    onChange={(e) => {
+                      const newValues = e.target.checked
+                        ? [...(currentFilter.value || []), value]
+                        : (currentFilter.value || []).filter(
+                            (v) => v !== value
+                          );
+                      handleFilterChange(
+                        column.field,
+                        "multiSelect",
+                        newValues
+                      );
+                    }}
+                    className="rounded border-gray-300"
+                  />
+                  <span className="text-sm">{value}</span>
+                </label>
+              ))}
             {uniqueValues.length === 0 && (
               <div className="text-gray-500 text-sm text-center py-2">
                 No values found
@@ -554,7 +599,10 @@ const DataTable = ({
             className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
             onClick={() => {
               handleFilterClear(column.field);
-              setDateRanges(prev => ({ ...prev, [column.field]: { from: '', to: '' } }));
+              setDateRanges((prev) => ({
+                ...prev,
+                [column.field]: { from: "", to: "" },
+              }));
             }}
           >
             Clear
@@ -562,8 +610,15 @@ const DataTable = ({
           <button
             className="px-2 py-1 text-xs bg-[#011a99] text-white hover:bg-[#015099] rounded"
             onClick={() => {
-              if (currentFilterType === 'range' && currentDateRange.from && currentDateRange.to) {
-                handleFilterChange(column.field, 'dateRange', [currentDateRange.from, currentDateRange.to]);
+              if (
+                currentFilterType === "range" &&
+                currentDateRange.from &&
+                currentDateRange.to
+              ) {
+                handleFilterChange(column.field, "dateRange", [
+                  currentDateRange.from,
+                  currentDateRange.to,
+                ]);
               }
               setActiveFilter(null);
               setFilterSearchQuery("");
@@ -578,26 +633,28 @@ const DataTable = ({
 
   const getEditableFields = () => {
     const roleMapping = {
-      "site_officer": "SITE_OFFICER",
-      "qs_site": "QS_TEAM",
-      "site_pimo": "PIMO_MUMBAI_MIGO_SES",
-      "pimo_mumbai": "PIMO_MUMBAI_ADVANCE_FI",
-      "accounts": "ACCOUNTS_TEAM",
-      "director": "DIRECTOR_TRUSTEE_ADVISOR"
+      site_officer: "SITE_OFFICER",
+      qs_site: "QS_TEAM",
+      site_pimo: "PIMO_MUMBAI_MIGO_SES",
+      pimo_mumbai: "PIMO_MUMBAI_ADVANCE_FI",
+      accounts: "ACCOUNTS_TEAM",
+      director: "DIRECTOR_TRUSTEE_ADVISOR",
     };
 
     const mappedRole = roleMapping[currentUserRole] || currentUserRole;
-    const editableFields = getColumnsForRole(mappedRole).map(col => col.field);
+    const editableFields = getColumnsForRole(mappedRole).map(
+      (col) => col.field
+    );
     return editableFields || [];
   };
 
   const handleCellEdit = (field, value, rowId) => {
-    setEditedValues(prev => ({
+    setEditedValues((prev) => ({
       ...prev,
       [rowId]: {
         ...prev[rowId],
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
   };
 
@@ -607,20 +664,25 @@ const DataTable = ({
     const editedValue = editedValues[row._id]?.[column.field];
 
     if (isEditing && isEditable) {
-      const inputType = isDateField(column.field) ? "date" :
-        isNumericField(column.field) ? "number" : "text";
+      const inputType = isDateField(column.field)
+        ? "date"
+        : isNumericField(column.field)
+        ? "number"
+        : "text";
       return (
         <div className="relative w-full">
           <input
             type={inputType}
-            value={editedValue !== undefined ? editedValue : (value || '')}
-            onChange={(e) => handleCellEdit(column.field, e.target.value, row._id)}
+            value={editedValue !== undefined ? editedValue : value || ""}
+            onChange={(e) =>
+              handleCellEdit(column.field, e.target.value, row._id)
+            }
             onKeyDown={(e) => {
-              if (e.key === 'Escape') {
+              if (e.key === "Escape") {
                 e.preventDefault();
                 e.stopPropagation();
                 setEditingRow(null);
-                setEditedValues(prev => {
+                setEditedValues((prev) => {
                   const newValues = { ...prev };
                   delete newValues[row._id];
                   return newValues;
@@ -635,72 +697,88 @@ const DataTable = ({
 
     const formattedValue = formatCellValue(value, column.field);
     return (
-      <div className={`${isEditing && isEditable ? 'bg-blue-50 px-2 py-1 rounded border border-blue-200' : ''}`}>
+      <div
+        className={`${
+          isEditing && isEditable
+            ? "bg-blue-50 px-2 py-1 rounded border border-blue-200"
+            : ""
+        }`}
+      >
         {formattedValue}
       </div>
     );
   };
 
-  const handleEditClick = (row) => {
+  const handleEditClick = async (row) => {
     if (editingRow === row._id) {
-      // When saving (clicking check icon)
-      const editedFieldsForRow = editedValues[row._id];
+        // When saving (clicking check icon)
+        const editedFieldsForRow = editedValues[row._id];
 
-      // Remove billId, _id, srNo from the payload
-      const payload = { ...editedFieldsForRow };
-      delete payload.billId;
-      delete payload._id;
-      delete payload.srNo;
+        // Remove billId, _id, srNo from the payload
+        const payload = { ...editedFieldsForRow };
+        delete payload.billId;
+        delete payload._id;
+        delete payload.srNo;
 
-      // Only make the API call if there are changes
-      if (Object.keys(payload).length > 0) {
-        axios.put(`${bills}/${row._id}`, payload)
-          .then((response) => {
-            console.log("Full response from backend:", response);
-            const updatedBill = response.data;
+        // Only make the API call if there are changes
+        if (Object.keys(payload).length > 0) {
             try {
-              if (!updatedBill) throw new Error("No updated data received");
+                const response = await axios.put(`${bills}/${row._id}`, payload);
+                
+                if (response.data?.success) {
+                    toast.success(response.data?.message || 'Bill updated successfully!');
+                } else {
+                    toast.info(response.data?.message || 'Bill updated but no changes were made.');
+                }
 
-              toast.success("Bill updated successfully!");
-              onEdit && onEdit(updatedBill);
-              setEditingRow(null);
-              setEditedValues(prev => {
+                onEdit && onEdit(response.data?.data);
+                setEditingRow(null);
+                setEditedValues(prev => {
+                    const newValues = { ...prev };
+                    delete newValues[row._id];
+                    return newValues;
+                });
+            } catch (err) {
+                console.error("Edit error:", err);
+                const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Failed to update bill';
+                toast.error(errorMessage);
+                
+                // Show validation errors if any
+                if (err.response?.data?.errors) {
+                    Object.values(err.response.data.errors).forEach(error => {
+                        toast.error(error);
+                    });
+                }
+            }
+        } else {
+            setEditingRow(null);
+            setEditedValues(prev => {
                 const newValues = { ...prev };
                 delete newValues[row._id];
                 return newValues;
-              });
-            } catch (err) {
-              toast.error("Invalid response from server");
-              console.error("Processing error:", err);
-            }
-          })
-      } else {
-        setEditingRow(null);
-        setEditedValues(prev => {
-          const newValues = { ...prev };
-          delete newValues[row._id];
-          return newValues;
-        });
-      }
+            });
+        }
     } else {
-      // Starting edit mode
-      console.log('Starting edit for row:', row.srNo);
-      setEditingRow(row._id);
-      setEditedValues(prev => ({
-        ...prev,
-        [row._id]: {}
-      }));
+        // Starting edit mode
+        console.log("Starting edit for row:", row.srNo);
+        setEditingRow(row._id);
+        setEditedValues(prev => ({
+            ...prev,
+            [row._id]: {}
+        }));
     }
-  };
+};
 
   return (
     <div
-      className={`relative w-full flex flex-col border border-gray-200 rounded-lg ${data.length > 8 ? "h-full" : ""
-        }`}
+      className={`relative w-full flex flex-col border border-gray-200 rounded-lg ${
+        data.length > 8 ? "h-full" : ""
+      }`}
     >
       <div
-        className={`overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 scrollbar-thumb-rounded-full ${data.length < 10 ? "h-fit" : "flex-1"
-          }`}
+        className={`overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 scrollbar-thumb-rounded-full ${
+          data.length < 10 ? "h-fit" : "flex-1"
+        }`}
       >
         <style jsx>{`
           .scrollbar-thin::-webkit-scrollbar {
@@ -725,8 +803,10 @@ const DataTable = ({
           <thead className="sticky top-0 z-40 bg-gray-50">
             <tr className="divide-x divide-gray-200">
               <th className="sticky left-0 top-0 z-50 w-12 bg-blue-50 px-1.5 py-2.5 border-b border-gray-200">
-                <div className="absolute inset-0 bg-blue-50 border-r border-blue-200"
-                  style={{ bottom: "-1px", zIndex: -1 }}></div>
+                <div
+                  className="absolute inset-0 bg-blue-50 border-r border-blue-200"
+                  style={{ bottom: "-1px", zIndex: -1 }}
+                ></div>
                 <div className="relative z-10 flex flex-col items-center">
                   <input
                     type="checkbox"
@@ -763,12 +843,14 @@ const DataTable = ({
                       {columnFilters[column.field] &&
                         columnFilters[column.field].value?.length > 0 && (
                           <div className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded ml-1">
-                            {`${columnFilters[column.field].value.length} selected`}
+                            {`${
+                              columnFilters[column.field].value.length
+                            } selected`}
                           </div>
                         )}
                       <span className="invisible group-hover:visible ml-1">
                         {sortConfig.key === column.field &&
-                          sortConfig.direction ? (
+                        sortConfig.direction ? (
                           sortConfig.direction === "asc" ? (
                             <SortAscIcon />
                           ) : (
@@ -783,10 +865,11 @@ const DataTable = ({
                         className="p-1 hover:bg-gray-200 rounded-md transition-colors duration-150 cursor-pointer focus:outline-none"
                       >
                         <Filter
-                          className={`w-4 h-4 ${columnFilters[column.field]?.value?.length > 0
+                          className={`w-4 h-4 ${
+                            columnFilters[column.field]?.value?.length > 0
                               ? "text-blue-500"
                               : "text-gray-400 hover:text-gray-600"
-                            }`}
+                          }`}
                         />
                       </button>
                     </div>
@@ -795,8 +878,10 @@ const DataTable = ({
                 </th>
               ))}
               <th className="sticky right-0 top-0 z-50 w-16 bg-blue-50 px-1.5 py-2.5 border-b border-gray-200">
-                <div className="absolute inset-0 bg-blue-50 border-l border-blue-200"
-                  style={{ bottom: "-1px", zIndex: -1 }}></div>
+                <div
+                  className="absolute inset-0 bg-blue-50 border-l border-blue-200"
+                  style={{ bottom: "-1px", zIndex: -1 }}
+                ></div>
                 <div className="relative z-10 text-center">Actions</div>
               </th>
             </tr>
@@ -815,7 +900,9 @@ const DataTable = ({
                 >
                   <td className="sticky left-0 z-20 whitespace-nowrap px-3 py-3 text-center">
                     <div
-                      className={`absolute inset-0 ${isSelected ? "bg-blue-50" : "bg-white"} border-r border-blue-200`}
+                      className={`absolute inset-0 ${
+                        isSelected ? "bg-blue-50" : "bg-white"
+                      } border-r border-blue-200`}
                       style={{ bottom: "-1px", top: "-1px" }}
                     ></div>
                     <div className="relative z-10">
@@ -832,12 +919,17 @@ const DataTable = ({
                     return (
                       <td
                         key={column.field}
-                        className={`whitespace-nowrap px-1.5 py-2.5 text-sm ${column.field.includes("amount") ||
-                            column.field.includes("Amount")
+                        className={`whitespace-nowrap px-1.5 py-2.5 text-sm ${
+                          column.field.includes("amount") ||
+                          column.field.includes("Amount")
                             ? "text-right"
                             : "text-gray-900"
-                          }`}
-                        style={column.field.includes("status") ? getStatusStyle(value) : {}}
+                        }`}
+                        style={
+                          column.field.includes("status")
+                            ? getStatusStyle(value)
+                            : {}
+                        }
                         data-field={column.field}
                       >
                         {renderCell(row, column, value)}
@@ -846,7 +938,9 @@ const DataTable = ({
                   })}
                   <td className="sticky right-0 z-20 whitespace-nowrap px-1.5 py-2.5 text-center">
                     <div
-                      className={`absolute inset-0 ${isSelected ? "bg-blue-50" : "bg-white"} border-l border-blue-200`}
+                      className={`absolute inset-0 ${
+                        isSelected ? "bg-blue-50" : "bg-white"
+                      } border-l border-blue-200`}
                       style={{ bottom: "-1px", top: "-1px" }}
                     ></div>
                     <div className="relative z-10">
