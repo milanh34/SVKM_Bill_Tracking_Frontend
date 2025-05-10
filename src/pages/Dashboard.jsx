@@ -85,25 +85,35 @@ const Dashboard = () => {
 
   const roleWorkflow = {
     site_officer: [
-      { value: "quantity_surveyor", label: "Quantity Surveyor" },
-      { value: "quality_inspector", label: "Quality Inspector" },
-      { value: "site_architect", label: "Site Architect" },
+      { value: "quality_engineer", label: "Quality Inspector" },
+      { value: "qs_measurement", label: "QS Measurement" },
+      { value: "qs_cop", label: "QS COP" },
+      { value: "migo_entry", label: "MIGO Entry" },
       { value: "site_engineer", label: "Site Engineer" },
+      { value: "site_architect", label: "Site Architect" },
       { value: "site_incharge", label: "Site Incharge" },
-      { value: "site_pimo", label: "Site PIMO" },
-      { value: "pimo_mumbai", label: "PIMO Mumbai Team" },
+      { value: "site_dispatch_team", label: "Site Dispatch Team" },
+      { value: "pimo_mumbai", label: "PIMO Mumbai" },
     ],
     site_pimo: [
-      { value: "qs_site", label: "QS Site Team" },
-      { value: "pimo_mumbai", label: "PIMO Mumbai Team" },
+      { value: "qs_site", label: "QS Site" },
+      { value: "pimo_mumbai", label: "PIMO Mumbai" },
     ],
     qs_site: [
-      { value: "pimo_mumbai", label: "PIMO Mumbai Team" },
+      { value: "pimo_mumbai", label: "PIMO Mumbai" },
       { value: "site_pimo", label: "Site PIMO" },
     ],
-    pimo_mumbai: [{ value: "director", label: "Director" }],
-    director: [{ value: "accounts", label: "Accounts Team" }],
-    accounts: [{ value: "completed", label: "Complete Payment" }],
+    pimo_mumbai: [
+      { value: "it_department", label: "IT Department" },
+      { value: "ses_team", label: "SES Team" },
+      { value: "pimo_dispatch_team", label: "PIMO Dispatch Team" },
+      { value: "trustees", label: "Trustees" },
+    ],
+    trustees: [{ value: "pimo_mumbai", label: "PIMO Mumbai" }],
+    accounts: [
+      { value: "booking_team", label: "Booking Team" },
+      { value: "payment_team", label: "Payment Team" },
+    ],
   };
 
   const handleSendTo = () => {
