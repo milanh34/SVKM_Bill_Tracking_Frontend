@@ -21,10 +21,20 @@ const UserTable = () => {
         name: '',
         email: '',
         role: [],
-        department: '',
+        department: [],
         region: [],
         password: 'password123'
     });
+
+    const departmentOptions = [
+        "Site",
+        "PIMO",
+        "QS",
+        "IT",
+        "Accounts",
+        "Management",
+        "Admin"
+    ];
 
     const roleDisplayMap = {
         'admin': 'Admin',
@@ -199,7 +209,7 @@ const UserTable = () => {
                 name: '',
                 email: '',
                 role: [],
-                department: '',
+                department: [],
                 region: [],
                 password: 'password123'
             });
@@ -312,6 +322,49 @@ const UserTable = () => {
                 );
             }
 
+            if (column.field === 'department') {
+                const currentDepartments = editedValue !== undefined ? editedValue : (Array.isArray(value) ? value : [value]);
+                return (
+                    <div className="flex flex-wrap gap-2">
+                        {currentDepartments.map((dept, idx) => (
+                            <div key={idx} className="flex items-center bg-blue-100 rounded px-2 py-1">
+                                <span>{dept}</span>
+                                {currentDepartments.length > 1 && (
+                                    <button
+                                        onClick={() => {
+                                            const newDepts = currentDepartments.filter((_, i) => i !== idx);
+                                            handleCellEdit(column.field, newDepts, user._id);
+                                        }}
+                                        className="ml-1 text-red-500 hover:text-red-700"
+                                    >
+                                        ×
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                        <select
+                            onChange={(e) => {
+                                if (e.target.value) {
+                                    const newDepts = [...currentDepartments, e.target.value];
+                                    handleCellEdit(column.field, newDepts, user._id);
+                                    e.target.value = '';
+                                }
+                            }}
+                            className="px-2 py-1 bg-blue-50 border border-blue-200 rounded"
+                        >
+                            <option value="">Add department...</option>
+                            {departmentOptions
+                                .filter(dept => !currentDepartments.includes(dept))
+                                .map(dept => (
+                                    <option key={dept} value={dept}>
+                                        {dept}
+                                    </option>
+                                ))}
+                        </select>
+                    </div>
+                );
+            }
+
             return (
                 <input
                     type="text"
@@ -342,6 +395,19 @@ const UserTable = () => {
                     {regions.map((region, idx) => (
                         <span key={idx} className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">
                             {region}
+                        </span>
+                    ))}
+                </div>
+            );
+        }
+
+        if (column.field === 'department') {
+            const departments = Array.isArray(value) ? value : [value];
+            return (
+                <div className="flex flex-wrap gap-1">
+                    {departments.map((dept, idx) => (
+                        <span key={idx} className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm">
+                            {dept}
                         </span>
                     ))}
                 </div>
@@ -539,14 +605,45 @@ const UserTable = () => {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
-                                        <input
-                                            type="text"
-                                            value={newUser.department}
-                                            onChange={(e) => setNewUser({ ...newUser, department: e.target.value })}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
-                                            required
-                                        />
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Departments</label>
+                                        <div className="flex flex-wrap gap-2 mb-2">
+                                            {newUser.department.map((dept, idx) => (
+                                                <div key={idx} className="flex items-center bg-blue-100 rounded px-2 py-1">
+                                                    <span>{dept}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setNewUser({
+                                                            ...newUser,
+                                                            department: newUser.department.filter((_, i) => i !== idx)
+                                                        })}
+                                                        className="ml-1 text-red-500 hover:text-red-700"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <select
+                                            onChange={(e) => {
+                                                if (e.target.value) {
+                                                    setNewUser({
+                                                        ...newUser,
+                                                        department: [...newUser.department, e.target.value]
+                                                    });
+                                                    e.target.value = '';
+                                                }
+                                            }}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none cursor-pointer bg-white"
+                                        >
+                                            <option value="">Add Department...</option>
+                                            {departmentOptions
+                                                .filter(dept => !newUser.department.includes(dept))
+                                                .map(dept => (
+                                                    <option key={dept} value={dept}>
+                                                        {dept}
+                                                    </option>
+                                                ))}
+                                        </select>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Regions</label>
