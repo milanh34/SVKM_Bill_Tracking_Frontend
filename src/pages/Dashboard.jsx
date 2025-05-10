@@ -139,7 +139,7 @@ const Dashboard = () => {
       const promises = selectedRows.map((billId) =>
         axios.post(
           receiveBills,
-          { billId },
+          { billId, role: Cookies.get("userRole") },
           {
             headers: {
               Authorization: `Bearer ${token}`,
