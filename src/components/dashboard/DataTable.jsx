@@ -32,6 +32,7 @@ const DataTable = ({
   onPaginatedDataChange,
   searchQuery,
   currentUserRole,
+  regionOptions,
 }) => {
   const [columnFilters, setColumnFilters] = useState({});
   const [activeFilter, setActiveFilter] = useState(null);
@@ -665,31 +666,56 @@ const DataTable = ({
     const editedValue = editedValues[row._id]?.[column.field];
 
     if (isEditing && isEditable) {
-      const inputType = isDateField(column.field)
-        ? "date"
-        : isNumericField(column.field)
-        ? "number"
-        : "text";
+      // Handle region field
+      if (column.field === 'region') {
+        return (
+          <select
+            value={editedValue !== undefined ? editedValue : value || ''}
+            onChange={(e) => handleCellEdit(column.field, e.target.value, row._id)}
+            className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none"
+          >
+            <option value="">Select Region</option>
+            {regionOptions.map(option => (
+              <option key={option._id} value={option.name}>
+                {option.name}
+              </option>
+            ))}
+          </select>
+        );
+      }
+
+      // Handle date fields
+      if (isDateField(column.field)) {
+        const dateValue = editedValue !== undefined ? editedValue : value;
+        let formattedDate = dateValue;
+        
+        if (dateValue) {
+          const date = new Date(dateValue);
+          if (!isNaN(date.getTime())) {
+            formattedDate = date.toISOString().split('T')[0];
+          }
+        }
+
+        return (
+          <div className="relative w-full">
+            <input
+              type="date"
+              value={formattedDate || ''}
+              onChange={(e) => handleCellEdit(column.field, e.target.value, row._id)}
+              className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+        );
+      }
+
+      // Handle other fields
+      const inputType = isNumericField(column.field) ? "number" : "text";
       return (
         <div className="relative w-full">
           <input
             type={inputType}
             value={editedValue !== undefined ? editedValue : value || ""}
-            onChange={(e) =>
-              handleCellEdit(column.field, e.target.value, row._id)
-            }
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                e.preventDefault();
-                e.stopPropagation();
-                setEditingRow(null);
-                setEditedValues((prev) => {
-                  const newValues = { ...prev };
-                  delete newValues[row._id];
-                  return newValues;
-                });
-              }
-            }}
+            onChange={(e) => handleCellEdit(column.field, e.target.value, row._id)}
             className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>

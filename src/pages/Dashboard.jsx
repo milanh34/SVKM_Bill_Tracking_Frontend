@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import axios from "axios";
 import { bills, receiveBills } from "../apis/bills.api";
+import { regions } from "../apis/master.api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DataTable from "../components/dashboard/DataTable";
@@ -30,6 +31,7 @@ const Dashboard = () => {
   const currentUserRole = Cookies.get("userRole");
 
   const [billsData, setBillsData] = useState([]);
+  const [regionOptions, setRegionOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -212,16 +214,22 @@ const Dashboard = () => {
     });
   };
 
-  const fetchBills = async () => {
+  const fetchData = async () => {
     try {
-      const response = await axios.get(bills, {
-        headers: { Authorization: `Bearer ${Cookies.get("token")}` },
-      });
+      const [billsResponse, regionsResponse] = await Promise.all([
+        axios.get(bills, {
+          headers: { Authorization: `Bearer ${Cookies.get("token")}` },
+        }),
+        axios.get(regions, {
+          headers: { Authorization: `Bearer ${Cookies.get("token")}` },
+        }),
+      ]);
+
       const userRole = Cookies.get("userRole");
 
-      console.log("Received response data:", response.data);
+      console.log("Received response data:", billsResponse.data);
 
-      const filteredBills = filterBillsByRole(response.data, userRole);
+      const filteredBills = filterBillsByRole(billsResponse.data, userRole);
 
       console.log("Filtered bills on currentCount:", filteredBills);
 
@@ -232,6 +240,7 @@ const Dashboard = () => {
       });
 
       setBillsData(sortedData);
+      setRegionOptions(regionsResponse.data || []);
     } catch (error) {
       console.log(error);
       setError(
@@ -244,7 +253,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchBills();
+    fetchData();
   }, []);
 
   const uniqueRegions = [...new Set(billsData.map((bill) => bill.region))];
@@ -414,7 +423,7 @@ const Dashboard = () => {
   const handleEditRow = async () => {
     setLoading(true);
     try {
-      await fetchBills();
+      await fetchData();
       setSelectedRows([]); // Clear selections after refresh
     } finally {
       setLoading(false);
@@ -566,7 +575,7 @@ const Dashboard = () => {
       );
       if (response.data?.success) {
         toast.success(response.data.message || "Bills patched successfully!");
-        await fetchBills();
+        await fetchData();
       } else {
         toast.error(response.data?.message || "Failed to patch bills.");
       }
@@ -847,7 +856,8 @@ const Dashboard = () => {
                     onPaginatedDataChange={(totalItems) => {
                       setTotalFilteredItems(totalItems);
                     }}
-                    currentUserRole={currentUserRole} // Add this line
+                    currentUserRole={currentUserRole}
+                    regionOptions={regionOptions}
                   />
                 </div>
 
