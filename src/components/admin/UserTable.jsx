@@ -20,9 +20,9 @@ const UserTable = () => {
     const [newUser, setNewUser] = useState({
         name: '',
         email: '',
-        role: '',
+        role: [],
         department: '',
-        region: '',
+        region: [],
         password: 'password123'
     });
 
@@ -198,9 +198,9 @@ const UserTable = () => {
             setNewUser({
                 name: '',
                 email: '',
-                role: '',
+                role: [],
                 department: '',
-                region: '',
+                region: [],
                 password: 'password123'
             });
         } catch (err) {
@@ -227,35 +227,88 @@ const UserTable = () => {
 
         if (isEditing) {
             if (column.field === 'role') {
+                const currentRoles = editedValue !== undefined ? editedValue : (Array.isArray(value) ? value : [value]);
                 return (
-                    <select
-                        value={editedValue !== undefined ? editedValue : value}
-                        onChange={(e) => handleCellEdit(column.field, e.target.value, user._id)}
-                        className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none cursor-pointer"
-                    >
-                        {Object.entries(roleDisplayMap).map(([roleValue, roleDisplay]) => (
-                            <option key={roleValue} value={roleValue}>
-                                {roleDisplay}
-                            </option>
+                    <div className="flex flex-wrap gap-2">
+                        {currentRoles.map((role, idx) => (
+                            <div key={idx} className="flex items-center bg-blue-100 rounded px-2 py-1">
+                                <span>{roleDisplayMap[role] || role}</span>
+                                {currentRoles.length > 1 && (
+                                    <button
+                                        onClick={() => {
+                                            const newRoles = currentRoles.filter((_, i) => i !== idx);
+                                            handleCellEdit(column.field, newRoles, user._id);
+                                        }}
+                                        className="ml-1 text-red-500 hover:text-red-700"
+                                    >
+                                        ×
+                                    </button>
+                                )}
+                            </div>
                         ))}
-                    </select>
+                        <select
+                            onChange={(e) => {
+                                if (e.target.value) {
+                                    const newRoles = [...currentRoles, e.target.value];
+                                    handleCellEdit(column.field, newRoles, user._id);
+                                    e.target.value = '';
+                                }
+                            }}
+                            className="px-2 py-1 bg-blue-50 border border-blue-200 rounded"
+                        >
+                            <option value="">Add role...</option>
+                            {Object.entries(roleDisplayMap)
+                                .filter(([role]) => !currentRoles.includes(role))
+                                .map(([roleValue, roleDisplay]) => (
+                                    <option key={roleValue} value={roleValue}>
+                                        {roleDisplay}
+                                    </option>
+                                ))}
+                        </select>
+                    </div>
                 );
             }
 
             if (column.field === 'region') {
+                const currentRegions = editedValue !== undefined ? editedValue : (Array.isArray(value) ? value : [value]);
                 return (
-                    <select
-                        value={editedValue !== undefined ? editedValue : value}
-                        onChange={(e) => handleCellEdit(column.field, e.target.value, user._id)}
-                        className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
-                    >
-                        <option value="">Select Region</option>
-                        {(regionOptions || []).map(option => (
-                            <option key={option._id} value={option.name}>
-                                {option.name}
-                            </option>
+                    <div className="flex flex-wrap gap-2">
+                        {currentRegions.map((region, idx) => (
+                            <div key={idx} className="flex items-center bg-blue-100 rounded px-2 py-1">
+                                <span>{region}</span>
+                                {currentRegions.length > 1 && (
+                                    <button
+                                        onClick={() => {
+                                            const newRegions = currentRegions.filter((_, i) => i !== idx);
+                                            handleCellEdit(column.field, newRegions, user._id);
+                                        }}
+                                        className="ml-1 text-red-500 hover:text-red-700"
+                                    >
+                                        ×
+                                    </button>
+                                )}
+                            </div>
                         ))}
-                    </select>
+                        <select
+                            onChange={(e) => {
+                                if (e.target.value) {
+                                    const newRegions = [...currentRegions, e.target.value];
+                                    handleCellEdit(column.field, newRegions, user._id);
+                                    e.target.value = '';
+                                }
+                            }}
+                            className="px-2 py-1 bg-blue-50 border border-blue-200 rounded"
+                        >
+                            <option value="">Add region...</option>
+                            {regionOptions
+                                .filter(option => !currentRegions.includes(option.name))
+                                .map(option => (
+                                    <option key={option._id} value={option.name}>
+                                        {option.name}
+                                    </option>
+                                ))}
+                        </select>
+                    </div>
                 );
             }
 
@@ -270,10 +323,32 @@ const UserTable = () => {
         }
 
         if (column.field === 'role') {
-            return roleDisplayMap[value] || value;
+            const roles = Array.isArray(value) ? value : [value];
+            return (
+                <div className="flex flex-wrap gap-1">
+                    {roles.map((role, idx) => (
+                        <span key={idx} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+                            {roleDisplayMap[role] || role}
+                        </span>
+                    ))}
+                </div>
+            );
         }
 
-        return Array.isArray(value) ? value.join(', ') : value;
+        if (column.field === 'region') {
+            const regions = Array.isArray(value) ? value : [value];
+            return (
+                <div className="flex flex-wrap gap-1">
+                    {regions.map((region, idx) => (
+                        <span key={idx} className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">
+                            {region}
+                        </span>
+                    ))}
+                </div>
+            );
+        }
+
+        return value;
     };
 
     const columns = [
@@ -423,19 +498,44 @@ const UserTable = () => {
                                 </div>
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                                        <select
-                                            value={newUser.role}
-                                            onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none cursor-pointer bg-white"
-                                            required
-                                        >
-                                            <option value="">Select Role</option>
-                                            {Object.entries(roleDisplayMap).map(([roleValue, roleDisplay]) => (
-                                                <option key={roleValue} value={roleValue}>
-                                                    {roleDisplay}
-                                                </option>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Roles</label>
+                                        <div className="flex flex-wrap gap-2 mb-2">
+                                            {newUser.role.map((role, idx) => (
+                                                <div key={idx} className="flex items-center bg-blue-100 rounded px-2 py-1">
+                                                    <span>{roleDisplayMap[role] || role}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setNewUser({
+                                                            ...newUser,
+                                                            role: newUser.role.filter((_, i) => i !== idx)
+                                                        })}
+                                                        className="ml-1 text-red-500 hover:text-red-700"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
                                             ))}
+                                        </div>
+                                        <select
+                                            onChange={(e) => {
+                                                if (e.target.value) {
+                                                    setNewUser({
+                                                        ...newUser,
+                                                        role: [...newUser.role, e.target.value]
+                                                    });
+                                                    e.target.value = '';
+                                                }
+                                            }}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none cursor-pointer bg-white"
+                                        >
+                                            <option value="">Add Role...</option>
+                                            {Object.entries(roleDisplayMap)
+                                                .filter(([role]) => !newUser.role.includes(role))
+                                                .map(([roleValue, roleDisplay]) => (
+                                                    <option key={roleValue} value={roleValue}>
+                                                        {roleDisplay}
+                                                    </option>
+                                                ))}
                                         </select>
                                     </div>
                                     <div>
@@ -449,19 +549,44 @@ const UserTable = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
-                                        <select
-                                            value={newUser.region}
-                                            onChange={(e) => setNewUser({ ...newUser, region: e.target.value })}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none cursor-pointer bg-white"
-                                            required
-                                        >
-                                            <option value="">Select Region</option>
-                                            {regionOptions.map(option => (
-                                                <option key={option._id} value={option.name}>
-                                                    {option.name}
-                                                </option>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Regions</label>
+                                        <div className="flex flex-wrap gap-2 mb-2">
+                                            {newUser.region.map((region, idx) => (
+                                                <div key={idx} className="flex items-center bg-blue-100 rounded px-2 py-1">
+                                                    <span>{region}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setNewUser({
+                                                            ...newUser,
+                                                            region: newUser.region.filter((_, i) => i !== idx)
+                                                        })}
+                                                        className="ml-1 text-red-500 hover:text-red-700"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
                                             ))}
+                                        </div>
+                                        <select
+                                            onChange={(e) => {
+                                                if (e.target.value) {
+                                                    setNewUser({
+                                                        ...newUser,
+                                                        region: [...newUser.region, e.target.value]
+                                                    });
+                                                    e.target.value = '';
+                                                }
+                                            }}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none cursor-pointer bg-white"
+                                        >
+                                            <option value="">Add Region...</option>
+                                            {regionOptions
+                                                .filter(option => !newUser.region.includes(option.name))
+                                                .map(option => (
+                                                    <option key={option._id} value={option.name}>
+                                                        {option.name}
+                                                    </option>
+                                                ))}
                                         </select>
                                     </div>
                                 </div>
