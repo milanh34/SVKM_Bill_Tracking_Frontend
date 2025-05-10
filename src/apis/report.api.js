@@ -12,3 +12,4 @@ export const receivedAtMumbai = `${SERVER_API}/api/reports/invoices-received-at-
 
 export const receivedAtSitePIMO = `${SERVER_API}/api/reports/invoices-received-at-site-pimo`;
 export const receivedAtSiteQS = `${SERVER_API}/api/reports/invoices-received-at-site-qs`;
+export const patchBills = `${SERVER_API}/report/patch-bills`;

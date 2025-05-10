@@ -725,13 +725,17 @@ const DataTable = ({
             try {
                 const response = await axios.put(`${bills}/${row._id}`, payload);
                 
-                if (response.data?.success) {
-                    toast.success(response.data?.message || 'Bill updated successfully!');
+               if (response.data?.success) {
+                    // Find the original row
+                    const originalRow = data.find(b => b._id === row._id);
+                    // Merge updated fields into the original row
+                    const updatedBill = { ...originalRow, ...response.data.data };
+                    onEdit && onEdit(updatedBill);
                 } else {
-                    toast.info(response.data?.message || 'Bill updated but no changes were made.');
+                    toast.info(response.data?.message || 'Bill updated, Refresh to see changes');
                 }
 
-                onEdit && onEdit(response.data?.data);
+                // onEdit && onEdit(response.data?.data);
                 setEditingRow(null);
                 setEditedValues(prev => {
                     const newValues = { ...prev };

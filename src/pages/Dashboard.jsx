@@ -25,7 +25,7 @@ import Loader from "../components/Loader";
 import Cookies from "js-cookie";
 import { handleExportReport } from "../utils/exportExcelDashboard";
 import ChecklistModal from "../components/dashboard/ChecklistModal";
-
+import { patchBills } from "../apis/report.api";
 const Dashboard = () => {
   const currentUserRole = Cookies.get("userRole");
 
@@ -57,6 +57,7 @@ const Dashboard = () => {
   const [showIncomingBills, setShowIncomingBills] = useState(false);
   const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
   const [filteredDataBill, setFilteredDataBill] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -546,6 +547,39 @@ const Dashboard = () => {
     currentUserRole
   );
 
+  const handleExcelUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await axios.post(
+        patchBills,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${Cookies.get("token")}`,
+          },
+        }
+      );
+      if (response.data?.success) {
+        toast.success(response.data.message || "Bills patched successfully!");
+        await fetchBills();
+      } else {
+        toast.error(response.data?.message || "Failed to patch bills.");
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to upload and patch bills."
+      );
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <Header />
@@ -616,6 +650,20 @@ const Dashboard = () => {
                     <CheckSquare className="w-4 h-4" />
                     <span>Checklist</span>
                   </button>
+                )}
+
+                {currentUserRole === "accounts" && (
+                  <label className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls"
+                      style={{ display: "none" }}
+                      onChange={handleExcelUpload}
+                      disabled={uploading}
+                    />
+                    <Download className="w-4 h-4" />
+                    <span>{uploading ? "Uploading..." : "Upload Excel"}</span>
+                  </label>
                 )}
 
                 <div className="relative" ref={columnSelectorRef}>
