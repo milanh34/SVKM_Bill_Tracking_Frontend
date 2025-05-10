@@ -30,12 +30,69 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
             return;
         }
 
+        // Validate workflow sequence based on current bill state
+        const invalidBills = selectedBills.filter(billId => {
+            const bill = billsData.find(b => b._id === billId);
+            if (!bill) return true;
+
+            const currentUserRole = Cookies.get("userRole");
+            
+            // Site Officer workflow validations
+            if (currentUserRole === 'site_officer') {
+                if (singleRole.value === 'qs_cop' && (!bill.qsMeasurementCheck?.dateGiven || !bill.qsInspection?.dateGiven)) {
+                    return true;
+                }
+                if (singleRole.value === 'migo_entry' && (!bill.qsMeasurementCheck?.dateGiven || !bill.qsInspection?.dateGiven || !bill.qsCOP?.dateGiven)) {
+                    return true;
+                }
+                if (singleRole.value === 'site_engineer' && (!bill.qsMeasurementCheck?.dateGiven || !bill.qsInspection?.dateGiven || !bill.qsCOP?.dateGiven)) {
+                    return true;
+                }
+                if (singleRole.value === 'site_architect' && (!bill.qsMeasurementCheck?.dateGiven || !bill.qsInspection?.dateGiven || !bill.qsCOP?.dateGiven || !bill.siteEngineer?.dateGiven)) {
+                    return true;
+                }
+                if (singleRole.value === 'site_incharge' && (!bill.qsMeasurementCheck?.dateGiven || !bill.qsInspection?.dateGiven || !bill.qsCOP?.dateGiven || !bill.siteEngineer?.dateGiven || !bill.architect?.dateGiven)) {
+                    return true;
+                }
+                if (singleRole.value === 'site_dispatch_team' && (!bill.qsMeasurementCheck?.dateGiven || !bill.qsInspection?.dateGiven || !bill.qsCOP?.dateGiven || !bill.siteEngineer?.dateGiven || !bill.architect?.dateGiven || !bill.siteIncharge?.dateGiven)) {
+                    return true;
+                }
+            }
+
+            // PIMO Mumbai workflow validations
+            if (currentUserRole === 'pimo_mumbai') {
+                if (singleRole.value === 'ses_team' && !bill.itDept?.dateGiven) {
+                    return true;
+                }
+                if (singleRole.value === 'pimo_dispatch_team' && (!bill.sesDetails?.dateGiven || !bill.itDept?.dateGiven)) {
+                    return true;
+                }
+                if (singleRole.value === 'trustees' && (!bill.sesDetails?.dateGiven || !bill.itDept?.dateGiven || !bill.pimo?.dateReceivedFromIT || !bill.pimo?.dateReceivedFromPIMO)) {
+                    return true;
+                }
+            }
+
+            // Accounts workflow validations
+            if (currentUserRole === 'accounts') {
+                if (singleRole.value === 'payment_team' && !bill.accountsDept?.invBookingChecking) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
+
+        if (invalidBills.length > 0) {
+            toast.error("Some bills don't meet the required workflow conditions");
+            return;
+        }
+
         setLoading(true);
         try {
             const fromUser = {
                 id: Cookies.get("userId"),
                 name: Cookies.get("userName"),
-                role: Cookies.get("userRole")
+                role: Cookies.get("userRole") === 'site_officer' ? 'site_team' : Cookies.get("userRole") // Replace site_officer with site_team
             };
 
             const toUser = {
@@ -43,6 +100,7 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
                 name: recipientName,
                 role: singleRole.value
             };
+
             const res = await axios.post(workflowUpdate, {
                 fromUser,
                 toUser,
@@ -51,13 +109,23 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
                 remarks: remarks || ""
             });
 
-            console.log("Response: ", res.data);
-            toast.success(res?.data?.message);
-            setTimeout(() => closeWindow(), 3000);
+            if (res.data.success) {
+                toast.success(res.data.message);
+                setTimeout(() => closeWindow(), 3000);
+            } else {
+                toast.warning(res.data.message);
+            }
 
         } catch (error) {
             console.error("Error sending bills:", error);
-            toast.error(error.response?.data?.message || "Failed to send bills. Please try again.");
+            const errorMessage = error.response?.data?.message || "Failed to send bills. Please try again.";
+            toast.error(errorMessage);
+            
+            if (error.response?.data?.data?.failed?.length > 0) {
+                error.response.data.data.failed.forEach(failure => {
+                    toast.error(`Bill ${failure.billId}: ${failure.message}`);
+                });
+            }
         } finally {
             setLoading(false);
         }
