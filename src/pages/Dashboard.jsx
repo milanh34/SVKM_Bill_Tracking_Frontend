@@ -411,23 +411,13 @@ const Dashboard = () => {
     }
   };
 
-  const handleEditRow = (updatedBill) => {
-    console.log("Edit row:", updatedBill);
-
-    // Update the filtered data with the edited bill
-    setFilteredDataBill((prevData) =>
-      prevData.map((bill) =>
-        bill._id === updatedBill._id ? updatedBill : bill
-      )
-    );
-
-    // If you also have an original data state that needs updating
-    if (billsData !== filteredData) {
-      setBillsData((prevData) =>
-        prevData.map((bill) =>
-          bill._id === updatedBill._id ? updatedBill : bill
-        )
-      );
+  const handleEditRow = async () => {
+    setLoading(true);
+    try {
+      await fetchBills();
+      setSelectedRows([]); // Clear selections after refresh
+    } finally {
+      setLoading(false);
     }
   };
 

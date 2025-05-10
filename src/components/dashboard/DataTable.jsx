@@ -43,6 +43,7 @@ const DataTable = ({
   const [dateRanges, setDateRanges] = useState({});
   const [editingRow, setEditingRow] = useState(null);
   const [editedValues, setEditedValues] = useState({});
+  const [editSubmitting, setEditSubmitting] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -714,28 +715,23 @@ const DataTable = ({
         // When saving (clicking check icon)
         const editedFieldsForRow = editedValues[row._id];
 
-        // Remove billId, _id, srNo from the payload
         const payload = { ...editedFieldsForRow };
         delete payload.billId;
         delete payload._id;
         delete payload.srNo;
 
-        // Only make the API call if there are changes
         if (Object.keys(payload).length > 0) {
             try {
+                setEditSubmitting(true);
                 const response = await axios.put(`${bills}/${row._id}`, payload);
                 
-               if (response.data?.success) {
-                    // Find the original row
-                    const originalRow = data.find(b => b._id === row._id);
-                    // Merge updated fields into the original row
-                    const updatedBill = { ...originalRow, ...response.data.data };
-                    onEdit && onEdit(updatedBill);
+                if (response.status === 200) {
+                    toast.success('Bill updated successfully!');
+                    onEdit && onEdit();
                 } else {
-                    toast.info(response.data?.message || 'Bill updated, Refresh to see changes');
+                    toast.info('No changes were made to the bill');
                 }
 
-                // onEdit && onEdit(response.data?.data);
                 setEditingRow(null);
                 setEditedValues(prev => {
                     const newValues = { ...prev };
@@ -747,12 +743,13 @@ const DataTable = ({
                 const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Failed to update bill';
                 toast.error(errorMessage);
                 
-                // Show validation errors if any
                 if (err.response?.data?.errors) {
                     Object.values(err.response.data.errors).forEach(error => {
                         toast.error(error);
                     });
                 }
+            } finally {
+                setEditSubmitting(false);
             }
         } else {
             setEditingRow(null);
@@ -764,7 +761,6 @@ const DataTable = ({
         }
     } else {
         // Starting edit mode
-        console.log("Starting edit for row:", row.srNo);
         setEditingRow(row._id);
         setEditedValues(prev => ({
             ...prev,
@@ -951,9 +947,35 @@ const DataTable = ({
                       <button
                         className="rounded-md p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         onClick={() => handleEditClick(row)}
+                        disabled={editSubmitting && editingRow === row._id}
                       >
                         {editingRow === row._id ? (
-                          <CheckIcon className="w-5 h-5 text-green-500" />
+                          editSubmitting ? (
+                            <span className="inline-block animate-spin">
+                              <svg
+                                className="w-5 h-5 text-green-500"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                              </svg>
+                            </span>
+                          ) : (
+                            <CheckIcon className="w-5 h-5 text-green-500" />
+                          )
                         ) : (
                           <EditIcon className="w-5 h-5" />
                         )}
