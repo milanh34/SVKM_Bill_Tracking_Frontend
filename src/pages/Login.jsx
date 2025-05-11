@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -19,14 +19,15 @@ const LoginPage = () => {
   const [isTermsAgreed, setIsTermsAgreed] = useState(false);
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const roles = [
     { value: "Site_Officer", label: "Site Team" },
     { value: "QS_Team", label: "QS Team" },
     {
-      value: "PIMO_Mumbai_&_MIGO/SES_Team",
-      label: "PIMO Mumbai & MIGO/SES Team",
+      value: "PIMO_Mumbai_&_SES_Team",
+      label: "PIMO Mumbai & SES Team",
     },
     {
       value: "PIMO_Mumbai_for_Advance_&_FI_Entry",
@@ -52,7 +53,7 @@ const LoginPage = () => {
     const roleMap = {
       Site_Officer: "site_officer",
       QS_Team: "qs_site",
-      "PIMO_Mumbai_&_MIGO/SES_Team": "site_pimo",
+      "PIMO_Mumbai_&_SES_Team": "site_pimo",
       "PIMO_Mumbai_for_Advance_&_FI_Entry": "pimo_mumbai",
       Accounts_Team: "accounts",
       "Trustee,_Advisor_&_Director": "director",
@@ -98,6 +99,7 @@ const LoginPage = () => {
       return;
     }
 
+    setIsLoading(true);
     try {
       const response = await axios.post(login, {
         email,
@@ -114,10 +116,9 @@ const LoginPage = () => {
 
       const cookieExpiry = 0.333;
       Cookies.set("token", response.data.token, { expires: cookieExpiry });
-      Cookies.set("userRole", response.data.user.role[0], { // Set first role as active role
+      Cookies.set("userRole", response.data.user.role[0], {
         expires: cookieExpiry,
       });
-      // Store all available roles
       Cookies.set("availableRoles", JSON.stringify(response.data.user.role), {
         expires: cookieExpiry,
       });
@@ -140,6 +141,8 @@ const LoginPage = () => {
         error.response?.data?.message ||
           "Login failed. Please check your credentials."
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -268,10 +271,21 @@ const LoginPage = () => {
                 </div>
 
                 <button
-                  className="w-full bg-[#011A99] text-white rounded-2xl py-2 xl:py-3 font-semibold hover:bg-[#021678] transition-colors duration-200 cursor-pointer text-xs sm:text-sm xl:text-base"
+                  className="w-full bg-[#011A99] text-white rounded-2xl py-2 xl:py-3 font-semibold hover:bg-[#021678] transition-colors duration-200 cursor-pointer text-xs sm:text-sm xl:text-base disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
                   onClick={handleLogin}
+                  disabled={isLoading}
                 >
-                  Login
+                  {isLoading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Logging in...
+                    </>
+                  ) : (
+                    'Login'
+                  )}
                 </button>
               </div>
             </div>
