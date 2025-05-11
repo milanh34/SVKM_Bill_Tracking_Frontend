@@ -107,11 +107,13 @@ const Dashboard = () => {
     ],
     pimo_mumbai: [
       { value: "it_department", label: "IT Department" },
+      { value: "qs_mumbai", label: "QS Mumbai" },
       { value: "ses_team", label: "SES Team" },
       { value: "pimo_dispatch_team", label: "PIMO Dispatch Team" },
       { value: "trustees", label: "Trustees" },
+      { value: "accounts_department", label: "Accounts" },
     ],
-    trustees: [{ value: "pimo_mumbai", label: "PIMO Mumbai" }],
+    director: [{ value: "pimo_mumbai", label: "PIMO Mumbai" }],
     accounts: [
       { value: "booking_team", label: "Booking Team" },
       { value: "payment_team", label: "Payment Team" },
@@ -183,8 +185,9 @@ const Dashboard = () => {
   }, [navigate]);
 
   const filterBillsByRole = (bills, userRole) => {
+    console.log("Filtering bills for role:", bills);
     return bills.filter((bill) => {
-      const currentCount = bill.currentCount || 0;
+      const currentCount = bill?.currentCount || 0;
 
       switch (userRole) {
         case "site_officer":
@@ -224,6 +227,8 @@ const Dashboard = () => {
           headers: { Authorization: `Bearer ${Cookies.get("token")}` },
         }),
       ]);
+
+      console.log("lksandfnfopspdfmpasmdpfms[adfd",billsResponse)
 
       const userRole = Cookies.get("userRole");
 

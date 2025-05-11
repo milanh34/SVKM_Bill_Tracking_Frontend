@@ -121,6 +121,9 @@ const LoginPage = () => {
       Cookies.set("availableRoles", JSON.stringify(response.data.user.role), {
         expires: cookieExpiry,
       });
+      Cookies.set("availableRegions", JSON.stringify(response.data.user.region), {
+        expires: cookieExpiry,
+      });
       Cookies.set("userEmail", response.data.user.email, {
         expires: cookieExpiry,
       });

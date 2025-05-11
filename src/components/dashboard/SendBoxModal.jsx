@@ -36,48 +36,6 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
             if (!bill) return true;
 
             const currentUserRole = Cookies.get("userRole");
-            
-            // Site Officer workflow validations
-            if (currentUserRole === 'site_officer') {
-                if (singleRole.value === 'qs_cop' && (!bill.qsMeasurementCheck?.dateGiven || !bill.qsInspection?.dateGiven)) {
-                    return true;
-                }
-                if (singleRole.value === 'migo_entry' && (!bill.qsMeasurementCheck?.dateGiven || !bill.qsInspection?.dateGiven || !bill.qsCOP?.dateGiven)) {
-                    return true;
-                }
-                if (singleRole.value === 'site_engineer' && (!bill.qsMeasurementCheck?.dateGiven || !bill.qsInspection?.dateGiven || !bill.qsCOP?.dateGiven)) {
-                    return true;
-                }
-                if (singleRole.value === 'site_architect' && (!bill.qsMeasurementCheck?.dateGiven || !bill.qsInspection?.dateGiven || !bill.qsCOP?.dateGiven || !bill.siteEngineer?.dateGiven)) {
-                    return true;
-                }
-                if (singleRole.value === 'site_incharge' && (!bill.qsMeasurementCheck?.dateGiven || !bill.qsInspection?.dateGiven || !bill.qsCOP?.dateGiven || !bill.siteEngineer?.dateGiven || !bill.architect?.dateGiven)) {
-                    return true;
-                }
-                if (singleRole.value === 'site_dispatch_team' && (!bill.qsMeasurementCheck?.dateGiven || !bill.qsInspection?.dateGiven || !bill.qsCOP?.dateGiven || !bill.siteEngineer?.dateGiven || !bill.architect?.dateGiven || !bill.siteIncharge?.dateGiven)) {
-                    return true;
-                }
-            }
-
-            // PIMO Mumbai workflow validations
-            if (currentUserRole === 'pimo_mumbai') {
-                if (singleRole.value === 'ses_team' && !bill.itDept?.dateGiven) {
-                    return true;
-                }
-                if (singleRole.value === 'pimo_dispatch_team' && (!bill.sesDetails?.dateGiven || !bill.itDept?.dateGiven)) {
-                    return true;
-                }
-                if (singleRole.value === 'trustees' && (!bill.sesDetails?.dateGiven || !bill.itDept?.dateGiven || !bill.pimo?.dateReceivedFromIT || !bill.pimo?.dateReceivedFromPIMO)) {
-                    return true;
-                }
-            }
-
-            // Accounts workflow validations
-            if (currentUserRole === 'accounts') {
-                if (singleRole.value === 'payment_team' && !bill.accountsDept?.invBookingChecking) {
-                    return true;
-                }
-            }
 
             return false;
         });
@@ -88,11 +46,21 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
         }
 
         setLoading(true);
+        let toRoleVariable;
+        if(Cookies.get("userRole") === "site_officer") {
+            toRoleVariable = "site_team";
+        }else if(Cookies.get("userRole") === "qs_site") {
+            toRoleVariable = "qs_mumbai";
+        }else if(Cookies.get("userRole") === "director") {
+            toRoleVariable = "trustees";
+        } else{
+            toRoleVariable = Cookies.get("userRole");
+        }
         try {
             const fromUser = {
                 id: Cookies.get("userId"),
                 name: Cookies.get("userName"),
-                role: Cookies.get("userRole") === 'site_officer' ? 'site_team' : Cookies.get("userRole") // Replace site_officer with site_team
+                role: toRoleVariable
             };
 
             const toUser = {
@@ -100,6 +68,7 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
                 name: recipientName,
                 role: singleRole.value
             };
+            console.log(fromUser, toUser);
 
             const res = await axios.post(workflowUpdate, {
                 fromUser,

@@ -20,7 +20,9 @@ const FullBillDetails = () => {
   const navigate = useNavigate();
   const [showSuccess, setShowSuccess] = useState(false);
   const today = new Date().toISOString().split("T")[0];
+  const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
 
+  console.log("Available Regions:", availableRegions);
   const [billFormData, setBillFormData] = useState({
     typeOfInv: "",
     region: "",
@@ -101,14 +103,13 @@ const FullBillDetails = () => {
         const token = Cookies.get("token");
         const headers = { Authorization: `Bearer ${token}` };
 
-        const [naturesRes, regionsRes, currenciesRes] = await Promise.all([
+        const [naturesRes, currenciesRes] = await Promise.all([
           axios.get(natureOfWorks, { headers }),
-          axios.get(regions, { headers }),
           axios.get(currencies, { headers }),
         ]);
 
         setNatureOfWorkOptions(naturesRes.data || []);
-        setRegionOptions(regionsRes.data || []);
+        setRegionOptions(availableRegions);
         setCurrencyOptions(currenciesRes.data || []);
       } catch (error) {
         console.error("Error fetching dropdown data:", error);
@@ -557,9 +558,9 @@ const FullBillDetails = () => {
                 <option value="" disabled hidden>
                   Select Region
                 </option>
-                {regionOptions.map((region) => (
-                  <option key={region._id} value={region.name}>
-                    {region.name}
+                {regionOptions.map((region, i) => (
+                  <option key={i} value={region}>
+                    {region}
                   </option>
                 ))}
               </select>

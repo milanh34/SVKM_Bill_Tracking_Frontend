@@ -44,8 +44,12 @@ export const getColumnsForRole = (role) => {
     },
     { field: "qualityEngineer.name", headerName: "Name of Quality Engineer" },
     {
-      field: "qsForCOP.dateGiven",              //
+      field: "qsCOP.dateGiven",              //
       headerName: "Date Given to QS for COP",
+    },
+    {
+      field: "qsCOP.name",              //
+      headerName: "Name for COP",
     },{
       field: "qsInspection.dateGiven",
       headerName: "Date Given to QS for Inspection",
