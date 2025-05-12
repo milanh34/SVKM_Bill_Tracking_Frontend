@@ -33,7 +33,7 @@ const DataTable = ({
   searchQuery,
   currentUserRole,
   regionOptions,
-  showActions = true, // Add this prop with default value true
+  showActions = true,
 }) => {
   const [columnFilters, setColumnFilters] = useState({});
   const [activeFilter, setActiveFilter] = useState(null);
@@ -46,6 +46,7 @@ const DataTable = ({
   const [editingRow, setEditingRow] = useState(null);
   const [editedValues, setEditedValues] = useState({});
   const [editSubmitting, setEditSubmitting] = useState(false);
+  const [pendingAmountFilters, setPendingAmountFilters] = useState({});
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -120,16 +121,7 @@ const DataTable = ({
   };
 
   const isDateField = (field) => {
-    const dateIndicators = [
-      "taxInvDate",
-      "poDate",
-      "proformaInvDate",
-      "taxInvRecdAtSite",
-      "advanceDate",
-      "Date",
-      "invReturnedToSite",
-      "dateReceived",
-    ];
+    const dateIndicators = ["date", "dt", "recdatsite", "booking"];
 
     if (field.includes(".")) {
       const parts = field.split(".");
@@ -146,21 +138,7 @@ const DataTable = ({
   };
 
   const isNumericField = (field) => {
-    const numericIndicators = [
-      "amount",
-      "Amount",
-      "Amt",
-      "amt",
-      "percentage",
-      "Percentage",
-      "poAmt",
-      "taxInvAmt",
-      "proformaInvAmt",
-      "advanceAmt",
-      "paymentAmt",
-      "migoDetails.amount",
-      "copDetails.amount",
-    ];
+    const numericIndicators = ["amount", "amt", "percentage"];
 
     return numericIndicators.some((indicator) =>
       field.toLowerCase().includes(indicator.toLowerCase())
@@ -196,6 +174,20 @@ const DataTable = ({
 
   const applyFilter = (value, filterValue, operator, field) => {
     if (!value) return false;
+
+    if (isNumericField(field)) {
+      const numValue = parseFloat(value);
+      if (isNaN(numValue)) return false;
+
+      const filter = columnFilters[field];
+      if (filter?.range) {
+        const min =
+          filter.range.min !== "" ? parseFloat(filter.range.min) : -Infinity;
+        const max =
+          filter.range.max !== "" ? parseFloat(filter.range.max) : Infinity;
+        return numValue >= min && numValue <= max;
+      }
+    }
 
     if (isDateField(field)) {
       const currentFilterType = filterType[field] || "individual";
@@ -242,14 +234,32 @@ const DataTable = ({
       }
 
       return Object.entries(columnFilters).every(([field, filter]) => {
+        const value = getNestedValue(row, field);
+        if (value === null || value === undefined) return false;
+
+        if (isNumericField(field)) {
+          const numValue = parseFloat(value);
+          if (isNaN(numValue)) return false;
+
+          if (filter?.range) {
+            const min =
+              filter.range.min !== ""
+                ? parseFloat(filter.range.min)
+                : -Infinity;
+            const max =
+              filter.range.max !== "" ? parseFloat(filter.range.max) : Infinity;
+            return numValue >= min && numValue <= max;
+          }
+          return true;
+        }
+
         if (
           !filter?.value ||
           (Array.isArray(filter.value) && filter.value.length === 0)
         ) {
           return true;
         }
-        const value = getNestedValue(row, field);
-        if (value === null || value === undefined) return false;
+
         return applyFilter(value, filter.value, filter.operator, field);
       });
     });
@@ -310,10 +320,9 @@ const DataTable = ({
     if (value === null || value === undefined || isNaN(value)) return "-";
     try {
       return new Intl.NumberFormat("en-IN", {
-        style: "currency",
-        currency: "INR",
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
+        useGrouping: true,
       }).format(value);
     } catch (e) {
       return value.toString();
@@ -446,13 +455,122 @@ const DataTable = ({
     };
     const maxHeight = filterRef.current?.maxHeight || 400;
     const isDate = isDateField(column.field);
+    const isAmount = isNumericField(column.field);
     const currentFilterType = filterType[column.field] || "individual";
     const currentDateRange = dateRanges[column.field] || { from: "", to: "" };
+    const currentAmountRange = columnFilters[column.field]?.range || {
+      min: "",
+      max: "",
+    };
+
+    if (isAmount) {
+      const pendingFilter = pendingAmountFilters[column.field] || {
+        min: "",
+        max: "",
+      };
+
+      return (
+        <div
+          ref={filterRef}
+          className="absolute mt-2.5 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-[250px] flex flex-col"
+          style={{ maxHeight: `${Math.min(maxHeight, 400)}px` }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="sticky top-0 z-30 bg-white border-b border-gray-200 p-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">{column.headerName}</span>
+              <button
+                onClick={() => setActiveFilter(null)}
+                className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="mt-3 space-y-3">
+              <div>
+                <label className="text-xs text-gray-500">Minimum Amount</label>
+                <input
+                  type="number"
+                  value={pendingFilter.min}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setPendingAmountFilters((prev) => ({
+                      ...prev,
+                      [column.field]: {
+                        ...pendingFilter,
+                        min: value,
+                      },
+                    }));
+                  }}
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm"
+                  placeholder="Enter minimum amount"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500">Maximum Amount</label>
+                <input
+                  type="number"
+                  value={pendingFilter.max}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setPendingAmountFilters((prev) => ({
+                      ...prev,
+                      [column.field]: {
+                        ...pendingFilter,
+                        max: value,
+                      },
+                    }));
+                  }}
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm"
+                  placeholder="Enter maximum amount"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="sticky bottom-0 z-30 bg-white border-t border-gray-200 p-2 flex justify-between gap-2">
+            <button
+              className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
+              onClick={() => {
+                handleFilterClear(column.field);
+                setPendingAmountFilters((prev) => {
+                  const newFilters = { ...prev };
+                  delete newFilters[column.field];
+                  return newFilters;
+                });
+              }}
+            >
+              Clear
+            </button>
+            <button
+              className="px-2 py-1 text-xs bg-[#011a99] text-white hover:bg-[#015099] rounded"
+              onClick={() => {
+                const pendingFilter = pendingAmountFilters[column.field];
+                if (pendingFilter) {
+                  setColumnFilters((prev) => ({
+                    ...prev,
+                    [column.field]: {
+                      operator: "range",
+                      range: pendingFilter,
+                    },
+                  }));
+                }
+                setActiveFilter(null);
+              }}
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+      );
+    }
 
     const showDateRange =
       isDate &&
-      (column.headerName.toLowerCase().includes("date") ||
-        column.headerName.toLowerCase().includes("at site") ||
+      (column.headerName.toLowerCase().includes("dt") ||
+        column.headerName.toLowerCase().includes("date") ||
+        column.headerName.toLowerCase().includes("recd at site") ||
         column.headerName.toLowerCase().includes("booking"));
 
     return (
@@ -667,16 +785,17 @@ const DataTable = ({
     const editedValue = editedValues[row._id]?.[column.field];
 
     if (isEditing && isEditable) {
-      // Handle region field
-      if (column.field === 'region') {
+      if (column.field === "region") {
         return (
           <select
-            value={editedValue !== undefined ? editedValue : value || ''}
-            onChange={(e) => handleCellEdit(column.field, e.target.value, row._id)}
+            value={editedValue !== undefined ? editedValue : value || ""}
+            onChange={(e) =>
+              handleCellEdit(column.field, e.target.value, row._id)
+            }
             className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none"
           >
             <option value="">Select Region</option>
-            {regionOptions.map(option => (
+            {regionOptions.map((option) => (
               <option key={option._id} value={option.name}>
                 {option.name}
               </option>
@@ -685,15 +804,14 @@ const DataTable = ({
         );
       }
 
-      // Handle date fields
       if (isDateField(column.field)) {
         const dateValue = editedValue !== undefined ? editedValue : value;
         let formattedDate = dateValue;
-        
+
         if (dateValue) {
           const date = new Date(dateValue);
           if (!isNaN(date.getTime())) {
-            formattedDate = date.toISOString().split('T')[0];
+            formattedDate = date.toISOString().split("T")[0];
           }
         }
 
@@ -701,22 +819,25 @@ const DataTable = ({
           <div className="relative w-full">
             <input
               type="date"
-              value={formattedDate || ''}
-              onChange={(e) => handleCellEdit(column.field, e.target.value, row._id)}
+              value={formattedDate || ""}
+              onChange={(e) =>
+                handleCellEdit(column.field, e.target.value, row._id)
+              }
               className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
         );
       }
 
-      // Handle other fields
       const inputType = isNumericField(column.field) ? "number" : "text";
       return (
         <div className="relative w-full">
           <input
             type={inputType}
             value={editedValue !== undefined ? editedValue : value || ""}
-            onChange={(e) => handleCellEdit(column.field, e.target.value, row._id)}
+            onChange={(e) =>
+              handleCellEdit(column.field, e.target.value, row._id)
+            }
             className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
@@ -739,62 +860,63 @@ const DataTable = ({
 
   const handleEditClick = async (row) => {
     if (editingRow === row._id) {
-        // When saving (clicking check icon)
-        const editedFieldsForRow = editedValues[row._id];
+      const editedFieldsForRow = editedValues[row._id];
 
-        const payload = { ...editedFieldsForRow };
-        delete payload.billId;
-        delete payload._id;
-        delete payload.srNo;
+      const payload = { ...editedFieldsForRow };
+      delete payload.billId;
+      delete payload._id;
+      delete payload.srNo;
 
-        if (Object.keys(payload).length > 0) {
-            try {
-                setEditSubmitting(true);
-                const response = await axios.put(`${bills}/${row._id}`, payload);
-                
-                if (response.status === 200) {
-                    toast.success('Bill updated successfully!');
-                    onEdit && onEdit();
-                } else {
-                    toast.info('No changes were made to the bill');
-                }
+      if (Object.keys(payload).length > 0) {
+        try {
+          setEditSubmitting(true);
+          const response = await axios.put(`${bills}/${row._id}`, payload);
 
-                setEditingRow(null);
-                setEditedValues(prev => {
-                    const newValues = { ...prev };
-                    delete newValues[row._id];
-                    return newValues;
-                });
-            } catch (err) {
-                console.error("Edit error:", err);
-                const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Failed to update bill';
-                toast.error(errorMessage);
-                
-                if (err.response?.data?.errors) {
-                    Object.values(err.response.data.errors).forEach(error => {
-                        toast.error(error);
-                    });
-                }
-            } finally {
-                setEditSubmitting(false);
-            }
-        } else {
-            setEditingRow(null);
-            setEditedValues(prev => {
-                const newValues = { ...prev };
-                delete newValues[row._id];
-                return newValues;
+          if (response.status === 200) {
+            toast.success("Bill updated successfully!");
+            onEdit && onEdit();
+          } else {
+            toast.info("No changes were made to the bill");
+          }
+
+          setEditingRow(null);
+          setEditedValues((prev) => {
+            const newValues = { ...prev };
+            delete newValues[row._id];
+            return newValues;
+          });
+        } catch (err) {
+          console.error("Edit error:", err);
+          const errorMessage =
+            err.response?.data?.message ||
+            err.response?.data?.error ||
+            "Failed to update bill";
+          toast.error(errorMessage);
+
+          if (err.response?.data?.errors) {
+            Object.values(err.response.data.errors).forEach((error) => {
+              toast.error(error);
             });
+          }
+        } finally {
+          setEditSubmitting(false);
         }
+      } else {
+        setEditingRow(null);
+        setEditedValues((prev) => {
+          const newValues = { ...prev };
+          delete newValues[row._id];
+          return newValues;
+        });
+      }
     } else {
-        // Starting edit mode
-        setEditingRow(row._id);
-        setEditedValues(prev => ({
-            ...prev,
-            [row._id]: {}
-        }));
+      setEditingRow(row._id);
+      setEditedValues((prev) => ({
+        ...prev,
+        [row._id]: {},
+      }));
     }
-};
+  };
 
   return (
     <div
@@ -868,11 +990,20 @@ const DataTable = ({
                     </span>
                     <div className="flex items-center space-x-1">
                       {columnFilters[column.field] &&
-                        columnFilters[column.field].value?.length > 0 && (
+                        (columnFilters[column.field].value?.length > 0 ||
+                          (isNumericField(column.field) &&
+                            columnFilters[column.field].range)) && (
                           <div className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded ml-1">
-                            {`${
-                              columnFilters[column.field].value.length
-                            } selected`}
+                            {isNumericField(column.field) &&
+                            columnFilters[column.field].range
+                              ? `${
+                                  Object.values(
+                                    columnFilters[column.field].range
+                                  ).filter((val) => val !== "").length
+                                } selected`
+                              : `${
+                                  columnFilters[column.field].value.length
+                                } selected`}
                           </div>
                         )}
                       <span className="invisible group-hover:visible ml-1">
