@@ -30,7 +30,7 @@ const RepBillOutstanding = () => {
     const [selectedRows, setSelectedRows] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [sortBy, setSortBy] = useState("");
-    const [fromDate, setFromDate] = useState(getFormattedDate());
+    const [fromDate, setFromDate] = useState("2025-04-01");
     const [toDate, setToDate] = useState(getFormattedDate());
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedRegion, setSelectedRegion] = useState([]);
