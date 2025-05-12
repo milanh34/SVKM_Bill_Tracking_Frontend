@@ -4,9 +4,9 @@ import { saveAs } from "file-saver";
 const formatCurrency = (value) => {
     if (value === undefined || value === null) return "";
     return new Intl.NumberFormat("en-IN", {
-        style: "currency",
-        currency: "INR",
         minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        useGrouping: true,
     }).format(value);
 };
 
