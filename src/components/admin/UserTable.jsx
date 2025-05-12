@@ -39,9 +39,9 @@ const UserTable = () => {
     const roleDisplayMap = {
         'admin': 'Admin',
         'site_officer': 'Site Team',
-        'site_pimo': 'PIMO Mumbai & MIGO/SES Team',
+        'site_pimo': 'PIMO Mumbai & SES Team',
         'qs_site': 'QS Team',
-        'pimo_mumbai': 'PIMO Mumbai for Advance & FI Entry',
+        'pimo_mumbai': 'Advance & Direct FI Entry',
         'director': 'Trustee, Advisor & Director',
         'accounts': 'Accounts'
     };

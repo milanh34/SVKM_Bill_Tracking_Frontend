@@ -13,8 +13,8 @@ const Header = () => {
   const roleDisplayMap = {
     'site_officer': 'Site Team',
     'qs_site': 'QS Team',
-    'site_pimo': 'PIMO Mumbai & MIGO/SES Team',
-    'pimo_mumbai': 'PIMO Mumbai for Advance & FI Entry',
+    'site_pimo': 'PIMO Mumbai & SES Team',
+    'pimo_mumbai': 'Advance & Direct FI Entry',
     'accounts': 'Accounts Team',
     'director': 'Trustee, Advisor & Director',
     'admin': 'Admin'
@@ -24,7 +24,7 @@ const Header = () => {
     { name: "Home", path: "/", allowedRoles: ['all'] },
     { name: "Create Bill", path: "/create-bill", allowedRoles: ['site_officer', 'admin'] },
     { name: "Reports", path: "/reports", allowedRoles: ['all'] },
-    { name: "Sent Bills", path: "/sentbills", allowedRoles: ['all'] },
+    { name: "Forwarded Bills", path: "/forwardedbills", allowedRoles: ['all'] },
     { name: "Admin", path: "/admin", allowedRoles: ['admin'] },
   ];
 

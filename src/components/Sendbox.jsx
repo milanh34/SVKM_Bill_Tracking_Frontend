@@ -10,8 +10,8 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
     const roles = [
         { value: "Site_Officer", label: "Site Team" },
         { value: "QS_Team", label: "QS Team" },
-        { value: "PIMO_Mumbai_&_MIGO/SES_Team", label: "PIMO Mumbai & MIGO/SES Team" },
-        { value: "PIMO_Mumbai_for_Advance_&_FI_Entry", label: "PIMO Mumbai for Advance & FI Entry" },
+        { value: "PIMO_Mumbai_&_SES_Team", label: "PIMO Mumbai & SES Team" },
+        { value: "Advance_&_Direct_FI_Entry", label: "Advance & Direct FI Entry" },
         { value: "Accounts_Team", label: "Accounts Team" },
         { value: "Trustee,_Advisor_&_Director", label: "Trustee, Advisor & Director" },
         { value: "Admin", label: "Admin" }

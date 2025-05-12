@@ -79,7 +79,7 @@ function App() {
         {/* <Route path='/create-bill' element={<CreateBill />} /> */}
         <Route path='/create-bill' element={<FullBillDetails />} />
 
-        <Route path="/sentbills" element={<SentBills />} />
+        <Route path="/forwardedbills" element={<SentBills />} />
         
         <Route path="/profile" element={<Profile />} />
         
