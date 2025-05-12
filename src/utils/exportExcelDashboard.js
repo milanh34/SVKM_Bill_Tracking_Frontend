@@ -9,6 +9,17 @@ const formatCurrency = (value) => {
   }).format(value);
 };
 
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime()) || date.getFullYear() <= 1971) return "";
+    return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
+  } catch (e) {
+    return "";
+  }
+};
+
 export const handleExportReport = async (selectedRows, filteredData, columns, visibleColumnFields) => {
   try {
     const dataToExport = selectedRows.length > 0
@@ -30,6 +41,7 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
       "compliance206AB",
       "panStatus",
       "poNo",
+      "poDt",
       "poAmt",
       "taxInvNo",
       "taxInvDt",
@@ -71,19 +83,20 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
           value = row[column.field];
         }
 
+        console.log(column.field, value);
         // Format dates
         if (
           column.field.includes("date") ||
           column.field.includes("Date") ||
-          column.field.endsWith("Dt") ||
-          column.field.endsWith("_dt")
+          column.field.includes("Booking") ||
+          column.field.includes("booking") ||
+          column.field.includes("receivedBack") ||
+          column.field.includes("RecdAtSite") ||
+          column.field.includes("invReturnedToSite") ||
+          column.field.includes("returnedToPimo")
         ) {
           if (value) {
-            const date = new Date(value);
-            if (!isNaN(date)) {
-              // value = date.toISOString().split("T")[0];
-              value = date.toString();
-            }
+            value = formatDate(value);
           }
         }
 
