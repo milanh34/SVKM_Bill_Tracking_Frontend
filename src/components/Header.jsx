@@ -46,10 +46,13 @@ const Header = () => {
 
   const handleLogout = () => {
     // Clear all cookies
+    Cookies.remove('availableRegions');
+    Cookies.remove('availableRoles');
     Cookies.remove('token');
-    Cookies.remove('userRole');
     Cookies.remove('userEmail');
     Cookies.remove('userId');
+    Cookies.remove('userName');
+    Cookies.remove('userRole');
     navigate("/login");
   };
 
