@@ -166,7 +166,8 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
             });
             const url = URL.createObjectURL(blob);
             const now1 = new Date();
-            const filename = `${now1.getDate().toString().padStart(2, '0')}${(now1.getMonth() + 1).toString().padStart(2, '0')}${now1.getFullYear().toString().slice(-2)}_${now1.getHours().toString().padStart(2, '0')}${now1.getMinutes().toString().padStart(2, '0')}${now1.getSeconds().toString().padStart(2, '0')}.xlsx`;
+            const titleName = 'Report Outstanding Subtotal';
+            const filename = `${titleName.replace(/[\/ ]/g, '_')}_${now1.getDate().toString().padStart(2, '0')}${(now1.getMonth() + 1).toString().padStart(2, '0')}${now1.getFullYear().toString().slice(-2)}_${now1.getHours().toString().padStart(2, '0')}${now1.getMinutes().toString().padStart(2, '0')}${now1.getSeconds().toString().padStart(2, '0')}.xlsx`;
 
             const link = document.createElement("a");
             link.href = url;

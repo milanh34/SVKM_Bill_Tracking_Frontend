@@ -145,7 +145,7 @@ export const handleExportAllReports = async (
                     rowValues = allColumnsToExport.map((column) => {
                         const field = column.field;
 
-                        if(field === "vendorName"){
+                        if (field === "vendorName") {
                             return `Total Count: ${rowData.grandTotalCount}`
                         }
                         if (field === "taxInvAmt") {
@@ -177,13 +177,19 @@ export const handleExportAllReports = async (
                             return typeof value === "number" ? value : 0;
                         }
 
-                        return value ?? "";
+                        // return value ?? "";
+                        // to not print N/A
+                        if (value === "N/A" || value === null || value === undefined) {
+                            return "";
+                        }
+
+                        return value;
                     });
                 }
 
                 const newRow = worksheet.addRow(rowValues);
 
-                // ✨ Row Styling
+                // Row Styling
                 newRow.eachCell((cell, colNumber) => {
                     const colField = allColumnsToExport[colNumber - 1].field;
 
@@ -235,7 +241,8 @@ export const handleExportAllReports = async (
                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             });
 
-            const filename = `${titleName.replace(/[\/ ]/g, '_')}.xlsx`;        // replace '/' and 'space' with _
+            // const filename = `${titleName.replace(/[\/ ]/g, '_')}_${now.toLocaleDateString('en-IN')}_${now.toLocaleTimeString('en-IN', { hour12: false })}.xlsx`;        // replace '/' and 'space' with _
+            const filename = `${titleName.replace(/[\/ ]/g, '_')}_${now.getDate().toString().padStart(2, '0')}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getFullYear().toString().slice(-2)}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}.xlsx`;
             saveAs(blob, filename);
 
             return { success: true, message: "Report downloaded successfully" };
@@ -266,7 +273,7 @@ export const handleExportAllReports = async (
                         }
                     }
 
-                    formattedRow[column.headerName] = (value !== undefined && value !== null) ? value : "";
+                    formattedRow[column.headerName] = (value !== undefined && value !== null && value !== 'N/A') ? value : "";
                 });
                 return formattedRow;
             });
