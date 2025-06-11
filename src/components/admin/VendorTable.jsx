@@ -83,7 +83,7 @@ const VendorTable = () => {
 
         const lowerSearch = searchTerm.toLowerCase();
 
-        const filtered = vendorData.filter(v => 
+        const filtered = vendorData.filter(v =>
             (v.vendorNo?.toString().toLowerCase().includes(lowerSearch)) ||
             (v.vendorName?.toLowerCase().includes(lowerSearch)) ||
             (v.PAN?.toLowerCase().includes(lowerSearch)) ||
@@ -139,22 +139,22 @@ const VendorTable = () => {
                     'Content-Type': 'application/json'
                 }
             })
-            .then(() => {
-                fetchVendors();
-                toast.success('Vendor updated successfully!');
-            })
-            .catch(error => {
-                console.error("Edit error:", error);
-                toast.error(error.response?.data?.error || 'Failed to update vendor');
-            })
-            .finally(() => {
-                setEditingRow(null);
-                setEditedValues(prev => {
-                    const newValues = { ...prev };
-                    delete newValues[vendor._id];
-                    return newValues;
+                .then(() => {
+                    fetchVendors();
+                    toast.success('Vendor updated successfully!');
+                })
+                .catch(error => {
+                    console.error("Edit error:", error);
+                    toast.error(error.response?.data?.error || 'Failed to update vendor');
+                })
+                .finally(() => {
+                    setEditingRow(null);
+                    setEditedValues(prev => {
+                        const newValues = { ...prev };
+                        delete newValues[vendor._id];
+                        return newValues;
+                    });
                 });
-            });
         } else {
             setEditingRow(vendor._id);
             setEditedValues(prev => ({
@@ -192,30 +192,37 @@ const VendorTable = () => {
         setShowAddModal(true);
     };
 
+    const validateVendorNo = (x) => /^[0-9]{6}$/.test(x);
+
     const handleAddSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            const token = Cookies.get("token");
-            await axios.post(vendors, newVendor, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            fetchVendors();
-            setShowAddModal(false);
-            setNewVendor({
-                vendorName: '',
-                vendorNo: '',
-                PAN: '',
-                GSTNumber: '',
-                complianceStatus: '',
-                PANStatus: '',
-                emailIds: [],
-                phoneNumbers: []
-            });
-            toast.success(`Vendor "${newVendor.vendorName}" added successfully!`);
+            if (!validateVendorNo(newVendor.vendorNo)) {
+                toast.error('Vendor Number should be 6 digits');
+            }
+            else {
+                const token = Cookies.get("token");
+                await axios.post(vendors, newVendor, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                fetchVendors();
+                setShowAddModal(false);
+                setNewVendor({
+                    vendorName: '',
+                    vendorNo: '',
+                    PAN: '',
+                    GSTNumber: '',
+                    complianceStatus: '',
+                    PANStatus: '',
+                    emailIds: [],
+                    phoneNumbers: []
+                });
+                toast.success(`Vendor "${newVendor.vendorName}" added successfully!`);
+            }
         } catch (err) {
             console.error("Add error:", err);
             toast.error(err.response?.data?.error || 'Failed to add vendor');
@@ -419,7 +426,7 @@ const VendorTable = () => {
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Vendor No</label>
                                         <input
-                                            type="text"
+                                            type="number"
                                             value={newVendor.vendorNo}
                                             onChange={(e) => setNewVendor({ ...newVendor, vendorNo: e.target.value })}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
@@ -433,7 +440,7 @@ const VendorTable = () => {
                                             value={newVendor.PAN}
                                             onChange={(e) => setNewVendor({ ...newVendor, PAN: e.target.value })}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
-                                            // required
+                                        // required
                                         />
                                     </div>
                                     <div>
