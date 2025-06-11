@@ -144,7 +144,7 @@ const BillJourney = () => {
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.projectDescription}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.invoiceDate}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.invoiceAmount.toLocaleString()}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.invoiceAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.delay_for_receiving_invoice}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.no_of_Days_Site}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.no_of_Days_at_Mumbai}</td>

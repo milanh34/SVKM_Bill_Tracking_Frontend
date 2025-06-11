@@ -118,7 +118,7 @@ const InvoiceTable = () => {
                                     <td className='p-2 text-left border-b border-[#ddd]'>{row.srNo}</td>
                                     <td className='p-2 text-left border-b border-[#ddd]'>{row.projectDescription}</td>
                                     <td className='p-2 text-left border-b border-[#ddd]'>{row.vendorName}</td>
-                                    <td className='p-2 text-left border-b border-[#ddd]'>{row.taxInvAmt.toFixed(2)}</td>
+                                    <td className='p-2 text-left border-b border-[#ddd]'>{row.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                     <td className='p-2 text-left border-b border-[#ddd]'>
                                         <span className={`px-2 py-1 rounded-xl text-xs font-medium ${
                                             row.status.toLowerCase() === 'accept' 

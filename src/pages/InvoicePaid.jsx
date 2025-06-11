@@ -144,11 +144,11 @@ const InvoicesPaid = () => {
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvDate}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvAmt.toLocaleString()}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dtGivenToAcctsDept}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dtRecdInAcctsDept}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dtOfPayment}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.paymentAmt}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.paymentAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.poNo}</td>
                                 </tr>
                             ))}

@@ -140,7 +140,7 @@ const ReportsPending = () => {
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.invoiceNo}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.invoiceDate}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.invoiceAmount.toLocaleString()}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.invoiceAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dateInvoiceReceivedAtSite}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dateBillReceivedAtPimoRrrm}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.poNo}</td>

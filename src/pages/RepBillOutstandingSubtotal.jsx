@@ -27,7 +27,7 @@ const RepBillOutstandingSubtotal = () => {
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [fromDate, setFromDate] = useState(getFormattedDate());
+    const [fromDate, setFromDate] = useState("2025-04-01");
     const [toDate, setToDate] = useState(getFormattedDate());
     const [selectedRows, setSelectedRows] = useState([]);
 
@@ -240,8 +240,8 @@ const RepBillOutstandingSubtotal = () => {
                                             <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.vendorName}</td>
                                             <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.taxInvNo}</td>
                                             <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.taxInvDate}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{item.taxInvAmt.toLocaleString('en-IN')}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{item.copAmt.toLocaleString('en-IN')}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{item.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{item.copAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                             <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.dateRecdInAcctsDept}</td>
                                         </tr>
                                     ) : null
@@ -253,10 +253,10 @@ const RepBillOutstandingSubtotal = () => {
                                     </td>
                                     <td colSpan={3}></td>
                                     <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'>
-                                        <strong>Grand Total: {totals.totalSubtotal.toLocaleString('en-IN')}</strong>
+                                        <strong>Grand Total: {totals.totalSubtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                     </td>
                                     <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'>
-                                        <strong>Grand Total: {totals.totalSubtotalCopAmt.toLocaleString('en-IN')}</strong>
+                                        <strong>Grand Total: {totals.totalSubtotalCopAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                     </td>
                                     <td colSpan={1}></td>
                                 </tr>
