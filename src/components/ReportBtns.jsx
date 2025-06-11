@@ -34,7 +34,7 @@ const ReportBtns = () => {
         "qs_site": [],
         "site_pimo": ["reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportspending"],
         "pimo_mumbai": ["reportsrecatsite"],
-        "accounts": ["reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportsinvoiceacctdept", "reportsinvoiceqssite", "reportsinvoicepaid", "reportsbilljourney"],
+        "accounts": ["reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportsinvoiceacctdept", "reportsinvoicepaid", "reportsbilljourney"],
         "director": ["reportsrecatsite", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportsinvoiceqssite", "reportsinvoicepaid", "reportspending", "reportsbilljourney"],
         "admin": ["reportsrecatsite", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportsinvoiceqssite", "reportsinvoicepaid", "reportspending", "reportsbilljourney"]
     };

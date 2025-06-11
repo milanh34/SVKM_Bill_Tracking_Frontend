@@ -22,7 +22,7 @@ const Header = () => {
 
   const menuItems = [
     { name: "Home", path: "/", allowedRoles: ['all'] },
-    { name: "Create Bill", path: "/create-bill", allowedRoles: ['site_officer', 'admin'] },
+    { name: "Create Bill", path: "/create-bill", allowedRoles: ['site_officer', 'pimo_mumbai', 'admin'] },
     { name: "Reports", path: "/reports", allowedRoles: ['all'] },
     { name: "Forwarded Bills", path: "/forwardedbills", allowedRoles: ['all'] },
     { name: "Admin", path: "/admin", allowedRoles: ['admin'] },
