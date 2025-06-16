@@ -120,64 +120,72 @@ const FullBillDetails = () => {
     fetchDropdownData();
   }, []);
 
+  const validateVendorNo = (x) => /^[0-9]{6}$/.test(x);
+  const validatePoNo = (x) => /^[0-9]{10}$/.test(x);
+
   const handleVendorLookup = async (e) => {
     if (e.key === "Enter" && billFormData.vendorNo) {
       e.preventDefault();
       setIsLoading(true);
 
       try {
-        const vendor = vendorsData.find(
-          (v) => v.vendorNo.toString() === billFormData.vendorNo
-        );
+        if (!validateVendorNo(billFormData.vendorNo)) {
+          toast.error('Vendor Number should be 6 Numbers');
+        }
+        else {
+          const vendor = vendorsData.find(
+            (v) => v.vendorNo.toString() === billFormData.vendorNo
+          );
 
-        if (vendor) {
-          console.log("Found vendor data:", {
-            vendorName: vendor.vendorName,
-            complianceStatus: vendor.complianceStatus,
-          });
+          if (vendor) {
+            console.log("Found vendor data:", {
+              vendorName: vendor.vendorName,
+              complianceStatus: vendor.complianceStatus,
+            });
 
-          const updates = {
-            vendorName: vendor.vendorName,
-            vendorNo: vendor.vendorNo.toString(),
-            vendor: vendor._id,
-          };
+            const updates = {
+              vendorName: vendor.vendorName,
+              vendorNo: vendor.vendorNo.toString(),
+              vendor: vendor._id,
+            };
 
-          if (vendor.GSTNumber !== "Not Provided") {
-            updates.gstNumber = vendor.GSTNumber;
+            if (vendor.GSTNumber !== "Not Provided") {
+              updates.gstNumber = vendor.GSTNumber;
+            }
+
+            if (vendor.PANStatus !== "Not Provided") {
+              updates.panStatus = vendor.PANStatus;
+            }
+
+            if (vendor.complianceStatus !== "Not Provided") {
+              updates.compliance206AB = vendor.complianceStatus;
+            }
+
+            console.log("Applying updates:", updates);
+
+            setBillFormData((prev) => ({
+              ...prev,
+              ...updates,
+            }));
+
+            setTimeout(() => {
+              console.log("Form data after update:", billFormData);
+            }, 0);
+          } else {
+            const updates = {
+              vendorName: "",
+              gstNumber: "",
+              compliance206AB: "",
+              panStatus: "",
+            };
+
+            setBillFormData((prev) => ({
+              ...prev,
+              ...updates,
+            }));
+            console.log("Vendor not found");
+            toast.error("Vendor not found");
           }
-
-          if (vendor.PANStatus !== "Not Provided") {
-            updates.panStatus = vendor.PANStatus;
-          }
-
-          if (vendor.complianceStatus !== "Not Provided") {
-            updates.compliance206AB = vendor.complianceStatus;
-          }
-
-          console.log("Applying updates:", updates);
-
-          setBillFormData((prev) => ({
-            ...prev,
-            ...updates,
-          }));
-
-          setTimeout(() => {
-            console.log("Form data after update:", billFormData);
-          }, 0);
-        } else {
-          const updates = {
-            vendorName: "",
-            gstNumber: "",
-            compliance206AB: "",
-            panStatus: "",
-          };
-
-          setBillFormData((prev) => ({
-            ...prev,
-            ...updates,
-          }));
-          console.log("Vendor not found");
-          toast.error("Vendor not found");
         }
       } catch (error) {
         console.error("Error looking up vendor:", error);
@@ -215,6 +223,26 @@ const FullBillDetails = () => {
       setShowSuggestions(false);
     }
   };
+
+  const handlePoNoLookup = async (e) => {
+    if (e.key === "Enter" && billFormData.poNo) {
+      e.preventDefault();
+      setIsLoading(true);
+      try {
+        if (!validatePoNo(billFormData.poNo)) {
+          toast.error('PO Number should be 10 digits');
+        }
+      }
+      catch (error) {
+        console.error("Error in po no:", error);
+      } finally {
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 500);
+      }
+
+    }
+  }
 
   const handleSuggestionClick = async (vendor) => {
     setIsLoading(true);
@@ -320,7 +348,10 @@ const FullBillDetails = () => {
     } else {
       if (id === "vendorNo") {
         const numericValue = value.replace(/[^0-9]/g, "");
-        if (numericValue.length > 6) return;
+        if (numericValue.length > 6) {
+          toast.error('Vendor Number should be 6 digits');
+          return;
+        }
         setBillFormData((prev) => ({
           ...prev,
           [id]: numericValue,
@@ -328,9 +359,13 @@ const FullBillDetails = () => {
         return;
       }
       if (id === "poNo" && value.length > 10) {
-        return;
+        if (!validatePoNo(billFormData.poNo)) {
+          toast.error('PO NO should be 10 digits');
+          return;
+        }
       }
       if (id === "taxInvNo" && value.length > 16) {
+        toast.error('Tax Invoice Number should be 16 digits');
         return;
       }
       if (id === "typeOfInv") {
@@ -361,6 +396,19 @@ const FullBillDetails = () => {
     const formData = new FormData();
 
     try {
+      if (!validateVendorNo(billFormData.vendorNo) && !validatePoNo(billFormData.poNo)) {
+        toast.error('Vendor Number should be 6 Numbers\nPO No should be 10 Digits');
+        return;
+      }
+      if (!validateVendorNo(billFormData.vendorNo)) {
+        toast.error('Vendor Number should be 6 Numbers');
+        return;
+      }
+      if (!validatePoNo(billFormData.poNo)) {
+        toast.error('PO Number should be 10 Digits');
+        return;
+      }
+
       const requiredFields = [
         "typeOfInv",
         "region",
@@ -727,14 +775,14 @@ const FullBillDetails = () => {
               <input
                 type="text"
                 className={`w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] 
-                  ${
-                    billFormData.poCreated === "No"
-                      ? "bg-gray-100 cursor-not-allowed"
-                      : "bg-white"
+                  ${billFormData.poCreated === "No"
+                    ? "bg-gray-100 cursor-not-allowed"
+                    : "bg-white"
                   }`}
                 id="poNo"
                 value={billFormData.poNo}
                 onChange={handleChange}
+                onKeyDown={handlePoNoLookup}
                 pattern="\d{10}"
                 maxLength={10}
                 title="PO No must be exactly 10 digits"
@@ -753,10 +801,9 @@ const FullBillDetails = () => {
               <input
                 type="date"
                 className={`w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]
-                  ${
-                    billFormData.poCreated === "No"
-                      ? "bg-gray-100 cursor-not-allowed"
-                      : "bg-white"
+                  ${billFormData.poCreated === "No"
+                    ? "bg-gray-100 cursor-not-allowed"
+                    : "bg-white"
                   }`}
                 id="poDate"
                 value={billFormData.poDate}
@@ -778,10 +825,9 @@ const FullBillDetails = () => {
               <input
                 type="number"
                 className={`w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]
-                  ${
-                    billFormData.poCreated === "No"
-                      ? "bg-gray-100 cursor-not-allowed"
-                      : "bg-white"
+                  ${billFormData.poCreated === "No"
+                    ? "bg-gray-100 cursor-not-allowed"
+                    : "bg-white"
                   }`}
                 id="poAmt"
                 value={billFormData.poAmt}
