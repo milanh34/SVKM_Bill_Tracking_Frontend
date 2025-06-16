@@ -21,20 +21,20 @@ const UserTable = () => {
         name: '',
         email: '',
         role: [],
-        department: [],
+        // department: [],
         region: [],
         password: 'password123'
     });
 
-    const departmentOptions = [
-        "Site",
-        "PIMO",
-        "QS",
-        "IT",
-        "Accounts",
-        "Management",
-        "Admin"
-    ];
+    // const departmentOptions = [
+    //     "Site",
+    //     "PIMO",
+    //     "QS",
+    //     "IT",
+    //     "Accounts",
+    //     "Management",
+    //     "Admin"
+    // ];
 
     const roleDisplayMap = {
         'admin': 'Admin',
@@ -104,7 +104,7 @@ const UserTable = () => {
             user.name.toLowerCase().includes(query) ||
             user.email.toLowerCase().includes(query) ||
             user.role.toLowerCase().includes(query) ||
-            user.department.toLowerCase().includes(query) ||
+            // user.department.toLowerCase().includes(query) ||
             user.region.toLowerCase().includes(query)
         );
         setFilteredData(filtered);
@@ -209,7 +209,7 @@ const UserTable = () => {
                 name: '',
                 email: '',
                 role: [],
-                department: [],
+                // department: [],
                 region: [],
                 password: 'password123'
             });
@@ -322,48 +322,48 @@ const UserTable = () => {
                 );
             }
 
-            if (column.field === 'department') {
-                const currentDepartments = editedValue !== undefined ? editedValue : (Array.isArray(value) ? value : [value]);
-                return (
-                    <div className="flex flex-wrap gap-2">
-                        {currentDepartments.map((dept, idx) => (
-                            <div key={idx} className="flex items-center bg-blue-100 rounded px-2 py-1">
-                                <span>{dept}</span>
-                                {currentDepartments.length > 1 && (
-                                    <button
-                                        onClick={() => {
-                                            const newDepts = currentDepartments.filter((_, i) => i !== idx);
-                                            handleCellEdit(column.field, newDepts, user._id);
-                                        }}
-                                        className="ml-1 text-red-500 hover:text-red-700"
-                                    >
-                                        ×
-                                    </button>
-                                )}
-                            </div>
-                        ))}
-                        <select
-                            onChange={(e) => {
-                                if (e.target.value) {
-                                    const newDepts = [...currentDepartments, e.target.value];
-                                    handleCellEdit(column.field, newDepts, user._id);
-                                    e.target.value = '';
-                                }
-                            }}
-                            className="px-2 py-1 bg-blue-50 border border-blue-200 rounded"
-                        >
-                            <option value="">Add department...</option>
-                            {departmentOptions
-                                .filter(dept => !currentDepartments.includes(dept))
-                                .map(dept => (
-                                    <option key={dept} value={dept}>
-                                        {dept}
-                                    </option>
-                                ))}
-                        </select>
-                    </div>
-                );
-            }
+            // if (column.field === 'department') {
+            //     const currentDepartments = editedValue !== undefined ? editedValue : (Array.isArray(value) ? value : [value]);
+            //     return (
+            //         <div className="flex flex-wrap gap-2">
+            //             {currentDepartments.map((dept, idx) => (
+            //                 <div key={idx} className="flex items-center bg-blue-100 rounded px-2 py-1">
+            //                     <span>{dept}</span>
+            //                     {currentDepartments.length > 1 && (
+            //                         <button
+            //                             onClick={() => {
+            //                                 const newDepts = currentDepartments.filter((_, i) => i !== idx);
+            //                                 handleCellEdit(column.field, newDepts, user._id);
+            //                             }}
+            //                             className="ml-1 text-red-500 hover:text-red-700"
+            //                         >
+            //                             ×
+            //                         </button>
+            //                     )}
+            //                 </div>
+            //             ))}
+            //             <select
+            //                 onChange={(e) => {
+            //                     if (e.target.value) {
+            //                         const newDepts = [...currentDepartments, e.target.value];
+            //                         handleCellEdit(column.field, newDepts, user._id);
+            //                         e.target.value = '';
+            //                     }
+            //                 }}
+            //                 className="px-2 py-1 bg-blue-50 border border-blue-200 rounded"
+            //             >
+            //                 <option value="">Add department...</option>
+            //                 {departmentOptions
+            //                     .filter(dept => !currentDepartments.includes(dept))
+            //                     .map(dept => (
+            //                         <option key={dept} value={dept}>
+            //                             {dept}
+            //                         </option>
+            //                     ))}
+            //             </select>
+            //         </div>
+            //     );
+            // }
 
             return (
                 <input
@@ -401,18 +401,18 @@ const UserTable = () => {
             );
         }
 
-        if (column.field === 'department') {
-            const departments = Array.isArray(value) ? value : [value];
-            return (
-                <div className="flex flex-wrap gap-1">
-                    {departments.map((dept, idx) => (
-                        <span key={idx} className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm">
-                            {dept}
-                        </span>
-                    ))}
-                </div>
-            );
-        }
+        // if (column.field === 'department') {
+        //     const departments = Array.isArray(value) ? value : [value];
+        //     return (
+        //         <div className="flex flex-wrap gap-1">
+        //             {departments.map((dept, idx) => (
+        //                 <span key={idx} className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm">
+        //                     {dept}
+        //                 </span>
+        //             ))}
+        //         </div>
+        //     );
+        // }
 
         return value;
     };
@@ -421,7 +421,7 @@ const UserTable = () => {
         { field: 'name', headerName: 'Name' },
         { field: 'email', headerName: 'Email' },
         { field: 'role', headerName: 'Role' },
-        { field: 'department', headerName: 'Department' },
+        // { field: 'department', headerName: 'Department' },
         { field: 'region', headerName: 'Region' },
         { field: 'lastLogin', headerName: 'Last Login' }
     ];
@@ -604,7 +604,7 @@ const UserTable = () => {
                                                 ))}
                                         </select>
                                     </div>
-                                    <div>
+                                    {/* <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Departments</label>
                                         <div className="flex flex-wrap gap-2 mb-2">
                                             {newUser.department.map((dept, idx) => (
@@ -644,7 +644,7 @@ const UserTable = () => {
                                                     </option>
                                                 ))}
                                         </select>
-                                    </div>
+                                    </div> */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Regions</label>
                                         <div className="flex flex-wrap gap-2 mb-2">
