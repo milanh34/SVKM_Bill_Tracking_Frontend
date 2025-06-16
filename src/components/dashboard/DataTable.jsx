@@ -447,6 +447,14 @@ const DataTable = ({
     });
   };
 
+
+  const [viewAttachments, setViewAttachments] = useState(false);
+  const [allAttachments, setAllAttachments] = useState([]);
+  const handleAttachments = (id) => {
+    setViewAttachments(true);
+    setAllAttachments(data.attachment); // not tested yet, database is cleared
+  }
+
   const renderFilterPopup = (column) => {
     const uniqueValues = getUniqueValues(data, column.field);
     const currentFilter = columnFilters[column.field] || {
@@ -933,6 +941,40 @@ const DataTable = ({
       className={`relative w-full flex flex-col border border-gray-200 rounded-lg ${data.length > 8 ? "h-full" : ""
         }`}
     >
+      {
+        viewAttachments && (
+          <div className="fixed top-0 left-0 w-full h-full z-50 flex items-center justify-center">
+            <div className="bg-white w-full max-w-md rounded-lg shadow-lg p-6 relative">
+
+              {/* Close Button */}
+              <button className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl font-bold" onClick={() => setViewAttachments(false)}>
+                &times;
+              </button>
+
+              {/* Title */}
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Attachments</h2>
+
+              {/* Attachment Links List */}
+              <ul className="space-y-3 max-h-64 overflow-y-auto">
+                {allAttachments.map((link, index) => (
+                  <li key={index}>
+                    <a
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline break-words"
+                    >
+                      {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+
+            </div>
+          </div>
+
+        )
+      }
       <div
         className={`overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 scrollbar-thumb-rounded-full ${data.length < 10 ? "h-fit" : "flex-1"
           }`}
@@ -1078,6 +1120,7 @@ const DataTable = ({
                       />
                     </div>
                   </td>
+
                   {visibleColumns.map((column) => {
                     const value = getNestedValue(row, column.field);
                     return (
@@ -1089,13 +1132,32 @@ const DataTable = ({
                           : "text-gray-900"
                           }`}
                         style={
-                          column.field.includes("status")
-                            ? getStatusStyle(value)
-                            : {}
+                          column.field.includes("status") ? getStatusStyle(value) : {}
                         }
                         data-field={column.field}
                       >
-                        {renderCell(row, column, value)}
+                        {column.field === "attachments" ? (
+                          <div className="flex justify-center items-center">
+                            <svg
+                              style={{ cursor: 'pointer' }}
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5 text-blue-600"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              onClick={() => handleAttachments(row._id)}
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15.172 7l-6.586 6.586a2 2 0 002.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-6.586 6.586a6 6 0 108.485 8.485l6.586-6.586"
+                              />
+                            </svg>
+                          </div>
+                        ) : (
+                          renderCell(row, column, value)
+                        )}
                       </td>
                     );
                   })}
