@@ -451,9 +451,9 @@ const DataTable = ({
   const [viewAttachments, setViewAttachments] = useState(false);
   const [allAttachments, setAllAttachments] = useState(["https://demolink1.com", "https://demolink2.com", "https://demolink3.com"]);
   const handleAttachments = (id) => {
-    console.log(data[id].attachments);
-    if(data[id].attachments.length > 0) {
-      setAllAttachments(data[id].attachments); 
+   console.log(data[id].attachments);
+    if (data[id].attachments.length > 0) {
+      setAllAttachments(data[id].attachments);
     }
     setViewAttachments(true);
   }
@@ -776,6 +776,7 @@ const DataTable = ({
     const editableFields = getColumnsForRole(mappedRole).map(
       (col) => col.field
     );
+    
     return editableFields || [];
   };
 
@@ -797,7 +798,49 @@ const DataTable = ({
     const isEditable = getEditableFields().includes(column.field);
     const editedValue = editedValues[row._id]?.[column.field];
 
+
+    if (column.field === "attachments") {
+      if (isEditing && isEditable) {
+        return (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                // Add your attachment handling logic here
+                console.log('Add attachment clicked for row:', row._id);
+              }}
+              className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-2 py-1 rounded transition-colors"
+              title="Add attachment"
+            >
+              +
+            </button>
+          </div>
+        );
+      } else {
+        return (
+          <div className="flex justify-center items-center">
+            <svg
+              style={{ cursor: 'pointer' }}
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 text-blue-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              onClick={() => handleAttachments(row._id)}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15.172 7l-6.586 6.586a2 2 0 002.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-6.586 6.586a6 6 0 108.485 8.485l6.586-6.586"
+              />
+            </svg>
+          </div>
+        );
+      }
+    }
+
     if (isEditing && isEditable) {
+
       if (column.field === "region") {
         return (
           <select
