@@ -1,7 +1,7 @@
 export const getColumnsForRole = (role) => {
   const allColumns = [
     { field: "srNo", headerName: "Sr no" },
-    { field: "srNoOld", headerName: "Sr no Old" },
+    // { field: "srNoOld", headerName: "Sr no Old" },
     { field: "typeOfInv", headerName: "Type of inv" },
     { field: "region", headerName: "Region" },
     { field: "projectDescription", headerName: "Project Description" },

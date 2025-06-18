@@ -27,6 +27,7 @@ const RepCourier = () => {
     const [bills, setBills] = useState([]);
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [totals, setTotals] = useState([]);
 
     useEffect(() => {
         console.log("Inside use effect inv couriered to mum");
@@ -34,8 +35,9 @@ const RepCourier = () => {
 
             try {
                 const response = await axios.get(`${courieredMumbai}?startDate=${fromDate}&endDate=${toDate}`);
-                console.log(response.data.report.data);
+                console.log(response.data.report);
                 setBills(response.data.report.data);
+                setTotals(response.data.report.summary);
             }
             catch (err) {
                 setError("Failed to load data");
@@ -159,6 +161,19 @@ const RepCourier = () => {
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.poNo}</td>
                                 </tr>
                             ))}
+                            <tr key={totals.totalCount} className='bg-[#f5f5f5] font-semibold'>
+                                <td colSpan={1} className='border border-black text-[14px] py-[1.5vh] px-[1vw]'></td>
+                                <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
+                                    <strong>Total Count: {totals.totalCount.toLocaleString('en-IN')}</strong>
+                                </td>
+                                <td colSpan={3} className='border border-black'></td>
+                                <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
+                                    <strong>Grand Total: {totals.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                </td>
+                                <td colSpan={3} className='border border-black'></td>
+                            </tr>
+
+
                         </tbody>
                     </table>
                 </div>

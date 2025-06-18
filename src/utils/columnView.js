@@ -1,7 +1,7 @@
 export const getColumnsForRole = (role) => {
   const allColumns = [
     { field: "srNo", headerName: "Sr no" },
-    { field: "srNoOld", headerName: "Sr no Old" },
+    // { field: "srNoOld", headerName: "Sr no Old" },
     { field: "typeOfInv", headerName: "Type of inv" },
     { field: "region", headerName: "Region" },
     { field: "projectDescription", headerName: "Project Description" },
@@ -104,7 +104,7 @@ export const getColumnsForRole = (role) => {
   const roleSpecificFields = {
     SITE_OFFICER: [
       "srNo",
-      "srNoOld",
+      // "srNoOld",
       "typeOfInv",
       "region",
       "projectDescription",
@@ -164,7 +164,7 @@ export const getColumnsForRole = (role) => {
 
     QS_TEAM: [
       "srNo",
-      "srNoOld",
+      // "srNoOld",
       "typeOfInv",
       "region",
       "projectDescription",
@@ -208,7 +208,7 @@ export const getColumnsForRole = (role) => {
 
     PIMO_MUMBAI_MIGO_SES: [
       "srNo",
-      "srNoOld",
+      // "srNoOld",
       "typeOfInv",
       "region",
       "projectDescription",
@@ -283,7 +283,7 @@ export const getColumnsForRole = (role) => {
 
     PIMO_MUMBAI_ADVANCE_FI: [
       "srNo",
-      "srNoOld",
+      // "srNoOld",
       "typeOfInv",
       "region",
       "projectDescription",
@@ -372,7 +372,7 @@ export const getColumnsForRole = (role) => {
 
     ACCOUNTS_TEAM: [
        "srNo",
-      "srNoOld",
+      // "srNoOld",
       "typeOfInv",
       "region",
       "projectDescription",
@@ -422,7 +422,7 @@ export const getColumnsForRole = (role) => {
 
     DIRECTOR_TRUSTEE_ADVISOR: [
       "srNo",
-      "srNoOld",
+      // "srNoOld",
       "typeOfInv",
       "region",
       "projectDescription",

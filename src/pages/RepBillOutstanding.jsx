@@ -70,7 +70,7 @@ const RepBillOutstanding = () => {
     const handleSelectAll = () => {
         const newSelectAll = !selectAll;
         setSelectAll(newSelectAll);
-        
+
         const filteredBills = billsData.filter(bill => !bill.isSubtotal && bill.srNo);
         if (newSelectAll) {
             setSelectedRows(filteredBills.map(bill => bill.srNo));
@@ -83,9 +83,9 @@ const RepBillOutstanding = () => {
         const newSelectedRows = selectedRows.includes(id)
             ? selectedRows.filter(rowId => rowId !== id)
             : [...selectedRows, id];
-        
+
         setSelectedRows(newSelectedRows);
-        
+
         const validBills = billsData.filter(bill => !bill.isSubtotal && bill.srNo);
         setSelectAll(newSelectedRows.length === validBills.length);
     };
@@ -96,7 +96,7 @@ const RepBillOutstanding = () => {
     }, [selectedRows, billsData]);
 
     const handleTopDownload = async () => {
-        if(selectedRows.length === 0) {
+        if (selectedRows.length === 0) {
             toast.error("Select atleast one row to download");
         }
         console.log("Download outstanding bill clicked");
@@ -105,7 +105,7 @@ const RepBillOutstanding = () => {
     }
 
     const handleTopPrint = async () => {
-        if(selectedRows.length === 0) {
+        if (selectedRows.length === 0) {
             toast.error("Select atleast one row to print");
         }
         console.log("Print outstanding bill clicked");
@@ -125,11 +125,11 @@ const RepBillOutstanding = () => {
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
         { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
         { field: "dateRecdInAcctsDept", headerName: "Dt Recd in Accts Dept" },
-        { field: "natureOfWorkSupply", headerName: "Nature of Work" }
+        { field: "copAmt", headerName: "COP Amt" }
     ]
 
     const visibleColumnFields = [
-        "srNo", "region", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dateRecdInAcctsDept", "natureOfWorkSupply"
+        "srNo", "region", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dateRecdInAcctsDept", "copAmt"
     ]
 
     const handleSendClick = () => {
@@ -208,7 +208,7 @@ const RepBillOutstanding = () => {
                                     <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Date</th>
                                     <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Amt</th>
                                     <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt Recd in Accounts Dept.</th>
-                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Nature of Work</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>COP Amt</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -223,15 +223,34 @@ const RepBillOutstanding = () => {
                                                     onChange={() => handleSelectRow(bill.srNo)}
                                                 />
                                             </td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.srNo}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.region}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorNo}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorName}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvNo}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvDate}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.dateRecdInAcctsDept}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.natureOfWorkSupply}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.srNo}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.region}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorNo}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorName}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvNo}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvDate}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.dateRecdInAcctsDept}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.copAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                        </tr>
+                                    ))
+                                }
+                                {billsData
+                                    .filter(bill => bill.isGrandTotal)
+                                    .map((bill) => (
+                                        <tr key={bill.totalCount} className='bg-[#f5f5f5] font-semibold'>
+                                            <td colSpan={1} className='border border-black text-[14px] py-[1.5vh] px-[1vw]'></td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
+                                                <strong>Total Count: {bill.totalCount.toLocaleString('en-IN')}</strong>
+                                            </td>
+                                            <td colSpan={5} className='border border-black'></td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
+                                                <strong>Grand Total: {bill.grandTotalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                            </td>
+                                            <td colSpan={1} className='border border-black'></td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
+                                                <strong>Grand Total: {bill.grandTotalCopAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                            </td>
                                         </tr>
                                     ))
                                 }

@@ -217,48 +217,48 @@ const RepBillOutstandingSubtotal = () => {
                                     item.isSubtotal ? (
                                         <tr key={`subtotal-${index}`} className='bg-[#f8f9fa]'>
                                             <td colSpan={2} className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw]'></td>
-                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                                 <strong>Count: {item.count.toLocaleString('en-IN')}</strong>
                                             </td>
-                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'>
                                                 <strong>{item.vendorName}</strong>
                                             </td>
-                                            <td colSpan={2}></td>
-                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'>
+                                            <td colSpan={2} className='border border-black'></td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                                 <strong>Total: {item.subtotalAmount.toLocaleString('en-IN')}</strong>
                                             </td>
-                                            <td className='border border-black font-semibold text-[14px] py-[1.5vh] px-[1vw]'>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                                 <strong>Total: {item.subtotalCopAmt.toLocaleString('en-IN')}</strong>
                                             </td>
-                                            <td colSpan={1}></td>
+                                            <td colSpan={1} className='border border-black'></td>
                                         </tr>
                                     ) : !item.isGrandTotal ? (
                                         <tr key={`bill-${index}`} className="hover:bg-[#f5f5f5]">
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.srNo}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.region}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.vendorNo}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.vendorName}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.taxInvNo}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.taxInvDate}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{item.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-right'>{item.copAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.dateRecdInAcctsDept}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.srNo}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.region}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.vendorNo}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.vendorName}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.taxInvNo}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.taxInvDate}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>{item.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>{item.copAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{item.dateRecdInAcctsDept}</td>
                                         </tr>
                                     ) : null
                                 ))}
                                 <tr className='bg-[#e9ecef] font-semibold'>
                                     <td colSpan={2} className='border border-black text-[14px] py-[1.5vh] px-[1vw]'></td>
-                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'>
+                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                         <strong>Total Count: {totals.totalVendorCount.toLocaleString('en-IN')}</strong>
                                     </td>
-                                    <td colSpan={3}></td>
-                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'>
+                                    <td colSpan={3} className='border border-black'></td>
+                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                         <strong>Grand Total: {totals.totalSubtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                     </td>
-                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw]'>
+                                    <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                         <strong>Grand Total: {totals.totalSubtotalCopAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                     </td>
-                                    <td colSpan={1}></td>
+                                    <td colSpan={1} className='border border-black'></td>
                                 </tr>
                             </tbody>
                         </table>
