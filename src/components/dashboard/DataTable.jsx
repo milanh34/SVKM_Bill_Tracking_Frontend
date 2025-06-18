@@ -798,7 +798,6 @@ const DataTable = ({
     const isEditable = getEditableFields().includes(column.field);
     const editedValue = editedValues[row._id]?.[column.field];
 
-
     if (column.field === "attachments") {
       if (isEditing && isEditable) {
         return (
@@ -834,6 +833,32 @@ const DataTable = ({
                 d="M15.172 7l-6.586 6.586a2 2 0 002.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-6.586 6.586a6 6 0 108.485 8.485l6.586-6.586"
               />
             </svg>
+          </div>
+        );
+      }
+    }
+
+    // Special handling for hardCopy field - always show select input
+    if (column.field === "accountsDept.hardCopy") {
+      if (isEditing) {
+        return (
+          <select
+            value={editedValue !== undefined ? editedValue : value || "No"}
+            onChange={(e) =>
+              handleCellEdit(column.field, e.target.value, row._id)
+            }
+            className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none"
+          >
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        );
+      } else {
+        // Show the current value or "No" as default
+        const displayValue = value || "No";
+        return (
+          <div className="px-2 py-1">
+            {displayValue}
           </div>
         );
       }
