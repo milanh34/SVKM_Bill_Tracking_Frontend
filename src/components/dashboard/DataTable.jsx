@@ -449,10 +449,13 @@ const DataTable = ({
 
 
   const [viewAttachments, setViewAttachments] = useState(false);
-  const [allAttachments, setAllAttachments] = useState([]);
+  const [allAttachments, setAllAttachments] = useState(["https://demolink1.com", "https://demolink2.com", "https://demolink3.com"]);
   const handleAttachments = (id) => {
+    console.log(data[id].attachments);
+    if(data[id].attachments.length > 0) {
+      setAllAttachments(data[id].attachments); 
+    }
     setViewAttachments(true);
-    setAllAttachments(data.attachment); // not tested yet, database is cleared
   }
 
   const renderFilterPopup = (column) => {
@@ -946,12 +949,10 @@ const DataTable = ({
           <div className="fixed top-0 left-0 w-full h-full z-50 flex items-center justify-center">
             <div className="bg-white w-full max-w-md rounded-lg shadow-lg p-6 relative">
 
-              {/* Close Button */}
               <button className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl font-bold" onClick={() => setViewAttachments(false)}>
                 &times;
               </button>
 
-              {/* Title */}
               <h2 className="text-lg font-semibold text-gray-800 mb-4">Attachments</h2>
 
               {/* Attachment Links List */}
@@ -1121,7 +1122,7 @@ const DataTable = ({
                     </div>
                   </td>
 
-                  {visibleColumns.map((column) => {
+                  {visibleColumns.map((column, key) => {
                     const value = getNestedValue(row, column.field);
                     return (
                       <td
@@ -1145,7 +1146,7 @@ const DataTable = ({
                               fill="none"
                               viewBox="0 0 24 24"
                               stroke="currentColor"
-                              onClick={() => handleAttachments(row._id)}
+                              onClick={() => handleAttachments(key)}
                             >
                               <path
                                 strokeLinecap="round"
