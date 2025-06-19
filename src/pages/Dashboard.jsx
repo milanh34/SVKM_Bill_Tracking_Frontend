@@ -6,7 +6,7 @@ import { bills, receiveBills } from "../apis/bills.api";
 import { regions } from "../apis/master.api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import DataTable from "../components/dashboard/DataTable";
+import DataTable from "../components/datatable/DataTable";
 import {
   Funnel,
   Grid3x3,
