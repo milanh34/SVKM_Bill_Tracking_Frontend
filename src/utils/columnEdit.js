@@ -280,6 +280,8 @@ export const getColumnsForRole = (role) => {
       "accountsDept.paymentInstructions",
       "accountsDept.remarksForPayInstructions",
     ],
+
+    ADMIN: allColumns.map((col) => col.field),
   };
 
   if (roleSpecificEditFields[role]) {

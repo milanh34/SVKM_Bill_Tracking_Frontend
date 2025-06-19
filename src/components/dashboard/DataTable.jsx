@@ -764,6 +764,7 @@ const DataTable = ({
 
   const getEditableFields = () => {
     const roleMapping = {
+      admin: "ADMIN",
       site_officer: "SITE_OFFICER",
       qs_site: "QS_TEAM",
       site_pimo: "PIMO_MUMBAI_MIGO_SES",
@@ -875,7 +876,7 @@ const DataTable = ({
             }
             className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none"
           >
-            <option value="">Select Region</option>
+            <option value="" disabled>Select Region</option>
             {regionOptions.map((option) => (
               <option key={option._id} value={option.name}>
                 {option.name}
