@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   handleCellEdit,
   getEditableFields,
@@ -42,7 +42,7 @@ export function RenderCell({
 
   const prevEditingRef = React.useRef(false);
   const [initialVendorValue, setInitialVendorValue] = useState("");
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       column.field === "vendorName" &&
       isEditing &&
@@ -67,6 +67,47 @@ export function RenderCell({
       prevEditingRef.current = false;
     }
   }, [isEditing, column.field, isEditable]);
+
+  useEffect(() => {
+    if (
+      column.field === "poNo" &&
+      isEditing &&
+      isEditable &&
+      editedValues[row._id]
+    ) {
+      let poNo = editedValues[row._id].poNo || "";
+      if (poNo.length > 10) {
+        poNo = poNo.slice(0, 10);
+        setEditedValues((prev) => ({
+          ...prev,
+          [row._id]: {
+            ...prev[row._id],
+            poNo,
+          },
+        }));
+      }
+      if (poNo.length === 10 && editedValues[row._id].poCreated !== "Yes") {
+        setEditedValues((prev) => ({
+          ...prev,
+          [row._id]: {
+            ...prev[row._id],
+            poCreated: "Yes",
+          },
+        }));
+      } else if (
+        poNo.length !== 10 &&
+        editedValues[row._id].poCreated !== "No"
+      ) {
+        setEditedValues((prev) => ({
+          ...prev,
+          [row._id]: {
+            ...prev[row._id],
+            poCreated: "No",
+          },
+        }));
+      }
+    }
+  }, [editedValues[row._id]?.poNo, isEditing, isEditable]);
 
   if (column.field === "attachments") {
     if (isEditing && isEditable) {
@@ -360,6 +401,27 @@ export function RenderCell({
           <option value="reject">reject</option>
           <option value="hold">hold</option>
           <option value="issue">issue</option>
+        </select>
+      );
+    }
+
+    if (column.field === "poCreated") {
+      return (
+        <select
+          value={editedValue !== undefined ? editedValue : value || ""}
+          onChange={e =>
+            handleCellEdit(column.field, e.target.value, row._id, setEditedValues)
+          }
+          className={`w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none${
+            isForceDisabled ? " cursor-not-allowed" : ""
+          }`}
+          disabled={isForceDisabled}
+        >
+          <option value="" disabled>
+            Select Yes/No
+          </option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
         </select>
       );
     }
