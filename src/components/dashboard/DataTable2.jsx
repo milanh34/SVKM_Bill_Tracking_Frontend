@@ -17,6 +17,7 @@ import {
   applyFilter,
   requestSort,
   getStatusStyle,
+  formatCellValue,
 } from "./datatable/DataTableUtils";
 import { renderFilterPopup } from "./datatable/FilterPopup";
 import { RenderCell } from "./datatable/RenderCell";
@@ -252,9 +253,10 @@ const DataTable = ({
     "https://demolink3.com",
   ]);
   const handleAttachments = (id) => {
-    console.log(data[id].attachments);
-    if (data[id].attachments.length > 0) {
-      setAllAttachments(data[id].attachments);
+    console.log(data[id]);
+    console.log(data[id].attachment);
+    if (data[id].attachment?.length > 0) {
+      setAllAttachments(data[id].attachment);
     }
     setViewAttachments(true);
   };
@@ -332,6 +334,20 @@ const DataTable = ({
       }));
     }
   };
+
+  const grandTotals = useMemo(() => {
+    const sum = (field) =>
+      filteredData.reduce((acc, row) => {
+        const val = getNestedValue(row, field);
+        const num = parseFloat(val);
+        return !isNaN(num) ? acc + num : acc;
+      }, 0);
+    return {
+      taxInvAmt: sum("taxInvAmt"),
+      copDetailsAmount: sum("copDetails.amount"),
+      accountsDeptPaymentAmt: sum("accountsDept.paymentAmt"),
+    };
+  }, [filteredData]);
 
   return (
     <div
@@ -649,6 +665,62 @@ const DataTable = ({
                 </tr>
               );
             })}
+            <tr className="bg-blue-100/75 font-bold">
+              <td className="sticky left-0 z-20 whitespace-nowrap px-3 py-3 text-center"></td>
+              {visibleColumns.map((column) => {
+                if (column.field === "taxInvAmt") {
+                  return (
+                    <td
+                      key={column.field}
+                      className="whitespace-nowrap px-1.5 py-2.5 text-sm border-l border-r border-gray-300"
+                    >
+                      {formatCellValue(grandTotals.taxInvAmt, "taxInvAmt")}
+                    </td>
+                  );
+                }
+                if (column.field === "copDetails.amount") {
+                  return (
+                    <td
+                      key={column.field}
+                      className="whitespace-nowrap px-1.5 py-2.5 text-sm border-l border-r border-gray-300"
+                    >
+                      {formatCellValue(grandTotals.copDetailsAmount, "copDetails.amount")}
+                    </td>
+                  );
+                }
+                if (column.field === "accountsDept.paymentAmt") {
+                  return (
+                    <td
+                      key={column.field}
+                      className="whitespace-nowrap px-1.5 py-2.5 text-sm border-l border-r border-gray-300"
+                    >
+                      {formatCellValue(grandTotals.accountsDeptPaymentAmt, "accountsDept.paymentAmt")}
+                    </td>
+                  );
+                }
+                if (
+                  visibleColumns.findIndex((col) => col.field === column.field) === 0
+                ) {
+                  return (
+                    <td
+                      key={column.field}
+                      className="whitespace-nowrap px-1.5 py-2.5 text-sm text-left border-r border-gray-300"
+                    >
+                      Grand Total
+                    </td>
+                  );
+                }
+                return (
+                  <td
+                    key={column.field}
+                    className="whitespace-nowrap px-1.5 py-2.5 text-sm"
+                  ></td>
+                );
+              })}
+              {showActions && (
+                <td className="sticky right-0 z-20 whitespace-nowrap px-1.5 py-2.5 text-center"></td>
+              )}
+            </tr>
           </tbody>
         </table>
       </div>
