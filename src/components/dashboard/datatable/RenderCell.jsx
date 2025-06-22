@@ -253,8 +253,8 @@ export function RenderCell({
       );
       const showSuggestions = vendorNoTouched && vendorNoSearch.length > 3 && filteredVendors.length > 0;
       const handleVendorNoChange = (e) => {
-        let val = e.target.value.replace(/\D/g, ""); // Only digits
-        if (val.length > 6) val = val.slice(0, 6); // Max 6 digits
+        let val = e.target.value.replace(/\D/g, "");
+        if (val.length > 6) val = val.slice(0, 6);
         setVendorNoSearch(val);
         setVendorNoTouched(true);
         handleCellEdit("vendorNo", val, row._id, setEditedValues);
@@ -337,6 +337,29 @@ export function RenderCell({
                 {region}
               </option>
             ))}
+        </select>
+      );
+    }
+
+    if (column.field === "siteStatus") {
+      return (
+        <select
+          value={editedValue !== undefined ? editedValue : value || ""}
+          onChange={e =>
+            handleCellEdit(column.field, e.target.value, row._id, setEditedValues)
+          }
+          className={`w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none${
+            isForceDisabled ? " cursor-not-allowed" : ""
+          }`}
+          disabled={isForceDisabled}
+        >
+          <option value="" disabled>
+            Select Site Status
+          </option>
+          <option value="accept">accept</option>
+          <option value="reject">reject</option>
+          <option value="hold">hold</option>
+          <option value="issue">issue</option>
         </select>
       );
     }
