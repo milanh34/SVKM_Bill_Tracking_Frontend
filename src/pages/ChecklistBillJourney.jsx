@@ -144,7 +144,7 @@ const ChecklistBillJourney = () => {
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             ${item?.srNo || ""}
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            Nature of Work: ${item?.typeOfInv || item?.natureOfWork || ""}
+            Nature of Work: ${item?.natureOfWork || item?.typeOfInv || ""}
           </div>
 
           <div class="grid-row grid-3">
@@ -286,7 +286,7 @@ const ChecklistBillJourney = () => {
                     </div>
                     <div className="border-gray-300">
                       <div className="text-sm text-center">
-                        Nature of Work: {item?.typeOfInv || item?.natureOfWork}
+                        Nature of Work: {item?.natureOfWork || item?.typeOfInv}
                       </div>
                     </div>
                   </div>

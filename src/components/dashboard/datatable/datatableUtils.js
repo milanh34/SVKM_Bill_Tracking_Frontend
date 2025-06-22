@@ -1,22 +1,4 @@
-
-import { getColumnsForRole } from "./columnEdit";
-
-export const getNestedValue = (obj, path) => {
-  if (!obj || !path) return undefined;
-  const keys = path.split(".");
-  let value = obj;
-  for (const key of keys) {
-    if (value && typeof value === "object") {
-      value = value[key];
-    } else {
-      value = undefined;
-      break;
-    }
-  }
-  return value;
-};
-
-export const formatDate = (dateString) => {
+const formatDate = (dateString) => {
   if (!dateString) return "-";
   try {
     const date = new Date(dateString);
@@ -31,6 +13,34 @@ export const formatDate = (dateString) => {
   } catch (e) {
     return "-";
   }
+};
+
+const formatCurrency = (value) => {
+  if (value === null || value === undefined || isNaN(value)) return "-";
+  try {
+    return new Intl.NumberFormat("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      useGrouping: true,
+    }).format(value);
+  } catch (e) {
+    return value.toString();
+  }
+};
+
+export const getNestedValue = (obj, path) => {
+  if (!obj || !path) return undefined;
+  const keys = path.split(".");
+  let value = obj;
+  for (const key of keys) {
+    if (value && typeof value === "object") {
+      value = value[key];
+    } else {
+      value = undefined;
+      break;
+    }
+  }
+  return value;
 };
 
 export const isDateField = (field) => {
@@ -85,13 +95,22 @@ export const getUniqueValues = (data, field) => {
   });
 };
 
-export const applyFilter = (value, filter, field, isNumericField, isDateField) => {
+export const applyFilter = (
+  value,
+  filterValue,
+  operator,
+  field,
+  filterType,
+  columnFilters,
+  dateRanges
+) => {
   if (!value) return false;
 
   if (isNumericField(field)) {
     const numValue = parseFloat(value);
     if (isNaN(numValue)) return false;
 
+    const filter = columnFilters[field];
     if (filter?.range) {
       const min =
         filter.range.min !== "" ? parseFloat(filter.range.min) : -Infinity;
@@ -99,42 +118,43 @@ export const applyFilter = (value, filter, field, isNumericField, isDateField) =
         filter.range.max !== "" ? parseFloat(filter.range.max) : Infinity;
       return numValue >= min && numValue <= max;
     }
-    return true;
-  }
-
-  if (
-    !filter?.value ||
-    (Array.isArray(filter.value) && filter.value.length === 0)
-  ) {
-    return true;
   }
 
   if (isDateField(field)) {
-    const formattedDate = formatDate(value);
-    return filter.value.some((val) => formattedDate === val);
+    const currentFilterType = filterType[field] || "individual";
+    const dateValue = new Date(value);
+
+    if (currentFilterType === "range") {
+      const { from, to } = dateRanges[field] || {};
+      if (from && to) {
+        const fromDate = new Date(from);
+        const toDate = new Date(to);
+        return dateValue >= fromDate && dateValue <= toDate;
+      }
+      return true;
+    } else {
+      const formattedDate = formatDate(value);
+      return filterValue.some((val) => formattedDate === val);
+    }
   }
 
   const stringValue = value.toString().toLowerCase();
 
   if (value instanceof Date || !isNaN(new Date(value))) {
     const formattedDate = formatDate(value);
-    return filter.value.some((val) => formattedDate === val);
+    return filterValue.some((val) => formattedDate === val);
   }
 
-  return filter.value.some((val) => stringValue === val.toLowerCase());
+  switch (operator) {
+    case "multiSelect":
+      return filterValue.some((val) => stringValue === val.toLowerCase());
+    default:
+      return true;
+  }
 };
 
-export const formatCurrency = (value) => {
-  if (value === null || value === undefined || isNaN(value)) return "-";
-  try {
-    return new Intl.NumberFormat("en-IN", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-      useGrouping: true,
-    }).format(value);
-  } catch (e) {
-    return value.toString();
-  }
+export const requestSort = (key, onSort) => {
+  onSort(key);
 };
 
 export const formatCellValue = (value, field) => {
@@ -191,7 +211,7 @@ export const getStatusStyle = (status) => {
   return {};
 };
 
-export const getEditableFields = (currentUserRole) => {
+export const getEditableFields = (currentUserRole, getColumnsForRole) => {
   const roleMapping = {
     admin: "ADMIN",
     site_officer: "SITE_OFFICER",
@@ -203,8 +223,18 @@ export const getEditableFields = (currentUserRole) => {
   };
 
   const mappedRole = roleMapping[currentUserRole] || currentUserRole;
-  const editableFields = getColumnsForRole(mappedRole).map(
-    (col) => col.field
-  );
+  const editableFields = getColumnsForRole(mappedRole).map((col) => col.field);
+
   return editableFields || [];
+};
+
+export const handleCellEdit = (field, value, rowId, setEditedValues) => {
+  console.log("handleCellEdit called with:", { field, value, rowId });
+  setEditedValues((prev) => ({
+    ...prev,
+    [rowId]: {
+      ...prev[rowId],
+      [field]: value,
+    },
+  }));
 };

@@ -2,7 +2,7 @@ export const getColumnsForRole = (role) => {
   const allColumns = [
     { field: "srNo", headerName: "Sr no" },
     // { field: "srNoOld", headerName: "Sr no Old" },
-    { field: "typeOfInv", headerName: "Type of inv" },
+    { field: "natureOfWork", headerName: "Nature of Work" },
     { field: "region", headerName: "Region" },
     { field: "projectDescription", headerName: "Project Description" },
     { field: "vendorNo", headerName: "Vendor no" },
@@ -103,7 +103,7 @@ export const getColumnsForRole = (role) => {
 
   const roleSpecificEditFields = {
     SITE_OFFICER: [
-      "typeOfInv",
+      "natureOfWork",
       "region",
       "projectDescription",
       "vendorNo",
@@ -190,7 +190,7 @@ export const getColumnsForRole = (role) => {
     ],
 
     PIMO_MUMBAI_ADVANCE_FI: [
-      "typeOfInv",
+      "natureOfWork",
       "region",
       "projectDescription",
       "vendorNo",

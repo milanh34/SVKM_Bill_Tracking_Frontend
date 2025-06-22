@@ -24,7 +24,6 @@ const FullBillDetails = () => {
 
   console.log("Available Regions:", availableRegions);
   const [billFormData, setBillFormData] = useState({
-    typeOfInv: "",
     region: "",
     projectDescription: "",
     gstNumber: "",
@@ -368,7 +367,7 @@ const FullBillDetails = () => {
         toast.error('Tax Invoice Number should be 16 digits');
         return;
       }
-      if (id === "typeOfInv") {
+      if (id === "natureOfWork") {
         setBillFormData((prevData) => ({
           ...prevData,
           natureOfWork: value,
@@ -410,7 +409,7 @@ const FullBillDetails = () => {
       }
 
       const requiredFields = [
-        "typeOfInv",
+        "natureOfWork",
         "region",
         "projectDescription",
         "vendorName",
@@ -438,7 +437,7 @@ const FullBillDetails = () => {
         amount: 0,
         siteStatus: "hold",
         currency: billFormData.currency || "INR",
-        natureOfWork: billFormData.typeOfInv,
+        natureOfWork: billFormData.natureOfWork,
       };
 
       setBillFormData(updatedFormData);
@@ -474,7 +473,6 @@ const FullBillDetails = () => {
 
   const resetForm = () => {
     setBillFormData({
-      typeOfInv: "",
       region: "",
       projectDescription: "",
       gstNumber: "",
@@ -566,20 +564,20 @@ const FullBillDetails = () => {
           <div className="grid grid-cols-2 gap-[2vw]">
             <div className="relative mb-[4vh]">
               <label
-                htmlFor="typeOfInv"
+                htmlFor="natureOfWork"
                 className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
               >
-                Type of Invoice *
+                Nature Of Work *
               </label>
               <select
-                id="typeOfInv"
+                id="natureOfWork"
                 className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                value={billFormData.typeOfInv}
+                value={billFormData.natureOfWork}
                 onChange={handleChange}
                 required
               >
                 <option value="" disabled hidden>
-                  Select Type of Invoice
+                  Select Nature of Work
                 </option>
                 {natureOfWorkOptions.map((nature) => (
                   <option key={nature._id} value={nature.natureOfWork}>

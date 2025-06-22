@@ -152,7 +152,7 @@ const ChecklistAccount = () => {
             <div>Invoice No: ${item?.taxInvNo || ""}</div>
             <div>Dt: ${formatDate(item?.taxInvDate)}</div>
             <div>Nature of Work: ${
-              item?.typeOfInv || item?.natureOfWork || ""
+              item?.natureOfWork || item?.typeOfInv || ""
             }</div>
           </div>
 
@@ -388,7 +388,7 @@ const ChecklistAccount = () => {
                     <div>Invoice No: {item?.taxInvNo}</div>
                     <div>Dt: {formatDate(item?.taxInvDate)}</div>
                     <div>
-                      Nature of Work: {item?.typeOfInv || item?.natureOfWork}
+                      Nature of Work: {item?.natureOfWork || item?.typeOfInv}
                     </div>
                   </div>
                 </div>

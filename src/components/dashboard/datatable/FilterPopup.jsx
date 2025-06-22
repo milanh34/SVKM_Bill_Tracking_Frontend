@@ -1,44 +1,59 @@
-import React from "react";
+import { getUniqueValues, isDateField, isNumericField } from "./DataTableUtils";
 import { X } from "lucide-react";
-import { getUniqueValues } from "../../utils/dataTableUtils";
 
-const FilterPopup = ({
+export const renderFilterPopup = (
   column,
-  activeFilter,
-  filterRef,
-  filterPosition,
-  filterSearchQuery,
-  setFilterSearchQuery,
-  isDateField,
-  isNumericField,
   data,
   columnFilters,
+  filterRef,
   filterType,
   setFilterType,
   dateRanges,
   setDateRanges,
   pendingAmountFilters,
   setPendingAmountFilters,
-  onFilterChange,
-  onFilterClear,
-}) => {
-  if (activeFilter !== column.field) return null;
-
+  setActiveFilter,
+  setColumnFilters,
+  filterSearchQuery,
+  setFilterSearchQuery,
+  filterPosition
+) => {
   const uniqueValues = getUniqueValues(data, column.field);
   const currentFilter = columnFilters[column.field] || {
     operator: "multiSelect",
     value: [],
   };
   const maxHeight = filterRef.current?.maxHeight || 400;
+  const isDate = isDateField(column.field);
   const isAmount = isNumericField(column.field);
   const currentFilterType = filterType[column.field] || "individual";
   const currentDateRange = dateRanges[column.field] || { from: "", to: "" };
-  const currentAmountRange = pendingAmountFilters[column.field] || {
+  const currentAmountRange = columnFilters[column.field]?.range || {
     min: "",
     max: "",
   };
 
+  const handleFilterChange = (field, operator, selectedValues) => {
+    setColumnFilters((prev) => ({
+      ...prev,
+      [field]: { operator, value: selectedValues },
+    }));
+  };
+
+  const handleFilterClear = (field) => {
+    setColumnFilters((prev) => {
+      const newFilters = { ...prev };
+      delete newFilters[field];
+      return newFilters;
+    });
+  };
+
   if (isAmount) {
+    const pendingFilter = pendingAmountFilters[column.field] || {
+      min: "",
+      max: "",
+    };
+
     return (
       <div
         ref={filterRef}
@@ -62,13 +77,13 @@ const FilterPopup = ({
               <label className="text-xs text-gray-500">Minimum Amount</label>
               <input
                 type="number"
-                value={currentAmountRange.min}
+                value={pendingFilter.min}
                 onChange={(e) => {
                   const value = e.target.value;
                   setPendingAmountFilters((prev) => ({
                     ...prev,
                     [column.field]: {
-                      ...currentAmountRange,
+                      ...pendingFilter,
                       min: value,
                     },
                   }));
@@ -81,13 +96,13 @@ const FilterPopup = ({
               <label className="text-xs text-gray-500">Maximum Amount</label>
               <input
                 type="number"
-                value={currentAmountRange.max}
+                value={pendingFilter.max}
                 onChange={(e) => {
                   const value = e.target.value;
                   setPendingAmountFilters((prev) => ({
                     ...prev,
                     [column.field]: {
-                      ...currentAmountRange,
+                      ...pendingFilter,
                       max: value,
                     },
                   }));
@@ -103,7 +118,7 @@ const FilterPopup = ({
           <button
             className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
             onClick={() => {
-              onFilterClear(column.field);
+              handleFilterClear(column.field);
               setPendingAmountFilters((prev) => {
                 const newFilters = { ...prev };
                 delete newFilters[column.field];
@@ -118,11 +133,13 @@ const FilterPopup = ({
             onClick={() => {
               const pendingFilter = pendingAmountFilters[column.field];
               if (pendingFilter) {
-                onFilterChange(
-                  column.field,
-                  "range",
-                  { range: pendingFilter }
-                );
+                setColumnFilters((prev) => ({
+                  ...prev,
+                  [column.field]: {
+                    operator: "range",
+                    range: pendingFilter,
+                  },
+                }));
               }
               setActiveFilter(null);
             }}
@@ -135,7 +152,7 @@ const FilterPopup = ({
   }
 
   const showDateRange =
-    isDateField(column.field) &&
+    isDate &&
     (column.headerName.toLowerCase().includes("dt") ||
       column.headerName.toLowerCase().includes("date") ||
       column.headerName.toLowerCase().includes("recd at site") ||
@@ -144,10 +161,13 @@ const FilterPopup = ({
   return (
     <div
       ref={filterRef}
-      className={`absolute mt-2.5 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-[250px] flex flex-col ${filterPosition === "right" ? "left-0" : "right-0"}`}
+      className={`absolute mt-2.5 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-[250px] flex flex-col ${
+        filterPosition === "right" ? "left-0" : "right-0"
+      }`}
       style={{ maxHeight: `${Math.min(maxHeight, 400)}px` }}
       onClick={(e) => e.stopPropagation()}
     >
+      {/* Header */}
       <div className="sticky top-0 z-30 bg-white border-b border-gray-200 p-3">
         <div className="flex justify-between items-center">
           <span className="text-sm font-medium">{column.headerName}</span>
@@ -159,6 +179,7 @@ const FilterPopup = ({
           </button>
         </div>
 
+        {/* Update date range selector condition */}
         {showDateRange && (
           <div className="mt-2">
             <select
@@ -197,6 +218,7 @@ const FilterPopup = ({
           </div>
         )}
 
+        {/* Update date range inputs condition */}
         {showDateRange && currentFilterType === "range" && (
           <div className="mt-2 space-y-2">
             <div>
@@ -237,6 +259,7 @@ const FilterPopup = ({
         )}
       </div>
 
+      {/* Content */}
       {(!showDateRange || currentFilterType === "individual") && (
         <div className="flex-1 overflow-y-auto p-2 bg-white">
           {uniqueValues
@@ -248,25 +271,20 @@ const FilterPopup = ({
                 key={value}
                 className="flex items-center space-x-2 px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer"
               >
-                <input type="checkbox"
-                checked={currentFilter.value?.includes(value)}
-                onChange={(e) => {
-                  const newValues = e.target.checked
-                    ? [...(currentFilter.value || []), value]
-                    : (currentFilter.value || []).filter(
-                        (v) => v !== value
-                      );
-                  onFilterChange(
-                    column.field,
-                    "multiSelect",
-                    newValues
-                  );
-                }}
-                className="rounded border-gray-300"
-              />
-              <span className="text-sm">{value}</span>
-            </label>
-          ))}
+                <input
+                  type="checkbox"
+                  checked={currentFilter.value?.includes(value)}
+                  onChange={(e) => {
+                    const newValues = e.target.checked
+                      ? [...(currentFilter.value || []), value]
+                      : (currentFilter.value || []).filter((v) => v !== value);
+                    handleFilterChange(column.field, "multiSelect", newValues);
+                  }}
+                  className="rounded border-gray-300"
+                />
+                <span className="text-sm">{value}</span>
+              </label>
+            ))}
           {uniqueValues.length === 0 && (
             <div className="text-gray-500 text-sm text-center py-2">
               No values found
@@ -275,11 +293,12 @@ const FilterPopup = ({
         </div>
       )}
 
+      {/* Footer */}
       <div className="sticky bottom-0 z-30 bg-white border-t border-gray-200 p-2 flex justify-between gap-2">
         <button
           className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
           onClick={() => {
-            onFilterClear(column.field);
+            handleFilterClear(column.field);
             setDateRanges((prev) => ({
               ...prev,
               [column.field]: { from: "", to: "" },
@@ -296,7 +315,7 @@ const FilterPopup = ({
               currentDateRange.from &&
               currentDateRange.to
             ) {
-              onFilterChange(column.field, "dateRange", [
+              handleFilterChange(column.field, "dateRange", [
                 currentDateRange.from,
                 currentDateRange.to,
               ]);
@@ -311,5 +330,3 @@ const FilterPopup = ({
     </div>
   );
 };
-
-export default FilterPopup;

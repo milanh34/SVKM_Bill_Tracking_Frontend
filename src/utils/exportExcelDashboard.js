@@ -32,7 +32,7 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
 
     const essentialFields = [
       "srNo",
-      "typeOfInv",
+      "natureOfWork",
       "region",
       "projectDescription",
       "vendorNo",

@@ -3,10 +3,15 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import axios from "axios";
 import { bills, receiveBills } from "../apis/bills.api";
-import { regions } from "../apis/master.api";
+import {
+  natureOfWorks,
+  currencies,
+  vendors,
+} from "../apis/master.api";
+import { user } from "../apis/user.apis";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import DataTable from "../components/datatable/DataTable";
+import DataTable from "../components/dashboard/DataTable2";
 import {
   Funnel,
   Grid3x3,
@@ -32,6 +37,10 @@ const Dashboard = () => {
 
   const [billsData, setBillsData] = useState([]);
   const [regionOptions, setRegionOptions] = useState([]);
+  const [natureOfWorkOptions, setNatureOfWorkOptions] = useState([]);
+  const [currencyOptions, setCurrencyOptions] = useState([]);
+  const [vendorOptions, setVendorOptions] = useState([]);
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -62,8 +71,6 @@ const Dashboard = () => {
   const [uploading, setUploading] = useState(false);
 
   const navigate = useNavigate();
-
-  console.log(selectedRows);
 
   const handleChecklist = () => {
     if (currentUserRole === "site_officer") {
@@ -217,26 +224,27 @@ const Dashboard = () => {
     });
   };
 
-  const fetchData = async () => {
+  const fetchAllData = async () => {
+    setLoading(true);
     try {
-      const [billsResponse, regionsResponse] = await Promise.all([
-        axios.get(bills, {
-          headers: { Authorization: `Bearer ${Cookies.get("token")}` },
-        }),
-        axios.get(regions, {
-          headers: { Authorization: `Bearer ${Cookies.get("token")}` },
-        }),
+      const token = Cookies.get("token");
+      const headers = { Authorization: `Bearer ${token}` };
+      const [
+        billsResponse,
+        natureOfWorksRes,
+        currenciesRes,
+        vendorsRes,
+        userRes,
+      ] = await Promise.all([
+        axios.get(bills, { headers }),
+        axios.get(natureOfWorks, { headers }),
+        axios.get(currencies, { headers }),
+        axios.get(vendors, { headers }),
+        axios.get(user, { headers }),
       ]);
 
-      console.log("lksandfnfopspdfmpasmdpfms[adfd",billsResponse)
-
       const userRole = Cookies.get("userRole");
-
-      console.log("Received response data:", billsResponse.data);
-
       const filteredBills = filterBillsByRole(billsResponse.data, userRole);
-
-      console.log("Filtered bills on currentCount:", filteredBills);
 
       const sortedData = filteredBills.sort((a, b) => {
         const aDate = new Date(a.taxInvDate || 0);
@@ -245,9 +253,13 @@ const Dashboard = () => {
       });
 
       setBillsData(sortedData);
-      setRegionOptions(regionsResponse.data || []);
+      setRegionOptions(userRes.data?.data?.region || []);
+      setNatureOfWorkOptions(natureOfWorksRes.data || []);
+      setCurrencyOptions(currenciesRes.data || []);
+      setVendorOptions(vendorsRes.data || []);
+      setUserData(userRes.data?.data || null);
+      setError(null);
     } catch (error) {
-      console.log(error);
       setError(
         "We are experiencing some technical difficulties. Our team is working to resolve this issue as quickly as possible."
       );
@@ -258,7 +270,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    fetchAllData();
   }, []);
 
   const uniqueRegions = [...new Set(billsData.map((bill) => bill.region))];
@@ -428,8 +440,8 @@ const Dashboard = () => {
   const handleEditRow = async () => {
     setLoading(true);
     try {
-      await fetchData();
-      setSelectedRows([]); // Clear selections after refresh
+      await fetchAllData();
+      setSelectedRows([]);
     } finally {
       setLoading(false);
     }
@@ -568,19 +580,15 @@ const Dashboard = () => {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const response = await axios.post(
-        patchBills,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${Cookies.get("token")}`,
-          },
-        }
-      );
+      const response = await axios.post(patchBills, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${Cookies.get("token")}`,
+        },
+      });
       if (response.data?.success) {
         toast.success(response.data.message || "Bills patched successfully!");
-        await fetchData();
+        await fetchAllData();
       } else {
         toast.error(response.data?.message || "Failed to patch bills.");
       }
@@ -863,6 +871,9 @@ const Dashboard = () => {
                     }}
                     currentUserRole={currentUserRole}
                     regionOptions={regionOptions}
+                    natureOfWorkOptions={natureOfWorkOptions}
+                    currencyOptions={currencyOptions}
+                    vendorOptions={vendorOptions}
                   />
                 </div>
 
