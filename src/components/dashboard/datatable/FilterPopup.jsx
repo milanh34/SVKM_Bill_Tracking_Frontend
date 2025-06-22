@@ -1,4 +1,4 @@
-import { getUniqueValues, isDateField, isNumericField } from "./DataTableUtils";
+import { getUniqueValues, isDateField, isNumericField } from "./datatableUtils";
 import { X } from "lucide-react";
 
 export const renderFilterPopup = (

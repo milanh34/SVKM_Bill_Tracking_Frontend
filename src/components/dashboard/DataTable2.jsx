@@ -18,7 +18,7 @@ import {
   requestSort,
   getStatusStyle,
   formatCellValue,
-} from "./datatable/DataTableUtils";
+} from "./datatable/datatableUtils";
 import { renderFilterPopup } from "./datatable/FilterPopup";
 import { RenderCell } from "./datatable/RenderCell";
 

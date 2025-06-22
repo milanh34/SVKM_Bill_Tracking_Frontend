@@ -3,7 +3,7 @@ import {
   handleCellEdit,
   getEditableFields,
   formatCellValue,
-} from "./DataTableUtils";
+} from "./datatableUtils";
 
 const neverEditableFields = [
   "gstNumber",
