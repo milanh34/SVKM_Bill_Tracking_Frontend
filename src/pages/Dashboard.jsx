@@ -856,6 +856,7 @@ const Dashboard = () => {
                     sortConfig={sortConfig}
                     onSort={handleSort}
                     currentPage={currentPage}
+                    onPageChange={setCurrentPage}
                     itemsPerPage={itemsPerPage}
                     onFilteredDataChange={(filteredData) => {
                       setTotalItems(filteredData.length);

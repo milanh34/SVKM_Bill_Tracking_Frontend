@@ -36,6 +36,7 @@ const DataTable = ({
   onSort,
   selectedRows,
   currentPage,
+  onPageChange,
   itemsPerPage,
   onPaginatedDataChange,
   searchQuery,
@@ -95,56 +96,80 @@ const DataTable = ({
     );
   }, [availableColumns, visibleColumnFields]);
 
+  // ** DO NOT DELETE THIS CODE BLOCK **
+  // const filteredData = useMemo(() => {
+  //   return data.filter((row) => {
+  //     if (searchQuery) {
+  //       const searchLower = searchQuery.toLowerCase();
+  //       const isMatchingSearch = visibleColumns.some((column) => {
+  //         const value = getNestedValue(row, column.field);
+  //         return value && value.toString().toLowerCase().includes(searchLower);
+  //       });
+  //       if (!isMatchingSearch) return false;
+  //     }
+
+  //     return Object.entries(columnFilters).every(([field, filter]) => {
+  //       const value = getNestedValue(row, field);
+  //       if (value === null || value === undefined) return false;
+
+  //       if (isNumericField(field)) {
+  //         const numValue = parseFloat(value);
+  //         if (isNaN(numValue)) return false;
+
+  //         if (filter?.range) {
+  //           const min =
+  //             filter.range.min !== ""
+  //               ? parseFloat(filter.range.min)
+  //               : -Infinity;
+  //           const max =
+  //             filter.range.max !== "" ? parseFloat(filter.range.max) : Infinity;
+  //           return numValue >= min && numValue <= max;
+  //         }
+  //         return true;
+  //       }
+
+  //       if (
+  //         !filter?.value ||
+  //         (Array.isArray(filter.value) && filter.value.length === 0)
+  //       ) {
+  //         return true;
+  //       }
+
+  //       return applyFilter(
+  //         value,
+  //         filter.value,
+  //         filter.operator,
+  //         field,
+  //         filterType,
+  //         columnFilters,
+  //         dateRanges
+  //       );
+  //     });
+  //   });
+  // }, [data, searchQuery, columnFilters, visibleColumns]);
+
   const filteredData = useMemo(() => {
-    return data.filter((row) => {
-      if (searchQuery) {
-        const searchLower = searchQuery.toLowerCase();
-        const isMatchingSearch = visibleColumns.some((column) => {
-          const value = getNestedValue(row, column.field);
-          return value && value.toString().toLowerCase().includes(searchLower);
-        });
-        if (!isMatchingSearch) return false;
-      }
-
-      return Object.entries(columnFilters).every(([field, filter]) => {
+    return data.filter(row => {
+      const passesColumnFilters = Object.entries(columnFilters).every(([field, filter]) => {
         const value = getNestedValue(row, field);
-        if (value === null || value === undefined) return false;
-
-        if (isNumericField(field)) {
-          const numValue = parseFloat(value);
-          if (isNaN(numValue)) return false;
-
-          if (filter?.range) {
-            const min =
-              filter.range.min !== ""
-                ? parseFloat(filter.range.min)
-                : -Infinity;
-            const max =
-              filter.range.max !== "" ? parseFloat(filter.range.max) : Infinity;
-            return numValue >= min && numValue <= max;
-          }
-          return true;
-        }
-
-        if (
-          !filter?.value ||
-          (Array.isArray(filter.value) && filter.value.length === 0)
-        ) {
-          return true;
-        }
-
-        return applyFilter(
-          value,
-          filter.value,
-          filter.operator,
-          field,
-          filterType,
-          columnFilters,
-          dateRanges
-        );
+        return applyFilter(value, filter.value, filter.operator, field, filterType, columnFilters, dateRanges);
       });
+
+      const passesSearch = !searchQuery || visibleColumns.some(column => {
+        const value = getNestedValue(row, column.field);
+        return value?.toString().toLowerCase().includes(searchQuery.toLowerCase());
+      });
+
+      return passesColumnFilters && passesSearch;
     });
-  }, [data, searchQuery, columnFilters, visibleColumns]);
+  }, [data, columnFilters, searchQuery, visibleColumns, filterType, dateRanges]);
+
+  useEffect(() => {
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+    if (currentPage > totalPages && totalPages > 0) {
+      onPageChange(totalPages);
+    }
+  }, [filteredData, currentPage, itemsPerPage, onPageChange]);
 
   const sortedData = useMemo(() => {
     if (!sortConfig.key || !sortConfig.direction) return filteredData;
@@ -511,7 +536,8 @@ const DataTable = ({
                       setColumnFilters,
                       filterSearchQuery,
                       setFilterSearchQuery,
-                      filterPosition
+                      filterPosition,
+                      onPageChange,
                     )}
                 </th>
               ))}

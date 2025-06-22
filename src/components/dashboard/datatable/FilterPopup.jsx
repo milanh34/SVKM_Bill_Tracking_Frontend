@@ -16,7 +16,8 @@ export const renderFilterPopup = (
   setColumnFilters,
   filterSearchQuery,
   setFilterSearchQuery,
-  filterPosition
+  filterPosition,
+  onPageChange
 ) => {
   const uniqueValues = getUniqueValues(data, column.field);
   const currentFilter = columnFilters[column.field] || {
@@ -124,6 +125,8 @@ export const renderFilterPopup = (
                 delete newFilters[column.field];
                 return newFilters;
               });
+              onPageChange(1);
+              setActiveFilter(null);
             }}
           >
             Clear
@@ -140,6 +143,7 @@ export const renderFilterPopup = (
                     range: pendingFilter,
                   },
                 }));
+                onPageChange(1);
               }
               setActiveFilter(null);
             }}
@@ -167,7 +171,6 @@ export const renderFilterPopup = (
       style={{ maxHeight: `${Math.min(maxHeight, 400)}px` }}
       onClick={(e) => e.stopPropagation()}
     >
-      {/* Header */}
       <div className="sticky top-0 z-30 bg-white border-b border-gray-200 p-3">
         <div className="flex justify-between items-center">
           <span className="text-sm font-medium">{column.headerName}</span>
@@ -179,7 +182,6 @@ export const renderFilterPopup = (
           </button>
         </div>
 
-        {/* Update date range selector condition */}
         {showDateRange && (
           <div className="mt-2">
             <select
@@ -218,7 +220,6 @@ export const renderFilterPopup = (
           </div>
         )}
 
-        {/* Update date range inputs condition */}
         {showDateRange && currentFilterType === "range" && (
           <div className="mt-2 space-y-2">
             <div>
@@ -259,7 +260,6 @@ export const renderFilterPopup = (
         )}
       </div>
 
-      {/* Content */}
       {(!showDateRange || currentFilterType === "individual") && (
         <div className="flex-1 overflow-y-auto p-2 bg-white">
           {uniqueValues
@@ -275,10 +275,14 @@ export const renderFilterPopup = (
                   type="checkbox"
                   checked={currentFilter.value?.includes(value)}
                   onChange={(e) => {
-                    const newValues = e.target.checked
+                    let newValues = e.target.checked
                       ? [...(currentFilter.value || []), value]
                       : (currentFilter.value || []).filter((v) => v !== value);
-                    handleFilterChange(column.field, "multiSelect", newValues);
+                    if (newValues.length === 0) {
+                      handleFilterClear(column.field);
+                    } else {
+                      handleFilterChange(column.field, "multiSelect", newValues);
+                    }
                   }}
                   className="rounded border-gray-300"
                 />
@@ -293,7 +297,6 @@ export const renderFilterPopup = (
         </div>
       )}
 
-      {/* Footer */}
       <div className="sticky bottom-0 z-30 bg-white border-t border-gray-200 p-2 flex justify-between gap-2">
         <button
           className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
@@ -303,6 +306,8 @@ export const renderFilterPopup = (
               ...prev,
               [column.field]: { from: "", to: "" },
             }));
+            onPageChange(1);
+            setActiveFilter(null);
           }}
         >
           Clear
@@ -319,6 +324,7 @@ export const renderFilterPopup = (
                 currentDateRange.from,
                 currentDateRange.to,
               ]);
+              onPageChange(1);
             }
             setActiveFilter(null);
             setFilterSearchQuery("");
