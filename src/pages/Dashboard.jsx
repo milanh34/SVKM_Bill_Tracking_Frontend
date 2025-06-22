@@ -488,11 +488,12 @@ const Dashboard = () => {
   }, [columns]);
 
   const toggleColumnVisibility = (field) => {
-    if (field === "srNo") return;
+    // Prevent srNo from being toggled off
+    // if (field === "srNo") return;
 
     setVisibleColumnFields((prev) => {
       if (prev.includes(field)) {
-        return prev.filter((f) => f !== field && f !== "srNo");
+        return prev.filter((f) => f !== field);
       } else {
         return [...prev, field];
       }
@@ -729,7 +730,7 @@ const Dashboard = () => {
                       </div>
                       <div className="overflow-y-auto p-2 space-y-2">
                         {columns
-                          .filter((col) => col.field !== "srNoOld")
+                          // .filter((col) => col.field !== "srNoOld")
                           .filter((col) =>
                             col.headerName
                               .toLowerCase()
@@ -744,21 +745,17 @@ const Dashboard = () => {
                                 type="checkbox"
                                 id={`col-${column.field}`}
                                 checked={
-                                  column.field === "srNo" ||
+                                  // column.field === "srNo" ||
                                   visibleColumnFields.includes(column.field)
                                 }
-                                onChange={() =>
-                                  toggleColumnVisibility(column.field)
-                                }
-                                className={`hover:cursor-pointer ${
-                                  column.field === "srNo" ? "opacity-60" : ""
-                                }`}
-                                disabled={column.field === "srNo"}
+                                onChange={() => toggleColumnVisibility(column.field)}
+                                // className={`hover:cursor-pointer ${column.field === "srNo" ? "opacity-60" : ""}`}
+                                className="hover:cursor-pointer"
+                                // disabled={column.field === "srNo"}
                               />
                               <label
-                                className={`hover:cursor-pointer text-sm ${
-                                  column.field === "srNo" ? "opacity-60" : ""
-                                }`}
+                                // className={`hover:cursor-pointer text-sm ${column.field === "srNo" ? "opacity-60" : ""}`}
+                                className="hover:cursor-pointer text-sm"
                                 htmlFor={`col-${column.field}`}
                               >
                                 {column.headerName}
@@ -767,7 +764,7 @@ const Dashboard = () => {
                           ))}
                         {columns.filter(
                           (col) =>
-                            col.field !== "srNoOld" &&
+                            // col.field !== "srNoOld" &&
                             col.headerName
                               .toLowerCase()
                               .includes(columnSearchQuery.toLowerCase())
