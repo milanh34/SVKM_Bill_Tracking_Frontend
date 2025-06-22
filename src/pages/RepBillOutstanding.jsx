@@ -96,19 +96,21 @@ const RepBillOutstanding = () => {
     }, [selectedRows, billsData]);
 
     const handleTopDownload = async () => {
-        if (selectedRows.length === 0) {
-            toast.error("Select atleast one row to download");
-        }
         console.log("Download outstanding bill clicked");
-        const result = await handleExportAllReports(selectedRows, billsData.filter(bill => !bill.isSubtotal && bill.srNo), columns, visibleColumnFields, titleName, false);
+        // if (selectedRows.length === 0) {
+        //     toast.error("Select atleast one row to download");
+        //     return;
+        // }
+        const result = await handleExportAllReports(selectedRows, billsData.filter(bill => bill.srNo || bill.isGrandTotal), columns, visibleColumnFields, titleName, false);
         console.log(result.message);
     }
 
     const handleTopPrint = async () => {
-        if (selectedRows.length === 0) {
-            toast.error("Select atleast one row to print");
-        }
         console.log("Print outstanding bill clicked");
+        // if (selectedRows.length === 0) {
+        //     toast.error("Select atleast one row to print");
+        //     return;
+        // }
         const result = await handleExportAllReports(selectedRows, billsData.filter(bill => !bill.isSubtotal && bill.srNo), columns, visibleColumnFields, titleName, true);
         console.log(result.message);
     }
@@ -223,7 +225,7 @@ const RepBillOutstanding = () => {
                                                     onChange={() => handleSelectRow(bill.srNo)}
                                                 />
                                             </td>
-                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.srNo}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.srNo}</td>
                                             <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.region}</td>
                                             <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorNo}</td>
                                             <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorName}</td>

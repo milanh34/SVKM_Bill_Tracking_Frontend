@@ -1,5 +1,7 @@
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const formatCurrency = (value) => {
     if (value === undefined || value === null) return "";
@@ -22,11 +24,13 @@ export const handleExportAllReports = async (
         // const dataToExport = selectedRows.length > 0
         //     ? filteredData.filter((item) => selectedRows.includes(item._id))
         //     : filteredData;
+        var dataToExport = filteredData.filter((item) => selectedRows.includes(item.srNo) || item.isGrandTotal === true);
+        console.log(dataToExport);
 
-        const dataToExport = filteredData.filter((item) => selectedRows.includes(item.srNo))
-
-        if (dataToExport.length === 0) {
-            throw new Error("Please select at least one row to download");
+        if ((dataToExport.length === 1 && dataToExport[0].isGrandTotal === true) || dataToExport.length === 0) {
+            // throw new Error("Please select at least one row to download");
+            toast.error("Select atleast one row to download");
+            return { success: false, message: "Select atleast one row to download" };
         }
 
         // const essentialFields = [
@@ -118,41 +122,44 @@ export const handleExportAllReports = async (
             // Data Rows
             dataToExport.forEach((rowData, rowIndex) => {
                 let rowValues;
-                console.log(rowData);
+                console.log("Row data: ", rowData);
 
                 if (rowData.isSubtotal) {
                     // Subtotal row
-                    console.log("In subtotal row");
-                    rowValues = allColumnsToExport.map((column) => {
-                        const field = column.field;
+                    //     console.log("In subtotal row");
+                    //     rowValues = allColumnsToExport.map((column) => {
+                    //     const field = column.field;
+                    //     console.log("Column field: ", column.field);
 
-                        if (field === "vendorName") {
-                            return rowData.subtotalLabel || `Subtotal for ${rowData.vendorName}`;
-                        }
-                        if (field === "taxInvAmt") {
-                            return rowData.subtotalAmount || 0;
-                        }
-                        if (field === "copAmt") {
-                            return rowData.subtotalCopAmt || 0;
-                        }
-                        if (field === "srNo") {
-                            return ""; // You can return empty or '—'
-                        }
+                    //     if (field === "vendorName") {
+                    //         return rowData.subtotalLabel || `Subtotal for ${rowData.vendorName}`;
+                    //     }
+                    //     if (field === "taxInvAmt") {
+                    //         return rowData.subtotalAmount || 0;
+                    //     }
+                    //     if (field === "copAmt") {
+                    //         return rowData.subtotalCopAmt || 0;
+                    //     }
+                    //     if (field === "srNo") {
+                    //         return ""; // You can return empty or '—'
+                    //     }
 
-                        return ""; // Empty for other columns
-                    });
+                    //     return ""; // Empty for other columns
+                    // });
+                    return;
                 } else if (rowData.isGrandTotal) {
+                    // if (rowData.isGrandTotal) {
                     rowValues = allColumnsToExport.map((column) => {
                         const field = column.field;
 
-                        if (field === "vendorName") {
-                            return `Total Count: ${rowData.grandTotalCount}`
+                        if (field === "srNo") {
+                            return `Total Count: ${rowData.totalCount}`
                         }
                         if (field === "taxInvAmt") {
-                            return `Grand Total: ${rowData.grandInvTotal}` || 0;
+                            return `Grand Total: ${rowData.grandTotalAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
                         }
                         if (field === "copAmt") {
-                            return `Grand Total: ${rowData.grandTotalCop}` || 0;
+                            return `Grand Total: ${rowData.grandTotalCopAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
                         }
 
                         return ""; // Empty for other columns
@@ -193,7 +200,7 @@ export const handleExportAllReports = async (
                 newRow.eachCell((cell, colNumber) => {
                     const colField = allColumnsToExport[colNumber - 1].field;
 
-                    if (rowData.isSubtotal) {
+                    if (rowData.isGrandTotal || rowData.isSubtotal) {
                         // Subtotal styling
                         cell.font = { bold: true };
                         cell.fill = {
@@ -201,14 +208,15 @@ export const handleExportAllReports = async (
                             pattern: "solid",
                             fgColor: { argb: "FFF9F9F9" }, // Light orange
                         };
-                    } else if ((rowIndex + 1) % 2 === 0) {
-                        // Zebra striping for normal rows
-                        cell.fill = {
-                            type: "pattern",
-                            pattern: "solid",
-                            fgColor: { argb: "FFF9F9F9" },
-                        };
-                    }
+                    } 
+                    // else if ((rowIndex + 1) % 2 === 0) {
+                    //     // Zebra striping for normal rows
+                    //     cell.fill = {
+                    //         type: "pattern",
+                    //         pattern: "solid",
+                    //         fgColor: { argb: "FFF9F9F9" },
+                    //     };
+                    // }
 
                     if (
                         colField.includes("amount") ||
