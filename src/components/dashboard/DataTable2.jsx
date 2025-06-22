@@ -21,6 +21,7 @@ import {
 } from "./datatable/datatableUtils";
 import { renderFilterPopup } from "./datatable/FilterPopup";
 import { RenderCell } from "./datatable/RenderCell";
+import { FileImage, FileText, File, FileVideo, FileAudio } from "lucide-react";
 
 const DataTable = ({
   data,
@@ -277,11 +278,18 @@ const DataTable = ({
     "https://demolink2.com",
     "https://demolink3.com",
   ]);
-  const handleAttachments = (id) => {
-    console.log(data[id]);
-    console.log(data[id].attachment);
-    if (data[id].attachment?.length > 0) {
-      setAllAttachments(data[id].attachment);
+  const handleAttachments = (value) => {
+    if (Array.isArray(value) && value.length > 0) {
+      const files = value
+        .map(obj =>
+          obj && typeof obj === "object" && obj.fileUrl
+            ? { url: obj.fileUrl, name: obj.fileName || "" }
+            : null
+        )
+        .filter(obj => obj && typeof obj.url === "string" && obj.url.length > 0);
+      setAllAttachments(files);
+    } else {
+      setAllAttachments([]);
     }
     setViewAttachments(true);
   };
@@ -374,6 +382,44 @@ const DataTable = ({
     };
   }, [filteredData]);
 
+  // Helper to get icon by file extension
+  const getFileTypeIcon = (url) => {
+    if (!url) return <File className="w-8 h-8 text-gray-400" />;
+    const ext = url.split('.').pop().toLowerCase();
+    if (["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg"].includes(ext)) {
+      return <FileImage className="w-8 h-8 text-blue-500" />;
+    }
+    if (["pdf"].includes(ext)) {
+      return <FileText className="w-8 h-8 text-red-500" />;
+    }
+    if (["doc", "docx", "odt", "rtf"].includes(ext)) {
+      return <FileText className="w-8 h-8 text-blue-700" />;
+    }
+    if (["xls", "xlsx", "csv"].includes(ext)) {
+      return <FileText className="w-8 h-8 text-green-600" />;
+    }
+    if (["mp4", "avi", "mov", "wmv", "webm", "mkv"].includes(ext)) {
+      return <FileVideo className="w-8 h-8 text-purple-500" />;
+    }
+    if (["mp3", "wav", "ogg", "aac"].includes(ext)) {
+      return <FileAudio className="w-8 h-8 text-orange-500" />;
+    }
+    return <File className="w-8 h-8 text-gray-400" />;
+  };
+
+  const getDisplayFileName = (name, url) => {
+    let fileName = name;
+    if (!fileName && url) {
+      try {
+        fileName = decodeURIComponent(url.split("/").pop().split("?")[0]);
+      } catch {
+        fileName = url;
+      }
+    }
+    if (!fileName) return "";
+    return fileName.length > 30 ? fileName.slice(0, 27) + "..." : fileName;
+  };
+
   return (
     <div
       className={`relative w-full flex flex-col border border-gray-200 rounded-lg ${
@@ -381,30 +427,40 @@ const DataTable = ({
       }`}
     >
       {viewAttachments && (
-        <div className="fixed top-0 left-0 w-full h-full z-50 flex items-center justify-center">
-          <div className="bg-white w-full max-w-md rounded-lg shadow-lg p-6 relative">
+        <div className="fixed top-0 left-0 w-full h-full z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white w-full max-w-lg rounded-lg shadow-lg p-6 relative">
             <button
               className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl font-bold"
               onClick={() => setViewAttachments(false)}
             >
               &times;
             </button>
-
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <File className="w-6 h-6 text-blue-600" />
               Attachments
             </h2>
-
-            {/* Attachment Links List */}
-            <ul className="space-y-3 max-h-64 overflow-y-auto">
-              {allAttachments.map((link, index) => (
-                <li key={index}>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-80 overflow-y-auto">
+              {allAttachments.length === 0 && (
+                <li className="col-span-2 text-gray-500 text-center py-4">
+                  No attachments found.
+                </li>
+              )}
+              {allAttachments.map((file, index) => (
+                <li
+                  key={index}
+                  className="flex flex-col items-center justify-center border border-gray-200 rounded-lg p-3 bg-gray-50 hover:bg-gray-100 transition"
+                >
                   <a
-                    href={link}
+                    href={file.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline break-words"
+                    className="flex flex-col items-center group"
+                    title={getDisplayFileName(file.name, file.url)}
                   >
-                    {link}
+                    {getFileTypeIcon(file.url)}
+                    <span className="mt-2 text-xs text-gray-700 break-all text-center max-w-[120px] group-hover:underline">
+                      {getDisplayFileName(file.name, file.url)}
+                    </span>
                   </a>
                 </li>
               ))}
@@ -608,7 +664,7 @@ const DataTable = ({
                               fill="none"
                               viewBox="0 0 24 24"
                               stroke="currentColor"
-                              onClick={() => handleAttachments(key)}
+                              onClick={() => handleAttachments(value)}
                             >
                               <path
                                 strokeLinecap="round"
