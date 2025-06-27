@@ -247,11 +247,10 @@ const RepBillOutstandingSubtotal = () => {
                                     ) : null
                                 ))}
                                 <tr className='bg-[#e9ecef] font-semibold'>
-                                    <td colSpan={2} className='border border-black text-[14px] py-[1.5vh] px-[1vw]'></td>
                                     <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                         <strong>Total Count: {totals.totalVendorCount.toLocaleString('en-IN')}</strong>
                                     </td>
-                                    <td colSpan={3} className='border border-black'></td>
+                                    <td colSpan={5} className='border border-black'></td>
                                     <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                         <strong>Grand Total: {totals.totalSubtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                     </td>

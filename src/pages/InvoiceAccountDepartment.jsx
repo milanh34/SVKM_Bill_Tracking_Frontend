@@ -62,7 +62,7 @@ const InvoicesGivenToAccountDept = () => {
 
     const columns = [
         { field: "srNo", headerName: "Sr. No" },
-        // { field: "projectDescription", headerName: "Project Description" },
+        { field: "projectDescription", headerName: "Project Description" },
         { field: "vendorName", headerName: "Vendor Name" },
         // { field: "vendorNo", headerName: "Vendor No." },
         { field: "taxInvNo", headerName: "Tax Invoice No." },
@@ -74,9 +74,7 @@ const InvoicesGivenToAccountDept = () => {
     ]
 
     const visibleColumnFields = [
-        "srNo", 
-        // "projectDescription", 
-        "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dtGivenToAcctsDept", "copAmt", "poNo"
+        "srNo", "projectDescription", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dtGivenToAcctsDept", "copAmt", "poNo"
     ]
 
     return (
@@ -115,7 +113,7 @@ const InvoicesGivenToAccountDept = () => {
                         <thead>
                             <tr>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Sr No</th>
-                                {/* <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Project Description</th> */}
+                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Project Description</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor Name</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv no</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Date</th>
@@ -141,7 +139,7 @@ const InvoicesGivenToAccountDept = () => {
                             .map((bill, index) => (
                                 <tr key={index} className="hover:bg-[#f5f5f5]">
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.srNo}</td>
-                                    {/* <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.projectDescription}</td> */}
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.projectDescription}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
                                     <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvDate}</td>
@@ -158,7 +156,7 @@ const InvoicesGivenToAccountDept = () => {
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                             <strong>Total Count: {bill.totalCount.toLocaleString('en-IN')}</strong>
                                         </td>
-                                        <td colSpan={3} className='border border-black'></td>
+                                        <td colSpan={4} className='border border-black'></td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                             <strong>Grand Total: {bill.grandTotalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                         </td>

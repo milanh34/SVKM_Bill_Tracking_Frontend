@@ -164,13 +164,13 @@ const InvoicesPaid = () => {
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>
                                             <strong>Total Count: {bill.totalCount.toLocaleString('en-IN')}</strong>
                                         </td>
+                                        <td colSpan={4} className='border border-black'></td>
+                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
+                                            <strong>Grand Total: {bill.grandTotalInvoiceAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                        </td>
                                         <td colSpan={3} className='border border-black'></td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
-                                            <strong>Grand Total: {bill.grandTotalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
-                                        </td>
-                                        <td colSpan={1} className='border border-black'></td>
-                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
-                                            <strong>Grand Total: {bill.grandTotalCopAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                            <strong>Grand Total: {bill.grandTotalPaymentAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                         </td>
                                         <td colSpan={1} className='border border-black'></td>
                                     </tr>

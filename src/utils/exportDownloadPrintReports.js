@@ -155,11 +155,17 @@ export const handleExportAllReports = async (
                         if (field === "srNo") {
                             return `Total Count: ${rowData.totalCount}`
                         }
-                        if (field === "taxInvAmt") {
-                            return `Grand Total: ${rowData.grandTotalAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
+                        if (field === "taxInvAmt" || field === "invoiceAmount") {
+                            if (titleName === "Invoices Paid")
+                                return `Grand Total: ${rowData.grandTotalInvoiceAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
+                            else
+                                return `Grand Total: ${rowData.grandTotalAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
                         }
                         if (field === "copAmt") {
                             return `Grand Total: ${rowData.grandTotalCopAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
+                        }
+                        if (field === "paymentAmt") {
+                            return `Grand Total: ${rowData.grandTotalPaymentAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
                         }
 
                         return ""; // Empty for other columns
@@ -208,7 +214,7 @@ export const handleExportAllReports = async (
                             pattern: "solid",
                             fgColor: { argb: "FFF9F9F9" }, // Light orange
                         };
-                    } 
+                    }
                     // else if ((rowIndex + 1) % 2 === 0) {
                     //     // Zebra striping for normal rows
                     //     cell.fill = {
@@ -229,7 +235,6 @@ export const handleExportAllReports = async (
                     }
                 });
             });
-
 
             // Auto column widths
             worksheet.columns.forEach((column) => {
@@ -259,32 +264,66 @@ export const handleExportAllReports = async (
         if (toPrint) {
 
             const excelData = dataToExport.map((row) => {
+                // Skip subtotal rows (return null and filter out later)
+                if (row.isSubtotal) {
+                    return null;
+                }
+
                 const formattedRow = {};
-                allColumnsToExport.forEach((column) => {
-                    let value;
-                    if (column.field.includes(".")) {
-                        const [parentField, childField] = column.field.split(".");
-                        value = row[parentField] ? row[parentField][childField] : "";
-                    } else {
-                        value = row[column.field];
-                    }
 
-                    // Format currency values
-                    if (
-                        column.field.includes("amount") ||
-                        column.field.includes("Amount") ||
-                        column.field.endsWith("Amt") ||
-                        column.field.endsWith("amt")
-                    ) {
-                        if (typeof value === "number") {
-                            value = formatCurrency(value);
+                if (row.isSubtotal) {
+                    return;
+                }
+                else if (row.isGrandTotal) {
+                    // Grand Total row handling
+                    allColumnsToExport.forEach((column) => {
+                        const field = column.field;
+
+                        if (field === "srNo") {
+                            formattedRow[column.headerName] = `Total Count: ${row.totalCount}`;
+                        } else if (field === "taxInvAmt" || field === "invoiceAmount") {
+                            if (titleName === "Invoices Paid") {
+                                formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalInvoiceAmount || 0)}`;
+                            } else {
+                                formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalAmount || 0)}`;
+                            }
+                        } else if (field === "copAmt") {
+                            formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalCopAmt || 0)}`;
+                        } else if (field === "paymentAmt") {
+                            formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalPaymentAmount || 0)}`;
+                        } else {
+                            formattedRow[column.headerName] = ""; // Empty for other columns
                         }
-                    }
+                    });
+                } else {
+                    // Normal data row handling
+                    allColumnsToExport.forEach((column) => {
+                        let value;
+                        if (column.field.includes(".")) {
+                            const [parentField, childField] = column.field.split(".");
+                            value = row[parentField] ? row[parentField][childField] : "";
+                        } else {
+                            value = row[column.field];
+                        }
 
-                    formattedRow[column.headerName] = (value !== undefined && value !== null && value !== 'N/A') ? value : "";
-                });
+                        // Format currency values
+                        if (
+                            column.field.includes("amount") ||
+                            column.field.includes("Amount") ||
+                            column.field.endsWith("Amt") ||
+                            column.field.endsWith("amt")
+                        ) {
+                            if (typeof value === "number") {
+                                value = formatCurrency(value);
+                            }
+                        }
+
+                        formattedRow[column.headerName] = (value !== undefined && value !== null && value !== 'N/A') ? value : "";
+                    });
+                }
+
                 return formattedRow;
-            });
+            }).filter(row => row !== null); // Filter out null values (subtotal rows)
 
             // Print the report (create a printable HTML version)
             const printWindow = window.open("", "_blank", "width=800,height=600");
@@ -319,6 +358,13 @@ export const handleExportAllReports = async (
                         font-size: 10.5px;
                         border: 1px solid #ddd;
                         text-align: left;
+                      }
+                        .amount-column {
+                        text-align: right;
+                      }
+                      .grand-total-row {
+                        background-color: #e9ecef !important;
+                        font-weight: bold;
                       }
                       tr:nth-child(even) {
                         background-color: #f9f9f9;
@@ -379,12 +425,39 @@ export const handleExportAllReports = async (
 
             // Add the data rows
             printWindow.document.write("<tbody>");
-            excelData.forEach((row) => {
-                printWindow.document.write("<tr>");
+            
+            let originalDataIndex = 0;
+            excelData.forEach((row, index) => {
+                // Check if this is a grand total row
+                while (originalDataIndex < dataToExport.length && dataToExport[originalDataIndex].isSubtotal) {
+                    originalDataIndex++;
+                }
+                const isGrandTotalRow = dataToExport[originalDataIndex]?.isGrandTotal;
+                originalDataIndex++;
+
+                // Add row with appropriate class
+                const rowClass = isGrandTotalRow ? ' class="grand-total-row"' : '';
+                printWindow.document.write(`<tr${rowClass}>`);
+
+                // Generate cells for each column
                 allColumnsToExport.forEach((column) => {
-                    printWindow.document.write(`<td>${row[column.headerName]}</td>`);
+                    const value = row[column.headerName] || '';
+
+                    // Check if this column should be right-aligned (amount columns)
+                    const isAmountColumn = column.field.includes("amount") ||
+                        column.field.includes("Amount") ||
+                        column.field.endsWith("Amt") ||
+                        column.field.endsWith("amt") ||
+                        column.field === "taxInvAmt" ||
+                        column.field === "copAmt" ||
+                        column.field === "paymentAmt" ||
+                        column.field === "invoiceAmount";
+
+                    const cellClass = isAmountColumn ? ' class="amount-column"' : '';
+                    printWindow.document.write(`<td${cellClass}>${value}</td>`);
                 });
-                printWindow.document.write("</tr>");
+
+                printWindow.document.write('</tr>');
             });
             printWindow.document.write("</tbody>");
             printWindow.document.write("</table>");

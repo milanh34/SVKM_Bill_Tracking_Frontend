@@ -10,7 +10,7 @@ import SendBox from "../components/Sendbox";
 import download from "../assets/download.svg";
 import send from "../assets/send.svg";
 import print from "../assets/print.svg";
-import { handleExportOutstandingReport } from "../utils/exportExcelReportOutstanding";
+import { handleExportOutstandingBillReports } from "../utils/exportExcelReportOutstanding";
 import { handleExportAllReports } from '../utils/exportDownloadPrintReports';
 
 const RepBillOutstanding = () => {
@@ -101,7 +101,8 @@ const RepBillOutstanding = () => {
         //     toast.error("Select atleast one row to download");
         //     return;
         // }
-        const result = await handleExportAllReports(selectedRows, billsData.filter(bill => bill.srNo || bill.isGrandTotal), columns, visibleColumnFields, titleName, false);
+        // const result = await handleExportAllReports(selectedRows, billsData.filter(bill => bill.srNo || bill.isGrandTotal), columns, visibleColumnFields, titleName, false);
+        const result = await handleExportOutstandingBillReports(selectedRows, billsData.filter(bill => bill.srNo || bill.isGrandTotal), columns, visibleColumnFields, titleName, false);
         console.log(result.message);
     }
 
@@ -111,7 +112,7 @@ const RepBillOutstanding = () => {
         //     toast.error("Select atleast one row to print");
         //     return;
         // }
-        const result = await handleExportAllReports(selectedRows, billsData.filter(bill => !bill.isSubtotal && bill.srNo), columns, visibleColumnFields, titleName, true);
+        const result = await handleExportOutstandingBillReports(selectedRows, billsData.filter(bill => !bill.isSubtotal && bill.srNo), columns, visibleColumnFields, titleName, true);
         console.log(result.message);
     }
 

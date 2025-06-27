@@ -141,7 +141,10 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
             }
 
             excelData.forEach((row, idx) => {
-                if (row["Vendor No."]?.startsWith("Count:") || row["Vendor No."]?.startsWith("Total Count:")) {
+                if (
+                    typeof row["Vendor No."] === 'string' &&
+                    (row["Vendor No."]?.startsWith("Count:") || row["Vendor No."]?.startsWith("Total Count:"))
+                ) {
                     const rowIndex = idx + 2;
                     for (let col = 0; col < Object.keys(row).length; col++) {
                         const cellRef = XLSX.utils.encode_cell({ r: rowIndex, c: col });
@@ -265,7 +268,11 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
             }
 
             excelData.forEach((row, idx) => {
-                if (row["Vendor No."]?.startsWith("Count:") || row["Vendor No."]?.startsWith("Total Count:")) {
+                console.log(row);
+                if (
+                    typeof row["Vendor No."] === 'string' &&
+                    (row["Vendor No."]?.startsWith("Count:") || row["Vendor No."]?.startsWith("Total Count:"))
+                ) {
                     const rowIndex = idx + 2;
                     for (let col = 0; col < Object.keys(row).length; col++) {
                         const cellRef = XLSX.utils.encode_cell({ r: rowIndex, c: col });
@@ -292,7 +299,7 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                 });
                 const url = URL.createObjectURL(blob);
                 const now = new Date();
-                const filename = `${now.getDate().toString().padStart(2, '0')}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getFullYear().toString().slice(-2)}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}.xlsx`;
+                const filename = `${titleName.replace(/[\/ ]/g, '_')}_${now1.getDate().toString().padStart(2, '0')}${(now1.getMonth() + 1).toString().padStart(2, '0')}${now1.getFullYear().toString().slice(-2)}_${now1.getHours().toString().padStart(2, '0')}${now1.getMinutes().toString().padStart(2, '0')}${now1.getSeconds().toString().padStart(2, '0')}.xlsx`;
 
                 // Trigger download
                 const link = document.createElement("a");
@@ -482,6 +489,7 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
 
         return { success: true, message: "Report downloaded successfully" };
     } catch (error) {
+        console.error(error);
         return {
             success: false,
             message: "Failed to download report: " + (error.message || "Unknown error")

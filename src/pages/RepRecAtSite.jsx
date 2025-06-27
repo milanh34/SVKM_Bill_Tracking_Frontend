@@ -44,7 +44,7 @@ const RepRecAtSite = () => {
         const fetchBills = async () => {
             try {
                 const response = await axios.get(`${receivedAtSite}?startDate=${fromDate}&endDate=${toDate}`);
-                console.log(response.data);
+                console.log(response.data.report);
                 setBills(response.data.report.data);
                 // await setSelectedRows(bills.map(bill => bill.srNo));
             } catch (error) {
@@ -190,22 +190,42 @@ const RepRecAtSite = () => {
                                 <tr>
                                     <td colSpan="9" className="text-center py-4">Loading...</td>
                                 </tr>
-                            ) : bills.length === 0 ? (
-                                <tr>
-                                    <td colSpan="9" className="text-center py-4">No invoices found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
-                                </tr>
-                            ) : bills.map((bill, index) => (
-                                <tr key={bill.srNo} className="hover:bg-[#f5f5f5]">
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.srNo}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.projectDescription}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvDate}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.dtTaxInvRecdAtSite}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.poNo}</td>
-                                </tr>
-                            ))}
+                            ) 
+                            // : bills.length === 0 ? (
+                            //     <tr>
+                            //         <td colSpan="9" className="text-center py-4">No invoices found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
+                            //     </tr>
+                            // ) 
+                            : bills
+                                .filter(bill => !bill.isSubtotal && bill.srNo)
+                                .map((bill, index) => (
+                                    <tr key={bill.srNo} className="hover:bg-[#f5f5f5]">
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.srNo}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.projectDescription}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvDate}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dtTaxInvRecdAtSite}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.poNo}</td>
+                                    </tr>
+                                ))
+                            }
+                            {bills
+                                .filter(bill => bill.isGrandTotal)
+                                .map((bill) => (
+                                    <tr key={bill.totalCount} className='bg-[#f5f5f5] font-semibold'>
+                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
+                                            <strong>Total Count: {bill.totalCount.toLocaleString('en-IN')}</strong>
+                                        </td>
+                                        <td colSpan={4} className='border border-black'></td>
+                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
+                                            <strong>Grand Total: {bill.grandTotalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                        </td>
+                                        <td colSpan={2} className='border border-black'></td>
+                                    </tr>
+                                ))
+                            }
                         </tbody>
                     </table>
                 </div>
