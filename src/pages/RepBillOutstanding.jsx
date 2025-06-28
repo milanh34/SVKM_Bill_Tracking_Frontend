@@ -128,11 +128,13 @@ const RepBillOutstanding = () => {
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
         { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
         { field: "dateRecdInAcctsDept", headerName: "Dt Recd in Accts Dept" },
-        { field: "copAmt", headerName: "COP Amt" }
+        { field: "copAmt", headerName: "COP Amt" },
+        { field: "paymentInstructions", headerName: "Payment Instructions" },
+        { field: "remarksForPaymentInstructions", headerName: "Remarks For Payment Instructions" }
     ]
 
     const visibleColumnFields = [
-        "srNo", "region", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dateRecdInAcctsDept", "copAmt"
+        "srNo", "region", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dateRecdInAcctsDept", "copAmt", "paymentInstructions", "remarksForPaymentInstructions"
     ]
 
     const handleSendClick = () => {
@@ -212,6 +214,8 @@ const RepBillOutstanding = () => {
                                     <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Amt</th>
                                     <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt Recd in Accounts Dept.</th>
                                     <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>COP Amt</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Payment Instructions</th>
+                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Remarks for Payment Instructions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -235,6 +239,8 @@ const RepBillOutstanding = () => {
                                             <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                             <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.dateRecdInAcctsDept}</td>
                                             <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.copAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.paymentInstructions}</td>
+                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.remarksForPaymentInstructions}</td>
                                         </tr>
                                     ))
                                 }
@@ -254,6 +260,7 @@ const RepBillOutstanding = () => {
                                             <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                                 <strong>Grand Total: {bill.grandTotalCopAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                             </td>
+                                            <td colSpan={2} className='border border-black'></td>
                                         </tr>
                                     ))
                                 }
