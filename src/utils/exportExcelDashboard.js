@@ -117,19 +117,40 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
       return formattedRow;
     });
 
-    // Calculate grand total for taxInvAmt
-    const grandTotal = dataToExport.reduce((total, row) => {
+    // Calculate grand totals for multiple fields
+    const grandTotals = {};
+    
+    // Always calculate taxInvAmt total
+    grandTotals.taxInvAmt = dataToExport.reduce((total, row) => {
       const taxInvAmt = row.taxInvAmt || 0;
       return total + (typeof taxInvAmt === 'number' ? taxInvAmt : 0);
     }, 0);
+
+    // Check if copDetails.amount is visible and calculate its total
+    const copAmountColumn = allColumnsToExport.find(col => col.field === "copDetails.amount");
+    if (copAmountColumn) {
+      grandTotals["copDetails.amount"] = dataToExport.reduce((total, row) => {
+        const copAmount = row.copDetails?.amount || 0;
+        return total + (typeof copAmount === 'number' ? copAmount : 0);
+      }, 0);
+    }
+
+    // Check if accountsDept.paymentAmt is visible and calculate its total
+    const paymentAmtColumn = allColumnsToExport.find(col => col.field === "accountsDept.paymentAmt");
+    if (paymentAmtColumn) {
+      grandTotals["accountsDept.paymentAmt"] = dataToExport.reduce((total, row) => {
+        const paymentAmt = row.accountsDept?.paymentAmt || 0;
+        return total + (typeof paymentAmt === 'number' ? paymentAmt : 0);
+      }, 0);
+    }
 
     // Create grand total row
     const grandTotalRow = {};
     allColumnsToExport.forEach((column) => {
       if (column.field === "srNo") {
         grandTotalRow[column.headerName] = "Grand Total";
-      } else if (column.field === "taxInvAmt") {
-        grandTotalRow[column.headerName] = formatCurrency(grandTotal);
+      } else if (grandTotals.hasOwnProperty(column.field)) {
+        grandTotalRow[column.headerName] = formatCurrency(grandTotals[column.field]);
       } else {
         grandTotalRow[column.headerName] = "";
       }
