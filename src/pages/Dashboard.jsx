@@ -604,6 +604,170 @@ const Dashboard = () => {
     }
   };
 
+  const handlePrint = () => {
+    if (selectedRows.length === 0) {
+      toast.error("Please select rows to print");
+      return;
+    }
+
+    // Filter data to only include selected rows
+    const selectedData = filteredData.filter(row => selectedRows.includes(row._id));
+    
+    // Create print window
+    const printWindow = window.open("", "_blank");
+    
+    // Get visible columns for the current user role
+    const visibleColumns = columns.filter(col => 
+      visibleColumnFields.includes(col.field) && col.field !== "srNoOld"
+    );
+
+    // Create table HTML
+    const tableHTML = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Bills Report</title>
+          <style>
+            @page {
+              size: landscape;
+              margin: 1cm;
+            }
+            body {
+              font-family: Arial, sans-serif;
+              font-size: 12px;
+              margin: 0;
+              padding: 20px;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 20px;
+              font-size: 18px;
+              font-weight: bold;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+            }
+            th, td {
+              border: 1px solid #ddd;
+              padding: 8px;
+              text-align: left;
+              vertical-align: top;
+            }
+            th {
+              background-color: #f2f2f2;
+              font-weight: bold;
+              font-size: 11px;
+            }
+            td {
+              font-size: 10px;
+            }
+            .amount {
+              text-align: right;
+            }
+            .status-approved {
+              color: #15803d;
+              font-weight: bold;
+            }
+            .status-rejected {
+              color: #b91c1c;
+              font-weight: bold;
+            }
+            .status-pending {
+              color: #ca8a04;
+              font-weight: bold;
+            }
+            .print-info {
+              margin-bottom: 10px;
+              font-size: 10px;
+              color: #666;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">Bills Report</div>
+          <div class="print-info">
+            <strong>Print Date:</strong> ${new Date().toLocaleDateString()}<br>
+            <strong>Total Records:</strong> ${selectedData.length}<br>
+            <strong>User Role:</strong> ${currentUserRole}
+          </div>
+          <table>
+            <thead>
+              <tr>
+                ${visibleColumns.map(col => `<th>${col.headerName}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${selectedData.map(row => `
+                <tr>
+                  ${visibleColumns.map(col => {
+                    const value = getNestedValue(row, col.field);
+                    let displayValue = value || '-';
+                    
+                    // Format currency values
+                    if (col.field.includes('amount') || col.field.includes('Amt')) {
+                      if (value && !isNaN(value)) {
+                        displayValue = new Intl.NumberFormat('en-IN', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                          useGrouping: true
+                        }).format(value);
+                      }
+                    }
+                    
+                    // Format dates
+                    if (value && typeof value === 'string' && value.includes('T')) {
+                      try {
+                        const date = new Date(value);
+                        if (!isNaN(date.getTime())) {
+                          displayValue = date.toLocaleDateString('en-GB');
+                        }
+                      } catch (e) {
+                        // Keep original value if date parsing fails
+                      }
+                    }
+                    
+                    // Add status styling
+                    let cellClass = '';
+                    if (col.field.includes('status') && value) {
+                      const statusLower = value.toLowerCase();
+                      if (statusLower.includes('approve') || statusLower === 'paid' || statusLower === 'active') {
+                        cellClass = 'status-approved';
+                      } else if (statusLower.includes('reject') || statusLower === 'fail') {
+                        cellClass = 'status-rejected';
+                      } else if (statusLower.includes('pend') || statusLower === 'waiting' || statusLower === 'unpaid') {
+                        cellClass = 'status-pending';
+                      }
+                    }
+                    
+                    // Add amount alignment
+                    if (col.field.includes('amount') || col.field.includes('Amt')) {
+                      cellClass += ' amount';
+                    }
+                    
+                    return `<td class="${cellClass}">${displayValue}</td>`;
+                  }).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(tableHTML);
+    printWindow.document.close();
+
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+      }, 250);
+    };
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <Header />
@@ -678,7 +842,7 @@ const Dashboard = () => {
 
                 <button
                     className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-white text-sm bg-yellow-600 border border-gray-300 rounded-md hover:bg-yellow-700 transition-colors"
-                    onClick={handleChecklist}
+                    onClick={handlePrint}
                   >
                     <Printer className="w-4 h-4" />
                     <span>Print</span>
