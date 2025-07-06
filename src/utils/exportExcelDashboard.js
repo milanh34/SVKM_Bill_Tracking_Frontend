@@ -117,6 +117,27 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
       return formattedRow;
     });
 
+    // Calculate grand total for taxInvAmt
+    const grandTotal = dataToExport.reduce((total, row) => {
+      const taxInvAmt = row.taxInvAmt || 0;
+      return total + (typeof taxInvAmt === 'number' ? taxInvAmt : 0);
+    }, 0);
+
+    // Create grand total row
+    const grandTotalRow = {};
+    allColumnsToExport.forEach((column) => {
+      if (column.field === "srNo") {
+        grandTotalRow[column.headerName] = "Grand Total";
+      } else if (column.field === "taxInvAmt") {
+        grandTotalRow[column.headerName] = formatCurrency(grandTotal);
+      } else {
+        grandTotalRow[column.headerName] = "";
+      }
+    });
+
+    // Add grand total row to excel data
+    excelData.push(grandTotalRow);
+
     // Create and format worksheet
     const worksheet = XLSX.utils.aoa_to_sheet(timestamp);
     worksheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
@@ -155,6 +176,24 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
       timestampCell.s = {
         font: { bold: true, color: { rgb: "000000" }, sz: 12 },
         alignment: { horizontal: "left" }
+      };
+    }
+
+    // Style grand total row (last row)
+    const grandTotalRowIndex = range.e.r;
+    for (let col = range.s.c; col <= range.e.c; col++) {
+      const cellAddress = XLSX.utils.encode_cell({ r: grandTotalRowIndex, c: col });
+      if (!worksheet[cellAddress]) continue;
+      worksheet[cellAddress].s = {
+        font: { bold: true, color: { rgb: "000000" }, sz: 12 },
+        fill: { fgColor: { rgb: "FFFF00" } }, // Yellow background for grand total
+        alignment: { horizontal: "center", vertical: "center" },
+        border: {
+          top: { style: "medium", color: { rgb: "000000" } },
+          bottom: { style: "medium", color: { rgb: "000000" } },
+          left: { style: "thin", color: { rgb: "000000" } },
+          right: { style: "thin", color: { rgb: "000000" } },
+        },
       };
     }
 
