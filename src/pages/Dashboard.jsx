@@ -21,6 +21,7 @@ import {
   CheckSquare,
   ArrowLeftFromLine,
   ArrowRightFromLine,
+  Printer,
 } from "lucide-react";
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnView";
@@ -674,6 +675,14 @@ const Dashboard = () => {
                     <span>Checklist</span>
                   </button>
                 )}
+
+                <button
+                    className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-white text-sm bg-yellow-600 border border-gray-300 rounded-md hover:bg-yellow-700 transition-colors"
+                    onClick={handleChecklist}
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>Print</span>
+                  </button>
 
                 {currentUserRole === "accounts" && (
                   <label className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
