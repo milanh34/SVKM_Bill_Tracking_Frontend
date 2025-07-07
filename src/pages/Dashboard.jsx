@@ -171,7 +171,7 @@ const Dashboard = () => {
 
       await Promise.all(promises);
       toast.success("Bills marked as received successfully");
-      await fetchBills(); // Refresh the bills data
+      await fetchAllData(); // Refresh the bills data
       setSelectedRows([]); // Clear selection
     } catch (error) {
       console.error("Error receiving bills:", error);
