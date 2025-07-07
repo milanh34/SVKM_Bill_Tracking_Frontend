@@ -53,6 +53,8 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
             toRoleVariable = "qs_mumbai";
         }else if(Cookies.get("userRole") === "director") {
             toRoleVariable = "trustees";
+        }else if(Cookies.get("userRole") === "site_pimo") {
+            toRoleVariable = "pimo_mumbai";
         } else{
             toRoleVariable = Cookies.get("userRole");
         }

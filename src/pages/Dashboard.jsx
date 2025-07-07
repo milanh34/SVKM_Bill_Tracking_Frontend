@@ -95,36 +95,34 @@ const Dashboard = () => {
 
   const roleWorkflow = {
     site_officer: [
-      { value: "quality_engineer", label: "Quality Inspector" },
-      { value: "qs_measurement", label: "QS Measurement" },
-      { value: "qs_cop", label: "QS COP" },
-      { value: "migo_entry", label: "MIGO Entry" },
+      { value: "quality_engineer", label: "Quality Engineer" },
+      { value: "qs_measurement", label: "QS Site for measurement" },
+      { value: "qs_cop", label: "QS Site for COP" },
       { value: "site_engineer", label: "Site Engineer" },
       { value: "site_architect", label: "Site Architect" },
       { value: "site_incharge", label: "Site Incharge" },
+      { value: "migo_entry", label: "MIGO Entry Team" },
       { value: "site_dispatch_team", label: "Site Dispatch Team" },
-      { value: "pimo_mumbai", label: "PIMO Mumbai" },
+      { value: "pimo_mumbai", label: "PIMO Team" },
     ],
     site_pimo: [
-      { value: "qs_site", label: "QS Site" },
-      { value: "pimo_mumbai", label: "PIMO Mumbai" },
+      { value: "qs_mumbai", label: "QS Mumbai" },
+      { value: "it_department", label: "IT Department" },
+      { value: "ses_team", label: "SES PIMO Team" },
+      { value: "pimo_dispatch_team", label: "Returned to PIMO Dispatch Team" },
+      { value: "trustees", label: "Director/Advisor/Trustee" },
+      { value: "accounts_department", label: "Accounts Team" }
     ],
     qs_site: [
-      { value: "pimo_mumbai", label: "PIMO Mumbai" },
-      { value: "site_pimo", label: "Site PIMO" },
+      { value: "pimo_mumbai", label: "PIMO Team" },
+      { value: "site_team", label: "Returned to Site Team" },
     ],
     pimo_mumbai: [
-      { value: "it_department", label: "IT Department" },
-      { value: "qs_mumbai", label: "QS Mumbai" },
-      { value: "ses_team", label: "SES Team" },
-      { value: "pimo_dispatch_team", label: "PIMO Dispatch Team" },
-      { value: "trustees", label: "Trustees" },
-      { value: "accounts_department", label: "Accounts" },
+      { value: "accounts_department", label: "Accounts Team" },
     ],
-    director: [{ value: "pimo_mumbai", label: "PIMO Mumbai" }],
+    director: [{ value: "pimo_mumbai", label: "Returned to PIMO" }],
     accounts: [
-      { value: "booking_team", label: "Booking Team" },
-      { value: "payment_team", label: "Payment Team" },
+      { value: "booking_team", label: "Booking & checking" },
     ],
   };
 
@@ -202,7 +200,7 @@ const Dashboard = () => {
           return currentCount === 1;
 
         case "site_pimo":
-          return currentCount === 1;
+          return currentCount === 2 || currentCount === 4 || currentCount === 6;
 
         case "pimo_mumbai":
           return currentCount === 2 || currentCount === 4 || currentCount === 6;
