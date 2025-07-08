@@ -320,7 +320,7 @@ const DataTable = ({
       if (Object.keys(payload).length > 0) {
         try {
           setEditSubmitting(true);
-          const response = await axios.put(`${bills}/${row._id}`, payload);
+          const response = await axios.patch(`${bills}/${row._id}`, payload);
 
           if (response.status === 200) {
             toast.success("Bill updated successfully!");
@@ -338,8 +338,8 @@ const DataTable = ({
         } catch (err) {
           console.error("Edit error:", err);
           const errorMessage =
+          err.response?.data?.error ||
             err.response?.data?.message ||
-            err.response?.data?.error ||
             "Failed to update bill";
           toast.error(errorMessage);
 
