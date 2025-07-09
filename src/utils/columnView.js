@@ -161,6 +161,7 @@ export const getColumnsForRole = (role) => {
       "pimoMumbai.dateGiven",
       "pimoMumbai.dateReceived",
       "pimoMumbai.receivedBy",
+      "attachments",
     ],
 
     QS_TEAM: [
@@ -204,7 +205,8 @@ export const getColumnsForRole = (role) => {
       "qsMumbai.dateGiven",
       "qsMumbai.name",
       "pimoMumbai.dateGivenPIMO",
-      "pimoMumbai.namePIMO"
+      "pimoMumbai.namePIMO",
+      "attachments",
     ],
 
     PIMO_MUMBAI_MIGO_SES: [
@@ -280,6 +282,7 @@ export const getColumnsForRole = (role) => {
       "accountsDept.paymentAmt",
       "accountsDept.remarksAcctsDept",
       "accountsDept.status",
+      "attachments",
     ],
 
     PIMO_MUMBAI_ADVANCE_FI: [
@@ -369,6 +372,7 @@ export const getColumnsForRole = (role) => {
       "accountsDept.accountsIdentification",
       "accountsDept.paymentAmt",
       "accountsDept.status",
+      "attachments",
     ],
 
     ACCOUNTS_TEAM: [
@@ -420,6 +424,7 @@ export const getColumnsForRole = (role) => {
       "accountsDept.remarksAcctsDept",
       "accountsDept.status",
       "accountsDept.invBookingChecking",
+      "attachments",
     ],
 
     DIRECTOR_TRUSTEE_ADVISOR: [
@@ -504,6 +509,7 @@ export const getColumnsForRole = (role) => {
       "accountsDept.paymentAmt",
       "accountsDept.remarksAcctsDept",
       "accountsDept.status",
+      "attachments",
     ],
 
     ADMIN: allColumns.map((col) => col.field),
