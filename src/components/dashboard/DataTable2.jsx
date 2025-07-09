@@ -21,7 +21,7 @@ import {
 } from "./datatable/datatableUtils";
 import { renderFilterPopup } from "./datatable/FilterPopup";
 import { RenderCell } from "./datatable/RenderCell";
-import { FileImage, FileText, File, FileVideo, FileAudio } from "lucide-react";
+import { FileImage, FileText, File, FileVideo, FileAudio, Plus } from "lucide-react";
 
 const DataTable = ({
   data,
@@ -60,6 +60,8 @@ const DataTable = ({
   const [editedValues, setEditedValues] = useState({});
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [pendingAmountFilters, setPendingAmountFilters] = useState({});
+  const [uploadModal, setUploadModal] = useState({ open: false, rowId: null });
+  const [uploadFiles, setUploadFiles] = useState([]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -297,6 +299,18 @@ const DataTable = ({
   const validateVendorNo = (x) => /^[0-9]{6}$/.test(x);
   const validatePoNo = (x) => /^[0-9]{10}$/.test(x);
 
+  const handleFileInputChange = (e) => {
+    const newFiles = Array.from(e.target.files);
+    setUploadFiles((prev) => {
+      const existingNames = new Set(prev.map(f => f.name));
+      return [...prev, ...newFiles.filter(f => !existingNames.has(f.name))];
+    });
+  };
+
+  const handleRemoveUploadFile = (idx) => {
+    setUploadFiles((prev) => prev.filter((_, i) => i !== idx));
+  };
+
   const handleEditClick = async (row) => {
     if (editingRow === row._id) {
       const editedFieldsForRow = editedValues[row._id];
@@ -312,53 +326,71 @@ const DataTable = ({
         return;
       }
 
-      const payload = { ...editedFieldsForRow };
-      delete payload.billId;
-      delete payload._id;
-      delete payload.srNo;
-
-      if (Object.keys(payload).length > 0) {
+      let response;
+      if (uploadFiles.length > 0) {
+        const formData = new FormData();
+        Object.entries(editedFieldsForRow).forEach(([key, value]) => {
+          formData.append(key, value);
+        });
+        uploadFiles.forEach((file) => formData.append("files", file));
         try {
           setEditSubmitting(true);
-          const response = await axios.patch(`${bills}/${row._id}`, payload);
-
-          if (response.status === 200) {
-            toast.success("Bill updated successfully!");
-            onEdit && onEdit();
-          } else {
-            toast.info("No changes were made to the bill");
-          }
-
-          setEditingRow(null);
-          setEditedValues((prev) => {
-            const newValues = { ...prev };
-            delete newValues[row._id];
-            return newValues;
+          response = await axios.patch(`${bills}/${row._id}`, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
           });
         } catch (err) {
-          console.error("Edit error:", err);
-          const errorMessage =
-          err.response?.data?.error ||
+          toast.error(
             err.response?.data?.message ||
-            "Failed to update bill";
-          toast.error(errorMessage);
-
-          if (err.response?.data?.errors) {
-            Object.values(err.response.data.errors).forEach((error) => {
-              toast.error(error);
-            });
-          }
-        } finally {
+              err.response?.data?.error ||
+              "Failed to upload attachments"
+          );
           setEditSubmitting(false);
+          return;
         }
       } else {
-        setEditingRow(null);
-        setEditedValues((prev) => {
-          const newValues = { ...prev };
-          delete newValues[row._id];
-          return newValues;
-        });
+        const payload = { ...editedFieldsForRow };
+        delete payload.billId;
+        delete payload._id;
+        delete payload.srNo;
+
+        if (Object.keys(payload).length > 0) {
+          try {
+            setEditSubmitting(true);
+            response = await axios.patch(`${bills}/${row._id}`, payload);
+          } catch (err) {
+            console.error("Edit error:", err);
+            const errorMessage =
+              err.response?.data?.error ||
+              err.response?.data?.message ||
+              "Failed to update bill";
+            toast.error(errorMessage);
+
+            if (err.response?.data?.errors) {
+              Object.values(err.response.data.errors).forEach((error) => {
+                toast.error(error);
+              });
+            }
+            setEditSubmitting(false);
+            return;
+          }
+        }
       }
+
+      if (response && (response.status === 200 || response.data?.success)) {
+        toast.success("Bill updated successfully!");
+        onEdit && onEdit();
+      } else if (response && response.status !== 200) {
+        toast.info("No changes were made to the bill");
+      }
+
+      setEditingRow(null);
+      setEditedValues((prev) => {
+        const newValues = { ...prev };
+        delete newValues[row._id];
+        return newValues;
+      });
+      setUploadFiles([]);
+      setEditSubmitting(false);
     } else {
       setEditingRow(row._id);
       setEditedValues((prev) => ({
@@ -382,7 +414,6 @@ const DataTable = ({
     };
   }, [filteredData]);
 
-  // Helper to get icon by file extension
   const getFileTypeIcon = (url) => {
     if (!url) return <File className="w-8 h-8 text-gray-400" />;
     const ext = url.split('.').pop().toLowerCase();
@@ -426,11 +457,97 @@ const DataTable = ({
         data.length > 8 ? "h-full" : ""
       }`}
     >
+      {uploadModal.open && (
+        <div className="fixed top-0 left-0 w-full h-full z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white w-full max-w-md rounded-xl shadow-2xl p-6 relative border border-blue-200">
+            <button
+              className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-2xl font-bold cursor-pointer"
+              onClick={() => {
+                setUploadModal({ open: false, rowId: null });
+                setUploadFiles([]);
+              }}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-xl font-semibold text-blue-800 mb-4 flex items-center gap-2">
+              <Plus className="w-6 h-6 text-blue-600" />
+              Upload Attachments
+            </h2>
+            <div className="mb-4">
+              <label
+                htmlFor="file-upload"
+                className="flex items-center justify-center px-4 py-2 bg-blue-50 border border-blue-400 text-blue-700 rounded-lg cursor-pointer hover:bg-blue-100 transition"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                <span>Add Files</span>
+                <input
+                  id="file-upload"
+                  type="file"
+                  multiple
+                  accept="*"
+                  className="hidden"
+                  onChange={handleFileInputChange}
+                />
+              </label>
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                You can add multiple files (max 15). Only new files will be added.
+              </p>
+            </div>
+            <div className="mb-4">
+              {uploadFiles.length === 0 ? (
+                <div className="text-gray-400 text-center py-6 border border-dashed border-gray-300 rounded-lg bg-gray-50">
+                  No files selected.
+                </div>
+              ) : (
+                <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-gray-50 max-h-40 overflow-y-auto">
+                  {uploadFiles.map((file, idx) => (
+                    <li
+                      key={file.name + idx}
+                      className="flex items-center justify-between px-3 py-2"
+                    >
+                      <span className="truncate text-gray-800 text-sm">{file.name}</span>
+                      <button
+                        className="ml-2 text-red-500 hover:bg-red-100 rounded-full p-1 transition cursor-pointer"
+                        title="Remove"
+                        onClick={() => handleRemoveUploadFile(idx)}
+                        aria-label="Remove file"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 cursor-pointer"
+                onClick={() => setUploadModal({ open: false, rowId: null })}
+                disabled={uploadFiles.length === 0}
+              >
+                Done
+              </button>
+              <button
+                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition cursor-pointer"
+                onClick={() => {
+                  setUploadModal({ open: false, rowId: null });
+                  setUploadFiles([]);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {viewAttachments && (
         <div className="fixed top-0 left-0 w-full h-full z-50 flex items-center justify-center bg-black/30">
           <div className="bg-white w-full max-w-lg rounded-lg shadow-lg p-6 relative">
             <button
-              className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl font-bold"
+              className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl font-bold cursor-pointer"
               onClick={() => setViewAttachments(false)}
             >
               &times;
@@ -505,7 +622,7 @@ const DataTable = ({
                     type="checkbox"
                     checked={selectAllState}
                     onChange={handleSelectAll}
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                   />
                   {totalSelected > 0 && (
                     <span className="text-xs text-gray-500 mt-1">
@@ -632,7 +749,7 @@ const DataTable = ({
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => handleRowSelect(row._id)}
-                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                       />
                     </div>
                   </td>
@@ -656,24 +773,63 @@ const DataTable = ({
                         data-field={column.field}
                       >
                         {column.field === "attachments" ? (
-                          <div className="flex justify-center items-center">
-                            <svg
-                              style={{ cursor: "pointer" }}
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-5 w-5 text-blue-600"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              onClick={() => handleAttachments(value)}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15.172 7l-6.586 6.586a2 2 0 002.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-6.586 6.586a6 6 0 108.485 8.485l6.586-6.586"
-                              />
-                            </svg>
-                          </div>
+                          editingRow === row._id ? (
+                            <div className="flex justify-center items-center gap-2">
+                              {Array.isArray(value) && value.length > 0 ? (
+                                <svg
+                                  style={{ cursor: "pointer" }}
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-5 w-5 text-blue-600"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  onClick={() => handleAttachments(value)}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15.172 7l-6.586 6.586a2 2 0 002.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-6.586 6.586a6 6 0 108.485 8.485l6.586-6.586"
+                                  />
+                                </svg>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                              <button
+                                type="button"
+                                className="ml-1 p-1 border border-blue-600 bg-blue-50 rounded-full hover:bg-blue-100 cursor-pointer"
+                                title="Add attachments"
+                                onClick={() =>
+                                  setUploadModal({ open: true, rowId: row._id })
+                                }
+                              >
+                                <Plus className="w-5 h-5 text-blue-600" />
+                              </button>
+                            </div>
+                          ) : (
+                            (!Array.isArray(value) || value.length === 0) ? (
+                              <span className="text-gray-400 flex justify-center items-center">-</span>
+                            ) : (
+                              <div className="flex justify-center items-center">
+                                <svg
+                                  style={{ cursor: "pointer" }}
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-5 w-5 text-blue-600"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  onClick={() => handleAttachments(value)}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15.172 7l-6.586 6.586a2 2 0 002.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-6.586 6.586a6 6 0 108.485 8.485l6.586-6.586"
+                                  />
+                                </svg>
+                              </div>
+                            )
+                          )
                         ) : (
                           <RenderCell
                             row={row}
@@ -706,7 +862,7 @@ const DataTable = ({
                       ></div>
                       <div className="relative z-10">
                         <button
-                          className="rounded-md p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="rounded-md p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                           onClick={() => handleEditClick(row)}
                           disabled={editSubmitting && editingRow === row._id}
                         >
