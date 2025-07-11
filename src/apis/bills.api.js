@@ -4,4 +4,5 @@ export const bills = `${SERVER_API}/bill`;
 export const report = `${SERVER_API}/report/generate-report`;
 export const importReport = `${SERVER_API}/report/import-report`;
 export const receiveBills = `${SERVER_API}/bill/receiveBill`;
+export const paymentInstructions = `${SERVER_API}/bill/payment-instructions`;
 export const sentBills = `${SERVER_API}/sentBills`;

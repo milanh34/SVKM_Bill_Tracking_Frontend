@@ -6,7 +6,7 @@ import { outstanding } from '../apis/report.api';
 import Header from "../components/Header";
 import FiltersOutstanding from '../components/FiltersOutstanding';
 import ReportBtns from '../components/ReportBtns';
-import SendBox from "../components/Sendbox";
+import SendBox from "../components/Sendbox2";
 import download from "../assets/download.svg";
 import send from "../assets/send.svg";
 import print from "../assets/print.svg";
@@ -34,36 +34,37 @@ const RepBillOutstanding = () => {
     const [toDate, setToDate] = useState(getFormattedDate());
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedRegion, setSelectedRegion] = useState([]);
+    
+    const fetchBills = async () => {
+        try {
+            const response = await axios.get(`${outstanding}?startDate=${fromDate}&endDate=${toDate}`);
+            console.log(response.data);
+            let count = 0;
+            // const filteredData = response?.data?.report.data.map(report => ({
+            //     id: count++,
+            //     copAmt: report.copAmt || '',
+            //     srNo: report.srNo || '',
+            //     region: report.region || '',
+            //     vendorNo: report.vendorNo || '',
+            //     vendorName: report.vendorName || '',
+            //     taxInvNo: report.taxInvNo || '',
+            //     taxInvDate: report.taxInvDate?.split('T')[0] || '',
+            //     taxInvAmt: report.taxInvAmt || '',
+            //     dateRecdInAcctsDept: report.dateRecdInAcctsDept?.split('T')[0] || '',
+            //     natureOfWorkSupply: report.natureOfWorkSupply || ''
+            // }));
+            console.log(response?.data?.report.data);
+            // setBillsData(filteredData);
+            setBillsData(response?.data?.report.data);
+        } catch (error) {
+            setError("Failed to load data");
+            console.error("Error = " + error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchBills = async () => {
-            try {
-                const response = await axios.get(`${outstanding}?startDate=${fromDate}&endDate=${toDate}`);
-                console.log(response.data);
-                let count = 0;
-                // const filteredData = response?.data?.report.data.map(report => ({
-                //     id: count++,
-                //     copAmt: report.copAmt || '',
-                //     srNo: report.srNo || '',
-                //     region: report.region || '',
-                //     vendorNo: report.vendorNo || '',
-                //     vendorName: report.vendorName || '',
-                //     taxInvNo: report.taxInvNo || '',
-                //     taxInvDate: report.taxInvDate?.split('T')[0] || '',
-                //     taxInvAmt: report.taxInvAmt || '',
-                //     dateRecdInAcctsDept: report.dateRecdInAcctsDept?.split('T')[0] || '',
-                //     natureOfWorkSupply: report.natureOfWorkSupply || ''
-                // }));
-                console.log(response?.data?.report.data);
-                // setBillsData(filteredData);
-                setBillsData(response?.data?.report.data);
-            } catch (error) {
-                setError("Failed to load data");
-                console.error("Error = " + error);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchBills();
     }, [fromDate, toDate]);
 
@@ -168,8 +169,11 @@ const RepBillOutstanding = () => {
                             Download
                             <img src={download} />
                         </button>
-                        <button className="w-[300px] bg-[#34915C] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#45a049]" onClick={handleSendClick}>
-                            Send to
+                        <button
+                            className="w-[300px] bg-[#34915C] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#45a049]"
+                            onClick={handleSendClick}
+                        >
+                            Add Remark
                             <img src={send} />
                         </button>
                     </div>
@@ -281,6 +285,7 @@ const RepBillOutstanding = () => {
                             vendorName: bill.vendorName,
                             taxInvAmt: bill.taxInvAmt
                         }))}
+                        fetchBills={fetchBills}
                     />
                 </div>
             )}
