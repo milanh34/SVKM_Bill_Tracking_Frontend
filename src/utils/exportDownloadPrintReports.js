@@ -190,6 +190,19 @@ export const handleExportAllReports = async (
                             return typeof value === "number" ? value : 0;
                         }
 
+                        else if (
+                            column.field.includes("date") ||
+                            column.field.includes("Date") ||
+                            column.field.includes("dt") ||
+                            column.field.includes("Dt")
+                        ) {
+                            const [day, month, year] = value.split('-');
+                            const jsDate = new Date(year, month - 1, day);
+                            // const dateFormat = new Date(value);
+                            return value ? jsDate : "";
+                            // return typeof value === "date" ? value : 0;
+                        }
+
                         // return value ?? "";
                         // to not print N/A
                         if (value === "N/A" || value === null || value === undefined) {
@@ -425,7 +438,7 @@ export const handleExportAllReports = async (
 
             // Add the data rows
             printWindow.document.write("<tbody>");
-            
+
             let originalDataIndex = 0;
             excelData.forEach((row, index) => {
                 // Check if this is a grand total row

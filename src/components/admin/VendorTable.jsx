@@ -127,6 +127,11 @@ const VendorTable = () => {
     const handleEditClick = (vendor) => {
         if (editingRow === vendor._id) {
             const editedFieldsForRow = editedValues[vendor._id];
+            // validateVendorNo(vendor.vendorNo);
+            if (!validateVendorNo(newVendor.vendorNo)) {
+                toast.error('Vendor Number should be 6 digits');
+                return;
+            }
             if (!editedFieldsForRow) {
                 setEditingRow(null);
                 return;
