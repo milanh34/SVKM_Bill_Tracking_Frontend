@@ -411,6 +411,7 @@ const DataTable = ({
       taxInvAmt: sum("taxInvAmt"),
       copDetailsAmount: sum("copDetails.amount"),
       accountsDeptPaymentAmt: sum("accountsDept.paymentAmt"),
+      poAmt: sum("poAmt"),
     };
   }, [filteredData]);
 
@@ -934,6 +935,16 @@ const DataTable = ({
                       className="whitespace-nowrap px-1.5 py-2.5 text-sm border-l border-r border-gray-300"
                     >
                       {formatCellValue(grandTotals.accountsDeptPaymentAmt, "accountsDept.paymentAmt")}
+                    </td>
+                  );
+                }
+                if (column.field === "poAmt") {
+                  return (
+                    <td
+                      key={column.field}
+                      className="whitespace-nowrap px-1.5 py-2.5 text-sm border-l border-r border-gray-300"
+                    >
+                      {formatCellValue(grandTotals.poAmt, "poAmt")}
                     </td>
                   );
                 }

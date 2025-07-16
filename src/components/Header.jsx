@@ -22,10 +22,10 @@ const Header = () => {
 
   const menuItems = [
     { name: "Home", path: "/", allowedRoles: ['all'] },
-    { name: "Create Bill", path: "/create-bill", allowedRoles: ['site_officer', 'pimo_mumbai', 'admin'] },
+    { name: "Create Bill", path: "/create-bill", allowedRoles: ['site_officer', 'site_pimo', 'admin'] },
     { name: "Reports", path: "/reports", allowedRoles: ['all'] },
     { name: "Forwarded Bills", path: "/forwardedbills", allowedRoles: ['all'] },
-    { name: "Master", path: "/admin", allowedRoles: ['admin'] },
+    { name: "Masters", path: "/admin", allowedRoles: ['admin'] },
   ];
 
   const filteredMenuItems = menuItems.filter(item => {

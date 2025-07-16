@@ -22,7 +22,7 @@ const SendBox = ({ closeWindow, selectedBills, billsData, fetchBills }) => {
     const handleSave = async (e) => {
         e.preventDefault();
         if (!remark.trim()) {
-            toast.error("Please enter remarks for pay instructions");
+            toast.error("Please enter pay instructions");
             setShowLoader(true);
             setTimeout(() => setShowLoader(false), 500);
             return;
@@ -31,7 +31,7 @@ const SendBox = ({ closeWindow, selectedBills, billsData, fetchBills }) => {
         try {
             await Promise.all(selectedBills.map(srNo =>
                 axios.patch(`${paymentInstructions}/${srNo}`, {
-                    remarksForPayInstructions: remark
+                    paymentInstructions: remark
                 })
             ));
             toast.success(`Remarks saved for ${selectedBills.length} bill(s).`);
@@ -70,7 +70,7 @@ const SendBox = ({ closeWindow, selectedBills, billsData, fetchBills }) => {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                        <label className="text-base font-medium text-gray-700">Remarks for pay instructions:</label>
+                        <label className="text-base font-medium text-gray-700">Pay instructions:</label>
                         <textarea
                             className="w-full p-3 bg-white border border-gray-300 rounded text-base min-h-[120px] resize-y focus:outline-none focus:border-gray-400 text-gray-700"
                             value={remark}

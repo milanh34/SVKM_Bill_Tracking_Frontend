@@ -53,6 +53,10 @@ const FullBillDetails = () => {
     vendor: null,
     billDate: "",
     amount: "",
+    advDate: "",
+    advAmt: "",
+    advPercent: "",
+    advReqEnteredBy: "",
   });
   const [vendorsData, setVendorsData] = useState([]);
   const [natureOfWorkOptions, setNatureOfWorkOptions] = useState([]);
@@ -424,7 +428,7 @@ const FullBillDetails = () => {
         toast.error('Vendor Number should be 6 Numbers');
         return;
       }
-      if (!validatePoNo(billFormData.poNo)) {
+      if (billFormData.poNo &&!validatePoNo(billFormData.poNo)) {
         toast.error('PO Number should be 10 Digits');
         return;
       }
@@ -436,9 +440,9 @@ const FullBillDetails = () => {
         "vendorName",
         "vendorNo",
         "poCreated",
-        "taxInvRecdAtSite",
-        "taxInvRecdBy",
-        "department",
+        // "taxInvRecdAtSite",
+        // "taxInvRecdBy",
+        // "department",
       ];
 
       const missingFields = requiredFields.filter(
@@ -520,6 +524,10 @@ const FullBillDetails = () => {
       remarks: "",
       attachment: "",
       natureOfWork: "",
+      advDate: "",
+      advAmt: "",
+      advPercent: "",
+      advReqEnteredBy: "",
     });
     setBillImage(null);
   };
@@ -1034,7 +1042,7 @@ const FullBillDetails = () => {
               htmlFor="taxInvRecdAtSite"
               className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
             >
-              Tax Invoice Received At Site *
+              Tax Invoice Received At Site
             </label>
             <input
               type="date"
@@ -1052,7 +1060,7 @@ const FullBillDetails = () => {
               htmlFor="taxInvRecdBy"
               className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
             >
-              Tax Inv Received By *
+              Tax Inv Received By
             </label>
             <input
               type="text"
@@ -1070,7 +1078,7 @@ const FullBillDetails = () => {
               htmlFor="department"
               className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
             >
-              Department *
+              Department
             </label>
             <input
               type="text"
@@ -1139,6 +1147,81 @@ const FullBillDetails = () => {
             required
           />
         </div> */}
+        <div className="w-1/2">
+            <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">
+              Advanced Details
+            </h1>
+
+            <div>
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="advDate"
+                >
+                  Advanced Date
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="advDate"
+                  value={billFormData.advDate}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="advAmt"
+                >
+                  Advance Amount
+                </label>
+                <input
+                  type="number"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="advAmt"
+                  value={billFormData.advAmt}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="advPercent"
+                >
+                  Advance Percentage
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="advPercent"
+                  value={billFormData.advPercent}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="advReqEnteredBy"
+                >
+                  Advance Request Entered By{" "}
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="advReqEnteredBy"
+                  value={billFormData.advReqEnteredBy}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
         <div className="bg-card rounded-lg px-6 py-2 space-y-4 ont-semibold text-[#01073F]">
           <div>
             <h2 className="text-lg font-semibold">Attachments</h2>

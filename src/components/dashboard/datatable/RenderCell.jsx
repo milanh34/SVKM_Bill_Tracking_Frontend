@@ -400,7 +400,6 @@ export function RenderCell({
           <option value="accept">accept</option>
           <option value="reject">reject</option>
           <option value="hold">hold</option>
-          <option value="issue">issue</option>
         </select>
       );
     }

@@ -173,7 +173,7 @@ const RepBillOutstanding = () => {
                             className="w-[300px] bg-[#34915C] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#45a049]"
                             onClick={handleSendClick}
                         >
-                            Add Remark
+                            Payment
                             <img src={send} />
                         </button>
                     </div>
