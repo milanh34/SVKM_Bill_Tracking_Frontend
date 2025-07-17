@@ -296,9 +296,6 @@ const DataTable = ({
     setViewAttachments(true);
   };
 
-  const validateVendorNo = (x) => /^[0-9]{6}$/.test(x);
-  const validatePoNo = (x) => /^[0-9]{10}$/.test(x);
-
   const handleFileInputChange = (e) => {
     const newFiles = Array.from(e.target.files);
     setUploadFiles((prev) => {
@@ -310,6 +307,10 @@ const DataTable = ({
   const handleRemoveUploadFile = (idx) => {
     setUploadFiles((prev) => prev.filter((_, i) => i !== idx));
   };
+
+  const validateVendorNo = (x) => /^[0-9]{6}$/.test(x);
+  const validatePoNo = (x) => /^[0-9]{10}$/.test(x);
+  const validateTaxInvNo = (x) => /^[a-zA-Z0-9]{0,16}$/.test(x);
 
   const handleEditClick = async (row) => {
     if (editingRow === row._id) {
@@ -323,6 +324,10 @@ const DataTable = ({
       }
       if (editedFieldsForRow.poNo && !validatePoNo(editedFieldsForRow.poNo)) {
         toast.error("PO Number should be 10 Digits");
+        return;
+      }
+      if (editedFieldsForRow.taxInvNo && !validateTaxInvNo(editedFieldsForRow.taxInvNo)) {
+        toast.error("Tax Invoice Number can be max 16 characters");
         return;
       }
 
@@ -341,8 +346,8 @@ const DataTable = ({
         } catch (err) {
           toast.error(
             err.response?.data?.message ||
-              err.response?.data?.error ||
-              "Failed to upload attachments"
+            err.response?.data?.error ||
+            "Failed to upload attachments"
           );
           setEditSubmitting(false);
           return;
@@ -454,9 +459,8 @@ const DataTable = ({
 
   return (
     <div
-      className={`relative w-full flex flex-col border border-gray-200 rounded-lg ${
-        data.length > 8 ? "h-full" : ""
-      }`}
+      className={`relative w-full flex flex-col border border-gray-200 rounded-lg ${data.length > 8 ? "h-full" : ""
+        }`}
     >
       {uploadModal.open && (
         <div className="fixed top-0 left-0 w-full h-full z-50 flex items-center justify-center bg-black/40">
@@ -587,9 +591,8 @@ const DataTable = ({
         </div>
       )}
       <div
-        className={`overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 scrollbar-thumb-rounded-full ${
-          data.length < 10 ? "h-fit" : "flex-1"
-        }`}
+        className={`overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 scrollbar-thumb-rounded-full ${data.length < 10 ? "h-fit" : "flex-1"
+          }`}
       >
         <style jsx>{`
           .scrollbar-thin::-webkit-scrollbar {
@@ -658,20 +661,18 @@ const DataTable = ({
                             columnFilters[column.field].range)) && (
                           <div className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded ml-1">
                             {isNumericField(column.field) &&
-                            columnFilters[column.field].range
-                              ? `${
-                                  Object.values(
-                                    columnFilters[column.field].range
-                                  ).filter((val) => val !== "").length
-                                } selected`
-                              : `${
-                                  columnFilters[column.field].value.length
-                                } selected`}
+                              columnFilters[column.field].range
+                              ? `${Object.values(
+                                columnFilters[column.field].range
+                              ).filter((val) => val !== "").length
+                              } selected`
+                              : `${columnFilters[column.field].value.length
+                              } selected`}
                           </div>
                         )}
                       <span className="invisible group-hover:visible ml-1">
                         {sortConfig.key === column.field &&
-                        sortConfig.direction ? (
+                          sortConfig.direction ? (
                           sortConfig.direction === "asc" ? (
                             <SortAscIcon />
                           ) : (
@@ -686,11 +687,10 @@ const DataTable = ({
                         className="p-1 hover:bg-gray-200 rounded-md transition-colors duration-150 cursor-pointer focus:outline-none"
                       >
                         <Filter
-                          className={`w-4 h-4 ${
-                            columnFilters[column.field]?.value?.length > 0
+                          className={`w-4 h-4 ${columnFilters[column.field]?.value?.length > 0
                               ? "text-blue-500"
                               : "text-gray-400 hover:text-gray-600"
-                          }`}
+                            }`}
                         />
                       </button>
                     </div>
@@ -741,9 +741,8 @@ const DataTable = ({
                 >
                   <td className="sticky left-0 z-20 whitespace-nowrap px-3 py-3 text-center">
                     <div
-                      className={`absolute inset-0 ${
-                        isSelected ? "bg-blue-50" : "bg-white"
-                      } border-r border-blue-200`}
+                      className={`absolute inset-0 ${isSelected ? "bg-blue-50" : "bg-white"
+                        } border-r border-blue-200`}
                       style={{ bottom: "-1px", top: "-1px" }}
                     ></div>
                     <div className="relative z-10">
@@ -761,12 +760,11 @@ const DataTable = ({
                     return (
                       <td
                         key={column.field}
-                        className={`${column.field === "srNo" ? "sticky left-10 bg-[#fff]" : ""} whitespace-nowrap px-1.5 py-2.5 text-sm ${
-                          column.field.includes("amount") ||
-                          column.field.includes("Amount")
+                        className={`${column.field === "srNo" ? "sticky left-10 bg-[#fff]" : ""} whitespace-nowrap px-1.5 py-2.5 text-sm ${column.field.includes("amount") ||
+                            column.field.includes("Amount")
                             ? "text-right"
                             : "text-gray-900"
-                        }`}
+                          }`}
                         style={
                           column.field.includes("status")
                             ? getStatusStyle(value)
@@ -857,9 +855,8 @@ const DataTable = ({
                   {showActions && (
                     <td className="sticky right-0 z-20 whitespace-nowrap px-1.5 py-2.5 text-center">
                       <div
-                        className={`absolute inset-0 ${
-                          isSelected ? "bg-blue-50" : "bg-white"
-                        } border-l border-blue-200`}
+                        className={`absolute inset-0 ${isSelected ? "bg-blue-50" : "bg-white"
+                          } border-l border-blue-200`}
                         style={{ bottom: "-1px", top: "-1px" }}
                       ></div>
                       <div className="relative z-10">

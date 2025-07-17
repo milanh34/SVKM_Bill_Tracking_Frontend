@@ -146,6 +146,7 @@ const FullBillDetails = () => {
 
   const validateVendorNo = (x) => /^[0-9]{6}$/.test(x);
   const validatePoNo = (x) => /^[0-9]{10}$/.test(x);
+  const validateTaxInvNo = (x) => /^[a-zA-Z0-9]{0,16}$/.test(x);
 
   const handleVendorLookup = async (e) => {
     if (e.key === "Enter" && billFormData.vendorNo) {
@@ -155,6 +156,11 @@ const FullBillDetails = () => {
       try {
         if (!validateVendorNo(billFormData.vendorNo)) {
           toast.error('Vendor Number should be 6 Numbers');
+          return;
+        }
+        else if (!validateTaxInvNo(billFormData.taxInvNo)) {
+          toast.error('Tax Invoice Number can be max 16 characters');
+          return;
         }
         else {
           const vendor = vendorsData.find(
