@@ -223,6 +223,12 @@ const Dashboard = () => {
     });
   };
 
+  useEffect(() => {
+    if (visibleColumnFields.length > 0) {
+      localStorage.setItem("dashboard_visible_columns", JSON.stringify(visibleColumnFields));
+    }
+  }, [visibleColumnFields]);
+
   const fetchAllData = async () => {
     setLoading(true);
     try {
@@ -477,14 +483,22 @@ const Dashboard = () => {
   }, [currentUserRole]);
 
   useEffect(() => {
-    if (columns.length > 0) {
+  if (columns.length > 0) {
+    const stored = localStorage.getItem("dashboard_visible_columns");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Only keep columns that still exist (in case columns change)
+      const valid = parsed.filter(field => columns.some(col => col.field === field));
+      setVisibleColumnFields(valid.length > 0 ? valid : columns.slice(0, 12).map(col => col.field));
+    } else {
       const initialColumns = columns.slice(0, 12).map((col) => col.field);
       if (!initialColumns.includes("srNo")) {
         initialColumns.unshift("srNo");
       }
       setVisibleColumnFields(initialColumns);
     }
-  }, [columns]);
+  }
+}, [columns]);
 
   const toggleColumnVisibility = (field) => {
     // Prevent srNo from being toggled off
