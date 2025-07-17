@@ -611,13 +611,40 @@ const Dashboard = () => {
     // Filter data to only include selected rows
     const selectedData = filteredData.filter(row => selectedRows.includes(row._id));
     
-    // Create print window
-    const printWindow = window.open("", "_blank");
-    
     // Get visible columns for the current user role
-    const visibleColumns = columns.filter(col => 
+    const visibleColumns = columns.filter(col =>
       visibleColumnFields.includes(col.field) && col.field !== "srNoOld"
     );
+
+    const grandTotals = {};
+
+    // Always calculate taxInvAmt total
+    grandTotals.taxInvAmt = selectedData.reduce((total, row) => {
+      const taxInvAmt = row.taxInvAmt || 0;
+      return total + (typeof taxInvAmt === 'number' ? taxInvAmt : 0);
+    }, 0);
+
+    // Check if copDetails.amount is visible and calculate its total
+    const copAmountColumn = visibleColumns.find(col => col.field === "copDetails.amount");
+    if (copAmountColumn) {
+      grandTotals["copDetails.amount"] = selectedData.reduce((total, row) => {
+        const copAmount = row.copDetails?.amount || 0;
+        return total + (typeof copAmount === 'number' ? copAmount : 0);
+      }, 0);
+    }
+
+    // Check if accountsDept.paymentAmt is visible and calculate its total
+    const paymentAmtColumn = visibleColumns.find(col => col.field === "accountsDept.paymentAmt");
+    if (paymentAmtColumn) {
+      grandTotals["accountsDept.paymentAmt"] = selectedData.reduce((total, row) => {
+        const paymentAmt = row.accountsDept?.paymentAmt || 0;
+        return total + (typeof paymentAmt === 'number' ? paymentAmt : 0);
+      }, 0);
+    }
+
+    console.log(grandTotals);
+    // Create print window
+    const printWindow = window.open("", "_blank");
 
     // Create table HTML
     const tableHTML = `
@@ -700,54 +727,55 @@ const Dashboard = () => {
               ${selectedData.map(row => `
                 <tr>
                   ${visibleColumns.map(col => {
-                    const value = getNestedValue(row, col.field);
-                    let displayValue = value || '-';
-                    
-                    // Format currency values
-                    if (col.field.includes('amount') || col.field.includes('Amt')) {
-                      if (value && !isNaN(value)) {
-                        displayValue = new Intl.NumberFormat('en-IN', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                          useGrouping: true
-                        }).format(value);
-                      }
-                    }
-                    
-                    // Format dates
-                    if (value && typeof value === 'string' && value.includes('T')) {
-                      try {
-                        const date = new Date(value);
-                        if (!isNaN(date.getTime())) {
-                          displayValue = date.toLocaleDateString('en-GB');
-                        }
-                      } catch (e) {
-                        // Keep original value if date parsing fails
-                      }
-                    }
-                    
-                    // Add status styling
-                    let cellClass = '';
-                    if (col.field.includes('status') && value) {
-                      const statusLower = value.toLowerCase();
-                      if (statusLower.includes('approve') || statusLower === 'paid' || statusLower === 'active') {
-                        cellClass = 'status-approved';
-                      } else if (statusLower.includes('reject') || statusLower === 'fail') {
-                        cellClass = 'status-rejected';
-                      } else if (statusLower.includes('pend') || statusLower === 'waiting' || statusLower === 'unpaid') {
-                        cellClass = 'status-pending';
-                      }
-                    }
-                    
-                    // Add amount alignment
-                    if (col.field.includes('amount') || col.field.includes('Amt')) {
-                      cellClass += ' amount';
-                    }
-                    
-                    return `<td class="${cellClass}">${displayValue}</td>`;
-                  }).join('')}
+      const value = getNestedValue(row, col.field);
+      let displayValue = value || '-';
+
+      // Format currency values
+      if (col.field.includes('amount') || col.field.includes('Amt')) {
+        if (value && !isNaN(value)) {
+          displayValue = new Intl.NumberFormat('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+            useGrouping: true
+          }).format(value);
+        }
+      }
+
+      // Format dates
+      if (value && typeof value === 'string' && value.includes('T')) {
+        try {
+          const date = new Date(value);
+          if (!isNaN(date.getTime())) {
+            displayValue = date.toLocaleDateString('en-GB');
+          }
+        } catch (e) {
+          // Keep original value if date parsing fails
+        }
+      }
+
+      // Add status styling
+      let cellClass = '';
+      if (col.field.includes('status') && value) {
+        const statusLower = value.toLowerCase();
+        if (statusLower.includes('approve') || statusLower === 'paid' || statusLower === 'active') {
+          cellClass = 'status-approved';
+        } else if (statusLower.includes('reject') || statusLower === 'fail') {
+          cellClass = 'status-rejected';
+        } else if (statusLower.includes('pend') || statusLower === 'waiting' || statusLower === 'unpaid') {
+          cellClass = 'status-pending';
+        }
+      }
+
+      // Add amount alignment
+      if (col.field.includes('amount') || col.field.includes('Amt')) {
+        cellClass += ' amount';
+      }
+
+      return `<td class="${cellClass}">${displayValue}</td>`;
+    }).join('')}
                 </tr>
               `).join('')}
+              
             </tbody>
           </table>
         </body>
@@ -829,22 +857,22 @@ const Dashboard = () => {
                 {["site_officer", "pimo_mumbai", "accounts"].includes(
                   currentUserRole
                 ) && (
-                  <button
-                    className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                    onClick={handleChecklist}
-                  >
-                    <CheckSquare className="w-4 h-4" />
-                    <span>Checklist</span>
-                  </button>
-                )}
+                    <button
+                      className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                      onClick={handleChecklist}
+                    >
+                      <CheckSquare className="w-4 h-4" />
+                      <span>Checklist</span>
+                    </button>
+                  )}
 
                 <button
-                    className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-white text-sm bg-yellow-600 border border-gray-300 rounded-md hover:bg-yellow-700 transition-colors"
-                    onClick={handlePrint}
-                  >
-                    <Printer className="w-4 h-4" />
-                    <span>Print</span>
-                  </button>
+                  className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-white text-sm bg-yellow-600 border border-gray-300 rounded-md hover:bg-yellow-700 transition-colors"
+                  onClick={handlePrint}
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Print</span>
+                </button>
 
                 {currentUserRole === "accounts" && (
                   <label className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
@@ -922,7 +950,7 @@ const Dashboard = () => {
                                 onChange={() => toggleColumnVisibility(column.field)}
                                 // className={`hover:cursor-pointer ${column.field === "srNo" ? "opacity-60" : ""}`}
                                 className="hover:cursor-pointer"
-                                // disabled={column.field === "srNo"}
+                              // disabled={column.field === "srNo"}
                               />
                               <label
                                 // className={`hover:cursor-pointer text-sm ${column.field === "srNo" ? "opacity-60" : ""}`}
@@ -940,21 +968,20 @@ const Dashboard = () => {
                               .toLowerCase()
                               .includes(columnSearchQuery.toLowerCase())
                         ).length === 0 && (
-                          <div className="text-gray-500 text-sm text-center py-2">
-                            No columns found
-                          </div>
-                        )}
+                            <div className="text-gray-500 text-sm text-center py-2">
+                              No columns found
+                            </div>
+                          )}
                       </div>
                     </div>
                   )}
                 </div>
 
                 <button
-                  className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors ${
-                    showDownloadValidation
+                  className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors ${showDownloadValidation
                       ? "animate-shake border-2 border-red-500"
                       : ""
-                  }`}
+                    }`}
                   onClick={handleDownloadReport}
                   title={
                     selectedRows.length === 0
@@ -981,11 +1008,10 @@ const Dashboard = () => {
                   </button>
                 ) : (
                   <button
-                    className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors ${
-                      selectedRole
+                    className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors ${selectedRole
                         ? "relative after:absolute after:top-0 after:right-0 after:w-2 after:h-2 after:bg-green-500 after:rounded-full"
                         : ""
-                    }`}
+                      }`}
                     onClick={handleSendTo}
                     title="Send Bills"
                   >
@@ -1083,11 +1109,10 @@ const Dashboard = () => {
                       {pageNumbers.map((pageNumber) => (
                         <button
                           key={pageNumber}
-                          className={`px-2.5 py-1.5 text-sm hover:cursor-pointer border rounded-md transition-colors ${
-                            currentPage === pageNumber
+                          className={`px-2.5 py-1.5 text-sm hover:cursor-pointer border rounded-md transition-colors ${currentPage === pageNumber
                               ? "bg-[#011a99] text-white"
                               : "bg-white border-gray-300 hover:bg-gray-50"
-                          }`}
+                            }`}
                           onClick={() => handlePageChange(pageNumber)}
                         >
                           {pageNumber}
