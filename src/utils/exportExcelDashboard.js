@@ -65,6 +65,9 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
     const allColumnsToExport = [...essentialColumns, ...additionalColumns];
     const workbook = XLSX.utils.book_new();
 
+    // Define which fields should be treated as numbers
+    const numberFields = ["taxInvAmt", "poAmt", "copDetails.amount", "accountsDept.paymentAmt"];
+
     // Create timestamp row
     const now = new Date();
     const timestamp = [
@@ -100,7 +103,7 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
           }
         }
 
-        // Format currency values
+        // Keep numeric values as numbers for specific fields, format others as currency strings
         if (
           column.field.includes("amount") ||
           column.field.includes("Amount") ||
@@ -108,7 +111,14 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
           column.field.endsWith("amt")
         ) {
           if (typeof value === "number") {
-            value = formatCurrency(value);
+            // Keep as number if it's one of the specified number fields
+            if (numberFields.includes(column.field)) {
+              // Keep as number - don't format to string
+              value = value;
+            } else {
+              // Format as currency string for other amount fields
+              value = formatCurrency(value);
+            }
           }
         }
 
@@ -144,13 +154,26 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
       }, 0);
     }
 
+    const poAmtColumn = allColumnsToExport.find(col => col.field === "poAmt");
+    if (poAmtColumn) {
+      grandTotals["poAmt"] = dataToExport.reduce((total, row) => {
+        const valuePoAmt = row.poAmt || 0;
+        return total + (typeof valuePoAmt === 'number' ? valuePoAmt : 0);
+      }, 0);
+    }
+
     // Create grand total row
     const grandTotalRow = {};
     allColumnsToExport.forEach((column) => {
       if (column.field === "srNo") {
         grandTotalRow[column.headerName] = "Grand Total";
       } else if (grandTotals.hasOwnProperty(column.field)) {
-        grandTotalRow[column.headerName] = formatCurrency(grandTotals[column.field]);
+        // Keep grand total as number for number fields
+        if (numberFields.includes(column.field)) {
+          grandTotalRow[column.headerName] = grandTotals[column.field];
+        } else {
+          grandTotalRow[column.headerName] = formatCurrency(grandTotals[column.field]);
+        }
       } else {
         grandTotalRow[column.headerName] = "";
       }
@@ -174,9 +197,30 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
       wch: colWidths[col],
     }));
 
+    // Apply number formatting to specific columns
+    const numberFormat = '#,##0.00'; // Indian number format with 2 decimal places
+    
+    // Get column indices for number fields
+    const numberColumnIndices = [];
+    allColumnsToExport.forEach((column, index) => {
+      if (numberFields.includes(column.field)) {
+        numberColumnIndices.push(index);
+      }
+    });
+
+    // Apply number formatting to data rows (excluding header and timestamp)
+    for (let row = 2; row <= range.e.r; row++) { // Start from row 2 (after timestamp and header)
+      numberColumnIndices.forEach((colIndex) => {
+        const cellAddress = XLSX.utils.encode_cell({ r: row, c: colIndex });
+        if (worksheet[cellAddress] && typeof worksheet[cellAddress].v === 'number') {
+          worksheet[cellAddress].z = numberFormat;
+        }
+      });
+    }
+
     // Style header cells
     for (let col = range.s.c; col <= range.e.c; col++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+      const cellAddress = XLSX.utils.encode_cell({ r: 1, c: col }); // Header is now at row 1
       if (!worksheet[cellAddress]) continue;
       worksheet[cellAddress].s = {
         font: { bold: true, color: { rgb: "FFFFFF" }, sz: 12 },
@@ -216,6 +260,11 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
           right: { style: "thin", color: { rgb: "000000" } },
         },
       };
+      
+      // Apply number formatting to grand total cells that are numbers
+      if (numberColumnIndices.includes(col) && worksheet[cellAddress] && typeof worksheet[cellAddress].v === 'number') {
+        worksheet[cellAddress].z = numberFormat;
+      }
     }
 
     // Add worksheet to workbook
