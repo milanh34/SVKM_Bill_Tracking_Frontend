@@ -608,23 +608,19 @@ const Dashboard = () => {
     return;
   }
 
-  // Filter data to only include selected rows
   const selectedData = filteredData.filter(row => selectedRows.includes(row._id));
   
-  // Get visible columns for the current user role
   const visibleColumns = columns.filter(col =>
     visibleColumnFields.includes(col.field) && col.field !== "srNoOld"
   );
 
   const grandTotals = {};
 
-  // Always calculate taxInvAmt total
   grandTotals.taxInvAmt = selectedData.reduce((total, row) => {
     const taxInvAmt = row.taxInvAmt || 0;
     return total + (typeof taxInvAmt === 'number' ? taxInvAmt : 0);
   }, 0);
 
-  // Check if copDetails.amount is visible and calculate its total
   const copAmountColumn = visibleColumns.find(col => col.field === "copDetails.amount");
   if (copAmountColumn) {
     grandTotals["copDetails.amount"] = selectedData.reduce((total, row) => {
@@ -633,7 +629,6 @@ const Dashboard = () => {
     }, 0);
   }
 
-  // Check if accountsDept.paymentAmt is visible and calculate its total
   const paymentAmtColumn = visibleColumns.find(col => col.field === "accountsDept.paymentAmt");
   if (paymentAmtColumn) {
     grandTotals["accountsDept.paymentAmt"] = selectedData.reduce((total, row) => {
@@ -651,10 +646,9 @@ const Dashboard = () => {
     }
 
   console.log(grandTotals);
-  // Create print window
+
   const printWindow = window.open("", "_blank");
 
-  // Create table HTML
   const tableHTML = `
     <!DOCTYPE html>
     <html>
@@ -747,7 +741,6 @@ const Dashboard = () => {
     const value = getNestedValue(row, col.field);
     let displayValue = value || '-';
 
-    // Format currency values
     if (col.field.includes('amount') || col.field.includes('Amt')) {
       if (value && !isNaN(value)) {
         displayValue = new Intl.NumberFormat('en-IN', {
@@ -758,7 +751,6 @@ const Dashboard = () => {
       }
     }
 
-    // Format dates
     if (value && typeof value === 'string' && value.includes('T')) {
       try {
         const date = new Date(value);
@@ -766,11 +758,10 @@ const Dashboard = () => {
           displayValue = date.toLocaleDateString('en-GB');
         }
       } catch (e) {
-        // Keep original value if date parsing fails
+        console.log(e);
       }
     }
 
-    // Add status styling
     let cellClass = '';
     if (col.field.includes('status') && value) {
       const statusLower = value.toLowerCase();
@@ -783,7 +774,6 @@ const Dashboard = () => {
       }
     }
 
-    // Add amount alignment
     if (col.field.includes('amount') || col.field.includes('Amt')) {
       cellClass += ' amount';
     }
@@ -797,10 +787,8 @@ const Dashboard = () => {
             <tr class="grand-total-row">
               ${visibleColumns.map((col, index) => {
     if (index === 0) {
-      // First column shows "Grand Total" label
       return `<td><strong>Grand Total</strong></td>`;
     } else if (grandTotals[col.field]) {
-      // Show formatted total for columns that have totals
       const total = grandTotals[col.field];
       const formattedTotal = new Intl.NumberFormat('en-IN', {
         minimumFractionDigits: 2,
@@ -809,7 +797,6 @@ const Dashboard = () => {
       }).format(total);
       return `<td class="amount"><strong>${formattedTotal}</strong></td>`;
     } else {
-      // Empty cell for columns without totals
       return `<td></td>`;
     }
   }).join('')}

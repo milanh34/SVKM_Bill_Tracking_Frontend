@@ -8,7 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
     const [recipientName, setRecipientName] = useState('');
-    const [remarks, setRemarks] = useState('');
+    // const [remarks, setRemarks] = useState('');
     const [loading, setLoading] = useState(false);
 
     const selectedBillDetails = selectedBills.map(billId => {
@@ -139,14 +139,14 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-2">
+                    {/* <div className="flex flex-col gap-2">
                         <label className="text-base font-medium text-gray-700">Remarks:</label>
                         <textarea 
                             value={remarks}
                             onChange={(e) => setRemarks(e.target.value)}
                             className="w-full p-3 bg-white border border-gray-300 rounded text-base min-h-[120px] resize-y focus:outline-none focus:border-gray-400 text-gray-700"
                         />
-                    </div>
+                    </div> */}
 
                     <div className="flex gap-4 justify-end">
                         <button 
