@@ -583,7 +583,7 @@ const Dashboard = () => {
     setSelectedRegion(region ? [region] : []);
   };
 
-  const showIncomingBillsButton = ["accounts", "pimo_mumbai"].includes(
+  const showIncomingBillsButton = ["accounts", "pimo_mumbai", "site_pimo", "qs_site"].includes(
     currentUserRole
   );
 

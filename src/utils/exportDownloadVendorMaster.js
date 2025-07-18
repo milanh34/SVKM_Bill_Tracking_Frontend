@@ -12,7 +12,7 @@ const formatCurrency = (value) => {
     }).format(value);
 };
 
-export const handleExportAllReports = async (
+export const handleExportVendorMaster = async (
     selectedRows,
     filteredData,
     columns,
@@ -21,30 +21,14 @@ export const handleExportAllReports = async (
     toPrint
 ) => {
     try {
-        // const dataToExport = selectedRows.length > 0
-        //     ? filteredData.filter((item) => selectedRows.includes(item._id))
-        //     : filteredData;
-        var dataToExport = filteredData.filter((item) => selectedRows.includes(item.srNo) || item.isGrandTotal === true);
+        var dataToExport = filteredData.filter((item) => selectedRows.includes(item.vendorNo));
         console.log(dataToExport);
 
         if ((dataToExport.length === 1 && dataToExport[0].isGrandTotal === true) || dataToExport.length === 0) {
-            // throw new Error("Please select at least one row to download");
             toast.error("Select atleast one row to download");
             return { success: false, message: "Select atleast one row to download" };
         }
 
-        // const essentialFields = [
-        //     "copAmt",
-        //     "srNo",
-        //     "region",
-        //     "vendorNo",
-        //     "vendorName",
-        //     "taxInvNo",
-        //     "taxInvDate",
-        //     "taxInvAmt",
-        //     "dateRecdInAcctsDept",
-        //     "natureOfWorkSupply"
-        // ];
         const essentialFields = [...visibleColumnFields];
 
         const essentialColumns = essentialFields
@@ -125,27 +109,6 @@ export const handleExportAllReports = async (
                 // console.log("Row data: ", rowData);
 
                 if (rowData.isSubtotal) {
-                    // Subtotal row
-                    //     console.log("In subtotal row");
-                    //     rowValues = allColumnsToExport.map((column) => {
-                    //     const field = column.field;
-                    //     console.log("Column field: ", column.field);
-
-                    //     if (field === "vendorName") {
-                    //         return rowData.subtotalLabel || `Subtotal for ${rowData.vendorName}`;
-                    //     }
-                    //     if (field === "taxInvAmt") {
-                    //         return rowData.subtotalAmount || 0;
-                    //     }
-                    //     if (field === "copAmt") {
-                    //         return rowData.subtotalCopAmt || 0;
-                    //     }
-                    //     if (field === "srNo") {
-                    //         return ""; // You can return empty or '—'
-                    //     }
-
-                    //     return ""; // Empty for other columns
-                    // });
                     return;
                 } else if (rowData.isGrandTotal) {
                     // if (rowData.isGrandTotal) {

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { vendors, compliances, panstatus } from '../../apis/master.api';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { handleExportVendorMaster } from '../../utils/exportDownloadVendorMaster';
 import Cookies from 'js-cookie';
 
 const VendorTable = () => {
@@ -236,6 +237,16 @@ const VendorTable = () => {
         }
     };
 
+    const handleDownload = async () => {
+        console.log("Vendor master download clicked");
+        // if(selectedRows.length === 0){
+        //     setSelectedRows(bills.map(bill => bill.srNo));
+        // }
+        const titleName = 'Vendor Master';
+        const result = await handleExportVendorMaster(vendorData.map(vendorData => vendorData.vendorNo), vendorData, columns, visibleColumnFields, titleName, false);
+        console.log("Result = " + result.message);
+    }
+
     const renderCell = (vendor, column) => {
         const isEditing = editingRow === vendor._id;
         const value = vendor[column.field];
@@ -309,6 +320,8 @@ const VendorTable = () => {
         { field: 'phoneNumbers', headerName: 'Phone No' }
     ];
 
+    const visibleColumnFields = ['vendorNo', 'vendorName', 'PAN', 'GSTNumber', 'complianceStatus', 'PANStatus', 'emailIds', 'phoneNumbers']
+
     return (
         <div className="relative w-full flex flex-col border border-gray-200 rounded-lg">
             <ToastContainer />
@@ -329,6 +342,12 @@ const VendorTable = () => {
                             className="bg-[#364cbb] hover:bg-[#364cdd] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
                         >
                             Add Vendor
+                        </button>
+                        <button
+                            onClick={handleDownload}
+                            className="bg-[#f48d02] hover:bg-[#f7a733] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
+                        >
+                            Download
                         </button>
                     </div>
                 </div>
