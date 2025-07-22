@@ -6,3 +6,4 @@ export const importReport = `${SERVER_API}/report/import-report`;
 export const receiveBills = `${SERVER_API}/bill/receiveBill`;
 export const paymentInstructions = `${SERVER_API}/bill/payment-instructions`;
 export const sentBills = `${SERVER_API}/sentBills`;
+export const deleteAttachments = `${SERVER_API}/bill/attachment`;

@@ -7,7 +7,7 @@ import {
   CheckIcon,
 } from "./Icons";
 import { getColumnsForRole } from "../../utils/columnEdit";
-import { bills } from "../../apis/bills.api";
+import { bills, deleteAttachments } from "../../apis/bills.api";
 import axios from "axios";
 import { toast } from "react-toastify";
 import {
@@ -21,7 +21,7 @@ import {
 } from "./datatable/datatableUtils";
 import { renderFilterPopup } from "./datatable/FilterPopup";
 import { RenderCell } from "./datatable/RenderCell";
-import { FileImage, FileText, File, FileVideo, FileAudio, Plus } from "lucide-react";
+import { FileImage, FileText, File, FileVideo, FileAudio, Plus, Trash2 } from "lucide-react";
 
 const DataTable = ({
   data,
@@ -62,6 +62,18 @@ const DataTable = ({
   const [pendingAmountFilters, setPendingAmountFilters] = useState({});
   const [uploadModal, setUploadModal] = useState({ open: false, rowId: null });
   const [uploadFiles, setUploadFiles] = useState([]);
+  const [viewAttachments, setViewAttachments] = useState(false);
+  const [allAttachments, setAllAttachments] = useState([
+    "https://demolink1.com",
+    "https://demolink2.com",
+    "https://demolink3.com",
+  ]);
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState({
+    show: false,
+    fileKey: null,
+    billId: null,
+    fileName: null
+  });
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -274,12 +286,6 @@ const DataTable = ({
     setFilterSearchQuery("");
   };
 
-  const [viewAttachments, setViewAttachments] = useState(false);
-  const [allAttachments, setAllAttachments] = useState([
-    "https://demolink1.com",
-    "https://demolink2.com",
-    "https://demolink3.com",
-  ]);
   const handleAttachments = (value) => {
     if (Array.isArray(value) && value.length > 0) {
       const files = value
@@ -289,6 +295,7 @@ const DataTable = ({
             : null
         )
         .filter(obj => obj && typeof obj.url === "string" && obj.url.length > 0);
+        console.log(files);
       setAllAttachments(files);
     } else {
       setAllAttachments([]);
@@ -402,6 +409,48 @@ const DataTable = ({
         ...prev,
         [row._id]: {},
       }));
+    }
+  };
+
+  const handleDeleteClick = (fileKey, billId, fileName) => {
+    setDeleteConfirmModal({
+      show: true,
+      fileKey,
+      billId,
+      fileName
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    const { fileKey, billId } = deleteConfirmModal;
+    
+    console.log('Deleting attachment with:', { fileKey, billId }); // Debug log
+    
+    try {
+      const response = await axios.post(deleteAttachments, {
+        billId,
+        fileKey
+      });
+
+      if (response.data?.success) {
+        toast.success("Attachment deleted successfully");
+
+        const updatedAttachments = allAttachments.filter(file => file.url?.split(".com/")[1] !== fileKey);
+        setAllAttachments(updatedAttachments);
+        
+        const rowIndex = data.findIndex(row => row._id === billId);
+        if (rowIndex !== -1) {
+          onEdit && onEdit();
+        }
+
+        if (updatedAttachments.length === 0) {
+          setViewAttachments(false);
+        }
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete attachment");
+    } finally {
+      setDeleteConfirmModal({ show: false, fileKey: null, billId: null, fileName: null });
     }
   };
 
@@ -550,7 +599,7 @@ const DataTable = ({
       )}
       {viewAttachments && (
         <div className="fixed top-0 left-0 w-full h-full z-50 flex items-center justify-center bg-black/30">
-          <div className="bg-white w-full max-w-lg rounded-lg shadow-lg p-6 relative">
+          <div className="bg-white w-full max-w-3xl rounded-lg shadow-lg p-6 relative">
             <button
               className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl font-bold cursor-pointer"
               onClick={() => setViewAttachments(false)}
@@ -561,32 +610,67 @@ const DataTable = ({
               <File className="w-6 h-6 text-blue-600" />
               Attachments
             </h2>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-80 overflow-y-auto">
-              {allAttachments.length === 0 && (
-                <li className="col-span-2 text-gray-500 text-center py-4">
-                  No attachments found.
-                </li>
-              )}
-              {allAttachments.map((file, index) => (
-                <li
-                  key={index}
-                  className="flex flex-col items-center justify-center border border-gray-200 rounded-lg p-3 bg-gray-50 hover:bg-gray-100 transition"
-                >
-                  <a
-                    href={file.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex flex-col items-center group"
-                    title={getDisplayFileName(file.name, file.url)}
+            <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {allAttachments.length === 0 && (
+                  <div className="col-span-full text-gray-500 text-center py-4">
+                    No attachments found.
+                  </div>
+                )}
+                {allAttachments.map((file, index) => (
+                  <div
+                    key={index}
+                    className="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition relative group"
                   >
-                    {getFileTypeIcon(file.url)}
-                    <span className="mt-2 text-xs text-gray-700 break-all text-center max-w-[120px] group-hover:underline">
-                      {getDisplayFileName(file.name, file.url)}
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
+                    {editingRow && (
+                      <button
+                        onClick={() => handleDeleteClick(file.url?.split(".com/")[1], editingRow, file.name || getDisplayFileName(file.name, file.url))}
+                        className="absolute top-2 right-2 text-red-500 hover:text-red-700 p-1 rounded-lg bg-white shadow-sm border border-gray-200 hover:cursor-pointer"
+                        title="Delete attachment"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                    <a
+                      href={file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center group space-y-2"
+                      title={getDisplayFileName(file.name, file.url)}
+                    >
+                      {getFileTypeIcon(file.url)}
+                      <span className="text-sm text-gray-700 text-center break-words w-full group-hover:underline">
+                        {getDisplayFileName(file.name, file.url)}
+                      </span>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {deleteConfirmModal.show && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000]">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Confirm Delete</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete "{deleteConfirmModal.fileName}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteConfirmModal({ show: false, fileKey: null, billId: null, fileName: null })}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 hover:cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 hover:cursor-pointer"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}
