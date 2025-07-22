@@ -75,15 +75,54 @@ const Dashboard = () => {
 
   const handleChecklist = () => {
     if (currentUserRole === "site_officer") {
+      if (selectedRows.length === 0) {
+        toast.error("Please select bills to proceed");
+        return;
+      }
       navigate("/checklist-bill-journey", {
         state: {
           selectedRows,
           bills: billsData.filter((bill) => selectedRows?.includes(bill._id)),
         },
       });
-    } else if (currentUserRole === "pimo_mumbai") {
-      setIsChecklistModalOpen(true);
+    } else if (currentUserRole === "site_pimo") {
+      if (selectedRows.length === 0) {
+        toast.error("Please select bills to proceed");
+        return;
+      }
+
+      const selectedBills = billsData.filter((bill) => selectedRows.includes(bill._id));
+      const natureOfWorkSet = new Set(selectedBills.map(bill => bill.natureOfWork));
+
+      if (natureOfWorkSet.size !== 1) {
+        toast.error("Selected bills must have the same nature of work");
+        return;
+      }
+
+      const natureOfWork = Array.from(natureOfWorkSet)[0];
+
+      if (natureOfWork === "Direct FI Entry") {
+        navigate("/checklist-directFI2", {
+          state: {
+            selectedRows,
+            bills: selectedBills,
+          },
+        });
+      } else if (natureOfWork === "Advance/LC/BG") {
+        navigate("/checklist-advance2", {
+          state: {
+            selectedRows,
+            bills: selectedBills,
+          },
+        });
+      } else {
+        toast.error("Invalid nature of work. Bills must be either 'Direct FI Entry' or 'Advance/LC/BG'");
+      }
     } else if (currentUserRole === "accounts") {
+      if (selectedRows.length === 0) {
+        toast.error("Please select bills to proceed");
+        return;
+      }
       navigate("/checklist-account2", {
         state: {
           selectedRows,
@@ -893,7 +932,7 @@ const Dashboard = () => {
                   </button>
                 )}
 
-                {["site_officer", "pimo_mumbai", "accounts"].includes(
+                {["site_officer", "accounts", "site_pimo"].includes(
                   currentUserRole
                 ) && (
                     <button
