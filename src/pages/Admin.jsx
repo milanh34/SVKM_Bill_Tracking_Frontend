@@ -14,6 +14,7 @@ import UserTable from "../components/admin/UserTable";
 import CurrencyTable from "../components/admin/CurrencyTable";
 import Toast from '../components/Toast';
 import { importExcel } from '../apis/bills.api';
+import { EditIcon, Upload, X } from 'lucide-react';
 
 const Admin = () => {
     const [isAdmin, setIsAdmin] = useState(false)
@@ -21,6 +22,7 @@ const Admin = () => {
     const [loading, setLoading] = useState(false);
     const [toast, setToast] = useState(null);
     const navigate = useNavigate()
+    const [openUpdateBillModal, setOpenUpdateBillModal] = useState(false);
 
     const showToast = (message, type) => {
         setToast({ message, type });
@@ -115,20 +117,53 @@ const Admin = () => {
                 <div className="mt-5 p-5">
                     <h1 className="text-2xl font-bold mb-8">Admin Dashboard</h1>
                     <div className="mb-8">
+                        
+                <button
+                  className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-white text-sm bg-[#011a99] border border-gray-300 rounded-md hover:bg-blue-800 transition-colors"
+                  onClick={() => setOpenUpdateBillModal(true)}
+                >
+                  <Upload className="w-4 h-4 mr-1" />
+                  Import Bills
+                </button>
+
+                {
+                  openUpdateBillModal && <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+                    <div className="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md relative">
+
+                      <button 
+                        className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+                        onClick={() => setOpenUpdateBillModal(false)}
+                      >
+                        <X className="text-red-500 cursor-pointer" />
+                      </button>
+
+                      <div className="mt-5 text-center">
+                        <p className="mb-2 font-semibold">Import A File For Bills</p>
+                        <p className="mb-2">Here is a link to preview the required format.</p>
+                        <p>
+                          link: <a href="#" className="text-blue-600 underline">helloworld.com</a>
+                        </p>
+
                         <label
-                            htmlFor="fileInput"
-                            className="bg-[#364cbb] text-white font-semibold px-[1.4vw] py-[0.5vw] rounded-[1vw] border-none cursor-pointer whitespace-nowrap text-[0.9vw] transition-all duration-200 hover:bg-[#2a3c9e] hover:-translate-y-0.5 shadow-md"
+                          htmlFor="fileInput"
+                          className="inline-block mt-6 bg-[#364cbb] text-white font-semibold py-2 px-4 rounded-md cursor-pointer transition duration-200 hover:bg-[#2a3c9e] hover:-translate-y-0.5 shadow-md"
                         >
-                            Import Bills
-                            <input
-                                type="file"
-                                id="fileInput"
-                                accept=".xlsx,.xls,.csv"
-                                onChange={handleFileUpload}
-                                className="hidden"
-                                disabled={loading}
-                            />
+                          Import Bills (Import File)
+                          <input
+                            type="file"
+                            id="fileInput"
+                            accept=".xlsx,.xls,.csv"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                            disabled={loading}
+                          />
                         </label>
+                      </div>
+                    </div>
+                  </div>
+
+                }
+
                         {loading && (
                             <span className="ml-4 align-middle">
                                 <svg className="animate-spin h-6 w-6 text-[#364cbb] inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
