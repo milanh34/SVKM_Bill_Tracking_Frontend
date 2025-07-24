@@ -119,7 +119,7 @@ const Admin = () => {
                             htmlFor="fileInput"
                             className="bg-[#364cbb] text-white font-semibold px-[1.4vw] py-[0.5vw] rounded-[1vw] border-none cursor-pointer whitespace-nowrap text-[0.9vw] transition-all duration-200 hover:bg-[#2a3c9e] hover:-translate-y-0.5 shadow-md"
                         >
-                            Import Flat File
+                            Import Bills
                             <input
                                 type="file"
                                 id="fileInput"
