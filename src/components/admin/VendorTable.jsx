@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { EditIcon, CheckIcon } from '../dashboard/Icons';
-import axios from 'axios';
 import { vendors, compliances, panstatus } from '../../apis/master.api';
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { handleExportVendorMaster } from '../../utils/exportDownloadVendorMaster';
+import { importExcel } from '../../apis/bills.api'
+import { ToastContainer, toast } from "react-toastify";
+import Toast from '../Toast';
+import "react-toastify/dist/ReactToastify.css";
+import axios from 'axios';
 import Cookies from 'js-cookie';
+import fs from 'fs';
 
 const VendorTable = () => {
     const [vendorData, setVendorData] = useState([]);
@@ -198,6 +201,94 @@ const VendorTable = () => {
         setShowAddModal(true);
     };
 
+    const handleImportVendor = async (event) => {
+        console.log("Import vendors clicked");
+        const file = event.target.files[0];
+        if (!file)
+            return;
+
+        const allowedTypes = [
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-excel',
+            'text/csv'
+        ];
+        const allowedExtensions = /\.(xlsx|xls|csv)$/i;
+
+        if (!allowedTypes.includes(file.type) && !allowedExtensions.test(file.name)) {
+            toast.error('Only .xlsx, .xls, .csv files are allowed');
+            event.target.value = '';
+            return;
+        }
+
+        const data = new FormData();
+        data.append('file', file);
+
+        setIsLoading(true);
+        try {
+            const response = await axios.post(`${importExcel}/import-vendors`, data, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            console.log(response.data);
+            // toast.success('File imported successfully');
+            toast.success('Vendors added successfully');
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } catch (error) {
+            console.error('Error importing file:', error);
+            toast.error(error.response?.data?.message || 'Error importing file');
+        } finally {
+            setIsLoading(false);
+            event.target.value = '';
+        }
+    }
+
+    const handleUpdateVendor = async (event) => {
+        console.log("Update vendor clicked");
+        const file = event.target.files[0];
+        if (!file)
+            return;
+
+        const allowedTypes = [
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-excel',
+            'text/csv'
+        ];
+        const allowedExtensions = /\.(xlsx|xls|csv)$/i;
+
+        if (!allowedTypes.includes(file.type) && !allowedExtensions.test(file.name)) {
+            toast.error('Only .xlsx, .xls, .csv files are allowed');
+            event.target.value = '';
+            return;
+        }
+
+        const data = new FormData();
+        data.append('file', file);
+
+        setIsLoading(true);
+        try {
+            const response = await axios.post(`${importExcel}/update-vendor`, data, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            console.log(response.data);
+            // toast.success('File imported successfully');
+            toast.success('Vendor Updated successfully');
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } catch (error) {
+            console.error('Error importing file:', error);
+            toast.error(error.response?.data?.message || 'Error importing file');
+        } finally {
+            setIsLoading(false);
+            event.target.value = '';
+        }
+    }
+
     const validateVendorNo = (x) => /^[0-9]{6}$/.test(x);
 
     const handleAddSubmit = async (e) => {
@@ -337,12 +428,42 @@ const VendorTable = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-[300px] p-2 border border-gray-300 rounded-md focus:outline-none"
                         />
+                        <label
+                            htmlFor="vendorInput"
+                            className="bg-[#364cbb] hover:bg-[#364cdd] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
+
+                        >
+                            Import Vendors
+                            <input
+                                type="file"
+                                id="vendorInput"
+                                accept=".xlsx,.xls,.csv"
+                                onChange={handleImportVendor}
+                                className="hidden"
+                                disabled={isLoading}
+                            />
+                        </label>
                         <button
                             onClick={handleAddClick}
-                            className="bg-[#364cbb] hover:bg-[#364cdd] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
+                            className="bg-[#4f63d2] hover:bg-[#3d4ebc] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
                         >
                             Add Vendor
                         </button>
+                        <label
+                            htmlFor="vendorUpdate"
+                            className="bg-[#14b8a6] hover:bg-[#0d9488] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
+
+                        >
+                            Update Vendor
+                            <input
+                                type="file"
+                                id="vendorUpdate"
+                                accept=".xlsx,.xls,.csv"
+                                onChange={handleUpdateVendor}
+                                className="hidden"
+                                disabled={isLoading}
+                            />
+                        </label>
                         <button
                             onClick={handleDownload}
                             className="bg-[#f48d02] hover:bg-[#f7a733] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
