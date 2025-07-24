@@ -13,6 +13,7 @@ import NatureOfWorkTable from "../components/admin/NatureOfWorkTable";
 import UserTable from "../components/admin/UserTable";
 import CurrencyTable from "../components/admin/CurrencyTable";
 import Toast from '../components/Toast';
+import { importExcel } from '../apis/bills.api';
 
 const Admin = () => {
     const [isAdmin, setIsAdmin] = useState(false)
@@ -50,11 +51,13 @@ const Admin = () => {
 
         setLoading(true);
         try {
-            const response = await axios.post(importReport, formData, {
+            const response = await axios.post(`${importExcel}/import-report`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
             });
+            console.log(response.data);
+
             showToast('File imported successfully', 'success');
         } catch (error) {
             console.error('Error importing file:', error);
