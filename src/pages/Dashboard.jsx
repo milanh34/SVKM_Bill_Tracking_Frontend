@@ -22,6 +22,10 @@ import {
   ArrowLeftFromLine,
   ArrowRightFromLine,
   Printer,
+  EditIcon,
+  Cross,
+  CrossIcon,
+  X
 } from "lucide-react";
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnView";
@@ -33,6 +37,8 @@ import Cookies from "js-cookie";
 import { handleExportReport } from "../utils/exportExcelDashboard";
 import ChecklistModal from "../components/dashboard/ChecklistModal";
 import { patchBills } from "../apis/report.api";
+import { importExcel } from '../apis/bills.api';
+
 const Dashboard = () => {
   const currentUserRole = Cookies.get("userRole");
 
@@ -70,6 +76,7 @@ const Dashboard = () => {
   const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
   const [filteredDataBill, setFilteredDataBill] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [openUpdateBillModal, setOpenUpdateBillModal] = useState(false);
 
   const navigate = useNavigate();
 
@@ -522,22 +529,22 @@ const Dashboard = () => {
   }, [currentUserRole]);
 
   useEffect(() => {
-  if (columns.length > 0) {
-    const stored = localStorage.getItem("dashboard_visible_columns");
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      // Only keep columns that still exist (in case columns change)
-      const valid = parsed.filter(field => columns.some(col => col.field === field));
-      setVisibleColumnFields(valid.length > 0 ? valid : columns.slice(0, 12).map(col => col.field));
-    } else {
-      const initialColumns = columns.slice(0, 12).map((col) => col.field);
-      if (!initialColumns.includes("srNo")) {
-        initialColumns.unshift("srNo");
+    if (columns.length > 0) {
+      const stored = localStorage.getItem("dashboard_visible_columns");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Only keep columns that still exist (in case columns change)
+        const valid = parsed.filter(field => columns.some(col => col.field === field));
+        setVisibleColumnFields(valid.length > 0 ? valid : columns.slice(0, 12).map(col => col.field));
+      } else {
+        const initialColumns = columns.slice(0, 12).map((col) => col.field);
+        if (!initialColumns.includes("srNo")) {
+          initialColumns.unshift("srNo");
+        }
+        setVisibleColumnFields(initialColumns);
       }
-      setVisibleColumnFields(initialColumns);
     }
-  }
-}, [columns]);
+  }, [columns]);
 
   const toggleColumnVisibility = (field) => {
     // Prevent srNo from being toggled off
@@ -656,41 +663,41 @@ const Dashboard = () => {
   };
 
   const handlePrint = () => {
-  if (selectedRows.length === 0) {
-    toast.error("Please select rows to print");
-    return;
-  }
+    if (selectedRows.length === 0) {
+      toast.error("Please select rows to print");
+      return;
+    }
 
-  const selectedData = filteredData.filter(row => selectedRows.includes(row._id));
-  
-  const visibleColumns = columns.filter(col =>
-    visibleColumnFields.includes(col.field) && col.field !== "srNoOld"
-  );
+    const selectedData = filteredData.filter(row => selectedRows.includes(row._id));
 
-  const grandTotals = {};
+    const visibleColumns = columns.filter(col =>
+      visibleColumnFields.includes(col.field) && col.field !== "srNoOld"
+    );
 
-  grandTotals.taxInvAmt = selectedData.reduce((total, row) => {
-    const taxInvAmt = row.taxInvAmt || 0;
-    return total + (typeof taxInvAmt === 'number' ? taxInvAmt : 0);
-  }, 0);
+    const grandTotals = {};
 
-  const copAmountColumn = visibleColumns.find(col => col.field === "copDetails.amount");
-  if (copAmountColumn) {
-    grandTotals["copDetails.amount"] = selectedData.reduce((total, row) => {
-      const copAmount = row.copDetails?.amount || 0;
-      return total + (typeof copAmount === 'number' ? copAmount : 0);
+    grandTotals.taxInvAmt = selectedData.reduce((total, row) => {
+      const taxInvAmt = row.taxInvAmt || 0;
+      return total + (typeof taxInvAmt === 'number' ? taxInvAmt : 0);
     }, 0);
-  }
 
-  const paymentAmtColumn = visibleColumns.find(col => col.field === "accountsDept.paymentAmt");
-  if (paymentAmtColumn) {
-    grandTotals["accountsDept.paymentAmt"] = selectedData.reduce((total, row) => {
-      const paymentAmt = row.accountsDept?.paymentAmt || 0;
-      return total + (typeof paymentAmt === 'number' ? paymentAmt : 0);
-    }, 0);
-  }
+    const copAmountColumn = visibleColumns.find(col => col.field === "copDetails.amount");
+    if (copAmountColumn) {
+      grandTotals["copDetails.amount"] = selectedData.reduce((total, row) => {
+        const copAmount = row.copDetails?.amount || 0;
+        return total + (typeof copAmount === 'number' ? copAmount : 0);
+      }, 0);
+    }
 
-  const poAmtColumn = visibleColumns.find(col => col.field === "poAmt");
+    const paymentAmtColumn = visibleColumns.find(col => col.field === "accountsDept.paymentAmt");
+    if (paymentAmtColumn) {
+      grandTotals["accountsDept.paymentAmt"] = selectedData.reduce((total, row) => {
+        const paymentAmt = row.accountsDept?.paymentAmt || 0;
+        return total + (typeof paymentAmt === 'number' ? paymentAmt : 0);
+      }, 0);
+    }
+
+    const poAmtColumn = visibleColumns.find(col => col.field === "poAmt");
     if (poAmtColumn) {
       grandTotals["poAmt"] = selectedData.reduce((total, row) => {
         const valuePoAmt = row.poAmt || 0;
@@ -698,11 +705,11 @@ const Dashboard = () => {
       }, 0);
     }
 
-  console.log(grandTotals);
+    console.log(grandTotals);
 
-  const printWindow = window.open("", "_blank");
+    const printWindow = window.open("", "_blank");
 
-  const tableHTML = `
+    const tableHTML = `
     <!DOCTYPE html>
     <html>
       <head>
@@ -791,68 +798,68 @@ const Dashboard = () => {
             ${selectedData.map(row => `
               <tr>
                 ${visibleColumns.map(col => {
-    const value = getNestedValue(row, col.field);
-    let displayValue = value || '-';
+      const value = getNestedValue(row, col.field);
+      let displayValue = value || '-';
 
-    if (col.field.includes('amount') || col.field.includes('Amt')) {
-      if (value && !isNaN(value)) {
-        displayValue = new Intl.NumberFormat('en-IN', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-          useGrouping: true
-        }).format(value);
-      }
-    }
-
-    if (value && typeof value === 'string' && value.includes('T')) {
-      try {
-        const date = new Date(value);
-        if (!isNaN(date.getTime())) {
-          displayValue = date.toLocaleDateString('en-GB');
+      if (col.field.includes('amount') || col.field.includes('Amt')) {
+        if (value && !isNaN(value)) {
+          displayValue = new Intl.NumberFormat('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+            useGrouping: true
+          }).format(value);
         }
-      } catch (e) {
-        console.log(e);
       }
-    }
 
-    let cellClass = '';
-    if (col.field.includes('status') && value) {
-      const statusLower = value.toLowerCase();
-      if (statusLower.includes('approve') || statusLower === 'paid' || statusLower === 'active') {
-        cellClass = 'status-approved';
-      } else if (statusLower.includes('reject') || statusLower === 'fail') {
-        cellClass = 'status-rejected';
-      } else if (statusLower.includes('pend') || statusLower === 'waiting' || statusLower === 'unpaid') {
-        cellClass = 'status-pending';
+      if (value && typeof value === 'string' && value.includes('T')) {
+        try {
+          const date = new Date(value);
+          if (!isNaN(date.getTime())) {
+            displayValue = date.toLocaleDateString('en-GB');
+          }
+        } catch (e) {
+          console.log(e);
+        }
       }
-    }
 
-    if (col.field.includes('amount') || col.field.includes('Amt')) {
-      cellClass += ' amount';
-    }
+      let cellClass = '';
+      if (col.field.includes('status') && value) {
+        const statusLower = value.toLowerCase();
+        if (statusLower.includes('approve') || statusLower === 'paid' || statusLower === 'active') {
+          cellClass = 'status-approved';
+        } else if (statusLower.includes('reject') || statusLower === 'fail') {
+          cellClass = 'status-rejected';
+        } else if (statusLower.includes('pend') || statusLower === 'waiting' || statusLower === 'unpaid') {
+          cellClass = 'status-pending';
+        }
+      }
 
-    return `<td class="${cellClass}">${displayValue}</td>`;
-  }).join('')}
+      if (col.field.includes('amount') || col.field.includes('Amt')) {
+        cellClass += ' amount';
+      }
+
+      return `<td class="${cellClass}">${displayValue}</td>`;
+    }).join('')}
               </tr>
             `).join('')}
             
             <!-- Grand Total Row -->
             <tr class="grand-total-row">
               ${visibleColumns.map((col, index) => {
-    if (index === 0) {
-      return `<td><strong>Grand Total</strong></td>`;
-    } else if (grandTotals[col.field]) {
-      const total = grandTotals[col.field];
-      const formattedTotal = new Intl.NumberFormat('en-IN', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-        useGrouping: true
-      }).format(total);
-      return `<td class="amount"><strong>${formattedTotal}</strong></td>`;
-    } else {
-      return `<td></td>`;
-    }
-  }).join('')}
+      if (index === 0) {
+        return `<td><strong>Grand Total</strong></td>`;
+      } else if (grandTotals[col.field]) {
+        const total = grandTotals[col.field];
+        const formattedTotal = new Intl.NumberFormat('en-IN', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+          useGrouping: true
+        }).format(total);
+        return `<td class="amount"><strong>${formattedTotal}</strong></td>`;
+      } else {
+        return `<td></td>`;
+      }
+    }).join('')}
             </tr>
           </tbody>
         </table>
@@ -860,17 +867,60 @@ const Dashboard = () => {
     </html>
   `;
 
-  printWindow.document.write(tableHTML);
-  printWindow.document.close();
+    printWindow.document.write(tableHTML);
+    printWindow.document.close();
 
-  printWindow.onload = () => {
-    setTimeout(() => {
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+      }, 250);
+    };
   };
-};
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'text/csv'
+    ];
+    const allowedExtensions = /\.(xlsx|xls|csv)$/i;
+
+    if (
+      !allowedTypes.includes(file.type) &&
+      !allowedExtensions.test(file.name)
+    ) {
+      toast.error('Only .xlsx, .xls, .csv files are allowed');
+      event.target.value = '';
+      return;
+    }
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    setLoading(true);
+    try {
+      const response = await axios.post(`${importExcel}/patch-bills`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      console.log(response.data);
+
+      toast.success('File imported successfully');
+    } catch (error) {
+      console.error('Error importing file:', error);
+      toast.error(error.response?.data?.message || 'Error importing file');
+    } finally {
+      setLoading(false);
+      event.target.value = '';
+      setOpenUpdateBillModal(false);
+    }
+  }
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -943,6 +993,53 @@ const Dashboard = () => {
                       <span>Checklist</span>
                     </button>
                   )}
+
+                <button
+                  className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-white text-sm bg-[#011a99] border border-gray-300 rounded-md hover:bg-blue-800 transition-colors"
+                  onClick={() => setOpenUpdateBillModal(true)}
+                >
+                  <EditIcon className="w-4 h-4 mr-1" />
+                  Update Bills
+
+                </button>
+
+                {
+                  openUpdateBillModal && <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+                    <div className="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md relative">
+
+                      <button 
+                        className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+                        onClick={() => setOpenUpdateBillModal(false)}
+                      >
+                        <X className="text-red-500 cursor-pointer" />
+                      </button>
+
+                      <div className="mt-5 text-center">
+                        <p className="mb-2 font-semibold">Import A File To Update Bills</p>
+                        <p className="mb-2">Here is a link to preview the required format.</p>
+                        <p>
+                          link: <a href="#" className="text-blue-600 underline">helloworld.com</a>
+                        </p>
+
+                        <label
+                          htmlFor="fileInput"
+                          className="inline-block mt-6 bg-[#364cbb] text-white font-semibold py-2 px-4 rounded-md cursor-pointer transition duration-200 hover:bg-[#2a3c9e] hover:-translate-y-0.5 shadow-md"
+                        >
+                          Update Bills (Import File)
+                          <input
+                            type="file"
+                            id="fileInput"
+                            accept=".xlsx,.xls,.csv"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                            disabled={loading}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                }
 
                 <button
                   className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-white text-sm bg-yellow-600 border border-gray-300 rounded-md hover:bg-yellow-700 transition-colors"
@@ -1057,8 +1154,8 @@ const Dashboard = () => {
 
                 <button
                   className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors ${showDownloadValidation
-                      ? "animate-shake border-2 border-red-500"
-                      : ""
+                    ? "animate-shake border-2 border-red-500"
+                    : ""
                     }`}
                   onClick={handleDownloadReport}
                   title={
@@ -1087,8 +1184,8 @@ const Dashboard = () => {
                 ) : (
                   <button
                     className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors ${selectedRole
-                        ? "relative after:absolute after:top-0 after:right-0 after:w-2 after:h-2 after:bg-green-500 after:rounded-full"
-                        : ""
+                      ? "relative after:absolute after:top-0 after:right-0 after:w-2 after:h-2 after:bg-green-500 after:rounded-full"
+                      : ""
                       }`}
                     onClick={handleSendTo}
                     title="Send Bills"
@@ -1188,8 +1285,8 @@ const Dashboard = () => {
                         <button
                           key={pageNumber}
                           className={`px-2.5 py-1.5 text-sm hover:cursor-pointer border rounded-md transition-colors ${currentPage === pageNumber
-                              ? "bg-[#011a99] text-white"
-                              : "bg-white border-gray-300 hover:bg-gray-50"
+                            ? "bg-[#011a99] text-white"
+                            : "bg-white border-gray-300 hover:bg-gray-50"
                             }`}
                           onClick={() => handlePageChange(pageNumber)}
                         >
