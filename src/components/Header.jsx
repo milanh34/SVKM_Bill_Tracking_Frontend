@@ -24,7 +24,7 @@ const Header = () => {
     { name: "Home", path: "/", allowedRoles: ['all'] },
     { name: "Create Bill", path: "/create-bill", allowedRoles: ['site_officer', 'site_pimo', 'admin'] },
     { name: "Reports", path: "/reports", allowedRoles: ['all'] },
-    { name: "Forwarded Bills", path: "/forwardedbills", allowedRoles: ['all'] },
+    { name: "Forwarded Bills", path: "/forwardedbills", allowedRoles: ['site_officer', 'site_pimo', 'accounts'] },
     { name: "Masters", path: "/admin", allowedRoles: ['admin'] },
   ];
 

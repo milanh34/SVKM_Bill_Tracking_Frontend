@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import axios from "axios";
-import { sentBills } from "../apis/bills.api";
+import { sentBills, rejectPayment } from "../apis/bills.api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import * as XLSX from "xlsx";
@@ -11,8 +11,7 @@ import {
   Funnel,
   Grid3x3,
   Download,
-  ChevronLeft,
-  ChevronRight,
+  X,
 } from "lucide-react";
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnView";
@@ -21,6 +20,7 @@ import Loader from "../components/Loader";
 import Cookies from "js-cookie";
 
 const SentBills = () => {
+  const currentUserRole = Cookies.get("userRole");
   const [billsData, setBillsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -53,21 +53,9 @@ const SentBills = () => {
     }
   }, [navigate]);
 
-  const roleMapping = {
-    site_officer: "site_officer",
-    site_pimo: "pimo_mumbai",
-    director: "trustees",
-    pimo_mumbai: "fi",
-    qs_site: "qs_mumbai",
-    accounts: "accounts_department",
-  };
-
   const fetchBills = async () => {
     try {
-      const userRole = Cookies.get("userRole");
-      const mappedRole = roleMapping[userRole] || userRole;
-
-      const response = await axios.get(`${sentBills}/${mappedRole}`, {
+      const response = await axios.get(`${sentBills}/${Cookies.get("userRole")}`, {
         headers: { Authorization: `Bearer ${Cookies.get("token")}` },
       });
       console.log("Received sent bills:", response.data.data);
@@ -271,6 +259,33 @@ const SentBills = () => {
     };
   }, [columnSelectorRef]);
 
+  const handlePaymentReject = async () => {
+    try {
+      const token = Cookies.get("token");
+      const promises = selectedRows.map((billId) =>
+        axios.post(
+          rejectPayment,
+          { billId },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+      );
+
+      await Promise.all(promises);
+      toast.success("Payment rejected for selected bills");
+      await fetchBills();
+      setSelectedRows([]);
+    } catch (error) {
+      console.error("Error rejecting payment:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to reject payment"
+      );
+    }
+  };
+
   const paginationSection = (
     <div className="flex justify-between items-center mt-2">
       <div className="flex items-center space-x-2">
@@ -446,6 +461,27 @@ const SentBills = () => {
                   <Download className="w-4 h-4 mr-1" />
                   Export
                 </button>
+
+                {currentUserRole === "accounts" && (
+                  <button
+                    className="flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                    onClick={() => {
+                      if (selectedRows.length === 0) {
+                        toast.error("Please select bills to reject payment");
+                        return;
+                      }
+                      handlePaymentReject();
+                    }}
+                    title={
+                      selectedRows.length === 0
+                        ? "Select bills to reject payment"
+                        : "Reject payment for selected bills"
+                    }
+                  >
+                    <X className="w-4 h-4" />
+                    <span>Reject Payment</span>
+                  </button>
+                )}
 
                 {/* Column selector dropdown */}
                 <div className="relative" ref={columnSelectorRef}>
