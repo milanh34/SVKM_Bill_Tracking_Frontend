@@ -450,12 +450,12 @@ const Dashboard = () => {
         if (currentUserRole === "accounts") {
           result = result.filter(
             (bill) =>
-              bill.accountsDept?.dateGiven && !bill.accountsDept?.dateReceived && !bill.accountsDept?.markReceived
+              bill.accountsDept?.dateGiven && !bill.accountsDept?.dateReceived
           );
         } else if (currentUserRole === "site_pimo") {
           result = result.filter(
             (bill) =>
-              bill.pimoMumbai?.dateGiven && !bill.pimoMumbai?.dateReceived && !bill.pimoMumbai?.markReceived
+              bill.pimoMumbai?.dateGiven && !bill.pimoMumbai?.dateReceived
           );
         }
       } else {
@@ -463,7 +463,7 @@ const Dashboard = () => {
         if (currentUserRole === "accounts") {
           result = result.filter((bill) => bill.accountsDept?.dateReceived);
         } else if (currentUserRole === "site_pimo") {
-          result = result.filter((bill) => bill.pimoMumbai?.dateReceived);
+          result = result.filter((bill) => bill.pimoMumbai?.markReceived === true);
         }
       }
     }

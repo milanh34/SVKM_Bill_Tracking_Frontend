@@ -1,13 +1,11 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Header from "../components/Header";
 import { bills } from "../apis/bills.api";
 import {
   natureOfWorks,
   vendors,
-  regions,
   currencies,
 } from "../apis/master.api";
-import imageBox from "../assets/img-box.svg";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { toast, ToastContainer } from "react-toastify";
@@ -17,6 +15,7 @@ import { useDropzone } from "react-dropzone";
 import { Paperclip, X } from "lucide-react";
 
 const FullBillDetails = () => {
+  const currentUserRole = Cookies.get("userRole");
   const navigate = useNavigate();
   const [showSuccess, setShowSuccess] = useState(false);
   const today = new Date().toISOString().split("T")[0];
@@ -483,7 +482,9 @@ const FullBillDetails = () => {
         });
       }
 
-      const res = await axios.post(bills, formData, {
+      // Add role=3 query parameter if user is site_pimo
+      const queryParams = currentUserRole === "site_pimo" ? "?role=3" : "";
+      const res = await axios.post(`${bills}${queryParams}`, formData, {
         headers: { Authorization: `Bearer ${Cookies.get("token")}` },
         "Content-Type": "multipart/form-data",
       });
