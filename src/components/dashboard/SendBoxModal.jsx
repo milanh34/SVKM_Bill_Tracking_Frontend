@@ -50,9 +50,9 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
         if(Cookies.get("userRole") === "site_officer") {
             toRoleVariable = "site_team";
         }else if(Cookies.get("userRole") === "qs_site") {
-            toRoleVariable = "qs_mumbai";
+            toRoleVariable = "qs_team";
         }else if(Cookies.get("userRole") === "director") {
-            toRoleVariable = "trustees";
+            toRoleVariable = "trustee";
         }else if(Cookies.get("userRole") === "site_pimo") {
             toRoleVariable = "pimo_mumbai";
         } else if(Cookies.get("userRole") === "accounts") {
@@ -79,7 +79,7 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
                 toUser,
                 billIds: selectedBills,
                 action: "forward",
-                remarks: remarks || ""
+                remarks: ""
             });
 
             if (res.data.success) {

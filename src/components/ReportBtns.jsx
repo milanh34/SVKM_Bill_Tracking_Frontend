@@ -32,7 +32,7 @@ const ReportBtns = () => {
     const roleAccess = {
         "site_officer": ["reportsrecatsite", "reportscouriermumbai"],
         "qs_site": [],
-        "site_pimo": ["reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportspending"],
+        "site_pimo": ["reportsrecatsite", "reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportspending"],
         "pimo_mumbai": ["reportsrecatsite"],
         "accounts": ["reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportsinvoiceacctdept", "reportsinvoicepaid", "reportsbilljourney"],
         "director": ["reportsrecatsite", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportsinvoiceqssite", "reportsinvoicepaid", "reportspending", "reportsbilljourney"],

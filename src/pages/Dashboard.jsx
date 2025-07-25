@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import axios from "axios";
-import { bills, receiveBills } from "../apis/bills.api";
+import { bills, receiveBills, notReceivedPimo, notReceivedAccounts } from "../apis/bills.api";
 import {
   natureOfWorks,
   currencies,
@@ -142,34 +142,31 @@ const Dashboard = () => {
   const roleWorkflow = {
     site_officer: [
       { value: "quality_engineer", label: "Quality Engineer" },
-      { value: "qs_measurement", label: "QS Site for measurement" },
-      { value: "qs_cop", label: "QS Site for COP" },
+      { value: "qs_measurement", label: "QS for measure" },
+      { value: "qs_cop", label: "QS for Prov. COP" },
       { value: "site_engineer", label: "Site Engineer" },
       { value: "site_architect", label: "Site Architect" },
       { value: "site_incharge", label: "Site Incharge" },
-      { value: "migo_entry", label: "MIGO Entry Team" },
+      { value: "migo_entry", label: "MIGO Team" },
+      { value: "migo_entry_return", label: "Ret to Site Team aft MIGO" },
       { value: "site_dispatch_team", label: "Site Dispatch Team" },
       { value: "pimo_mumbai", label: "PIMO Team" },
     ],
+    qs_site: [
+      { value: "measure", label: "Ret to Site Team aft measure" },
+      { value: "site_cop", label: "Ret to Site Team aft COP" },
+      { value: "pimo_cop", label: "Ret to PIMO Team aft COP" },
+    ],
     site_pimo: [
-      { value: "qs_mumbai", label: "QS Mumbai" },
-      { value: "it_department", label: "IT Department" },
-      { value: "ses_team", label: "SES PIMO Team" },
-      { value: "pimo_dispatch_team", label: "Returned to PIMO Dispatch Team" },
-      { value: "trustees", label: "Director/Advisor/Trustee" },
+      { value: "qs_mumbai", label: "QS Mumbai for COP" },
+      { value: "it_team", label: "IT Team" },
+      { value: "ses_team", label: "SES Team" },
+      { value: "it_return_team", label: "Ret to PIMO Team by IT" },
+      { value: "ses_return_team", label: " Ret to PIMO Team by SES" },
+      { value: "trustee", label: "Director/Advisor/Trustee" },
       { value: "accounts_department", label: "Accounts Team" }
     ],
-    qs_site: [
-      { value: "pimo_mumbai", label: "PIMO Team" },
-      { value: "site_team", label: "Returned to Site Team" },
-    ],
-    pimo_mumbai: [
-      { value: "accounts_department", label: "Accounts Team" },
-    ],
     director: [{ value: "pimo_mumbai", label: "Returned to PIMO" }],
-    accounts: [
-      { value: "booking_team", label: "Booking & checking" },
-    ],
   };
 
   const handleSendTo = () => {
@@ -227,6 +224,40 @@ const Dashboard = () => {
     }
   };
 
+  const handleNotReceiveBills = async () => {
+    if (selectedRows.length === 0) {
+      toast.error("Please select bills to mark as not received");
+      return;
+    }
+
+    try {
+      const token = Cookies.get("token");
+      const endpoint = currentUserRole === "site_pimo" ? notReceivedPimo : notReceivedAccounts;
+      
+      const promises = selectedRows.map((billId) =>
+        axios.post(
+          endpoint,
+          { billId },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+      );
+
+      await Promise.all(promises);
+      toast.success("Bills marked as not received");
+      await fetchAllData();
+      setSelectedRows([]);
+    } catch (error) {
+      console.error("Error marking bills as not received:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to mark bills as not received"
+      );
+    }
+  };
+
   useEffect(() => {
     const userRole = Cookies.get("userRole");
     const token = Cookies.get("token");
@@ -246,19 +277,19 @@ const Dashboard = () => {
           return currentCount === 1;
 
         case "site_pimo":
-          return currentCount === 2 || currentCount === 4 || currentCount === 6;
-
-        case "pimo_mumbai":
-          return currentCount === 2 || currentCount === 4 || currentCount === 6;
-
-        case "qs_site":
           return currentCount === 3;
 
+        case "pimo_mumbai":
+          return currentCount === 3;
+
+        case "qs_site":
+          return currentCount === 2;
+
         case "director":
-          return currentCount === 5;
+          return currentCount === 4;
 
         case "accounts":
-          return currentCount === 7;
+          return currentCount === 5 && bill.accountsDept.paymentDate === null;
 
         case "admin":
           return true;
@@ -413,25 +444,25 @@ const Dashboard = () => {
     let result = billsData;
 
     // First filter based on role and received status
-    if (["pimo_mumbai", "accounts"].includes(currentUserRole)) {
+    if (["site_pimo", "accounts"].includes(currentUserRole)) {
       if (showIncomingBills) {
         // Show only bills that haven't been received
         if (currentUserRole === "accounts") {
           result = result.filter(
             (bill) =>
-              bill.accountsDept?.dateGiven && !bill.accountsDept?.dateReceived
+              bill.accountsDept?.dateGiven && !bill.accountsDept?.dateReceived && !bill.accountsDept?.markReceived
           );
-        } else if (currentUserRole === "pimo_mumbai") {
+        } else if (currentUserRole === "site_pimo") {
           result = result.filter(
             (bill) =>
-              bill.pimoMumbai?.dateGiven && !bill.pimoMumbai?.dateReceived
+              bill.pimoMumbai?.dateGiven && !bill.pimoMumbai?.dateReceived && !bill.pimoMumbai?.markReceived
           );
         }
       } else {
         // Show only bills that have been received
         if (currentUserRole === "accounts") {
           result = result.filter((bill) => bill.accountsDept?.dateReceived);
-        } else if (currentUserRole === "pimo_mumbai") {
+        } else if (currentUserRole === "site_pimo") {
           result = result.filter((bill) => bill.pimoMumbai?.dateReceived);
         }
       }
@@ -629,7 +660,7 @@ const Dashboard = () => {
     setSelectedRegion(region ? [region] : []);
   };
 
-  const showIncomingBillsButton = ["accounts", "pimo_mumbai", "site_pimo", "qs_site"].includes(
+  const showIncomingBillsButton = ["accounts", "site_pimo",].includes(
     currentUserRole
   );
 
@@ -1168,19 +1199,26 @@ const Dashboard = () => {
                   <span>Export</span>
                 </button>
                 {showIncomingBills ? (
-                  <button
-                    className="inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#1a8d1a] text-white rounded-md hover:bg-[#158515] transition-colors"
-                    onClick={handleReceiveBills}
-                    disabled={selectedRows.length === 0}
-                    title={
-                      selectedRows.length === 0
-                        ? "Select bills to mark as received"
-                        : "Mark selected bills as received"
-                    }
-                  >
-                    <CheckSquare className="w-4 h-4" />
-                    <span>Mark as Received</span>
-                  </button>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      className="inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#1a8d1a] text-white rounded-md hover:bg-[#158515] transition-colors"
+                      onClick={handleReceiveBills}
+                      disabled={selectedRows.length === 0}
+                      title={selectedRows.length === 0 ? "Select bills to mark as received" : "Mark selected bills as received"}
+                    >
+                      <CheckSquare className="w-4 h-4" />
+                      <span>Mark as Received</span>
+                    </button>
+                    <button
+                      className="inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                      onClick={handleNotReceiveBills}
+                      disabled={selectedRows.length === 0}
+                      title={selectedRows.length === 0 ? "Select bills to mark as not received" : "Mark selected bills as not received"}
+                    >
+                      <X className="w-4 h-4" />
+                      <span>Mark as Not Received</span>
+                    </button>
+                  </div>
                 ) : (
                   <button
                     className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors ${selectedRole
