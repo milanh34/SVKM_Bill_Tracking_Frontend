@@ -1,34 +1,34 @@
 import React, { useState, useRef, useEffect } from "react";
-import Header from "../components/Header";
-import { bills } from "../apis/bills.api";
-import imageBox from "../assets/img-box.svg";
+import Header from "../../components/Header";
+import { bills } from "../../apis/bills.api";
+import imageBox from "../../assets/img-box.svg";
 
-const BillDetailsSISO = () => {
+const BillDetailsQS = () => {
   useEffect(() => {
     const style = document.createElement("style");
     style.textContent = `
-                  .bill-form select {
-                    -webkit-appearance: none;
-                    -moz-appearance: none;
-                    appearance: none;
-                    background: white url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 0.75rem center;
-                    padding-right: 2.5rem;
-                  }
-                  .bill-form select::-webkit-scrollbar {
-                    width: 6px;
-                  }
-                  .bill-form select::-webkit-scrollbar-track {
-                    background: #f1f1f1;
-                    border-radius: 4px;
-                  }
-                  .bill-form select::-webkit-scrollbar-thumb {
-                    background: #888;
-                    border-radius: 4px;
-                  }
-                  .bill-form select::-webkit-scrollbar-thumb:hover {
-                    background: #555;
-                  }
-                `;
+              .bill-form select {
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+                background: white url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 0.75rem center;
+                padding-right: 2.5rem;
+              }
+              .bill-form select::-webkit-scrollbar {
+                width: 6px;
+              }
+              .bill-form select::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 4px;
+              }
+              .bill-form select::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 4px;
+              }
+              .bill-form select::-webkit-scrollbar-thumb:hover {
+                background: #555;
+              }
+            `;
     document.head.appendChild(style);
     return () => document.head.removeChild(style);
   }, []);
@@ -54,33 +54,31 @@ const BillDetailsSISO = () => {
     taxInvDate: "",
     taxInvAmt: "",
     taxInvRecdBy: "",
+    taxInvRecdAtSite: "",
     currency: "",
     department: "",
     remarksSiteTeam: "",
     billImg: "",
 
+    advDate: "",
+    advAmt: "",
+    advPrecent: "",
+    advReqEnteredBy: "",
+
     checkingDate: "",
-    dateGivenToQualEng: "",
-    nameQualEng: "",
-    dateGivenToQSforInspect: "",
+    dateGivenToQS: "",
+    qsName: "",
+    dateGivenToQSforCOP: "",
+    copDate: "",
+    copAmt: "",
+    remarksQsTeam: "",
+
+    dateGivenToQSMum: "",
     nameQS: "",
+    dateGivenToPIMOmum: "",
+    pimoName: "",
 
-    dateGivenForMigo: "",
-    migoDate: "",
-    migoNo: "",
-    migoAmt: "",
-    migoDoneBy: "",
-
-    invDateReturnSiteOff: "",
-    dateGivenToSiteEng: "",
-    nameSiteEng: "",
-    remarksSiteEng: "",
-    dateGivenToArchi: "",
-    nameArchi: "",
-    remarksArchi: "",
-    dateGivenToSiteIncharge: "",
-    nameSiteIncharge: "",
-    remarksSiteIncharge: "",
+    natureOfWork: "others",
   });
 
   const [billImage, setBillImage] = useState(null);
@@ -725,6 +723,82 @@ const BillDetailsSISO = () => {
         <div className="flex mt-[4vh]">
           <div className="w-1/2">
             <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">
+              Advanced Details
+            </h1>
+
+            <div>
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="advDate"
+                >
+                  Advanced Date
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  id="advDate"
+                  value={billFormData.advDate}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="advAmt"
+                >
+                  Advance Amount
+                </label>
+                <input
+                  type="number"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="advAmt"
+                  value={billFormData.advAmt}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="advPercent"
+                >
+                  Advance Percentage
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="advPercent"
+                  value={billFormData.advPercent}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="advReqEnteredBy"
+                >
+                  Advance Request Entered By{" "}
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="advReqEnteredBy"
+                  value={billFormData.advReqEnteredBy}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="ml-[1vw] w-1/2">
+            <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">
               Quality Surveyor Details
             </h1>
 
@@ -749,49 +823,15 @@ const BillDetailsSISO = () => {
               <div className="relative mb-[4vh]">
                 <label
                   className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="dateGivenToQualEng"
-                >
-                  Date Given to Quality Engineer
-                </label>
-                <input
-                  type="date"
-                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                  id="dateGivenToQualEng"
-                  value={billFormData.dateGivenToQualEng}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="relative mb-[4vh]">
-                <label
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="nameQualEng"
-                >
-                  Name of Quality Engineer
-                </label>
-                <input
-                  type="text"
-                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                  id="nameQualEng"
-                  value={billFormData.nameQualEng}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="relative mb-[4vh]">
-                <label
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="dateGivenToQSforInspect"
+                  htmlFor="dateGivenToQS"
                 >
                   Date Given to QS for Inspection
                 </label>
                 <input
                   type="date"
                   className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                  id="dateGivenToQSforInspect"
-                  value={billFormData.dateGivenToQSforInspect}
+                  id="dateGivenToQS"
+                  value={billFormData.dateGivenToQS}
                   onChange={handleChange}
                   required
                 />
@@ -800,40 +840,32 @@ const BillDetailsSISO = () => {
               <div className="relative mb-[4vh]">
                 <label
                   className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="nameQS"
+                  htmlFor="qsName"
                 >
                   Name of QS
                 </label>
                 <input
                   type="text"
                   className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                  id="nameQS"
-                  value={billFormData.nameQS}
+                  id="qsName"
+                  value={billFormData.qsName}
                   onChange={handleChange}
                   required
                 />
               </div>
-            </div>
-          </div>
 
-          <div className="ml-[1vw] w-1/2">
-            <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">
-              MIGO Details
-            </h1>
-
-            <div>
               <div className="relative mb-[4vh]">
                 <label
                   className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="dateGivenForMigo"
+                  htmlFor="dateGivenToQSforCOP"
                 >
-                  Date Given for MIGO
+                  Date Given to QS for COP
                 </label>
                 <input
                   type="date"
                   className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                  id="dateGivenForMigo"
-                  value={billFormData.dateGivenForMigo}
+                  id="dateGivenToQSforCOP"
+                  value={billFormData.dateGivenToQSforCOP}
                   onChange={handleChange}
                   required
                 />
@@ -842,15 +874,15 @@ const BillDetailsSISO = () => {
               <div className="relative mb-[4vh]">
                 <label
                   className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="migoDate"
+                  htmlFor="copDate"
                 >
-                  MIGO Date
+                  COP Date
                 </label>
                 <input
                   type="date"
                   className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                  id="migoDate"
-                  value={billFormData.migoDate}
+                  id="copDate"
+                  value={billFormData.copDate}
                   onChange={handleChange}
                   required
                 />
@@ -859,15 +891,15 @@ const BillDetailsSISO = () => {
               <div className="relative mb-[4vh]">
                 <label
                   className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="migoNo"
+                  htmlFor="copAmt"
                 >
-                  MIGO No
+                  COP Amount
                 </label>
                 <input
-                  type="text"
+                  type="number"
                   className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                  id="migoNo"
-                  value={billFormData.migoNo}
+                  id="copAmt"
+                  value={billFormData.copAmt}
                   onChange={handleChange}
                   required
                 />
@@ -876,32 +908,15 @@ const BillDetailsSISO = () => {
               <div className="relative mb-[4vh]">
                 <label
                   className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="migoAmt"
+                  htmlFor="remarksQsTeam"
                 >
-                  MIGO Amount
+                  Remarks by QS Team
                 </label>
                 <input
                   type="text"
                   className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                  id="migoAmt"
-                  value={billFormData.migoAmt}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="relative mb-[4vh]">
-                <label
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="migoDoneBy"
-                >
-                  MIGO Done By
-                </label>
-                <input
-                  type="text"
-                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                  id="migoDoneBy"
-                  value={billFormData.migoDoneBy}
+                  id="remarksQsTeam"
+                  value={billFormData.remarksQsTeam}
                   onChange={handleChange}
                   required
                 />
@@ -910,188 +925,82 @@ const BillDetailsSISO = () => {
           </div>
         </div>
 
-        <div className="w-full flex">
-          <div className="w-1/2">
-            <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">
-              Transfering Details
-            </h1>
-
-            <div>
-              <div className="relative mb-[4vh]">
-                <label
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="invDateReturnSiteOff"
-                >
-                  Invoice returned to Site Office
-                </label>
-                <input
-                  type="date"
-                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                  id="invDateReturnSiteOff"
-                  value={billFormData.invDateReturnSiteOff}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="relative mb-[4vh]">
-                <label
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="dateGivenToSiteEng"
-                >
-                  Date Given to Site Engineer
-                </label>
-                <input
-                  type="date"
-                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                  id="dateGivenToSiteEng"
-                  value={billFormData.dateGivenToSiteEng}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="relative mb-[4vh]">
-                <label
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="nameSiteEng"
-                >
-                  Name of Site Engineer
-                </label>
-                <input
-                  type="text"
-                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                  id="nameSiteEng"
-                  value={billFormData.nameSiteEng}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="relative mb-[4vh]">
-                <label
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="dateGivenToArchi"
-                >
-                  Date Given to Architech
-                </label>
-                <input
-                  type="date"
-                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                  id="dateGivenToArchi"
-                  value={billFormData.dateGivenToArchi}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="relative mb-[4vh]">
-                <label
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="nameArchi"
-                >
-                  Name of Architech
-                </label>
-                <input
-                  type="text"
-                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                  id="nameArchi"
-                  value={billFormData.nameArchi}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="relative mb-[4vh]">
-                <label
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="dateGivenToSiteIncharge"
-                >
-                  Date Given - Site Incharge
-                </label>
-                <input
-                  type="date"
-                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                  id="dateGivenToSiteIncharge"
-                  value={billFormData.dateGivenToSiteIncharge}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="relative mb-[4vh]">
-                <label
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="nameSiteIncharge"
-                >
-                  Name - Site Incharge
-                </label>
-                <input
-                  type="text"
-                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                  id="nameSiteIncharge"
-                  value={billFormData.nameSiteIncharge}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+        <div className="w-full">
+          <div className="grid grid-cols-2 gap-[2vw]">
+            <div className="relative mb-[4vh]">
+              <label
+                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                htmlFor="dateGivenToQSMum"
+              >
+                Date Given to QS Mumbai
+              </label>
+              <input
+                type="date"
+                className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                id="dateGivenToQSMum"
+                value={billFormData.dateGivenToQSMum}
+                onChange={handleChange}
+              />
             </div>
+            <div></div>
           </div>
 
-          <div className="mt-[12vh] w-1/2">
-            <div className="form-section">
-              <div className="relative mb-[4vh]">
-                <label
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="remarksSiteEng"
-                >
-                  Remarks
-                </label>
-                <textarea
-                  className="w-9/12 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointe"
-                  id="remarksSiteEng"
-                  value={billFormData.remarksSiteEng}
-                  onChange={handleChange}
-                  rows={8}
-                  required
-                />
-              </div>
-
-              <div className="relative mb-[4vh]">
-                <label
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="remarksArchi"
-                >
-                  Remarks
-                </label>
-                <textarea
-                  className="w-9/12 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointe"
-                  id="remarksArchi"
-                  value={billFormData.remarksArchi}
-                  onChange={handleChange}
-                  rows={5}
-                  required
-                />
-              </div>
-
-              <div className="relative mb-[4vh]">
-                <label
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="remarksSiteIncharge"
-                >
-                  Remarks
-                </label>
-                <textarea
-                  type="text"
-                  className="w-9/12 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointe"
-                  id="remarksSiteIncharge"
-                  value={billFormData.remarksSiteIncharge}
-                  onChange={handleChange}
-                  rows={5}
-                  required
-                />
-              </div>
+          <div className="grid grid-cols-2 gap-[2vw]">
+            <div className="relative mb-[4vh]">
+              <label
+                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                htmlFor="nameQS"
+              >
+                Name of QS
+              </label>
+              <input
+                type="text"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                id="nameQS"
+                value={billFormData.nameQS}
+                onChange={handleChange}
+              />
             </div>
+            <div></div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-[2vw]">
+            <div className="relative mb-[4vh]">
+              <label
+                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                htmlFor="dateGivenToPIMOmum"
+              >
+                Date Given to PIMO Mumbai
+              </label>
+              <input
+                type="date"
+                className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                id="dateGivenToPIMOmum"
+                value={billFormData.dateGivenToPIMOmum}
+                onChange={handleChange}
+                style={{ width: "25%" }}
+              />
+            </div>
+            <div></div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-[2vw]">
+            <div className="relative mb-[4vh]">
+              <label
+                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                htmlFor="pimoName"
+              >
+                Name - PIMO
+              </label>
+              <input
+                type="text"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                id="pimoName"
+                value={billFormData.pimoName}
+                onChange={handleChange}
+              />
+            </div>
+            <div></div>
           </div>
         </div>
 
@@ -1107,4 +1016,4 @@ const BillDetailsSISO = () => {
   );
 };
 
-export default BillDetailsSISO;
+export default BillDetailsQS;

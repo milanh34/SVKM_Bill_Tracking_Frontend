@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../components/Header';
-import Filters from "../components/Filters";
-import ReportBtns from '../components/ReportBtns';
-import download from "../assets/download.svg";
-import send from "../assets/send.svg";
-import print from "../assets/print.svg";
+import Header from '../../components/Header';
+import Filters from "../../components/Filters";
+import ReportBtns from '../../components/ReportBtns';
+import download from "../../assets/download.svg";
+import send from "../../assets/send.svg";
+import print from "../../assets/print.svg";
 import axios from 'axios';
-import { invoicesPaid } from '../apis/report.api';
-import { handleExportRepPaid } from '../utils/exportExcelReportPaid';
-import { handleExportAllReports } from '../utils/exportDownloadPrintReports';
+import { givenToQSSite } from '../../apis/report.api';
+// import { handleExportRepGivenToQS } from '../../utils/archive/exportExcelReportGivenToQS';
+import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
 
-const InvoicesPaid = () => {
+const InvoicesGivenToQSSite = () => {
 
     const getFormattedDate = () => {
         const today = new Date();
@@ -28,11 +28,11 @@ const InvoicesPaid = () => {
     const fetchBills = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${invoicesPaid}?startDate=${fromDate}&endDate=${toDate}`);
+            const response = await axios.get(`${givenToQSSite}?startDate=${fromDate}&endDate=${toDate}`);
             console.log(response);
             setBills(response.data.report?.data || []);
         } catch (error) {
-            console.error('Error fetching paid invoices:', error);
+            console.error('Error fetching QS site bills:', error);
         } finally {
             setLoading(false);
         }
@@ -41,7 +41,6 @@ const InvoicesPaid = () => {
     useEffect(() => {
         fetchBills();
     }, [fromDate, toDate]);
-
 
     const handleTopDownload = async () => {
         console.log("Rep given to acc dept download clicked");
@@ -59,7 +58,7 @@ const InvoicesPaid = () => {
         console.log("Result = " + result.message);
     }
 
-    const titleName = "Invoices Paid";
+    const titleName = "Invoices Given to QS site";
 
     const columns = [
         { field: "srNo", headerName: "Sr. No" },
@@ -69,15 +68,13 @@ const InvoicesPaid = () => {
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
         { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
-        { field: "dtGivenToAcctsDept", headerName: "Dt given to Accts Dept" },
-        { field: "dtRecdInAcctsDept", headerName: "Dt recd in Accts Dept" },
-        { field: "dtOfPayment", headerName: "Dt of Payment" },
-        { field: "paymentAmt", headerName: "Payment Amount" },
+        { field: "dtGivenToQsSite", headerName: "Invoices given to QS Site" },
+        { field: "copAmt", headerName: "COP Amount" },
         { field: "poNo", headerName: "PO No" }
     ]
 
     const visibleColumnFields = [
-        "srNo", "projectDescription", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dtGivenToAcctsDept", "dtRecdInAcctsDept", "dtOfPayment", "paymentAmt", "poNo"
+        "srNo", "projectDescription", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dtGivenToQsSite", "copAmt", "poNo"
     ]
 
     return (
@@ -87,7 +84,7 @@ const InvoicesPaid = () => {
 
             <div className="p-[2vh_2vw] mx-auto font-sans h-[100vh] bg-white text-black">
                 <div className="flex justify-between items-center mb-[2vh]">
-                    <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Invoices Paid</h2>
+                    <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Invoices Given to QS Site</h2>
                     <div className="flex gap-[1vw] w-[50%]">
                         <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]" onClick={handleTopPrint}>
                             Print
@@ -121,10 +118,8 @@ const InvoicesPaid = () => {
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv no</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Date</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Amt</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt given to Accts Dept</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt recd in Accts Dept</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt of payment</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Payment Amt</th>
+                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Invoices given to QS site</th>
+                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>COP Amt</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>PO No</th>
                             </tr>
                         </thead>
@@ -138,21 +133,19 @@ const InvoicesPaid = () => {
                             //     <tr>
                             //         <td colSpan="9" className="text-center py-4">No invoices found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
                             //     </tr>
-                            // )
+                            // ) 
                             : bills
-                                .filter(bill => !bill.isSubTotal && bill.srNo)
+                                .filter(bill => !bill.isSubtotal && bill.srNo)
                                 .map((bill, index) => (
                                     <tr key={index} className="hover:bg-[#f5f5f5]">
                                         <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.srNo}</td>
                                         <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.projectDescription}</td>
                                         <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
                                         <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvDate}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvDate}</td>
                                         <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dtGivenToAcctsDept}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dtRecdInAcctsDept}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dtOfPayment}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.paymentAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dtGivenToQsSite}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.copAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '-'}</td>
                                         <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.poNo}</td>
                                     </tr>
                                 ))
@@ -166,11 +159,11 @@ const InvoicesPaid = () => {
                                         </td>
                                         <td colSpan={4} className='border border-black'></td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
-                                            <strong>Grand Total: {bill.grandTotalInvoiceAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                            <strong>Grand Total: {bill.grandTotalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                         </td>
-                                        <td colSpan={3} className='border border-black'></td>
+                                        <td colSpan={1} className='border border-black'></td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
-                                            <strong>Grand Total: {bill.grandTotalPaymentAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                            <strong>Grand Total: {bill.grandTotalCopAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                         </td>
                                         <td colSpan={1} className='border border-black'></td>
                                     </tr>
@@ -184,4 +177,4 @@ const InvoicesPaid = () => {
     )
 }
 
-export default InvoicesPaid;
+export default InvoicesGivenToQSSite;

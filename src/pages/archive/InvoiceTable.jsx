@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import Header from '../components/Header';
-import Filters from "../components/Filters";
+import Header from '../../components/Header';
+import Filters from "../../components/Filters";
 
 const InvoiceTable = () => {
     const[isWindowOpen, setIsWindowOpen] = useState(false);

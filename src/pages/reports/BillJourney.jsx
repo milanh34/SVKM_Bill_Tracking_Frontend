@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../components/Header';
-import Filters from "../components/Filters";
-import ReportBtns from '../components/ReportBtns';
-import download from "../assets/download.svg";
-import send from "../assets/send.svg";
-import print from "../assets/print.svg";
+import Header from '../../components/Header';
+import Filters from "../../components/Filters";
+import ReportBtns from '../../components/ReportBtns';
+import download from "../../assets/download.svg";
+import send from "../../assets/send.svg";
+import print from "../../assets/print.svg";
 import axios from 'axios';
-import { billJourney } from '../apis/report.api';
-import { handleExportRepBillJourney } from '../utils/exportExcelReportBillJourney';
-import { handleExportAllReports } from '../utils/exportDownloadPrintReports';
+import { billJourney } from '../../apis/report.api';
+// import { handleExportRepBillJourney } from '../../utils/archive/exportExcelReportBillJourney';
+import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
 
 const BillJourney = () => {
 

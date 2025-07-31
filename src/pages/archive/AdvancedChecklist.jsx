@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import pen from "../assets/pen.svg";
-import { bills } from "../apis/bills.api";
+import pen from "../../assets/pen.svg";
+import { bills } from "../../apis/bills.api";
 
 const AdvancedChecklist = (props) => {
     const billID = props.billID;

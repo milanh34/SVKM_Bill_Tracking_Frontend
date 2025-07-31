@@ -1,8 +1,8 @@
 import { useState } from "react";
-import Header from "../components/Header";
+import Header from "../../components/Header";
 import { useLocation } from "react-router-dom";
-import print from "../assets/print.svg";
-import logo from "../assets/logo.png";
+import print from "../../assets/print.svg";
+import logo from "../../assets/logo.png";
 
 const ITEMS_PER_PAGE = 1;
 

@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { report } from "../apis/bills.api";
-import { receivedAtSite } from '../apis/report.api';
-import Header from "../components/Header";
-import Filters from "../components/Filters";
-import ReportBtns from '../components/ReportBtns';
-import SendBox from "../components/Sendbox";
-import download from "../assets/download.svg";
-import send from "../assets/send.svg";
-import print from "../assets/print.svg";
+import { receivedAtSite } from '../../apis/report.api';
+import Header from "../../components/Header";
+import Filters from "../../components/Filters";
+import ReportBtns from '../../components/ReportBtns';
+import SendBox from "../../components/Sendbox";
+import download from "../../assets/download.svg";
+import send from "../../assets/send.svg";
+import print from "../../assets/print.svg";
 import Cookies from "js-cookie";
-import { handleExportRepRecdAtSite } from '../utils/exportExcelReportRecdSite';
-import { handleExportAllReports } from '../utils/exportDownloadPrintReports';
+// import { handleExportRepRecdAtSite } from '../../utils/archive/exportExcelReportRecdSite';
+import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
 
 const RepRecAtSite = () => {
 

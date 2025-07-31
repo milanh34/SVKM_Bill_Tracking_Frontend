@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../components/Header';
-import Filters from "../components/Filters";
-import ReportBtns from '../components/ReportBtns';
-import download from "../assets/download.svg";
-import send from "../assets/send.svg";
-import print from "../assets/print.svg";
+import Header from '../../components/Header';
+import Filters from "../../components/Filters";
+import ReportBtns from '../../components/ReportBtns';
+import download from "../../assets/download.svg";
+import send from "../../assets/send.svg";
+import print from "../../assets/print.svg";
 import axios from 'axios';
-import { pendingBills } from '../apis/report.api';
-import { handleExportRepPendingBills } from '../utils/exportExcelReportPendingBills';
-import { handleExportAllReports } from '../utils/exportDownloadPrintReports';
+import { pendingBills } from '../../apis/report.api';
+// import { handleExportRepPendingBills } from '../../utils/archive/exportExcelReportPendingBills';
+import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
 
 const ReportsPending = () => {
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import Header from '../components/Header';
-import pen from "../assets/pen.svg";
+import Header from '../../components/Header';
+import pen from "../../assets/pen.svg";
 
 const ChecklistAccount = () => {
     const [formData, setFormData] = useState({

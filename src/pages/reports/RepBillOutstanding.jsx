@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { outstanding } from '../apis/report.api';
-import Header from "../components/Header";
-import FiltersOutstanding from '../components/FiltersOutstanding';
-import ReportBtns from '../components/ReportBtns';
-import SendBox from "../components/Sendbox2";
-import download from "../assets/download.svg";
-import send from "../assets/send.svg";
-import print from "../assets/print.svg";
-import { handleExportOutstandingBillReports } from "../utils/exportExcelReportOutstanding";
-import { handleExportAllReports } from '../utils/exportDownloadPrintReports';
+import { outstanding } from '../../apis/report.api';
+import Header from "../../components/Header";
+import FiltersOutstanding from '../../components/FiltersOutstanding';
+import ReportBtns from '../../components/ReportBtns';
+import SendBox from "../../components/Sendbox2";
+import download from "../../assets/download.svg";
+import send from "../../assets/send.svg";
+import print from "../../assets/print.svg";
+import { handleExportOutstandingBillReports } from "../../utils/exportExcelReportOutstanding";
+// import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
 
 const RepBillOutstanding = () => {
 

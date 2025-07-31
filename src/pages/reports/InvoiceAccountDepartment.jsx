@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../components/Header';
-import Filters from "../components/Filters";
-import ReportBtns from '../components/ReportBtns';
-import download from "../assets/download.svg";
-import send from "../assets/send.svg";
-import print from "../assets/print.svg";
+import Header from '../../components/Header';
+import Filters from "../../components/Filters";
+import ReportBtns from '../../components/ReportBtns';
+import download from "../../assets/download.svg";
+import send from "../../assets/send.svg";
+import print from "../../assets/print.svg";
 import axios from 'axios';
-import { givenToQSSite } from '../apis/report.api';
-import { handleExportRepGivenToQS } from '../utils/exportExcelReportGivenToQS';
-import { handleExportAllReports } from '../utils/exportDownloadPrintReports';
+import { givenToAccounts } from '../../apis/report.api';
+// import { handleExportRepGivenToAccounts } from '../../utils/archive/exportExcelReportGivenToAccounts';
+import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
 
-const InvoicesGivenToQSSite = () => {
+const InvoicesGivenToAccountDept = () => {
 
     const getFormattedDate = () => {
         const today = new Date();
@@ -28,11 +28,11 @@ const InvoicesGivenToQSSite = () => {
     const fetchBills = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${givenToQSSite}?startDate=${fromDate}&endDate=${toDate}`);
+            const response = await axios.get(`${givenToAccounts}?startDate=${fromDate}&endDate=${toDate}`);
             console.log(response);
             setBills(response.data.report?.data || []);
         } catch (error) {
-            console.error('Error fetching QS site bills:', error);
+            console.error('Error fetching account department bills:', error);
         } finally {
             setLoading(false);
         }
@@ -58,7 +58,7 @@ const InvoicesGivenToQSSite = () => {
         console.log("Result = " + result.message);
     }
 
-    const titleName = "Invoices Given to QS site";
+    const titleName = "Invoices Given to Accts Dept";
 
     const columns = [
         { field: "srNo", headerName: "Sr. No" },
@@ -68,13 +68,13 @@ const InvoicesGivenToQSSite = () => {
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
         { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
-        { field: "dtGivenToQsSite", headerName: "Invoices given to QS Site" },
+        { field: "dtGivenToAcctsDept", headerName: "Dt given to Accts Dept" },
         { field: "copAmt", headerName: "COP Amount" },
         { field: "poNo", headerName: "PO No" }
     ]
 
     const visibleColumnFields = [
-        "srNo", "projectDescription", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dtGivenToQsSite", "copAmt", "poNo"
+        "srNo", "projectDescription", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dtGivenToAcctsDept", "copAmt", "poNo"
     ]
 
     return (
@@ -84,7 +84,7 @@ const InvoicesGivenToQSSite = () => {
 
             <div className="p-[2vh_2vw] mx-auto font-sans h-[100vh] bg-white text-black">
                 <div className="flex justify-between items-center mb-[2vh]">
-                    <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Invoices Given to QS Site</h2>
+                    <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Invoices Given to Account Department</h2>
                     <div className="flex gap-[1vw] w-[50%]">
                         <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]" onClick={handleTopPrint}>
                             Print
@@ -118,7 +118,7 @@ const InvoicesGivenToQSSite = () => {
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv no</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Date</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Amt</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Invoices given to QS site</th>
+                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt given to Accts Dept</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>COP Amt</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>PO No</th>
                             </tr>
@@ -128,33 +128,32 @@ const InvoicesGivenToQSSite = () => {
                                 <tr>
                                     <td colSpan="9" className="text-center py-4">Loading...</td>
                                 </tr>
-                            )
+                            ) 
                             // : bills.length === 0 ? (
-                            //     <tr>
-                            //         <td colSpan="9" className="text-center py-4">No invoices found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
-                            //     </tr>
+                                // <tr>
+                                //     <td colSpan="9" className="text-center py-4">No invoices found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
+                                // </tr>
                             // ) 
                             : bills
-                                .filter(bill => !bill.isSubtotal && bill.srNo)
-                                .map((bill, index) => (
-                                    <tr key={index} className="hover:bg-[#f5f5f5]">
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.srNo}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.projectDescription}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvDate}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dtGivenToQsSite}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.copAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '-'}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.poNo}</td>
-                                    </tr>
-                                ))
-                            }
+                            .filter(bill => !bill.isSubtotal && bill.srNo)
+                            .map((bill, index) => (
+                                <tr key={index} className="hover:bg-[#f5f5f5]">
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.srNo}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.projectDescription}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvDate}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dtGivenToAcctsDept}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.copAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '-'}</td>
+                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.poNo}</td>
+                                </tr>
+                            ))}
                             {bills
                                 .filter(bill => bill.isGrandTotal)
                                 .map((bill) => (
                                     <tr key={bill.totalCount} className='bg-[#f5f5f5] font-semibold'>
-                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>
+                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                             <strong>Total Count: {bill.totalCount.toLocaleString('en-IN')}</strong>
                                         </td>
                                         <td colSpan={4} className='border border-black'></td>
@@ -177,4 +176,4 @@ const InvoicesGivenToQSSite = () => {
     )
 }
 
-export default InvoicesGivenToQSSite;
+export default InvoicesGivenToAccountDept;
