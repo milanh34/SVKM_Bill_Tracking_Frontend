@@ -3,10 +3,9 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import axios from "axios";
 import { sentBills, rejectPayment } from "../apis/bills.api";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from 'react-toastify';
 import * as XLSX from "xlsx";
-import DataTable from "../components/dashboard/DataTable";
+import DataTable from "../components/DataTable";
 import {
   Funnel,
   Grid3x3,
@@ -425,7 +424,6 @@ const SentBills = () => {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <Header />
-      <ToastContainer position="top-right" autoClose={3000} />
 
       <div className="flex-1 p-3 overflow-hidden">
         <div className="h-full bg-white rounded-lg shadow flex flex-col">

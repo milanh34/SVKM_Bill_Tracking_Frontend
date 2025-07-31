@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { EditIcon, CheckIcon } from '../dashboard/Icons';
+import { EditIcon, CheckIcon } from '../Icons';
 import { vendors, compliances, panstatus } from '../../apis/master.api';
 import { handleExportVendorMaster } from '../../utils/exportDownloadVendorMaster';
 import { importExcel } from '../../apis/bills.api'
-import { ToastContainer, toast } from "react-toastify";
-import Toast from '../Toast';
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from 'react-toastify';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import fs from 'fs';
 
 const VendorTable = () => {
     const [vendorData, setVendorData] = useState([]);
@@ -415,7 +412,6 @@ const VendorTable = () => {
 
     return (
         <div className="relative w-full flex flex-col border border-gray-200 rounded-lg">
-            <ToastContainer />
             {/* Header with Search and Add Button */}
             <div className="p-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">

@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { outstanding } from '../../apis/report.api';
 import Header from "../../components/Header";
-import FiltersOutstanding from '../../components/FiltersOutstanding';
+import Filters from '../../components/Filters';
 import ReportBtns from '../../components/ReportBtns';
-import SendBox from "../../components/Sendbox2";
+import PaymentModal from "../../components/PaymentModal";
 import download from "../../assets/download.svg";
 import send from "../../assets/send.svg";
 import print from "../../assets/print.svg";
@@ -28,12 +26,9 @@ const RepBillOutstanding = () => {
     const [error, setError] = useState(null);
     const [selectAll, setSelectAll] = useState(false);
     const [selectedRows, setSelectedRows] = useState([]);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [sortBy, setSortBy] = useState("");
     const [fromDate, setFromDate] = useState("2025-04-01");
     const [toDate, setToDate] = useState(getFormattedDate());
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedRegion, setSelectedRegion] = useState([]);
     
     const fetchBills = async () => {
         try {
@@ -154,7 +149,6 @@ const RepBillOutstanding = () => {
     return (
         <div className='mb-[12vh]'>
             <Header />
-            <ToastContainer />
             <ReportBtns />
 
             <div className="p-[2vh_2vw] mx-auto font-sans h-[100vh] bg-white text-black">
@@ -179,14 +173,7 @@ const RepBillOutstanding = () => {
                     </div>
                 </div>
 
-                <FiltersOutstanding
-                    searchQuery={searchQuery}
-                    setSearchQuery={setSearchQuery}
-                    regions={uniqueRegions}
-                    selectedRegion={selectedRegion}
-                    setSelectedRegion={setSelectedRegion}
-                    sortBy={sortBy}
-                    setSortBy={setSortBy}
+                <Filters
                     fromDate={fromDate}
                     setFromDate={setFromDate}
                     toDate={toDate}
@@ -276,7 +263,7 @@ const RepBillOutstanding = () => {
 
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/25 backdrop-blur-sm flex justify-center items-center z-[1000]">
-                    <SendBox
+                    <PaymentModal
                         closeWindow={() => setIsModalOpen(false)}
                         selectedBills={selectedRows}
                         billsData={billsData.map(bill => ({

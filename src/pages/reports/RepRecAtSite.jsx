@@ -4,7 +4,6 @@ import { receivedAtSite } from '../../apis/report.api';
 import Header from "../../components/Header";
 import Filters from "../../components/Filters";
 import ReportBtns from '../../components/ReportBtns';
-import SendBox from "../../components/Sendbox";
 import download from "../../assets/download.svg";
 import send from "../../assets/send.svg";
 import print from "../../assets/print.svg";
@@ -25,13 +24,10 @@ const RepRecAtSite = () => {
     const [bills, setBills] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [selectAll, setSelectAll] = useState(false);
-    const [selectedRows, setSelectedRows] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [sortBy, setSortBy] = useState("");
     const [fromDate, setFromDate] = useState(getFormattedDate());
     const [toDate, setToDate] = useState(getFormattedDate());
-    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         if (Cookies.get("userRole") === null) {
@@ -60,19 +56,6 @@ const RepRecAtSite = () => {
     //         setSelectedRows(bills.map(bill => bill.srNo));
     //     }
     // }, [bills, selectAll]);
-
-    const handleSelectAll = () => {
-        setSelectAll(!selectAll);
-        setSelectedRows(selectAll ? [] : bills.map(bill => bill.srNo));
-    };
-
-    const handleSelectRow = (id) => {
-        setSelectedRows(prevSelected =>
-            prevSelected.includes(id)
-                ? prevSelected.filter(rowId => rowId !== id)
-                : [...prevSelected, id]
-        );
-    };
 
     const handleTopDownload = async () => {
         console.log("Rep recd at site download clicked");
@@ -108,32 +91,6 @@ const RepRecAtSite = () => {
     const visibleColumnFields = [
         "srNo", "projectDescription", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dtTaxInvRecdAtSite", "poNo"
     ]
-
-    const handleSendClick = () => {
-        if (selectedRows.length === 0) {
-            alert("Please select at least one bill to send.");
-            return;
-        }
-        setIsModalOpen(true);
-    };
-
-    const isWithinDateRange = (dateString) => {
-        if (!dateString) return true;
-        if (!fromDate && !toDate) return true;
-
-        const date = new Date(dateString.split("T")[0]);
-        const from = fromDate ? new Date(fromDate) : null;
-        const to = toDate ? new Date(toDate) : null;
-
-        if (from) from.setHours(0, 0, 0, 0);
-        if (to) to.setHours(23, 59, 59, 999);
-
-        if (from && to) return date >= from && date <= to;
-        else if (from) return date >= from;
-        else if (to) return date <= to;
-
-        return true;
-    };
 
     return (
         <div className='mb-[12vh]'>
@@ -229,16 +186,6 @@ const RepRecAtSite = () => {
                     </table>
                 </div>
             </div>
-
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-                    <SendBox
-                        closeWindow={() => setIsModalOpen(false)}
-                        selectedBills={selectedRows}
-                        bills={bills}
-                    />
-                </div>
-            )}
         </div>
     )
 }

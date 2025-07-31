@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from 'react-toastify';
 import Cookies from "js-cookie";
 import axios from "axios";
 import { user } from "../apis/user.apis";
@@ -42,7 +42,6 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <ToastContainer position="top-right" autoClose={3000} />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         {loading ? (

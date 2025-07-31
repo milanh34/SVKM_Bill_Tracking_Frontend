@@ -4,7 +4,7 @@ import axios from "axios";
 import { paymentInstructions } from "../apis/bills.api";
 import { toast } from "react-toastify";
 
-const SendBox = ({ closeWindow, selectedBills, billsData, fetchBills }) => {
+const PaymentModal = ({ closeWindow, selectedBills, billsData, fetchBills }) => {
     const [remark, setRemark] = useState("");
     const [loading, setLoading] = useState(false);
     const [showLoader, setShowLoader] = useState(false);
@@ -95,4 +95,4 @@ const SendBox = ({ closeWindow, selectedBills, billsData, fetchBills }) => {
     );
 };
 
-export default SendBox;
+export default PaymentModal;

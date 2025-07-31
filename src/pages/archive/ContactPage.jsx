@@ -1,6 +1,6 @@
 import React from 'react'
 import Header from '../../components/Header';
-import ContactsTable from '../../components/ContactsTable';
+import ContactsTable from '../../components/archive/ContactsTable';
 
 const ContactPage = () => {
   return (

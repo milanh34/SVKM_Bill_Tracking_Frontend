@@ -3,8 +3,7 @@ import cross from "../../assets/cross.svg";
 import { workflowUpdate } from "../../apis/workflow.api";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from 'react-toastify';
 
 const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
     const [recipientName, setRecipientName] = useState('');
@@ -107,7 +106,6 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
     return (
         <>
             <div className="relative bg-white p-6 rounded-lg w-full max-w-[500px] z-[1001] shadow-xl max-h-[90vh] overflow-y-auto">
-                <ToastContainer />
                 <button className="absolute top-2 right-2 bg-transparent border-none cursor-pointer p-1 hover:bg-gray-100 rounded-full" 
                     onClick={closeWindow}
                     disabled={loading}

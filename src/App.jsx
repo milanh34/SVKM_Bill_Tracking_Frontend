@@ -1,4 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 import LoginPage from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
@@ -39,6 +42,18 @@ import ChecklistAccount from "./pages/archive/ChecklistAccount";
 function App() {
   return (
     <BrowserRouter>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/updatepass" element={<UpdatePassword />} />
@@ -51,12 +66,24 @@ function App() {
 
         <Route path="/reports" element={<ReportsEmpty />} />
         <Route path="/reportsrecatsite" element={<RepRecAtSite />} />
-        <Route path="/reportsbilloutstanding" element={<RepBillOutstanding />} />
-        <Route path="/reportsbilloutstandingsubtotal" element={<RepBillOutstandingSubtotal />} />
+        <Route
+          path="/reportsbilloutstanding"
+          element={<RepBillOutstanding />}
+        />
+        <Route
+          path="/reportsbilloutstandingsubtotal"
+          element={<RepBillOutstandingSubtotal />}
+        />
         <Route path="/reportscouriermumbai" element={<RepCourier />} />
         <Route path="/reportsreceivedmumbai" element={<RepRecMumbai />} />
-        <Route path="/reportsinvoiceacctdept" element={<InvoicesGivenToAccountDept />} />
-        <Route path="/reportsinvoiceqssite" element={<InvoicesGivenToQSSite />} />
+        <Route
+          path="/reportsinvoiceacctdept"
+          element={<InvoicesGivenToAccountDept />}
+        />
+        <Route
+          path="/reportsinvoiceqssite"
+          element={<InvoicesGivenToQSSite />}
+        />
         <Route path="/reportsinvoicepaid" element={<InvoicesPaid />} />
         <Route path="/reportspending" element={<ReportsPending />} />
         <Route path="/reportsbilljourney" element={<BillJourney />} />
@@ -64,7 +91,10 @@ function App() {
         <Route path="/checklist-advance2" element={<AdvancedChecklist2 />} />
         <Route path="/checklist-directFI2" element={<ChecklistDirectFI2 />} />
         <Route path="/checklist-account2" element={<ChecklistAccount2 />} />
-        <Route path="/checklist-bill-journey" element={<ChecklistBillJourney />} />
+        <Route
+          path="/checklist-bill-journey"
+          element={<ChecklistBillJourney />}
+        />
 
         {/* Not being used */}
         <Route path="/billqs" element={<BillDetailsQS />} />

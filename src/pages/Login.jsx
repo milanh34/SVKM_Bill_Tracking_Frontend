@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from 'react-toastify';
 import emailIcon from "../assets/email.svg";
 import passwordIcon from "../assets/password.svg";
 import eyeIcon from "../assets/eye.svg";
@@ -149,7 +148,6 @@ const LoginPage = () => {
   return (
     <div className="w-full min-h-screen bg-white flex flex-col h-screen">
       <LoginHeader />
-      <ToastContainer />
       <div className="flex flex-row justify-center items-center gap-4 sm:gap-6 lg:gap-8 px-4 sm:px-6 pb-2 sm:pb-3 h-full">
         <div className="w-full lg:w-2/5 xl:w-1/2 bg-[#F3F3F3] rounded-xl p-3 sm:p-5 lg:p-8 mb-4 lg:mb-0 order-2 lg:order-1 h-[50vh]">
           <h2 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold text-[#01073F]">

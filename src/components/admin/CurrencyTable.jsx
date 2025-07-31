@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { EditIcon, CheckIcon } from '../dashboard/Icons';
+import { EditIcon, CheckIcon } from '../Icons';
 import axios from 'axios';
 import { currencies } from '../../apis/master.api';
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 
 const CurrencyTable = () => {
@@ -224,7 +223,6 @@ const CurrencyTable = () => {
 
     return (
         <div className="relative w-full flex flex-col border border-gray-200 rounded-lg">
-            <ToastContainer />
             <div className="p-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                     <h1 className="text-xl font-bold text-gray-800">Currency Management</h1>

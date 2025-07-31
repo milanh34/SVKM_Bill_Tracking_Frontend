@@ -8,8 +8,7 @@ import {
 } from "../apis/master.api";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from 'react-toastify';
 import { useNavigate } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import { Paperclip, X } from "lucide-react";
@@ -542,18 +541,6 @@ const FullBillDetails = () => {
   return (
     <div className="bg-white text-black pb-2">
       <Header />
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
       {isLoading && (
         <div className="fixed inset-0 bg-black/25 flex items-center justify-center z-50">
           <div className="bg-white p-4 rounded-lg">

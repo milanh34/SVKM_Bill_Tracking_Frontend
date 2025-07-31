@@ -1,6 +1,5 @@
 import Header from '../components/Header';
 import { useState, useEffect } from 'react'
-import { importReport } from '../apis/bills.api'
 import axios from 'axios'
 import Cookies from 'js-cookie'
 import { useNavigate } from 'react-router-dom'
@@ -12,7 +11,7 @@ import RegionTable from "../components/admin/RegionTable";
 import NatureOfWorkTable from "../components/admin/NatureOfWorkTable";
 import UserTable from "../components/admin/UserTable";
 import CurrencyTable from "../components/admin/CurrencyTable";
-import Toast from '../components/Toast';
+import { toast } from 'react-toastify';
 import { importExcel } from '../apis/bills.api';
 import { EditIcon, Upload, X } from 'lucide-react';
 
@@ -20,13 +19,8 @@ const Admin = () => {
     const [isAdmin, setIsAdmin] = useState(false)
     const [activeTable, setActiveTable] = useState('vendors')
     const [loading, setLoading] = useState(false);
-    const [toast, setToast] = useState(null);
     const navigate = useNavigate()
     const [openUpdateBillModal, setOpenUpdateBillModal] = useState(false);
-
-    const showToast = (message, type) => {
-        setToast({ message, type });
-    };
 
     const handleFileUpload = async (event) => {
         const file = event.target.files[0]
@@ -43,7 +37,7 @@ const Admin = () => {
             !allowedTypes.includes(file.type) &&
             !allowedExtensions.test(file.name)
         ) {
-            showToast('Only .xlsx, .xls, .csv files are allowed', 'error');
+            toast.error('Only .xlsx, .xls, .csv files are allowed');
             event.target.value = '';
             return;
         }
@@ -60,10 +54,10 @@ const Admin = () => {
             });
             console.log(response.data);
 
-            showToast('File imported successfully', 'success');
+            toast.success('File imported successfully');
         } catch (error) {
             console.error('Error importing file:', error);
-            showToast(error.response?.data?.message || 'Error importing file', 'error');
+            toast.error(error.response?.data?.message || 'Error importing file');
         } finally {
             setLoading(false);
             event.target.value = '';
@@ -106,13 +100,6 @@ const Admin = () => {
     return (
         <div>
             <Header />
-            {toast && (
-                <Toast 
-                    message={toast.message}
-                    type={toast.type}
-                    onClose={() => setToast(null)}
-                />
-            )}
             {isAdmin ? (
                 <div className="mt-5 p-5">
                     <h1 className="text-2xl font-bold mb-8">Admin Dashboard</h1>

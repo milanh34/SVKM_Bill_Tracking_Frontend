@@ -5,14 +5,23 @@ import {
   SortDescIcon,
   Filter,
   CheckIcon,
-} from "./Icons";
-import { X } from "lucide-react";
+} from "../Icons";
 import { getColumnsForRole } from "../../utils/columnEdit";
-import { bills } from "../../apis/bills.api";
+import { bills, deleteAttachments } from "../../apis/bills.api";
 import axios from "axios";
 import { toast } from "react-toastify";
-
-const FILTER_OPERATORS = [{ value: "multiSelect", label: "Select Values" }];
+import {
+  getNestedValue,
+  isDateField,
+  isNumericField,
+  applyFilter,
+  requestSort,
+  getStatusStyle,
+  formatCellValue,
+} from "./datatable/datatableUtils";
+import { renderFilterPopup } from "./datatable/FilterPopup";
+import { RenderCell } from "./datatable/RenderCell";
+import { FileImage, FileText, File, FileVideo, FileAudio, Plus, Trash2 } from "lucide-react";
 
 const DataTable = ({
   data,
@@ -28,11 +37,15 @@ const DataTable = ({
   onSort,
   selectedRows,
   currentPage,
+  onPageChange,
   itemsPerPage,
   onPaginatedDataChange,
   searchQuery,
   currentUserRole,
   regionOptions,
+  natureOfWorkOptions,
+  currencyOptions,
+  vendorOptions,
   showActions = true,
 }) => {
   const [columnFilters, setColumnFilters] = useState({});
@@ -47,6 +60,20 @@ const DataTable = ({
   const [editedValues, setEditedValues] = useState({});
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [pendingAmountFilters, setPendingAmountFilters] = useState({});
+  const [uploadModal, setUploadModal] = useState({ open: false, rowId: null });
+  const [uploadFiles, setUploadFiles] = useState([]);
+  const [viewAttachments, setViewAttachments] = useState(false);
+  const [allAttachments, setAllAttachments] = useState([
+    "https://demolink1.com",
+    "https://demolink2.com",
+    "https://demolink3.com",
+  ]);
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState({
+    show: false,
+    fileKey: null,
+    billId: null,
+    fileName: null
+  });
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -84,186 +111,80 @@ const DataTable = ({
     );
   }, [availableColumns, visibleColumnFields]);
 
-  const getNestedValue = (obj, path) => {
-    if (!obj || !path) return undefined;
-    const keys = path.split(".");
-    let value = obj;
-    for (const key of keys) {
-      if (value && typeof value === "object") {
-        value = value[key];
-      } else {
-        value = undefined;
-        break;
-      }
-    }
-    return value;
-  };
+  // ** DO NOT DELETE THIS CODE BLOCK **
+  // const filteredData = useMemo(() => {
+  //   return data.filter((row) => {
+  //     if (searchQuery) {
+  //       const searchLower = searchQuery.toLowerCase();
+  //       const isMatchingSearch = visibleColumns.some((column) => {
+  //         const value = getNestedValue(row, column.field);
+  //         return value && value.toString().toLowerCase().includes(searchLower);
+  //       });
+  //       if (!isMatchingSearch) return false;
+  //     }
 
-  const requestSort = (key) => {
-    onSort(key);
-  };
+  //     return Object.entries(columnFilters).every(([field, filter]) => {
+  //       const value = getNestedValue(row, field);
+  //       if (value === null || value === undefined) return false;
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "-";
-      if (date.getFullYear() <= 1971) return "-";
+  //       if (isNumericField(field)) {
+  //         const numValue = parseFloat(value);
+  //         if (isNaN(numValue)) return false;
 
-      const day = date.getDate().toString().padStart(2, "0");
-      const month = (date.getMonth() + 1).toString().padStart(2, "0");
-      const year = date.getFullYear();
+  //         if (filter?.range) {
+  //           const min =
+  //             filter.range.min !== ""
+  //               ? parseFloat(filter.range.min)
+  //               : -Infinity;
+  //           const max =
+  //             filter.range.max !== "" ? parseFloat(filter.range.max) : Infinity;
+  //           return numValue >= min && numValue <= max;
+  //         }
+  //         return true;
+  //       }
 
-      return `${day}-${month}-${year}`;
-    } catch (e) {
-      return "-";
-    }
-  };
+  //       if (
+  //         !filter?.value ||
+  //         (Array.isArray(filter.value) && filter.value.length === 0)
+  //       ) {
+  //         return true;
+  //       }
 
-  const isDateField = (field) => {
-    const dateIndicators = ["date", "dt", "recdatsite", "booking"];
-
-    if (field.includes(".")) {
-      const parts = field.split(".");
-      return parts.some((part) =>
-        dateIndicators.some((indicator) =>
-          part.toLowerCase().includes(indicator.toLowerCase())
-        )
-      );
-    }
-
-    return dateIndicators.some((indicator) =>
-      field.toLowerCase().includes(indicator.toLowerCase())
-    );
-  };
-
-  const isNumericField = (field) => {
-    const numericIndicators = ["amount", "amt", "percentage"];
-
-    return numericIndicators.some((indicator) =>
-      field.toLowerCase().includes(indicator.toLowerCase())
-    );
-  };
-
-  const getUniqueValues = (data, field) => {
-    const values = new Set();
-    data.forEach((row) => {
-      const value = getNestedValue(row, field);
-      if (value !== undefined && value !== null) {
-        if (isDateField(field)) {
-          const formattedDate = formatDate(value);
-          if (formattedDate !== "-") {
-            values.add(formattedDate);
-          }
-        } else {
-          values.add(value.toString());
-        }
-      }
-    });
-    return Array.from(values).sort((a, b) => {
-      if (a.includes("-") && b.includes("-")) {
-        const [dayA, monthA, yearA] = a.split("-").map(Number);
-        const [dayB, monthB, yearB] = b.split("-").map(Number);
-        const dateA = new Date(yearA, monthA - 1, dayA);
-        const dateB = new Date(yearB, monthB - 1, dayB);
-        return dateA - dateB;
-      }
-      return a.localeCompare(b);
-    });
-  };
-
-  const applyFilter = (value, filterValue, operator, field) => {
-    if (!value) return false;
-
-    if (isNumericField(field)) {
-      const numValue = parseFloat(value);
-      if (isNaN(numValue)) return false;
-
-      const filter = columnFilters[field];
-      if (filter?.range) {
-        const min =
-          filter.range.min !== "" ? parseFloat(filter.range.min) : -Infinity;
-        const max =
-          filter.range.max !== "" ? parseFloat(filter.range.max) : Infinity;
-        return numValue >= min && numValue <= max;
-      }
-    }
-
-    if (isDateField(field)) {
-      const currentFilterType = filterType[field] || "individual";
-      const dateValue = new Date(value);
-
-      if (currentFilterType === "range") {
-        const { from, to } = dateRanges[field] || {};
-        if (from && to) {
-          const fromDate = new Date(from);
-          const toDate = new Date(to);
-          return dateValue >= fromDate && dateValue <= toDate;
-        }
-        return true;
-      } else {
-        const formattedDate = formatDate(value);
-        return filterValue.some((val) => formattedDate === val);
-      }
-    }
-
-    const stringValue = value.toString().toLowerCase();
-
-    if (value instanceof Date || !isNaN(new Date(value))) {
-      const formattedDate = formatDate(value);
-      return filterValue.some((val) => formattedDate === val);
-    }
-
-    switch (operator) {
-      case "multiSelect":
-        return filterValue.some((val) => stringValue === val.toLowerCase());
-      default:
-        return true;
-    }
-  };
+  //       return applyFilter(
+  //         value,
+  //         filter.value,
+  //         filter.operator,
+  //         field,
+  //         filterType,
+  //         columnFilters,
+  //         dateRanges
+  //       );
+  //     });
+  //   });
+  // }, [data, searchQuery, columnFilters, visibleColumns]);
 
   const filteredData = useMemo(() => {
-    return data.filter((row) => {
-      if (searchQuery) {
-        const searchLower = searchQuery.toLowerCase();
-        const isMatchingSearch = visibleColumns.some((column) => {
-          const value = getNestedValue(row, column.field);
-          return value && value.toString().toLowerCase().includes(searchLower);
-        });
-        if (!isMatchingSearch) return false;
-      }
-
-      return Object.entries(columnFilters).every(([field, filter]) => {
+    return data.filter(row => {
+      const passesColumnFilters = Object.entries(columnFilters).every(([field, filter]) => {
         const value = getNestedValue(row, field);
-        if (value === null || value === undefined) return false;
-
-        if (isNumericField(field)) {
-          const numValue = parseFloat(value);
-          if (isNaN(numValue)) return false;
-
-          if (filter?.range) {
-            const min =
-              filter.range.min !== ""
-                ? parseFloat(filter.range.min)
-                : -Infinity;
-            const max =
-              filter.range.max !== "" ? parseFloat(filter.range.max) : Infinity;
-            return numValue >= min && numValue <= max;
-          }
-          return true;
-        }
-
-        if (
-          !filter?.value ||
-          (Array.isArray(filter.value) && filter.value.length === 0)
-        ) {
-          return true;
-        }
-
-        return applyFilter(value, filter.value, filter.operator, field);
+        return applyFilter(value, filter.value, filter.operator, field, filterType, columnFilters, dateRanges);
       });
+
+      const passesSearch = !searchQuery || visibleColumns.some(column => {
+        const value = getNestedValue(row, column.field);
+        return value?.toString().toLowerCase().includes(searchQuery.toLowerCase());
+      });
+
+      return passesColumnFilters && passesSearch;
     });
-  }, [data, searchQuery, columnFilters, visibleColumns]);
+  }, [data, columnFilters, searchQuery, visibleColumns, filterType, dateRanges]);
+
+  useEffect(() => {
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+    if (currentPage > totalPages && totalPages > 0) {
+      onPageChange(totalPages);
+    }
+  }, [filteredData, currentPage, itemsPerPage, onPageChange]);
 
   const sortedData = useMemo(() => {
     if (!sortConfig.key || !sortConfig.direction) return filteredData;
@@ -316,73 +237,6 @@ const DataTable = ({
     }
   }, [sortedData, onPaginatedDataChange]);
 
-  const formatCurrency = (value) => {
-    if (value === null || value === undefined || isNaN(value)) return "-";
-    try {
-      return new Intl.NumberFormat("en-IN", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-        useGrouping: true,
-      }).format(value);
-    } catch (e) {
-      return value.toString();
-    }
-  };
-
-  const formatCellValue = (value, field) => {
-    if (value === undefined || value === null || value === "") return "-";
-
-    if (isNumericField(field)) {
-      const numValue = parseFloat(value);
-      if (!isNaN(numValue)) {
-        return formatCurrency(numValue);
-      }
-    }
-
-    if (isDateField(field)) {
-      if (typeof value === "number") {
-        const date = new Date(value);
-        if (date.getFullYear() > 1971) {
-          return formatDate(date);
-        }
-      }
-      if (typeof value === "string" && value.includes("T")) {
-        const date = new Date(value);
-        if (!isNaN(date.getTime())) {
-          return formatDate(date);
-        }
-      }
-      return value.toString();
-    }
-
-    if (field.includes("status")) {
-      return value.toString();
-    }
-
-    return value.toString();
-  };
-
-  const getStatusStyle = (status) => {
-    if (!status) return {};
-    const statusLower = status.toLowerCase();
-    if (
-      statusLower.includes("approve") ||
-      statusLower === "paid" ||
-      statusLower === "active"
-    ) {
-      return { color: "#15803d", fontWeight: "bold" };
-    } else if (statusLower.includes("reject") || statusLower === "fail") {
-      return { color: "#b91c1c", fontWeight: "bold" };
-    } else if (
-      statusLower.includes("pend") ||
-      statusLower === "waiting" ||
-      statusLower === "unpaid"
-    ) {
-      return { color: "#ca8a04", fontWeight: "bold" };
-    }
-    return {};
-  };
-
   const handleRowSelect = (id) => {
     if (onRowSelect) {
       const newSelection = selectedRows.includes(id)
@@ -432,573 +286,123 @@ const DataTable = ({
     setFilterSearchQuery("");
   };
 
-  const handleFilterChange = (field, operator, selectedValues) => {
-    setColumnFilters((prev) => ({
-      ...prev,
-      [field]: { operator, value: selectedValues },
-    }));
+  const handleAttachments = (value) => {
+    if (Array.isArray(value) && value.length > 0) {
+      const files = value
+        .map(obj =>
+          obj && typeof obj === "object" && obj.fileUrl
+            ? { url: obj.fileUrl, name: obj.fileName || "" }
+            : null
+        )
+        .filter(obj => obj && typeof obj.url === "string" && obj.url.length > 0);
+        console.log(files);
+      setAllAttachments(files);
+    } else {
+      setAllAttachments([]);
+    }
+    setViewAttachments(true);
   };
 
-  const handleFilterClear = (field) => {
-    setColumnFilters((prev) => {
-      const newFilters = { ...prev };
-      delete newFilters[field];
-      return newFilters;
+  const handleFileInputChange = (e) => {
+    const newFiles = Array.from(e.target.files);
+    setUploadFiles((prev) => {
+      const existingNames = new Set(prev.map(f => f.name));
+      return [...prev, ...newFiles.filter(f => !existingNames.has(f.name))];
     });
   };
 
-
-  const [viewAttachments, setViewAttachments] = useState(false);
-  const [allAttachments, setAllAttachments] = useState(["https://demolink1.com", "https://demolink2.com", "https://demolink3.com"]);
-  const handleAttachments = (id) => {
-   console.log(data[id].attachments);
-    if (data[id].attachments.length > 0) {
-      setAllAttachments(data[id].attachments);
-    }
-    setViewAttachments(true);
-  }
-
-  const renderFilterPopup = (column) => {
-    const uniqueValues = getUniqueValues(data, column.field);
-    const currentFilter = columnFilters[column.field] || {
-      operator: "multiSelect",
-      value: [],
-    };
-    const maxHeight = filterRef.current?.maxHeight || 400;
-    const isDate = isDateField(column.field);
-    const isAmount = isNumericField(column.field);
-    const currentFilterType = filterType[column.field] || "individual";
-    const currentDateRange = dateRanges[column.field] || { from: "", to: "" };
-    const currentAmountRange = columnFilters[column.field]?.range || {
-      min: "",
-      max: "",
-    };
-
-    if (isAmount) {
-      const pendingFilter = pendingAmountFilters[column.field] || {
-        min: "",
-        max: "",
-      };
-
-      return (
-        <div
-          ref={filterRef}
-          className="absolute mt-2.5 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-[250px] flex flex-col"
-          style={{ maxHeight: `${Math.min(maxHeight, 400)}px` }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="sticky top-0 z-30 bg-white border-b border-gray-200 p-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">{column.headerName}</span>
-              <button
-                onClick={() => setActiveFilter(null)}
-                className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div className="mt-3 space-y-3">
-              <div>
-                <label className="text-xs text-gray-500">Minimum Amount</label>
-                <input
-                  type="number"
-                  value={pendingFilter.min}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setPendingAmountFilters((prev) => ({
-                      ...prev,
-                      [column.field]: {
-                        ...pendingFilter,
-                        min: value,
-                      },
-                    }));
-                  }}
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm"
-                  placeholder="Enter minimum amount"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-500">Maximum Amount</label>
-                <input
-                  type="number"
-                  value={pendingFilter.max}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setPendingAmountFilters((prev) => ({
-                      ...prev,
-                      [column.field]: {
-                        ...pendingFilter,
-                        max: value,
-                      },
-                    }));
-                  }}
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm"
-                  placeholder="Enter maximum amount"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="sticky bottom-0 z-30 bg-white border-t border-gray-200 p-2 flex justify-between gap-2">
-            <button
-              className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
-              onClick={() => {
-                handleFilterClear(column.field);
-                setPendingAmountFilters((prev) => {
-                  const newFilters = { ...prev };
-                  delete newFilters[column.field];
-                  return newFilters;
-                });
-              }}
-            >
-              Clear
-            </button>
-            <button
-              className="px-2 py-1 text-xs bg-[#011a99] text-white hover:bg-[#015099] rounded"
-              onClick={() => {
-                const pendingFilter = pendingAmountFilters[column.field];
-                if (pendingFilter) {
-                  setColumnFilters((prev) => ({
-                    ...prev,
-                    [column.field]: {
-                      operator: "range",
-                      range: pendingFilter,
-                    },
-                  }));
-                }
-                setActiveFilter(null);
-              }}
-            >
-              Apply
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    const showDateRange =
-      isDate &&
-      (column.headerName.toLowerCase().includes("dt") ||
-        column.headerName.toLowerCase().includes("date") ||
-        column.headerName.toLowerCase().includes("recd at site") ||
-        column.headerName.toLowerCase().includes("booking"));
-
-    return (
-      <div
-        ref={filterRef}
-        className={`absolute mt-2.5 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-[250px] flex flex-col ${filterPosition === "right" ? "left-0" : "right-0"
-          }`}
-        style={{ maxHeight: `${Math.min(maxHeight, 400)}px` }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="sticky top-0 z-30 bg-white border-b border-gray-200 p-3">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">{column.headerName}</span>
-            <button
-              onClick={() => setActiveFilter(null)}
-              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
-            >
-              <X size={16} />
-            </button>
-          </div>
-
-          {/* Update date range selector condition */}
-          {showDateRange && (
-            <div className="mt-2">
-              <select
-                value={currentFilterType}
-                onChange={(e) =>
-                  setFilterType((prev) => ({
-                    ...prev,
-                    [column.field]: e.target.value,
-                  }))
-                }
-                className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm"
-              >
-                <option value="individual">Select Individual Dates</option>
-                <option value="range">Select Date Range</option>
-              </select>
-            </div>
-          )}
-
-          {(!showDateRange || currentFilterType === "individual") && (
-            <div className="mt-2 relative">
-              <input
-                type="text"
-                placeholder="Search values..."
-                value={filterSearchQuery}
-                onChange={(e) => setFilterSearchQuery(e.target.value)}
-                className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm pr-8"
-              />
-              {filterSearchQuery && (
-                <button
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  onClick={() => setFilterSearchQuery("")}
-                >
-                  <X size={14} />
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Update date range inputs condition */}
-          {showDateRange && currentFilterType === "range" && (
-            <div className="mt-2 space-y-2">
-              <div>
-                <label className="text-xs text-gray-500">From</label>
-                <input
-                  type="date"
-                  value={currentDateRange.from}
-                  onChange={(e) =>
-                    setDateRanges((prev) => ({
-                      ...prev,
-                      [column.field]: {
-                        ...currentDateRange,
-                        from: e.target.value,
-                      },
-                    }))
-                  }
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-500">To</label>
-                <input
-                  type="date"
-                  value={currentDateRange.to}
-                  onChange={(e) =>
-                    setDateRanges((prev) => ({
-                      ...prev,
-                      [column.field]: {
-                        ...currentDateRange,
-                        to: e.target.value,
-                      },
-                    }))
-                  }
-                  className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Content */}
-        {(!showDateRange || currentFilterType === "individual") && (
-          <div className="flex-1 overflow-y-auto p-2 bg-white">
-            {uniqueValues
-              .filter((value) =>
-                value.toLowerCase().includes(filterSearchQuery.toLowerCase())
-              )
-              .map((value) => (
-                <label
-                  key={value}
-                  className="flex items-center space-x-2 px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={currentFilter.value?.includes(value)}
-                    onChange={(e) => {
-                      const newValues = e.target.checked
-                        ? [...(currentFilter.value || []), value]
-                        : (currentFilter.value || []).filter(
-                          (v) => v !== value
-                        );
-                      handleFilterChange(
-                        column.field,
-                        "multiSelect",
-                        newValues
-                      );
-                    }}
-                    className="rounded border-gray-300"
-                  />
-                  <span className="text-sm">{value}</span>
-                </label>
-              ))}
-            {uniqueValues.length === 0 && (
-              <div className="text-gray-500 text-sm text-center py-2">
-                No values found
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="sticky bottom-0 z-30 bg-white border-t border-gray-200 p-2 flex justify-between gap-2">
-          <button
-            className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
-            onClick={() => {
-              handleFilterClear(column.field);
-              setDateRanges((prev) => ({
-                ...prev,
-                [column.field]: { from: "", to: "" },
-              }));
-            }}
-          >
-            Clear
-          </button>
-          <button
-            className="px-2 py-1 text-xs bg-[#011a99] text-white hover:bg-[#015099] rounded"
-            onClick={() => {
-              if (
-                currentFilterType === "range" &&
-                currentDateRange.from &&
-                currentDateRange.to
-              ) {
-                handleFilterChange(column.field, "dateRange", [
-                  currentDateRange.from,
-                  currentDateRange.to,
-                ]);
-              }
-              setActiveFilter(null);
-              setFilterSearchQuery("");
-            }}
-          >
-            Apply
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  const getEditableFields = () => {
-    const roleMapping = {
-      admin: "ADMIN",
-      site_officer: "SITE_OFFICER",
-      qs_site: "QS_TEAM",
-      site_pimo: "PIMO_MUMBAI_MIGO_SES",
-      pimo_mumbai: "PIMO_MUMBAI_ADVANCE_FI",
-      accounts: "ACCOUNTS_TEAM",
-      director: "DIRECTOR_TRUSTEE_ADVISOR",
-    };
-
-    const mappedRole = roleMapping[currentUserRole] || currentUserRole;
-    const editableFields = getColumnsForRole(mappedRole).map(
-      (col) => col.field
-    );
-    
-    return editableFields || [];
+  const handleRemoveUploadFile = (idx) => {
+    setUploadFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const validateVendorNo = (x) => /^[0-9]{6}$/.test(x);
   const validatePoNo = (x) => /^[0-9]{10}$/.test(x);
-
-  const handleCellEdit = (field, value, rowId) => {
-    setEditedValues((prev) => ({
-      ...prev,
-      [rowId]: {
-        ...prev[rowId],
-        [field]: value,
-      },
-    }));
-  };
-
-  const renderCell = (row, column, value) => {
-    const isEditing = editingRow === row._id;
-    const isEditable = getEditableFields().includes(column.field);
-    const editedValue = editedValues[row._id]?.[column.field];
-
-    if (column.field === "attachments") {
-      if (isEditing && isEditable) {
-        return (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                // Add your attachment handling logic here
-                console.log('Add attachment clicked for row:', row._id);
-              }}
-              className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-2 py-1 rounded transition-colors"
-              title="Add attachment"
-            >
-              +
-            </button>
-          </div>
-        );
-      } else {
-        return (
-          <div className="flex justify-center items-center">
-            <svg
-              style={{ cursor: 'pointer' }}
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-blue-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              onClick={() => handleAttachments(row._id)}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15.172 7l-6.586 6.586a2 2 0 002.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-6.586 6.586a6 6 0 108.485 8.485l6.586-6.586"
-              />
-            </svg>
-          </div>
-        );
-      }
-    }
-
-    // Special handling for hardCopy field - always show select input
-    if (column.field === "accountsDept.hardCopy") {
-      if (isEditing) {
-        return (
-          <select
-            value={editedValue !== undefined ? editedValue : value || "No"}
-            onChange={(e) =>
-              handleCellEdit(column.field, e.target.value, row._id)
-            }
-            className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none"
-          >
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
-          </select>
-        );
-      } else {
-        // Show the current value or "No" as default
-        const displayValue = value || "No";
-        return (
-          <div className="px-2 py-1">
-            {displayValue}
-          </div>
-        );
-      }
-    }
-
-    if (isEditing && isEditable) {
-
-      if (column.field === "region") {
-        return (
-          <select
-            value={editedValue !== undefined ? editedValue : value || ""}
-            onChange={(e) =>
-              handleCellEdit(column.field, e.target.value, row._id)
-            }
-            className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none"
-          >
-            <option value="" disabled>Select Region</option>
-            {regionOptions.map((option) => (
-              <option key={option._id} value={option.name}>
-                {option.name}
-              </option>
-            ))}
-          </select>
-        );
-      }
-
-      if (isDateField(column.field)) {
-        const dateValue = editedValue !== undefined ? editedValue : value;
-        let formattedDate = dateValue;
-
-        if (dateValue) {
-          const date = new Date(dateValue);
-          if (!isNaN(date.getTime())) {
-            formattedDate = date.toISOString().split("T")[0];
-          }
-        }
-
-        return (
-          <div className="relative w-full">
-            <input
-              type="date"
-              value={formattedDate || ""}
-              onChange={(e) =>
-                handleCellEdit(column.field, e.target.value, row._id)
-              }
-              className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-        );
-      }
-
-      const inputType = isNumericField(column.field) ? "number" : "text";
-      return (
-        <div className="relative w-full">
-          <input
-            type={inputType}
-            value={editedValue !== undefined ? editedValue : value || ""}
-            onChange={(e) =>
-              handleCellEdit(column.field, e.target.value, row._id)
-            }
-            className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
-      );
-    }
-
-    const formattedValue = formatCellValue(value, column.field);
-    return (
-      <div
-        className={`${isEditing && isEditable
-          ? "bg-blue-50 px-2 py-1 rounded border border-blue-200"
-          : ""
-          }`}
-      >
-        {formattedValue}
-      </div>
-    );
-  };
+  const validateTaxInvNo = (x) => /^[a-zA-Z0-9]{0,16}$/.test(x);
 
   const handleEditClick = async (row) => {
     if (editingRow === row._id) {
       const editedFieldsForRow = editedValues[row._id];
 
-      if (editedFieldsForRow.vendorNo && !validateVendorNo(editedFieldsForRow.vendorNo)) {
-        toast.error('Vendor Number should be 6 Numbers');
+      if (
+        editedFieldsForRow.vendorNo && !validateVendorNo(editedFieldsForRow.vendorNo)
+      ) {
+        toast.error("Vendor No should be 6 digits");
         return;
       }
       if (editedFieldsForRow.poNo && !validatePoNo(editedFieldsForRow.poNo)) {
-        toast.error('PO Number should be 10 Digits');
+        toast.error("PO Number should be 10 Digits");
+        return;
+      }
+      if (editedFieldsForRow.taxInvNo && !validateTaxInvNo(editedFieldsForRow.taxInvNo)) {
+        toast.error("Tax Invoice Number can be max 16 characters");
         return;
       }
 
-      const payload = { ...editedFieldsForRow };
-      delete payload.billId;
-      delete payload._id;
-      delete payload.srNo;
-
-      if (Object.keys(payload).length > 0) {
+      let response;
+      if (uploadFiles.length > 0) {
+        const formData = new FormData();
+        Object.entries(editedFieldsForRow).forEach(([key, value]) => {
+          formData.append(key, value);
+        });
+        uploadFiles.forEach((file) => formData.append("files", file));
         try {
           setEditSubmitting(true);
-          const response = await axios.put(`${bills}/${row._id}`, payload);
-
-          if (response.status === 200) {
-            toast.success("Bill updated successfully!");
-            onEdit && onEdit();
-          } else {
-            toast.info("No changes were made to the bill");
-          }
-
-          setEditingRow(null);
-          setEditedValues((prev) => {
-            const newValues = { ...prev };
-            delete newValues[row._id];
-            return newValues;
+          response = await axios.patch(`${bills}/${row._id}`, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
           });
         } catch (err) {
-          console.error("Edit error:", err);
-          const errorMessage =
+          toast.error(
             err.response?.data?.message ||
             err.response?.data?.error ||
-            "Failed to update bill";
-          toast.error(errorMessage);
-
-          if (err.response?.data?.errors) {
-            Object.values(err.response.data.errors).forEach((error) => {
-              toast.error(error);
-            });
-          }
-        } finally {
+            "Failed to upload attachments"
+          );
           setEditSubmitting(false);
+          return;
         }
       } else {
-        setEditingRow(null);
-        setEditedValues((prev) => {
-          const newValues = { ...prev };
-          delete newValues[row._id];
-          return newValues;
-        });
+        const payload = { ...editedFieldsForRow };
+        delete payload.billId;
+        delete payload._id;
+        delete payload.srNo;
+
+        if (Object.keys(payload).length > 0) {
+          try {
+            setEditSubmitting(true);
+            response = await axios.patch(`${bills}/${row._id}`, payload);
+          } catch (err) {
+            console.error("Edit error:", err);
+            const errorMessage =
+              err.response?.data?.error ||
+              err.response?.data?.message ||
+              "Failed to update bill";
+            toast.error(errorMessage);
+
+            if (err.response?.data?.errors) {
+              Object.values(err.response.data.errors).forEach((error) => {
+                toast.error(error);
+              });
+            }
+            setEditSubmitting(false);
+            return;
+          }
+        }
       }
+
+      if (response && (response.status === 200 || response.data?.success)) {
+        toast.success("Bill updated successfully!");
+        onEdit && onEdit();
+      } else if (response && response.status !== 200) {
+        toast.info("No changes were made to the bill");
+      }
+
+      setEditingRow(null);
+      setEditedValues((prev) => {
+        const newValues = { ...prev };
+        delete newValues[row._id];
+        return newValues;
+      });
+      setUploadFiles([]);
+      setEditSubmitting(false);
     } else {
       setEditingRow(row._id);
       setEditedValues((prev) => ({
@@ -1008,43 +412,268 @@ const DataTable = ({
     }
   };
 
+  const handleDeleteClick = (fileKey, billId, fileName) => {
+    setDeleteConfirmModal({
+      show: true,
+      fileKey,
+      billId,
+      fileName
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    const { fileKey, billId } = deleteConfirmModal;
+    
+    console.log('Deleting attachment with:', { fileKey, billId }); // Debug log
+    
+    try {
+      const response = await axios.post(deleteAttachments, {
+        billId,
+        fileKey
+      });
+
+      if (response.data?.success) {
+        toast.success("Attachment deleted successfully");
+
+        const updatedAttachments = allAttachments.filter(file => file.url?.split(".com/")[1] !== fileKey);
+        setAllAttachments(updatedAttachments);
+        
+        const rowIndex = data.findIndex(row => row._id === billId);
+        if (rowIndex !== -1) {
+          onEdit && onEdit();
+        }
+
+        if (updatedAttachments.length === 0) {
+          setViewAttachments(false);
+        }
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete attachment");
+    } finally {
+      setDeleteConfirmModal({ show: false, fileKey: null, billId: null, fileName: null });
+    }
+  };
+
+  const grandTotals = useMemo(() => {
+    const sum = (field) =>
+      filteredData.reduce((acc, row) => {
+        const val = getNestedValue(row, field);
+        const num = parseFloat(val);
+        return !isNaN(num) ? acc + num : acc;
+      }, 0);
+    return {
+      taxInvAmt: sum("taxInvAmt"),
+      copDetailsAmount: sum("copDetails.amount"),
+      accountsDeptPaymentAmt: sum("accountsDept.paymentAmt"),
+      poAmt: sum("poAmt"),
+    };
+  }, [filteredData]);
+
+  const getFileTypeIcon = (url) => {
+    if (!url) return <File className="w-8 h-8 text-gray-400" />;
+    const ext = url.split('.').pop().toLowerCase();
+    if (["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg"].includes(ext)) {
+      return <FileImage className="w-8 h-8 text-blue-500" />;
+    }
+    if (["pdf"].includes(ext)) {
+      return <FileText className="w-8 h-8 text-red-500" />;
+    }
+    if (["doc", "docx", "odt", "rtf"].includes(ext)) {
+      return <FileText className="w-8 h-8 text-blue-700" />;
+    }
+    if (["xls", "xlsx", "csv"].includes(ext)) {
+      return <FileText className="w-8 h-8 text-green-600" />;
+    }
+    if (["mp4", "avi", "mov", "wmv", "webm", "mkv"].includes(ext)) {
+      return <FileVideo className="w-8 h-8 text-purple-500" />;
+    }
+    if (["mp3", "wav", "ogg", "aac"].includes(ext)) {
+      return <FileAudio className="w-8 h-8 text-orange-500" />;
+    }
+    return <File className="w-8 h-8 text-gray-400" />;
+  };
+
+  const getDisplayFileName = (name, url) => {
+    let fileName = name;
+    if (!fileName && url) {
+      try {
+        fileName = decodeURIComponent(url.split("/").pop().split("?")[0]);
+      } catch {
+        fileName = url;
+      }
+    }
+    if (!fileName) return "";
+    return fileName.length > 30 ? fileName.slice(0, 27) + "..." : fileName;
+  };
+
   return (
     <div
       className={`relative w-full flex flex-col border border-gray-200 rounded-lg ${data.length > 8 ? "h-full" : ""
         }`}
     >
-      {
-        viewAttachments && (
-          <div className="fixed top-0 left-0 w-full h-full z-50 flex items-center justify-center">
-            <div className="bg-white w-full max-w-md rounded-lg shadow-lg p-6 relative">
-
-              <button className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl font-bold" onClick={() => setViewAttachments(false)}>
-                &times;
-              </button>
-
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Attachments</h2>
-
-              {/* Attachment Links List */}
-              <ul className="space-y-3 max-h-64 overflow-y-auto">
-                {allAttachments.map((link, index) => (
-                  <li key={index}>
-                    <a
-                      href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline break-words"
+      {uploadModal.open && (
+        <div className="fixed top-0 left-0 w-full h-full z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white w-full max-w-md rounded-xl shadow-2xl p-6 relative border border-blue-200">
+            <button
+              className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-2xl font-bold cursor-pointer"
+              onClick={() => {
+                setUploadModal({ open: false, rowId: null });
+                setUploadFiles([]);
+              }}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-xl font-semibold text-blue-800 mb-4 flex items-center gap-2">
+              <Plus className="w-6 h-6 text-blue-600" />
+              Upload Attachments
+            </h2>
+            <div className="mb-4">
+              <label
+                htmlFor="file-upload"
+                className="flex items-center justify-center px-4 py-2 bg-blue-50 border border-blue-400 text-blue-700 rounded-lg cursor-pointer hover:bg-blue-100 transition"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                <span>Add Files</span>
+                <input
+                  id="file-upload"
+                  type="file"
+                  multiple
+                  accept="*"
+                  className="hidden"
+                  onChange={handleFileInputChange}
+                />
+              </label>
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                You can add multiple files (max 15). Only new files will be added.
+              </p>
+            </div>
+            <div className="mb-4">
+              {uploadFiles.length === 0 ? (
+                <div className="text-gray-400 text-center py-6 border border-dashed border-gray-300 rounded-lg bg-gray-50">
+                  No files selected.
+                </div>
+              ) : (
+                <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-gray-50 max-h-40 overflow-y-auto">
+                  {uploadFiles.map((file, idx) => (
+                    <li
+                      key={file.name + idx}
+                      className="flex items-center justify-between px-3 py-2"
                     >
-                      {link}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-
+                      <span className="truncate text-gray-800 text-sm">{file.name}</span>
+                      <button
+                        className="ml-2 text-red-500 hover:bg-red-100 rounded-full p-1 transition cursor-pointer"
+                        title="Remove"
+                        onClick={() => handleRemoveUploadFile(idx)}
+                        aria-label="Remove file"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 cursor-pointer"
+                onClick={() => setUploadModal({ open: false, rowId: null })}
+                disabled={uploadFiles.length === 0}
+              >
+                Done
+              </button>
+              <button
+                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition cursor-pointer"
+                onClick={() => {
+                  setUploadModal({ open: false, rowId: null });
+                  setUploadFiles([]);
+                }}
+              >
+                Cancel
+              </button>
             </div>
           </div>
-
-        )
-      }
+        </div>
+      )}
+      {viewAttachments && (
+        <div className="fixed top-0 left-0 w-full h-full z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white w-full max-w-3xl rounded-lg shadow-lg p-6 relative">
+            <button
+              className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl font-bold cursor-pointer"
+              onClick={() => setViewAttachments(false)}
+            >
+              &times;
+            </button>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <File className="w-6 h-6 text-blue-600" />
+              Attachments
+            </h2>
+            <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {allAttachments.length === 0 && (
+                  <div className="col-span-full text-gray-500 text-center py-4">
+                    No attachments found.
+                  </div>
+                )}
+                {allAttachments.map((file, index) => (
+                  <div
+                    key={index}
+                    className="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition relative group"
+                  >
+                    {editingRow && (
+                      <button
+                        onClick={() => handleDeleteClick(file.url?.split(".com/")[1], editingRow, file.name || getDisplayFileName(file.name, file.url))}
+                        className="absolute top-2 right-2 text-red-500 hover:text-red-700 p-1 rounded-lg bg-white shadow-sm border border-gray-200 hover:cursor-pointer"
+                        title="Delete attachment"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                    <a
+                      href={file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center group space-y-2"
+                      title={getDisplayFileName(file.name, file.url)}
+                    >
+                      {getFileTypeIcon(file.url)}
+                      <span className="text-sm text-gray-700 text-center break-words w-full group-hover:underline">
+                        {getDisplayFileName(file.name, file.url)}
+                      </span>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {deleteConfirmModal.show && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000]">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Confirm Delete</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete "{deleteConfirmModal.fileName}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteConfirmModal({ show: false, fileKey: null, billId: null, fileName: null })}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 hover:cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 hover:cursor-pointer"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div
         className={`overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 scrollbar-thumb-rounded-full ${data.length < 10 ? "h-fit" : "flex-1"
           }`}
@@ -1081,7 +710,7 @@ const DataTable = ({
                     type="checkbox"
                     checked={selectAllState}
                     onChange={handleSelectAll}
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                   />
                   {totalSelected > 0 && (
                     <span className="text-xs text-gray-500 mt-1">
@@ -1093,8 +722,9 @@ const DataTable = ({
               {visibleColumns.map((column) => (
                 <th
                   key={column.field}
-                  onClick={() => requestSort(column.field)}
+                  onClick={() => requestSort(column.field, onSort)}
                   className={`
+                    ${column.field === "srNo" ? "sticky left-10 z-100" : ""}
                     sticky top-0 px-1.5 py-2.5 text-left text-sm font-semibold text-gray-900
                     border-b border-gray-200 bg-gray-50
                     ${sortConfig.key === column.field ? "bg-gray-100" : ""}
@@ -1142,14 +772,32 @@ const DataTable = ({
                       >
                         <Filter
                           className={`w-4 h-4 ${columnFilters[column.field]?.value?.length > 0
-                            ? "text-blue-500"
-                            : "text-gray-400 hover:text-gray-600"
+                              ? "text-blue-500"
+                              : "text-gray-400 hover:text-gray-600"
                             }`}
                         />
                       </button>
                     </div>
                   </div>
-                  {activeFilter === column.field && renderFilterPopup(column)}
+                  {activeFilter === column.field &&
+                    renderFilterPopup(
+                      column,
+                      data,
+                      columnFilters,
+                      filterRef,
+                      filterType,
+                      setFilterType,
+                      dateRanges,
+                      setDateRanges,
+                      pendingAmountFilters,
+                      setPendingAmountFilters,
+                      setActiveFilter,
+                      setColumnFilters,
+                      filterSearchQuery,
+                      setFilterSearchQuery,
+                      filterPosition,
+                      onPageChange,
+                    )}
                 </th>
               ))}
               {showActions && (
@@ -1186,7 +834,7 @@ const DataTable = ({
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => handleRowSelect(row._id)}
-                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                       />
                     </div>
                   </td>
@@ -1196,37 +844,94 @@ const DataTable = ({
                     return (
                       <td
                         key={column.field}
-                        className={`whitespace-nowrap px-1.5 py-2.5 text-sm ${column.field.includes("amount") ||
-                          column.field.includes("Amount")
-                          ? "text-right"
-                          : "text-gray-900"
+                        className={`${column.field === "srNo" ? "sticky left-10 bg-[#fff]" : ""} whitespace-nowrap px-1.5 py-2.5 text-sm ${column.field.includes("amount") ||
+                            column.field.includes("Amount")
+                            ? "text-right"
+                            : "text-gray-900"
                           }`}
                         style={
-                          column.field.includes("status") ? getStatusStyle(value) : {}
+                          column.field.includes("status")
+                            ? getStatusStyle(value)
+                            : {}
                         }
                         data-field={column.field}
                       >
                         {column.field === "attachments" ? (
-                          <div className="flex justify-center items-center">
-                            <svg
-                              style={{ cursor: 'pointer' }}
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-5 w-5 text-blue-600"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              onClick={() => handleAttachments(key)}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15.172 7l-6.586 6.586a2 2 0 002.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-6.586 6.586a6 6 0 108.485 8.485l6.586-6.586"
-                              />
-                            </svg>
-                          </div>
+                          editingRow === row._id ? (
+                            <div className="flex justify-center items-center gap-2">
+                              {Array.isArray(value) && value.length > 0 ? (
+                                <svg
+                                  style={{ cursor: "pointer" }}
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-5 w-5 text-blue-600"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  onClick={() => handleAttachments(value)}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15.172 7l-6.586 6.586a2 2 0 002.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-6.586 6.586a6 6 0 108.485 8.485l6.586-6.586"
+                                  />
+                                </svg>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                              <button
+                                type="button"
+                                className="ml-1 p-1 border border-blue-600 bg-blue-50 rounded-full hover:bg-blue-100 cursor-pointer"
+                                title="Add attachments"
+                                onClick={() =>
+                                  setUploadModal({ open: true, rowId: row._id })
+                                }
+                              >
+                                <Plus className="w-5 h-5 text-blue-600" />
+                              </button>
+                            </div>
+                          ) : (
+                            (!Array.isArray(value) || value.length === 0) ? (
+                              <span className="text-gray-400 flex justify-center items-center">-</span>
+                            ) : (
+                              <div className="flex justify-center items-center">
+                                <svg
+                                  style={{ cursor: "pointer" }}
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-5 w-5 text-blue-600"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  onClick={() => handleAttachments(value)}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15.172 7l-6.586 6.586a2 2 0 002.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-6.586 6.586a6 6 0 108.485 8.485l6.586-6.586"
+                                  />
+                                </svg>
+                              </div>
+                            )
+                          )
                         ) : (
-                          renderCell(row, column, value)
+                          <RenderCell
+                            row={row}
+                            column={column}
+                            value={value}
+                            editingRow={editingRow}
+                            currentUserRole={currentUserRole}
+                            getColumnsForRole={getColumnsForRole}
+                            editedValues={editedValues}
+                            setEditedValues={setEditedValues}
+                            regionOptions={regionOptions}
+                            isDateField={isDateField}
+                            isNumericField={isNumericField}
+                            handleAttachments={handleAttachments}
+                            natureOfWorkOptions={natureOfWorkOptions}
+                            currencyOptions={currencyOptions}
+                            vendorOptions={vendorOptions}
+                          />
                         )}
                       </td>
                     );
@@ -1240,7 +945,7 @@ const DataTable = ({
                       ></div>
                       <div className="relative z-10">
                         <button
-                          className="rounded-md p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="rounded-md p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                           onClick={() => handleEditClick(row)}
                           disabled={editSubmitting && editingRow === row._id}
                         >
@@ -1281,6 +986,72 @@ const DataTable = ({
                 </tr>
               );
             })}
+            <tr className="bg-blue-100/75 font-bold">
+              <td className="sticky left-0 z-20 whitespace-nowrap px-3 py-3 text-center"></td>
+              {visibleColumns.map((column) => {
+                if (column.field === "taxInvAmt") {
+                  return (
+                    <td
+                      key={column.field}
+                      className="whitespace-nowrap px-1.5 py-2.5 text-sm border-l border-r border-gray-300"
+                    >
+                      {formatCellValue(grandTotals.taxInvAmt, "taxInvAmt")}
+                    </td>
+                  );
+                }
+                if (column.field === "copDetails.amount") {
+                  return (
+                    <td
+                      key={column.field}
+                      className="whitespace-nowrap px-1.5 py-2.5 text-sm border-l border-r border-gray-300"
+                    >
+                      {formatCellValue(grandTotals.copDetailsAmount, "copDetails.amount")}
+                    </td>
+                  );
+                }
+                if (column.field === "accountsDept.paymentAmt") {
+                  return (
+                    <td
+                      key={column.field}
+                      className="whitespace-nowrap px-1.5 py-2.5 text-sm border-l border-r border-gray-300"
+                    >
+                      {formatCellValue(grandTotals.accountsDeptPaymentAmt, "accountsDept.paymentAmt")}
+                    </td>
+                  );
+                }
+                if (column.field === "poAmt") {
+                  return (
+                    <td
+                      key={column.field}
+                      className="whitespace-nowrap px-1.5 py-2.5 text-sm border-l border-r border-gray-300"
+                    >
+                      {formatCellValue(grandTotals.poAmt, "poAmt")}
+                    </td>
+                  );
+                }
+                if (
+                  visibleColumns.findIndex((col) => col.field === column.field) === 0
+                ) {
+                  return (
+                    <td
+                      key={column.field}
+                      className="whitespace-nowrap px-1.5 py-2.5 text-sm text-left border-r border-gray-300"
+                    >
+                      Grand Total
+                    </td>
+                  );
+                }
+                return (
+                  <td
+                    key={column.field}
+                    className="whitespace-nowrap px-1.5 py-2.5 text-sm"
+                  ></td>
+                );
+              })}
+              {showActions && (
+                <td className="sticky right-0 z-20 whitespace-nowrap px-1.5 py-2.5 text-center"></td>
+              )}
+            </tr>
           </tbody>
         </table>
       </div>

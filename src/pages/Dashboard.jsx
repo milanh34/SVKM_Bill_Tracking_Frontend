@@ -9,9 +9,8 @@ import {
   vendors,
 } from "../apis/master.api";
 import { user } from "../apis/user.apis";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import DataTable from "../components/dashboard/DataTable2";
+import { toast } from 'react-toastify';
+import DataTable from "../components/dashboard/DataTable";
 import {
   Funnel,
   Grid3x3,
@@ -35,7 +34,6 @@ import SendBoxModal from "../components/dashboard/SendBoxModal";
 import Loader from "../components/Loader";
 import Cookies from "js-cookie";
 import { handleExportReport } from "../utils/exportExcelDashboard";
-import ChecklistModal from "../components/dashboard/ChecklistModal";
 import { patchBills } from "../apis/report.api";
 import { importExcel } from '../apis/bills.api';
 
@@ -73,8 +71,6 @@ const Dashboard = () => {
   const [showDownloadValidation, setShowDownloadValidation] = useState(false);
   const [columnSearchQuery, setColumnSearchQuery] = useState("");
   const [showIncomingBills, setShowIncomingBills] = useState(false);
-  const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
-  const [filteredDataBill, setFilteredDataBill] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [openUpdateBillModal, setOpenUpdateBillModal] = useState(false);
 
@@ -956,18 +952,6 @@ const Dashboard = () => {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <Header />
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
 
       <div className="flex-1 p-3 overflow-hidden">
         <div className="h-full bg-white rounded-lg shadow flex flex-col">
@@ -1428,13 +1412,6 @@ const Dashboard = () => {
           />
         </div>
       )}
-
-      <ChecklistModal
-        isOpen={isChecklistModalOpen}
-        onClose={() => setIsChecklistModalOpen(false)}
-        selectedRows={selectedRows}
-        billsData={billsData}
-      />
     </div>
   );
 };
