@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import LoginPage from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -54,46 +55,174 @@ function App() {
         pauseOnHover
         theme="colored"
       />
+
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/updatepass" element={<UpdatePassword />} />
         <Route path="/forgotpass" element={<ForgotPassword />} />
         <Route path="/" element={<Dashboard />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/create-bill" element={<FullBillDetails />} />
-        <Route path="/forwardedbills" element={<SentBills />} />
         <Route path="/profile" element={<Profile />} />
+        <Route
+          path="/admin"
+          element={<ProtectedRoute element={Admin} allowedRoles={["admin"]} />}
+        />
+        <Route
+          path="/create-bill"
+          element={
+            <ProtectedRoute
+              element={FullBillDetails}
+              allowedRoles={["site_officer", "site_pimo", "admin"]}
+            />
+          }
+        />
+        <Route
+          path="/forwardedbills"
+          element={
+            <ProtectedRoute
+              element={SentBills}
+              allowedRoles={["site_officer", "site_pimo", "accounts"]}
+            />
+          }
+        />
 
         <Route path="/reports" element={<ReportsEmpty />} />
-        <Route path="/reportsrecatsite" element={<RepRecAtSite />} />
+        <Route
+          path="/reportsrecatsite"
+          element={
+            <ProtectedRoute
+              element={RepRecAtSite}
+              allowedRoles={[
+                "site_officer",
+                "site_pimo",
+                "pimo_mumbai",
+                "director",
+                "admin",
+              ]}
+            />
+          }
+        />
+
         <Route
           path="/reportsbilloutstanding"
-          element={<RepBillOutstanding />}
+          element={
+            <ProtectedRoute
+              element={RepBillOutstanding}
+              allowedRoles={["accounts", "director", "admin"]}
+            />
+          }
         />
         <Route
           path="/reportsbilloutstandingsubtotal"
-          element={<RepBillOutstandingSubtotal />}
+          element={
+            <ProtectedRoute
+              element={RepBillOutstandingSubtotal}
+              allowedRoles={["accounts", "director", "admin"]}
+            />
+          }
         />
-        <Route path="/reportscouriermumbai" element={<RepCourier />} />
-        <Route path="/reportsreceivedmumbai" element={<RepRecMumbai />} />
+
+        <Route
+          path="/reportscouriermumbai"
+          element={
+            <ProtectedRoute
+              element={RepCourier}
+              allowedRoles={["site_officer", "site_pimo", "director", "admin"]}
+            />
+          }
+        />
+        <Route
+          path="/reportsreceivedmumbai"
+          element={
+            <ProtectedRoute
+              element={RepRecMumbai}
+              allowedRoles={["site_pimo", "director", "admin"]}
+            />
+          }
+        />
         <Route
           path="/reportsinvoiceacctdept"
-          element={<InvoicesGivenToAccountDept />}
+          element={
+            <ProtectedRoute
+              element={InvoicesGivenToAccountDept}
+              allowedRoles={["site_pimo", "accounts", "director", "admin"]}
+            />
+          }
         />
         <Route
           path="/reportsinvoiceqssite"
-          element={<InvoicesGivenToQSSite />}
+          element={
+            <ProtectedRoute
+              element={InvoicesGivenToQSSite}
+              allowedRoles={["director", "admin"]}
+            />
+          }
         />
-        <Route path="/reportsinvoicepaid" element={<InvoicesPaid />} />
-        <Route path="/reportspending" element={<ReportsPending />} />
-        <Route path="/reportsbilljourney" element={<BillJourney />} />
+        <Route
+          path="/reportsinvoicepaid"
+          element={
+            <ProtectedRoute
+              element={InvoicesPaid}
+              allowedRoles={["accounts", "director", "admin"]}
+            />
+          }
+        />
+        <Route
+          path="/reportspending"
+          element={
+            <ProtectedRoute
+              element={ReportsPending}
+              allowedRoles={["site_pimo", "director", "admin"]}
+            />
+          }
+        />
+        <Route
+          path="/reportsbilljourney"
+          element={
+            <ProtectedRoute
+              element={BillJourney}
+              allowedRoles={["accounts", "director", "admin"]}
+            />
+          }
+        />
 
-        <Route path="/checklist-advance2" element={<AdvancedChecklist2 />} />
-        <Route path="/checklist-directFI2" element={<ChecklistDirectFI2 />} />
-        <Route path="/checklist-account2" element={<ChecklistAccount2 />} />
+        <Route
+          path="/checklist-advance2"
+          element={
+            <ProtectedRoute
+              element={AdvancedChecklist2}
+              allowedRoles={["site_pimo"]}
+            />
+          }
+        />
+
+        <Route
+          path="/checklist-directFI2"
+          element={
+            <ProtectedRoute
+              element={ChecklistDirectFI2}
+              allowedRoles={["site_pimo"]}
+            />
+          }
+        />
+
+        <Route
+          path="/checklist-account2"
+          element={
+            <ProtectedRoute
+              element={ChecklistAccount2}
+              allowedRoles={["accounts"]}
+            />
+          }
+        />
+
         <Route
           path="/checklist-bill-journey"
-          element={<ChecklistBillJourney />}
+          element={
+            <ProtectedRoute
+              element={ChecklistBillJourney}
+              allowedRoles={["site_officer"]}
+            />
+          }
         />
 
         {/* Not being used */}
