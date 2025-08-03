@@ -12,8 +12,6 @@ import { bills } from "../apis/bills.api";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const FILTER_OPERATORS = [{ value: "multiSelect", label: "Select Values" }];
-
 const DataTable = ({
   data,
   availableColumns,

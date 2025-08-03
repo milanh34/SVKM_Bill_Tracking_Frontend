@@ -67,7 +67,7 @@ export const getColumnsForRole = (role) => {
     { field: "qsMumbai.dateGiven", headerName: "Dt given to QS Mumbai" },
     { field: "qsMumbai.name", headerName: "Name of QS Mumbai" },
     { field: "pimoMumbai.dateReturnedFromQs", headerName: "Dt returned back to PIMO by QS Mumbai" },
-    { field: "pimoMumbai.namePIMO", headerName: "Name given by Site to PIMO" },
+    // { field: "pimoMumbai.namePIMO", headerName: "Name given by Site to PIMO" },
     { field: "itDept.dateGiven", headerName: "Date given to IT Dept for SES" },
     { field: "itDept.name", headerName: "Name of IT Dept for SES" },
     { field: "pimoMumbai.dateGivenPIMO2", headerName: "Dt given to PIMO for SES" },

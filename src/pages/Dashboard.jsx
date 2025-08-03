@@ -28,7 +28,7 @@ import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnView";
 import { FilterModal } from "../components/dashboard/FilterModal";
 import { SendToModal } from "../components/dashboard/SendToModal";
-import { UpdateBillModal } from "../components/dashboard/UpdateBillModal";
+import { UpdateBillModal } from "../components/UpdateBillModal";
 import { SendBoxModal } from "../components/dashboard/SendBoxModal";
 import Loader from "../components/Loader";
 import Cookies from "js-cookie";

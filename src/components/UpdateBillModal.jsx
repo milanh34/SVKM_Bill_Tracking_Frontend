@@ -2,7 +2,7 @@ import React from "react";
 import { X } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { importExcel } from "../../apis/bills.api";
+import { importExcel } from "../apis/bills.api";
 
 export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, fetchAllData, patch }) => {
   const handleFileUpload = async (event) => {

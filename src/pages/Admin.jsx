@@ -10,7 +10,7 @@ import RegionTable from "../components/admin/RegionTable";
 import NatureOfWorkTable from "../components/admin/NatureOfWorkTable";
 import UserTable from "../components/admin/UserTable";
 import CurrencyTable from "../components/admin/CurrencyTable";
-import { UpdateBillModal } from "../components/dashboard/UpdateBillModal";
+import { UpdateBillModal } from "../components/UpdateBillModal";
 import { Upload } from "lucide-react";
 
 const Admin = () => {

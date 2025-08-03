@@ -1,17 +1,11 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import axios from "axios";
 import { sentBills, rejectPayment } from "../apis/bills.api";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
 import DataTable from "../components/DataTable";
-import {
-  Funnel,
-  Grid3x3,
-  Download,
-  X,
-} from "lucide-react";
+import { Funnel, Grid3x3, Download, X } from "lucide-react";
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnView";
 import { FilterModal } from "../components/dashboard/FilterModal";
@@ -39,10 +33,9 @@ const SentBills = () => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
   const [totalFilteredItems, setTotalFilteredItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10); // Default to 10 rows per page
-  const rowsPerPageOptions = [10, 20, 30, 50, 100]; // Options for rows per page
+  const [itemsPerPage, setItemsPerPage] = useState(30);
+  const rowsPerPageOptions = [10, 20, 30, 50, 100];
   const [columnSearchQuery, setColumnSearchQuery] = useState("");
-  const navigate = useNavigate();
 
   const fetchBills = async () => {
     try {
@@ -63,18 +56,17 @@ const SentBills = () => {
     fetchBills();
   }, []);
 
-  // Reset to first page when search query, filters or items per page change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedRegion, fromDate, toDate, itemsPerPage]);
 
   const columns = useMemo(() => {
     let roleForColumns =
-      currentUserRole === "admin"
-        ? "ADMIN"
+      currentUserRole === "site_officer"
+        ? "SITE_OFFICER"
         : currentUserRole === "accounts"
         ? "ACCOUNTS_TEAM"
-        : "DIRECTOR_TRUSTEE_ADVISOR";
+        : "PIMO_MUMBAI_MIGO_SES";
     return getColumnsForRole(roleForColumns);
   }, []);
 
@@ -93,17 +85,14 @@ const SentBills = () => {
   };
 
   const handleExportExcel = () => {
-    // Get the filtered and sorted data from the table
     const filteredData = getFilteredData();
 
-    // Create worksheet from the filtered data
     const worksheet = XLSX.utils.json_to_sheet(
       filteredData.map((item) => {
         const row = {};
         visibleColumnFields.forEach((field) => {
           const column = columns.find((col) => col.field === field);
           if (column) {
-            // Get the display value for the cell
             const path = field.split(".");
             let value = item;
             for (const key of path) {
@@ -116,12 +105,9 @@ const SentBills = () => {
         return row;
       })
     );
-
-    // Create workbook and add the worksheet
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Paid Bills");
 
-    // Generate and download the file
     XLSX.writeFile(workbook, "Paid_Bills_Export.xlsx");
 
     toast.success("Export successful!");
@@ -129,7 +115,6 @@ const SentBills = () => {
 
   const getFilteredData = () => {
     return billsData.filter((bill) => {
-      // Filter by search query
       const searchFields = ["billNo", "customerName", "referenceNo", "region"];
       const matchesSearch =
         searchQuery === "" ||
@@ -140,11 +125,9 @@ const SentBills = () => {
             .includes(searchQuery.toLowerCase());
         });
 
-      // Filter by region
       const matchesRegion =
         selectedRegion.length === 0 || selectedRegion.includes(bill.region);
 
-      // Filter by date range
       let matchesDateRange = true;
       if (fromDate || toDate) {
         const path = selectedDateField.split(".");
@@ -173,40 +156,32 @@ const SentBills = () => {
 
   const handleRowsPerPageChange = (e) => {
     setItemsPerPage(parseInt(e.target.value, 10));
-    setCurrentPage(1); // Reset to first page when changing rows per page
+    setCurrentPage(1);
   };
 
-  // Calculate total pages for pagination
   const totalPages = Math.ceil(totalFilteredItems / itemsPerPage);
 
-  // Generate array of page numbers to display
   const getPaginationRange = () => {
-    const delta = 2; // Number of pages to show before and after current page
+    const delta = 2;
     let range = [];
 
-    // Always show first page
     range.push(1);
 
-    // Calculate start and end of range around current page
     let start = Math.max(2, currentPage - delta);
     let end = Math.min(totalPages - 1, currentPage + delta);
 
-    // Add ellipsis after first page if needed
     if (start > 2) {
       range.push("...");
     }
 
-    // Add pages in range
     for (let i = start; i <= end; i++) {
       range.push(i);
     }
 
-    // Add ellipsis before last page if needed
     if (end < totalPages - 1) {
       range.push("...");
     }
 
-    // Always show last page if there's more than one page
     if (totalPages > 1) {
       range.push(totalPages);
     }
@@ -232,7 +207,6 @@ const SentBills = () => {
     }
   };
 
-  // Close column dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -270,9 +244,7 @@ const SentBills = () => {
       setSelectedRows([]);
     } catch (error) {
       console.error("Error rejecting payment:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to reject payment"
-      );
+      toast.error(error.response?.data?.message || "Failed to reject payment");
     }
   };
 
@@ -369,7 +341,9 @@ const SentBills = () => {
       <div className="overflow-y-auto p-2 space-y-2">
         {columns
           .filter((col) =>
-            col.headerName.toLowerCase().includes(columnSearchQuery.toLowerCase())
+            col.headerName
+              .toLowerCase()
+              .includes(columnSearchQuery.toLowerCase())
           )
           .map((column) => (
             <div key={column.field} className="flex items-center space-x-2">
@@ -409,7 +383,7 @@ const SentBills = () => {
     itemsPerPage: itemsPerPage,
     onPaginatedDataChange: setTotalFilteredItems,
     onEdit: undefined,
-    showActions: false,
+    showActions: currentUserRole === "accounts",
   };
 
   return (
@@ -418,10 +392,8 @@ const SentBills = () => {
 
       <div className="flex-1 p-3 overflow-hidden">
         <div className="h-full bg-white rounded-lg shadow flex flex-col">
-          {/* Header section */}
           <div className="p-3 border-b border-gray-200">
             <div className="flex justify-between items-center flex-wrap gap-4">
-              {/* Search and filters */}
               <div className="flex items-center space-x-2 flex-1 max-w-md">
                 <div className="flex-1 flex border border-gray-300 rounded-md text-sm">
                   <img src={search} alt="search" className="ml-1.5" />
@@ -441,7 +413,6 @@ const SentBills = () => {
                 </button>
               </div>
 
-              {/* Action buttons */}
               <div className="flex items-center space-x-3">
                 <button
                   onClick={handleExportExcel}
@@ -472,7 +443,6 @@ const SentBills = () => {
                   </button>
                 )}
 
-                {/* Column selector dropdown */}
                 <div className="relative" ref={columnSelectorRef}>
                   <button
                     onClick={() =>
@@ -490,7 +460,6 @@ const SentBills = () => {
             </div>
           </div>
 
-          {/* Table section with proper overflow handling */}
           <div className="flex-1 overflow-hidden flex flex-col">
             {loading ? (
               <Loader text="Loading paid bills..." />
@@ -504,7 +473,6 @@ const SentBills = () => {
               </div>
             )}
 
-            {/* Pagination section */}
             <div className="border-t border-gray-200 bg-white px-4 py-2">
               {paginationSection}
             </div>
@@ -512,7 +480,6 @@ const SentBills = () => {
         </div>
       </div>
 
-      {/* Modals */}
       <FilterModal
         isOpen={isFilterPopupOpen}
         onClose={() => setIsFilterPopupOpen(false)}
