@@ -122,8 +122,7 @@ const FullBillDetails = () => {
   useEffect(() => {
     const fetchDropdownData = async () => {
       try {
-        const token = Cookies.get("token");
-        const headers = { Authorization: `Bearer ${token}` };
+        const headers = { Authorization: `Bearer ${Cookies.get("token")}` };
 
         const [naturesRes, currenciesRes] = await Promise.all([
           axios.get(natureOfWorks, { headers }),

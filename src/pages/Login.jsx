@@ -28,10 +28,10 @@ const LoginPage = () => {
       value: "PIMO_Mumbai_&_SES_Team",
       label: "PIMO Mumbai & SES Team",
     },
-    {
-      value: "Advance_&_Direct_FI_Entry",
-      label: "Advance & Direct FI Entry",
-    },
+    // {
+    //   value: "Advance_&_Direct_FI_Entry",
+    //   label: "Advance & Direct FI Entry",
+    // },
     { value: "Accounts_Team", label: "Accounts Team" },
     {
       value: "Trustee,_Advisor_&_Director",
@@ -53,7 +53,7 @@ const LoginPage = () => {
       Site_Officer: "site_officer",
       QS_Team: "qs_site",
       "PIMO_Mumbai_&_SES_Team": "site_pimo",
-      "Advance_&_Direct_FI_Entry": "pimo_mumbai",
+      // "Advance_&_Direct_FI_Entry": "pimo_mumbai",
       Accounts_Team: "accounts",
       "Trustee,_Advisor_&_Director": "director",
       Admin: "admin",

@@ -30,12 +30,6 @@ const RepRecAtSite = () => {
     const [toDate, setToDate] = useState(getFormattedDate());
 
     useEffect(() => {
-        if (Cookies.get("userRole") === null) {
-            window.location.href = "/login";
-        }
-    }, []);
-
-    useEffect(() => {
         const fetchBills = async () => {
             try {
                 const response = await axios.get(`${receivedAtSite}?startDate=${fromDate}&endDate=${toDate}`);

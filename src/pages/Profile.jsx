@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { user } from "../apis/user.apis";
@@ -12,6 +12,16 @@ const Profile = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const roleDisplayMap = {
+    site_officer: "Site Team",
+    qs_site: "QS Team",
+    site_pimo: "PIMO Mumbai & SES Team",
+    // 'pimo_mumbai': 'Advance & Direct FI Entry',
+    accounts: "Accounts Team",
+    director: "Trustee, Advisor & Director",
+    admin: "Admin",
+  };
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -90,7 +100,7 @@ const Profile = () => {
                       <p className="text-sm text-gray-500">Region</p>
                       <div className="flex flex-wrap gap-1">
                         {userData.region.map((region, index) => (
-                          <span 
+                          <span
                             key={index}
                             className="px-2 py-0.5 bg-gray-100 rounded-full text-sm font-medium"
                           >
@@ -106,7 +116,10 @@ const Profile = () => {
                     <div>
                       <p className="text-sm text-gray-500">Last Login</p>
                       <p className="font-medium">
-                        {"on " + userData.lastLogin.split("T")[0] + " at " +userData.lastLogin.split("T")[1].split(".")[0]}
+                        {"on " +
+                          userData.lastLogin.split("T")[0] +
+                          " at " +
+                          userData.lastLogin.split("T")[1].split(".")[0]}
                       </p>
                     </div>
                   </div>
@@ -116,7 +129,10 @@ const Profile = () => {
                     <div>
                       <p className="text-sm text-gray-500">Account Created</p>
                       <p className="font-medium">
-                        {"on " + userData.createdAt.split("T")[0] + " at " +userData.createdAt.split("T")[1].split(".")[0]} 
+                        {"on " +
+                          userData.createdAt.split("T")[0] +
+                          " at " +
+                          userData.createdAt.split("T")[1].split(".")[0]}
                       </p>
                     </div>
                   </div>
@@ -125,14 +141,17 @@ const Profile = () => {
 
               <div className="pt-4 border-t border-gray-200">
                 <div className="flex flex-wrap gap-2">
-                  {userData.role.map((role, index) => (
-                    <div 
-                      key={index} 
-                      className="px-3 py-1 bg-blue-100 text-[#011a99] rounded-full text-sm font-medium"
-                    >
-                      {role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                    </div>
-                  ))}
+                  {userData.role.map(
+                    (role, index) =>
+                      role !== "pimo_mumbai" && (
+                        <div
+                          key={index}
+                          className="px-3 py-1 bg-blue-100 text-[#011a99] rounded-full text-sm font-medium"
+                        >
+                          {roleDisplayMap[role] || role}
+                        </div>
+                      )
+                  )}
                 </div>
               </div>
             </div>

@@ -33,9 +33,6 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
         const invalidBills = selectedBills.filter(billId => {
             const bill = billsData.find(b => b._id === billId);
             if (!bill) return true;
-
-            const currentUserRole = Cookies.get("userRole");
-
             return false;
         });
 
@@ -46,18 +43,19 @@ const SendBox = ({ closeWindow, selectedBills, billsData, singleRole }) => {
 
         setLoading(true);
         let toRoleVariable;
-        if(Cookies.get("userRole") === "site_officer") {
+        const currentUserRole = Cookies.get("userRole");
+        if(currentUserRole === "site_officer") {
             toRoleVariable = "site_team";
-        }else if(Cookies.get("userRole") === "qs_site") {
+        }else if(currentUserRole === "qs_site") {
             toRoleVariable = "qs_team";
-        }else if(Cookies.get("userRole") === "director") {
+        }else if(currentUserRole === "director") {
             toRoleVariable = "trustee";
-        }else if(Cookies.get("userRole") === "site_pimo") {
+        }else if(currentUserRole === "site_pimo") {
             toRoleVariable = "pimo_mumbai";
-        } else if(Cookies.get("userRole") === "accounts") {
+        } else if(currentUserRole === "accounts") {
             toRoleVariable = "accounts_department";
         } else{
-            toRoleVariable = Cookies.get("userRole");
+            toRoleVariable = currentUserRole;
         }
         try {
             const fromUser = {

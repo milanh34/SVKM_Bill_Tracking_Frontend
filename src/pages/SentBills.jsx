@@ -44,17 +44,9 @@ const SentBills = () => {
   const [columnSearchQuery, setColumnSearchQuery] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const token = Cookies.get("token");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-  }, [navigate]);
-
   const fetchBills = async () => {
     try {
-      const response = await axios.get(`${sentBills}/${Cookies.get("userRole")}`, {
+      const response = await axios.get(`${sentBills}/${currentUserRole}`, {
         headers: { Authorization: `Bearer ${Cookies.get("token")}` },
       });
       console.log("Received sent bills:", response.data.data);
@@ -77,11 +69,10 @@ const SentBills = () => {
   }, [searchQuery, selectedRegion, fromDate, toDate, itemsPerPage]);
 
   const columns = useMemo(() => {
-    const userRole = Cookies.get("userRole");
     let roleForColumns =
-      userRole === "admin"
+      currentUserRole === "admin"
         ? "ADMIN"
-        : userRole === "accounts"
+        : currentUserRole === "accounts"
         ? "ACCOUNTS_TEAM"
         : "DIRECTOR_TRUSTEE_ADVISOR";
     return getColumnsForRole(roleForColumns);

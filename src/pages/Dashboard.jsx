@@ -166,8 +166,7 @@ const Dashboard = () => {
   };
 
   const handleSendTo = () => {
-    const userRole = Cookies.get("userRole");
-    const availableRoles = roleWorkflow[userRole] || [];
+    const availableRoles = roleWorkflow[currentUserRole] || [];
 
     if (availableRoles.length === 0) {
       toast.error("You don't have permission to forward bills");
@@ -199,7 +198,7 @@ const Dashboard = () => {
       const promises = selectedRows.map((billId) =>
         axios.post(
           receiveBills,
-          { billId, role: Cookies.get("userRole") },
+          { billId, role: currentUserRole },
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -255,10 +254,9 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    const userRole = Cookies.get("userRole");
     const token = Cookies.get("token");
 
-    if (!userRole || !token) {
+    if (!currentUserRole || !token) {
       navigate("/login");
     }
   }, [navigate]);
@@ -275,8 +273,8 @@ const Dashboard = () => {
         case "site_pimo":
           return currentCount === 3;
 
-        case "pimo_mumbai":
-          return currentCount === 3;
+        // case "pimo_mumbai":
+        //   return currentCount === 3;
 
         case "qs_site":
           return currentCount === 2;
@@ -321,8 +319,7 @@ const Dashboard = () => {
         axios.get(user, { headers }),
       ]);
 
-      const userRole = Cookies.get("userRole");
-      const filteredBills = filterBillsByRole(billsResponse.data, userRole);
+      const filteredBills = filterBillsByRole(billsResponse.data, currentUserRole);
 
       const sortedData = filteredBills.sort((a, b) => {
         const aDate = new Date(a.taxInvDate || 0);
@@ -543,8 +540,8 @@ const Dashboard = () => {
       roleForColumns = "QS_TEAM";
     } else if (currentUserRole === "site_pimo") {
       roleForColumns = "PIMO_MUMBAI_MIGO_SES";
-    } else if (currentUserRole === "pimo_mumbai") {
-      roleForColumns = "PIMO_MUMBAI_ADVANCE_FI";
+    // } else if (currentUserRole === "pimo_mumbai") {
+    //   roleForColumns = "PIMO_MUMBAI_ADVANCE_FI";
     } else if (currentUserRole === "accounts") {
       roleForColumns = "ACCOUNTS_TEAM";
     } else if (currentUserRole === "director") {

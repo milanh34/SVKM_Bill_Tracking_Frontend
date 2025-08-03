@@ -1,90 +1,48 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import Header from './Header'; // Import your Header component
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import Header from "./Header";
+import { AlertCircle } from "lucide-react";
 
 const UnauthorizedPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', display: 'flex', flexDirection: 'column' }}>
-      {/* Header at top */}
+    <div className="min-h-screen bg-white flex flex-col">
       <Header />
 
-      {/* Main content */}
-      <main
-        style={{
-          flex: 1,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: '2rem',
-          textAlign: 'center',
-          color: '#333',
-        }}
-      >
-        <div 
-          style={{
-            maxWidth: '450px',
-            backgroundColor: 'white',
-            padding: '2.5rem 3rem',
-            borderRadius: '12px',
-            boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
-            border: '1px solid #e2e8f0',
-          }}
-        >
-          <h1 style={{ color: '#dc2626', marginBottom: '1rem', fontSize: '2rem', fontWeight: '700' }}>
-            Unauthorized Access
-          </h1>
+      <main className="flex-1 flex justify-center items-center p-8 text-center">
+        <div className="max-w-lg bg-white p-10 rounded-xl shadow-lg border border-[#4E4E4E25]">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <AlertCircle className="w-8 h-8 text-red-600" />
+            <h1 className="text-red-600 text-3xl font-bold">
+              Unauthorized Access
+            </h1>
+          </div>
 
-          <p style={{ fontSize: '1.125rem', marginBottom: '1rem' }}>
+          <p className="text-lg mb-4 text-gray-800">
             You do not have permission to access this page.
           </p>
 
-          <p style={{ fontSize: '0.9rem', color: '#555', marginBottom: '2rem' }}>
-            If you think this is a mistake, try logging in with a different role.
+          <p className="text-sm text-gray-600 mb-8 border-l-4 border-red-500 bg-red-50 p-4 text-left">
+            If you think this is a mistake, try switching in with a different
+            role.
           </p>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+          <div className="flex justify-center gap-4">
             <button
               onClick={() => navigate(-1)}
-              style={{
-                padding: '0.6rem 1.4rem',
-                borderRadius: '8px',
-                border: '1px solid #6b7280',
-                backgroundColor: 'white',
-                color: '#374151',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = '#f3f4f6';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = 'white';
-              }}
+              className="px-6 py-2.5 rounded-lg border border-[#364CBB] text-[#364CBB] font-semibold 
+                hover:bg-gray-50 hover:shadow-md cursor-pointer transform hover:scale-105 
+                transition-all duration-300"
             >
               Go Back
             </button>
 
             <button
-              onClick={() => navigate('/login')}
-              style={{
-                padding: '0.6rem 1.4rem',
-                borderRadius: '8px',
-                border: 'none',
-                backgroundColor: '#2563eb',
-                color: 'white',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'background-color 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = '#1d4ed8';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = '#2563eb';
-              }}
+              onClick={() => navigate("/login")}
+              className="px-6 py-2.5 rounded-lg bg-[#364CBB] text-white font-semibold 
+                hover:bg-[#2A3C9E] hover:shadow-md cursor-pointer transform hover:scale-105 
+                transition-all duration-300"
             >
               Login Again
             </button>

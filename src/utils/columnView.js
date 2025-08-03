@@ -283,6 +283,24 @@ export const getColumnsForRole = (role) => {
       "accountsDept.remarksAcctsDept",
       "accountsDept.status",
       "attachments",
+
+      // advance fi fields:
+      "qualityEngineer.dateGiven",
+      "qualityEngineer.name",
+      "qsInspection.dateGiven",
+      "qsInspection.name",
+      "qsMeasurementCheck.dateGiven",
+      "vendorFinalInv.dateGiven",
+      "vendorFinalInv.name",
+      "qsCOP.dateGiven",
+      "qsCOP.name",
+      "invReturnedToSite",
+      "siteEngineer.dateGiven",
+      "siteEngineer.name",
+      "architect.dateGiven",
+      "architect.name",
+      "siteIncharge.dateGiven",
+      "siteIncharge.name",
     ],
 
     PIMO_MUMBAI_ADVANCE_FI: [

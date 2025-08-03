@@ -40,7 +40,7 @@ const UserTable = () => {
         'site_officer': 'Site Team',
         'site_pimo': 'PIMO Mumbai & SES Team',
         'qs_site': 'QS Team',
-        'pimo_mumbai': 'Advance & Direct FI Entry',
+        // 'pimo_mumbai': 'Advance & Direct FI Entry',
         'director': 'Trustee, Advisor & Director',
         'accounts': 'Accounts'
     };
@@ -374,15 +374,20 @@ const UserTable = () => {
             );
         }
 
-        if (column.field === 'role') {
+        if (column.field === "role") {
             const roles = Array.isArray(value) ? value : [value];
             return (
                 <div className="flex flex-wrap gap-1">
-                    {roles.map((role, idx) => (
-                        <span key={idx} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
-                            {roleDisplayMap[role] || role}
-                        </span>
-                    ))}
+                    {roles.map((role, idx) =>
+                        role !== "pimo_mumbai" && (
+                            <span
+                                key={idx}
+                                className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm"
+                            >
+                                {roleDisplayMap[role] || role}
+                            </span>
+                        )
+                    )}
                 </div>
             );
         }

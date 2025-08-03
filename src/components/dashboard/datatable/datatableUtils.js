@@ -217,7 +217,7 @@ export const getEditableFields = (currentUserRole, getColumnsForRole) => {
     site_officer: "SITE_OFFICER",
     qs_site: "QS_TEAM",
     site_pimo: "PIMO_MUMBAI_MIGO_SES",
-    pimo_mumbai: "PIMO_MUMBAI_ADVANCE_FI",
+    // pimo_mumbai: "PIMO_MUMBAI_ADVANCE_FI",
     accounts: "ACCOUNTS_TEAM",
     director: "DIRECTOR_TRUSTEE_ADVISOR",
   };
