@@ -129,7 +129,7 @@ const VendorTable = () => {
         if (editingRow === vendor._id) {
             const editedFieldsForRow = editedValues[vendor._id];
             // validateVendorNo(vendor.vendorNo);
-            if (!validateVendorNo(newVendor.vendorNo)) {
+            if (editedFieldsForRow.vendorNo && !validateVendorNo(editedFieldsForRow.vendorNo)) {
                 toast.error('Vendor Number should be 6 digits');
                 return;
             }
@@ -424,9 +424,15 @@ const VendorTable = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-[300px] p-2 border border-gray-300 rounded-md focus:outline-none"
                         />
+                        <button
+                            onClick={handleAddClick}
+                            className="bg-[#364cbb] hover:bg-[#364cdd] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
+                        >
+                            Add Vendor
+                        </button>
                         <label
                             htmlFor="vendorInput"
-                            className="bg-[#364cbb] hover:bg-[#364cdd] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
+                            className="bg-[#4f63d2] hover:bg-[#3d4ebc] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
 
                         >
                             Import Vendors
@@ -439,12 +445,6 @@ const VendorTable = () => {
                                 disabled={isLoading}
                             />
                         </label>
-                        <button
-                            onClick={handleAddClick}
-                            className="bg-[#4f63d2] hover:bg-[#3d4ebc] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
-                        >
-                            Add Vendor
-                        </button>
                         <label
                             htmlFor="vendorUpdate"
                             className="bg-[#14b8a6] hover:bg-[#0d9488] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"

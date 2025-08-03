@@ -22,20 +22,18 @@ import {
   ArrowRightFromLine,
   Printer,
   EditIcon,
-  Cross,
-  CrossIcon,
   X
 } from "lucide-react";
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnView";
 import { FilterModal } from "../components/dashboard/FilterModal";
 import { SendToModal } from "../components/dashboard/SendToModal";
-import SendBoxModal from "../components/dashboard/SendBoxModal";
+import { UpdateBillModal } from "../components/dashboard/UpdateBillModal";
+import { SendBoxModal } from "../components/dashboard/SendBoxModal";
 import Loader from "../components/Loader";
 import Cookies from "js-cookie";
 import { handleExportReport } from "../utils/exportExcelDashboard";
 import { patchBills } from "../apis/report.api";
-import { importExcel } from '../apis/bills.api';
 
 const Dashboard = () => {
   const currentUserRole = Cookies.get("userRole");
@@ -209,8 +207,8 @@ const Dashboard = () => {
 
       await Promise.all(promises);
       toast.success("Bills marked as received successfully");
-      await fetchAllData(); // Refresh the bills data
-      setSelectedRows([]); // Clear selection
+      await fetchAllData(); 
+      setSelectedRows([]);
     } catch (error) {
       console.error("Error receiving bills:", error);
       toast.error(
@@ -903,49 +901,6 @@ const Dashboard = () => {
     };
   };
 
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0]
-    if (!file) return
-
-    const allowedTypes = [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-excel',
-      'text/csv'
-    ];
-    const allowedExtensions = /\.(xlsx|xls|csv)$/i;
-
-    if (
-      !allowedTypes.includes(file.type) &&
-      !allowedExtensions.test(file.name)
-    ) {
-      toast.error('Only .xlsx, .xls, .csv files are allowed');
-      event.target.value = '';
-      return;
-    }
-
-    const formData = new FormData()
-    formData.append('file', file)
-
-    setLoading(true);
-    try {
-      const response = await axios.post(`${importExcel}/patch-bills`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      console.log(response.data);
-
-      toast.success('File imported successfully');
-    } catch (error) {
-      console.error('Error importing file:', error);
-      toast.error(error.response?.data?.message || 'Error importing file');
-    } finally {
-      setLoading(false);
-      event.target.value = '';
-      setOpenUpdateBillModal(false);
-    }
-  }
-
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <Header />
@@ -997,14 +952,14 @@ const Dashboard = () => {
                 {["site_officer", "accounts", "site_pimo"].includes(
                   currentUserRole
                 ) && (
-                    <button
-                      className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                      onClick={handleChecklist}
-                    >
-                      <CheckSquare className="w-4 h-4" />
-                      <span>Checklist</span>
-                    </button>
-                  )}
+                  <button
+                    className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    onClick={handleChecklist}
+                  >
+                    <CheckSquare className="w-4 h-4" />
+                    <span>Checklist</span>
+                  </button>
+                )}
 
                 <button
                   className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-white text-sm bg-[#011a99] border border-gray-300 rounded-md hover:bg-blue-800 transition-colors"
@@ -1012,46 +967,7 @@ const Dashboard = () => {
                 >
                   <EditIcon className="w-4 h-4 mr-1" />
                   Update Bills
-
                 </button>
-
-                {
-                  openUpdateBillModal && <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
-                    <div className="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md relative">
-
-                      <button 
-                        className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-                        onClick={() => setOpenUpdateBillModal(false)}
-                      >
-                        <X className="text-red-500 cursor-pointer" />
-                      </button>
-
-                      <div className="mt-5 text-center">
-                        <p className="mb-2 font-semibold">Import A File To Update Bills</p>
-                        <p className="mb-2">Here is a link to preview the required format.</p>
-                        <p>
-                          link: <a href="#" className="text-blue-600 underline">helloworld.com</a>
-                        </p>
-
-                        <label
-                          htmlFor="fileInput"
-                          className="inline-block mt-6 bg-[#364cbb] text-white font-semibold py-2 px-4 rounded-md cursor-pointer transition duration-200 hover:bg-[#2a3c9e] hover:-translate-y-0.5 shadow-md"
-                        >
-                          Update Bills (Import File)
-                          <input
-                            type="file"
-                            id="fileInput"
-                            accept=".xlsx,.xls,.csv"
-                            onChange={handleFileUpload}
-                            className="hidden"
-                            disabled={loading}
-                          />
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                }
 
                 <button
                   className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-white text-sm bg-yellow-600 border border-gray-300 rounded-md hover:bg-yellow-700 transition-colors"
@@ -1134,10 +1050,12 @@ const Dashboard = () => {
                                   // column.field === "srNo" ||
                                   visibleColumnFields.includes(column.field)
                                 }
-                                onChange={() => toggleColumnVisibility(column.field)}
+                                onChange={() =>
+                                  toggleColumnVisibility(column.field)
+                                }
                                 // className={`hover:cursor-pointer ${column.field === "srNo" ? "opacity-60" : ""}`}
                                 className="hover:cursor-pointer"
-                              // disabled={column.field === "srNo"}
+                                // disabled={column.field === "srNo"}
                               />
                               <label
                                 // className={`hover:cursor-pointer text-sm ${column.field === "srNo" ? "opacity-60" : ""}`}
@@ -1148,27 +1066,27 @@ const Dashboard = () => {
                               </label>
                             </div>
                           ))}
-                        {columns.filter(
-                          (col) =>
-                            // col.field !== "srNoOld" &&
-                            col.headerName
-                              .toLowerCase()
-                              .includes(columnSearchQuery.toLowerCase())
+                        {columns.filter((col) =>
+                          // col.field !== "srNoOld" &&
+                          col.headerName
+                            .toLowerCase()
+                            .includes(columnSearchQuery.toLowerCase())
                         ).length === 0 && (
-                            <div className="text-gray-500 text-sm text-center py-2">
-                              No columns found
-                            </div>
-                          )}
+                          <div className="text-gray-500 text-sm text-center py-2">
+                            No columns found
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
                 </div>
 
                 <button
-                  className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors ${showDownloadValidation
-                    ? "animate-shake border-2 border-red-500"
-                    : ""
-                    }`}
+                  className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors ${
+                    showDownloadValidation
+                      ? "animate-shake border-2 border-red-500"
+                      : ""
+                  }`}
                   onClick={handleDownloadReport}
                   title={
                     selectedRows.length === 0
@@ -1185,7 +1103,11 @@ const Dashboard = () => {
                       className="inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#1a8d1a] text-white rounded-md hover:bg-[#158515] transition-colors"
                       onClick={handleReceiveBills}
                       disabled={selectedRows.length === 0}
-                      title={selectedRows.length === 0 ? "Select bills to mark as received" : "Mark selected bills as received"}
+                      title={
+                        selectedRows.length === 0
+                          ? "Select bills to mark as received"
+                          : "Mark selected bills as received"
+                      }
                     >
                       <CheckSquare className="w-4 h-4" />
                       <span>Mark as Received</span>
@@ -1194,7 +1116,11 @@ const Dashboard = () => {
                       className="inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
                       onClick={handleNotReceiveBills}
                       disabled={selectedRows.length === 0}
-                      title={selectedRows.length === 0 ? "Select bills to mark as not received" : "Mark selected bills as not received"}
+                      title={
+                        selectedRows.length === 0
+                          ? "Select bills to mark as not received"
+                          : "Mark selected bills as not received"
+                      }
                     >
                       <X className="w-4 h-4" />
                       <span>Mark as Not Received</span>
@@ -1202,10 +1128,11 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <button
-                    className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors ${selectedRole
-                      ? "relative after:absolute after:top-0 after:right-0 after:w-2 after:h-2 after:bg-green-500 after:rounded-full"
-                      : ""
-                      }`}
+                    className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors ${
+                      selectedRole
+                        ? "relative after:absolute after:top-0 after:right-0 after:w-2 after:h-2 after:bg-green-500 after:rounded-full"
+                        : ""
+                    }`}
                     onClick={handleSendTo}
                     title="Send Bills"
                   >
@@ -1303,10 +1230,11 @@ const Dashboard = () => {
                       {pageNumbers.map((pageNumber) => (
                         <button
                           key={pageNumber}
-                          className={`px-2.5 py-1.5 text-sm hover:cursor-pointer border rounded-md transition-colors ${currentPage === pageNumber
-                            ? "bg-[#011a99] text-white"
-                            : "bg-white border-gray-300 hover:bg-gray-50"
-                            }`}
+                          className={`px-2.5 py-1.5 text-sm hover:cursor-pointer border rounded-md transition-colors ${
+                            currentPage === pageNumber
+                              ? "bg-[#011a99] text-white"
+                              : "bg-white border-gray-300 hover:bg-gray-50"
+                          }`}
                           onClick={() => handlePageChange(pageNumber)}
                         >
                           {pageNumber}
@@ -1406,6 +1334,18 @@ const Dashboard = () => {
               selectedRows.includes(bill._id)
             )}
             singleRole={selectedRole}
+          />
+        </div>
+      )}
+
+      {openUpdateBillModal && (
+        <div className="fixed inset-0 bg-black/25 backdrop-blur-sm z-50 flex items-center justify-center">
+          <UpdateBillModal
+            setOpenUpdateBillModal={setOpenUpdateBillModal}
+            loading={loading}
+            setLoading={setLoading}
+            fetchAllData={fetchAllData}
+            patch={true}
           />
         </div>
       )}
