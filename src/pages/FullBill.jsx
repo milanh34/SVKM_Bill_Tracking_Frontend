@@ -20,7 +20,6 @@ const FullBillDetails = () => {
   const today = new Date().toISOString().split("T")[0];
   const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
 
-  console.log("Available Regions:", availableRegions);
   const [billFormData, setBillFormData] = useState({
     region: "",
     projectDescription: "",
@@ -65,6 +64,11 @@ const FullBillDetails = () => {
   const [vendorSuggestions, setVendorSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [files, setFiles] = useState([]);
+
+  const [natureOfWork, setNatureOfWork] = useState();
+  const [currentRole, setCurrentRole] = Cookies.get("userRole");
+
+  const [responseBill, setResponseBill] = useState();
 
   const removeFile = (index) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
@@ -431,7 +435,7 @@ const FullBillDetails = () => {
         toast.error('Vendor Number should be 6 Numbers');
         return;
       }
-      if (billFormData.poNo &&!validatePoNo(billFormData.poNo)) {
+      if (billFormData.poNo && !validatePoNo(billFormData.poNo)) {
         toast.error('PO Number should be 10 Digits');
         return;
       }
@@ -487,11 +491,51 @@ const FullBillDetails = () => {
         "Content-Type": "multipart/form-data",
       });
 
+      console.log("nature of work: ", res.data.bill.natureOfWork);
+
       if (res.status === 200 || res.status === 201) {
         setShowSuccess(true);
+
+        setNatureOfWork(res.data.bill.natureOfWork);
+        console.log("Bill response: ", res.data.bill);
+
+        setResponseBill(res.data.bill);
+
         setTimeout(() => {
-          navigate("/");
-        }, 2000);
+
+          console.log("nature of work:", billFormData.natureOfWork);
+
+          if (billFormData.natureOfWork === "Direct FI Entry") {
+            navigate("/checklist-directFI2", {
+              state: {
+                selectedRows: [res.data.bill],
+                bills: [res.data.bill],
+              },
+            });
+          }
+
+          else if (billFormData.natureOfWork === "Advance/LC/BG") {
+            navigate("/checklist-advance2", {
+              state: {
+                selectedRows: [res.data.bill],
+                bills: [res.data.bill],
+              },
+            });
+          }
+
+          else if (currentRole === "site_officer") {
+            navigate("/checklist-bill-journey", {
+              state: {
+                selectedRows: [res.data.bill],
+                bills: [res.data.bill],
+              },
+            });
+          } else {
+            navigate("/");
+          }
+
+        }, 3000);
+
       }
     } catch (error) {
       console.error("Error submitting bill:", error);
@@ -572,7 +616,8 @@ const FullBillDetails = () => {
             <h2 className="text-2xl font-bold text-gray-800">
               Bill Created Successfully!
             </h2>
-            <p className="text-gray-600 mt-2">Redirecting to home page...</p>
+            <p> Bill SrNo: {responseBill.srNo} </p>
+            <p className="text-gray-600 mt-2">Redirecting to checklist...</p>
           </div>
         </div>
       )}
@@ -697,7 +742,7 @@ const FullBillDetails = () => {
                       className="p-2 hover:bg-gray-100 cursor-pointer text-sm transition-colors duration-200"
                       onClick={() => handleSuggestionClick(vendor)}
                     >
-                       {vendor.vendorNo} - {vendor.vendorName} - {vendor.GSTNumber}
+                      {vendor.vendorNo} - {vendor.vendorName} - {vendor.GSTNumber}
                     </div>
                   ))}
                 </div>
@@ -1141,80 +1186,80 @@ const FullBillDetails = () => {
           />
         </div> */}
         <div className="w-1/2">
-            <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">
-              Advanced Details
-            </h1>
+          <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">
+            Advanced Details
+          </h1>
 
-            <div>
-              <div className="relative mb-[4vh]">
-                <label
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="advDate"
-                >
-                  Advanced Date
-                </label>
-                <input
-                  type="date"
-                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                  id="advDate"
-                  value={billFormData.advDate}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+          <div>
+            <div className="relative mb-[4vh]">
+              <label
+                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                htmlFor="advDate"
+              >
+                Advanced Date
+              </label>
+              <input
+                type="date"
+                className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                id="advDate"
+                value={billFormData.advDate}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-              <div className="relative mb-[4vh]">
-                <label
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="advAmt"
-                >
-                  Advance Amount
-                </label>
-                <input
-                  type="number"
-                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                  id="advAmt"
-                  value={billFormData.advAmt}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+            <div className="relative mb-[4vh]">
+              <label
+                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                htmlFor="advAmt"
+              >
+                Advance Amount
+              </label>
+              <input
+                type="number"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                id="advAmt"
+                value={billFormData.advAmt}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-              <div className="relative mb-[4vh]">
-                <label
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="advPercent"
-                >
-                  Advance Percentage
-                </label>
-                <input
-                  type="text"
-                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                  id="advPercent"
-                  value={billFormData.advPercent}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+            <div className="relative mb-[4vh]">
+              <label
+                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                htmlFor="advPercent"
+              >
+                Advance Percentage
+              </label>
+              <input
+                type="text"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                id="advPercent"
+                value={billFormData.advPercent}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-              <div className="relative mb-[4vh]">
-                <label
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="advReqEnteredBy"
-                >
-                  Advance Request Entered By{" "}
-                </label>
-                <input
-                  type="text"
-                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                  id="advReqEnteredBy"
-                  value={billFormData.advReqEnteredBy}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+            <div className="relative mb-[4vh]">
+              <label
+                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                htmlFor="advReqEnteredBy"
+              >
+                Advance Request Entered By{" "}
+              </label>
+              <input
+                type="text"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                id="advReqEnteredBy"
+                value={billFormData.advReqEnteredBy}
+                onChange={handleChange}
+                required
+              />
             </div>
           </div>
+        </div>
         <div className="bg-card rounded-lg px-6 py-2 space-y-4 ont-semibold text-[#01073F]">
           <div>
             <h2 className="text-lg font-semibold">Attachments</h2>
