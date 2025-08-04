@@ -16,7 +16,7 @@ const Profile = () => {
   const roleDisplayMap = {
     site_officer: "Site Team",
     qs_site: "QS Team",
-    site_pimo: "PIMO Mumbai & SES Team",
+    site_pimo: "PIMO Mumbai Team", //changed from PIMO Mumbai & SES Team
     // 'pimo_mumbai': 'Advance & Direct FI Entry',
     accounts: "Accounts Team",
     director: "Trustee, Advisor & Director",

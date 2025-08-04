@@ -733,7 +733,7 @@ const DataTable = ({
                 >
                   <div className="flex items-center justify-between group">
                     <span
-                      className="truncate max-w-[200px]"
+                      className="truncate max-w-[250px]"
                       title={column.headerName}
                     >
                       {column.headerName}
@@ -844,7 +844,7 @@ const DataTable = ({
                     return (
                       <td
                         key={column.field}
-                        className={`${column.field === "srNo" ? "sticky left-10 bg-[#fff] z-40" : ""} whitespace-nowrap px-1.5 py-2.5 text-sm ${column.field.includes("amount") ||
+                        className={`${column.field === "srNo" ? "sticky left-10 bg-[#fff]" : ""} whitespace-nowrap px-1.5 py-2.5 text-sm ${column.field.includes("amount") ||
                             column.field.includes("Amount")
                             ? "text-right"
                             : "text-gray-900"

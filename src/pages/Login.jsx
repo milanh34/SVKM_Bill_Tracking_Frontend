@@ -26,7 +26,7 @@ const LoginPage = () => {
     { value: "QS_Team", label: "QS Team" },
     {
       value: "PIMO_Mumbai_&_SES_Team",
-      label: "PIMO Mumbai & SES Team",
+      label: "PIMO Mumbai Team", //changed from PIMO Mumbai & SES Team
     },
     // {
     //   value: "Advance_&_Direct_FI_Entry",

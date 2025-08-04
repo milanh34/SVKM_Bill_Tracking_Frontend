@@ -443,7 +443,7 @@ const FullBillDetails = () => {
         "vendorName",
         "vendorNo",
         "poCreated",
-        // "taxInvRecdAtSite",
+        "taxInvRecdAtSite",
         // "taxInvRecdBy",
         // "department",
       ];
@@ -697,7 +697,7 @@ const FullBillDetails = () => {
                       className="p-2 hover:bg-gray-100 cursor-pointer text-sm transition-colors duration-200"
                       onClick={() => handleSuggestionClick(vendor)}
                     >
-                      {vendor.vendorName} - {vendor.vendorNo}
+                       {vendor.vendorNo} - {vendor.vendorName} - {vendor.GSTNumber}
                     </div>
                   ))}
                 </div>
@@ -1035,7 +1035,7 @@ const FullBillDetails = () => {
               htmlFor="taxInvRecdAtSite"
               className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
             >
-              Tax Invoice Received At Site
+              Invoice Received At Site *
             </label>
             <input
               type="date"

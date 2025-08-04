@@ -320,8 +320,8 @@ const Dashboard = () => {
       const filteredBills = filterBillsByRole(billsResponse.data, currentUserRole);
 
       const sortedData = filteredBills.sort((a, b) => {
-        const aDate = new Date(a.taxInvDate || 0);
-        const bDate = new Date(b.taxInvDate || 0);
+        const aDate = new Date(a.taxInvRecdAtSite || 0);
+        const bDate = new Date(b.taxInvRecdAtSite || 0);
         return bDate - aDate;
       });
 

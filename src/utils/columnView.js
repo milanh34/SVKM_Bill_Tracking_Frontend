@@ -43,7 +43,7 @@ export const getColumnsForRole = (role) => {
     { field: "qsCOP.name", headerName: "Name of QS COP" },
     { field: "copDetails.date", headerName: "COP Dt" },
     { field: "copDetails.amount", headerName: "COP Amt" },
-    { field: "copDetails.dateReturned", headerName: "Dt-QS Team returned to Site office" },
+    { field: "copDetails.dateReturned", headerName: "Dt ret-QS aft Prov COP" },
     { field: "remarksByQSTeam", headerName: "Remarks by QS Team" },
     { field: "migoDetails.dateGiven", headerName: "Dt given for MIGO" },
     { field: "migoDetails.no", headerName: "MIGO no" },
