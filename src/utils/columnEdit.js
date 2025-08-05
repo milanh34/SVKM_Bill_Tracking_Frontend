@@ -1,110 +1,112 @@
 export const getColumnsForRole = (role) => {
   const allColumns = [
-    { field: "srNo", headerName: "Sr no" },
-    // { field: "srNoOld", headerName: "Sr no Old" },
-    { field: "natureOfWork", headerName: "Nature of Work" },
-    { field: "region", headerName: "Region" },
-    { field: "projectDescription", headerName: "Project Description" },
-    { field: "vendorNo", headerName: "Vendor no" },
-    { field: "vendorName", headerName: "Vendor Name" },
-    { field: "gstNumber", headerName: "GST Number" },
-    { field: "compliance206AB", headerName: "206AB Compliance" },
-    { field: "panStatus", headerName: "PAN Status" },
-    { field: "poCreated", headerName: "If PO created??" },
-    { field: "poNo", headerName: "PO no" },
-    { field: "poDate", headerName: "PO Dt" },
-    { field: "poAmt", headerName: "PO Amt" },
-    { field: "proformaInvNo", headerName: "Proforma Inv No" },
-    { field: "proformaInvDate", headerName: "Proforma Inv Dt" },
-    { field: "proformaInvAmt", headerName: "Proforma Inv Amt" },
-    { field: "proformaInvRecdAtSite", headerName: "Proforma Inv Recd at site" },
-    { field: "proformaInvRecdBy", headerName: "Proforma Inv Recd by" },
-    { field: "taxInvNo", headerName: "Tax Inv no" },
-    { field: "taxInvDate", headerName: "Tax Inv Dt" },
-    { field: "currency", headerName: "Currency" },
-    { field: "taxInvAmt", headerName: "Tax Inv Amt" },
-    { field: "taxInvRecdAtSite", headerName: "Tax Inv Recd at site" },
-    { field: "taxInvRecdBy", headerName: "Tax Inv Recd by" },
-    { field: "department", headerName: "Department" },
-    { field: "remarksBySiteTeam", headerName: "Remarks related to Inv" },
-    { field: "attachments", headerName: "Attachment" },
-    { field: "advanceDate", headerName: "Advance Dt" },
-    { field: "advanceAmt", headerName: "Advance Amt" },
-    { field: "advancePercentage", headerName: "Advance Percentage" },
-    { field: "advRequestEnteredBy", headerName: "Adv request entered by" },
-    { field: "qualityEngineer.dateGiven", headerName: "Dt given to Quality Engineer" },
-    { field: "qualityEngineer.name", headerName: "Name of Quality Engineer" },
-    { field: "qsInspection.dateGiven", headerName: "Dt given to QS for Inspection" },
-    { field: "qsInspection.name", headerName: "Name of QS Inspection" },
-    { field: "qsMeasurementCheck.dateGiven", headerName: "Dt Checked by QS with Measurement" },
-    { field: "vendorFinalInv.dateGiven", headerName: "Dt given to vendor-Query/Final Inv" },
-    { field: "vendorFinalInv.name", headerName: "Name-QS given to vendor" },
-    { field: "qsCOP.dateGiven", headerName: "Dt Given to QS for COP" },
-    { field: "qsCOP.name", headerName: "Name of QS COP" },
-    { field: "copDetails.date", headerName: "COP Dt" },
-    { field: "copDetails.amount", headerName: "COP Amt" },
-    { field: "copDetails.dateReturned", headerName: "Dt ret-QS aft Prov COP" },
-    { field: "remarksByQSTeam", headerName: "Remarks by QS Team" },
-    { field: "migoDetails.dateGiven", headerName: "Dt given for MIGO" },
-    { field: "migoDetails.no", headerName: "MIGO no" },
-    { field: "migoDetails.date", headerName: "MIGO Dt" },
-    { field: "migoDetails.amount", headerName: "MIGO Amt" },
-    { field: "migoDetails.doneBy", headerName: "MIGO done by" },
-    { field: "invReturnedToSite", headerName: "Dt-MIGO team returned to Site office" },
-    { field: "siteEngineer.dateGiven", headerName: "Dt given to Site Engineer" },
-    { field: "siteEngineer.name", headerName: "Name of Site Engineer" },
-    { field: "architect.dateGiven", headerName: "Dt given to Architect" },
-    { field: "architect.name", headerName: "Name of Architect" },
-    { field: "siteIncharge.dateGiven", headerName: "Dt given-Site Incharge" },
-    { field: "siteIncharge.name", headerName: "Name of Site Incharge" },
-    { field: "remarks", headerName: "Remarks at site" },
-    { field: "siteOfficeDispatch.dateGiven", headerName : "Dt given to Site Office for dispatch" },
-    { field: "siteOfficeDispatch.name", headerName: "Name of Site Office" },
-    { field: "siteStatus", headerName: "Status" },
-    { field: "pimoMumbai.dateGiven", headerName: "Dt dispatched to PIMO" },
-    { field: "pimoMumbai.dateReceived", headerName: "Dt recd at PIMO (Courier)" },
-    { field: "pimoMumbai.receivedBy", headerName: "Name recd by PIMO (Courier)" },
-    { field: "qsMumbai.dateGiven", headerName: "Dt given to QS Mumbai" },
-    { field: "qsMumbai.name", headerName: "Name of QS Mumbai" },
-    { field: "pimoMumbai.dateReturnedFromQs", headerName: "Dt returned back to PIMO by QS Mumbai" },
+    { field: "srNo", headerName: "Sr no" }, // column no 1
+    // { field: "srNoOld", headerName: "Sr no Old" }, // column no 2
+    { field: "natureOfWork", headerName: "Nature of Work" }, // column no 3
+    { field: "region", headerName: "Region" }, // column no 4
+    { field: "projectDescription", headerName: "Project Description" }, // column no 5
+    { field: "vendorNo", headerName: "Vendor no" }, // column no 6
+    { field: "vendorName", headerName: "Vendor Name" }, // column no 7
+    { field: "taxInvNo", headerName: "Tax Inv no" }, // column no 20
+    { field: "taxInvDate", headerName: "Tax Inv Dt" }, // column no 21
+    { field: "taxInvAmt", headerName: "Tax Inv Amt" }, // column no 23
+    { field: "poCreated", headerName: "If PO created??" }, // column no 11
+    { field: "poNo", headerName: "PO no" }, // column no 12
+    { field: "poDate", headerName: "PO Dt" }, // column no 13
+    { field: "poAmt", headerName: "PO Amt" }, // column no 14
+    { field: "proformaInvNo", headerName: "Proforma Inv No" }, // column no 15
+    { field: "proformaInvDate", headerName: "Proforma Inv Dt" }, // column no 16
+    { field: "proformaInvAmt", headerName: "Proforma Inv Amt" }, // column no 17
+    { field: "proformaInvRecdAtSite", headerName: "Proforma Inv Recd at site" }, // column no 18
+    { field: "proformaInvRecdBy", headerName: "Proforma Inv Recd by" }, // column no 19
+    { field: "gstNumber", headerName: "GST No" }, // column no 8
+    { field: "compliance206AB", headerName: "206AB Compliance" }, // column no 9
+    { field: "panStatus", headerName: "PAN Status" }, // column no 10
+    { field: "currency", headerName: "Currency" }, // column no 22
+    { field: "taxInvRecdAtSite", headerName: "Dt Recd at site" }, // column no 24
+    { field: "taxInvRecdBy", headerName: "Tax Inv Recd by" }, // column no 25
+    { field: "department", headerName: "Department" }, // column no 26
+    { field: "remarksBySiteTeam", headerName: "Remarks related to Inv" }, // column no 27
+    { field: "attachments", headerName: "Attachment" }, // column no 28
+    { field: "advanceDate", headerName: "Advance Dt" }, // column no 29
+    { field: "advanceAmt", headerName: "Advance Amt" }, // column no 30
+    { field: "advancePercentage", headerName: "Advance Percentage" }, // column no 31
+    { field: "advRequestEnteredBy", headerName: "Adv request entered by" }, // column no 32
+    { field: "qualityEngineer.dateGiven", headerName: "Dt given-Quality Engineer" }, // column no 33
+    { field: "qualityEngineer.name", headerName: "Name-Quality Engineer" }, // column no 34
+    { field: "qsInspection.dateGiven", headerName: "Dt given-QS for measure" }, // column no 35
+    { field: "qsInspection.name", headerName: "Name-QS Measure" }, // column no 36
+    { field: "qsMeasurementCheck.dateGiven", headerName: "Dt Checked by QS with Measure" }, // column no 37
+    { field: "vendorFinalInv.dateGiven", headerName: "Dt ret-QS aft measure" }, // column no 38
+    { field: "vendorFinalInv.name", headerName: "Name ret-QS aft measure" }, // column no 39
+    { field: "qsCOP.dateGiven", headerName: "Dt Given-QS for Prov COP" }, // column no 40
+    { field: "qsCOP.name", headerName: "Name-QS Prov COP" }, // column no 41
+    { field: "copDetails.date", headerName: "COP Dt" }, // column no 42
+    { field: "copDetails.amount", headerName: "COP Amt" }, // column no 43
+    { field: "remarksByQSTeam", headerName: "Remarks by QS Team" }, // column no 44
+    { field: "copDetails.dateReturned", headerName: "Dt ret-QS aft Prov COP" }, // column no 44A
+    { field: "migoDetails.dateGiven", headerName: "Dt given-MIGO" }, // column no 45
+    { field: "migoDetails.no", headerName: "MIGO no" }, // column no 46
+    { field: "migoDetails.date", headerName: "MIGO Dt" }, // column no 47
+    { field: "migoDetails.amount", headerName: "MIGO Amt" }, // column no 48
+    { field: "migoDetails.doneBy", headerName: "MIGO done by" }, // column no 49
+    { field: "invReturnedToSite", headerName: "Dt-ret aft MIGO to Site" }, // column no 50
+    { field: "siteEngineer.dateGiven", headerName: "Dt given-Site Engineer" }, // column no 51
+    { field: "siteEngineer.name", headerName: "Name-Site Engineer" }, // column no 52
+    { field: "architect.dateGiven", headerName: "Dt given-Architect" }, // column no 53
+    { field: "architect.name", headerName: "Name-Architect" }, // column no 54
+    { field: "siteIncharge.dateGiven", headerName: "Dt given-Site Incharge" }, // column no 55
+    { field: "siteIncharge.name", headerName: "Name-Site Incharge" }, // column no 56
+    { field: "remarks", headerName: "Remarks at site" }, // column no 57
+    { field: "siteOfficeDispatch.dateGiven", headerName : "Dt given-Site Office for dispatch" }, // column no 58
+    { field: "siteOfficeDispatch.name", headerName: "Name-Site Office" }, // column no 59
+    { field: "siteStatus", headerName: "Status at Site" }, // column no 60
+    { field: "pimoMumbai.dateGiven", headerName: "Dt dispatched-PIMO" }, // column no 61
+    { field: "pimoMumbai.dateReceived", headerName: "Dt recd-PIMO from Site" }, // column no 62
+    { field: "pimoMumbai.receivedBy", headerName: "Name recd-PIMO from Site" }, // column no 63
+    { field: "qsMumbai.dateGiven", headerName: "Dt given-QS Mumbai for COP" }, // column no 64
+    { field: "qsMumbai.name", headerName: "Name-QS Mumbai for COP" }, // column no 65
+    { field: "pimoMumbai.dateReturnedFromQs", headerName: "Dt ret-PIMO by QS Mumbai" }, // column no 66
+    { field: "pimoMumbai.namePIMO2", headerName: "Name ret-PIMO by QS Mumbai" }, // column no 67
     // { field: "pimoMumbai.namePIMO", headerName: "Name given by Site to PIMO" },
-    { field: "itDept.dateGiven", headerName: "Date given to IT Dept for SES" },
-    { field: "itDept.name", headerName: "Name of IT Dept for SES" },
-    { field: "pimoMumbai.dateGivenPIMO2", headerName: "Dt given to PIMO for SES" },
-    // { field: "pimoMumbai.namePIMO2", headerName: "Name of PIMO for SES" },
-    { field: "sesDetails.name", headerName: "Name of PIMO for SES" },
-    { field: "sesDetails.no", headerName: "SES no" },
-    { field: "sesDetails.amount", headerName: "SES Amt" },
-    { field: "sesDetails.dateGiven", headerName: "Dt given to PIMO for SES" },
-    { field: "sesDetails.doneBy", headerName: "SES done by" },
-    { field: "pimoMumbai.dateReceivedFromIT", headerName: "Dt returned back from IT Dept after SES" },
-    { field: "pimoMumbai.dateReturnedFromSES", headerName: "Dt returned back from PIMO after SES" },
-    { field: "approvalDetails.directorApproval.dateGiven", headerName: "Dt given to Director/Advisor/Trustee for approval" },
-    { field: "pimoMumbai.dateReturnedFromDirector", headerName: "Dt returned back in PIMO after approval" },
-    { field: "approvalDetails.remarksPimoMumbai", headerName: "Remarks PIMO Mumbai" },
-    { field: "accountsDept.dateGiven", headerName: "Dt given to Accts Dept" },
-    { field: "accountsDept.givenBy", headerName: "Name given by PIMO to Accts Dept" },
-    { field: "accountsDept.dateReceived", headerName: "Dt recd in Accts Dept" },
-    { field: "accountsDept.receivedBy", headerName: "Name recd by Accts Dept" },
-    { field: "accountsDept.returnedToPimo", headerName: "Dt returned back to PIMO by Accts Dept" },
-    { field: "accountsDept.receivedBack", headerName: "Dt recd back in Accts dept" },
-    { field: "accountsDept.invBookingChecking", headerName: "Dt given for booking and checking" },
-    { field: "accountsDept.paymentInstructions", headerName: "Payment instructions" },
-    { field: "accountsDept.remarksForPayInstructions", headerName: "Remarks for pay instructions" },
-    { field: "accountsDept.f110Identification", headerName: "F110 Identification" },
-    { field: "accountsDept.paymentDate", headerName: "Dt of Payment" },
-    { field: "accountsDept.hardCopy", headerName: "Hard Copy" },
-    { field: "accountsDept.accountsIdentification", headerName: "Accts Identification" },
-    { field: "accountsDept.paymentAmt", headerName: "Payment Amt" },
-    { field: "accountsDept.remarksAcctsDept", headerName: "Remarks Accts Dept" },
-    { field: "accountsDept.status", headerName: "Payment Status" },
-    { field: "miroDetails.no", headerName: "MIRO no" },
-    { field: "miroDetails.date", headerName: "MIRO Dt" },
-    { field: "miroDetails.amount", headerName: "MIRO Amt" }
+    { field: "itDept.dateGiven", headerName: "Date given-IT Dept for SES" }, // column no 68
+    { field: "itDept.name", headerName: "Name-IT Dept for SES" }, // column no 69
+    { field: "pimoMumbai.dateGivenPIMO2", headerName: "Dt given-PIMO for SES" }, // column no 70
+    { field: "sesDetails.name", headerName: "Name-PIMO for SES" }, // column no 71
+    { field: "sesDetails.no", headerName: "SES no" }, // column no 72
+    { field: "sesDetails.amount", headerName: "SES Amt" }, // column no 73
+    // { field: "sesDetails.dateGiven", headerName: "Dt given to PIMO for SES" },
+    { field: "sesDetails.dateGiven", headerName: "SES Dt" }, // column no 74
+    { field: "sesDetails.doneBy", headerName: "SES done by" }, // column no 74A
+    { field: "pimoMumbai.dateReceivedFromIT", headerName: "Dt ret-IT Dept aft SES" }, // column no 75
+    { field: "pimoMumbai.dateReturnedFromSES", headerName: "Dt ret-PIMO aft SES" }, // column no 76
+    { field: "approvalDetails.directorApproval.dateGiven", headerName: "Dt given-for approval" }, // column no 77
+    { field: "pimoMumbai.dateReturnedFromDirector", headerName: "Dt ret-PIMO aft approval" }, // column no 78
+    { field: "approvalDetails.remarksPimoMumbai", headerName: "Remarks PIMO Mumbai" }, // column no 79
+    { field: "accountsDept.dateGiven", headerName: "Dt given-Accts" }, // column no 80
+    { field: "accountsDept.givenBy", headerName: "Name given-PIMO to Accts" }, // column no 81
+    { field: "accountsDept.dateReceived", headerName: "Dt recd-Accts" }, // column no 82
+    { field: "accountsDept.receivedBy", headerName: "Name recd-Accts" }, // column no 82A
+    { field: "accountsDept.returnedToPimo", headerName: "Dt ret-PIMO by Accts" }, // column no 83
+    { field: "accountsDept.receivedBack", headerName: "Dt recd back in Accts" }, // column no 84
+    { field: "accountsDept.invBookingChecking", headerName: "Dt given-booking" }, // column no 85
+    { field: "accountsDept.paymentInstructions", headerName: "Payment instructions" }, // column no 86
+    { field: "accountsDept.remarksForPayInstructions", headerName: "Remarks for payments" }, // column no 87
+    { field: "accountsDept.f110Identification", headerName: "F110" }, // column no 88
+    { field: "accountsDept.paymentDate", headerName: "Dt of Payment" }, // column no 89
+    { field: "accountsDept.hardCopy", headerName: "Hard Copy" }, // column no 89A
+    { field: "accountsDept.accountsIdentification", headerName: "Accts Identification" }, // column no 90
+    { field: "accountsDept.paymentAmt", headerName: "Payment Amt" }, // column no 91
+    { field: "accountsDept.remarksAcctsDept", headerName: "Remarks Accts" }, // column no 92
+    { field: "accountsDept.status", headerName: "Payment Status" }, // column no 93
+    { field: "miroDetails.no", headerName: "MIRO no" }, // column no 94
+    { field: "miroDetails.date", headerName: "MIRO Dt" }, // column no 95
+    { field: "miroDetails.amount", headerName: "MIRO Amt" } // column no 96
   ];
 
   const roleSpecificEditFields = {
     SITE_OFFICER: [
+      "srNo",
       "natureOfWork",
       "region",
       "projectDescription",
@@ -128,73 +130,30 @@ export const getColumnsForRole = (role) => {
       "department",
       "remarksBySiteTeam",
       "attachments",
-      "qualityEngineer.dateGiven",
-      "qualityEngineer.name",
-      "qsInspection.dateGiven",
-      "qsInspection.name",
-      "qsCOP.name",
-      "migoDetails.dateGiven",
+      "advanceDate",
+      "advanceAmt",
+      "advancePercentage",
+      "advRequestEnteredBy",
       "migoDetails.no",
       "migoDetails.date",
       "migoDetails.amount",
       "migoDetails.doneBy",
       "invReturnedToSite",
-      "siteEngineer.dateGiven",
-      "siteEngineer.name",
-      "architect.dateGiven",
-      "architect.name",
-      "siteIncharge.dateGiven",
-      "siteIncharge.name",
       "remarks",
       "siteOfficeDispatch.dateGiven",
       "siteOfficeDispatch.name",
       "siteStatus",
-      "pimoMumbai.dateGiven",
-      "attachments",
     ],
 
     QS_TEAM: [
-      "qsMeasurementCheck.dateGiven",
-      "vendorFinalInv.dateGiven",
-      "vendorFinalInv.name",
-      "qsCOP.dateGiven",
-      "qsCOP.name",
       "copDetails.date",
       "copDetails.amount",
-      "copDetails.dateReturned",
       "remarksByQSTeam",
-      "pimoMumbai.dateReturnedFromQs",
-      "pimoMumbai.namePIMO",
-      "attachments",
+      "pimoMumbai.namePIMO2",
     ],
 
     PIMO_MUMBAI_MIGO_SES: [
-      "migoDetails.dateGiven",
-      "migoDetails.no",
-      "migoDetails.date",
-      "migoDetails.amount",
-      "migoDetails.doneBy",
-      "pimoMumbai.dateReceived",
-      "pimoMumbai.receivedBy",
-      "qsMumbai.dateGiven",
-      "qsMumbai.name",
-      "pimoMumbai.dateReturnedFromQs",
-      "itDept.dateGiven",
-      "pimoMumbai.dateGivenPIMO2",
-      "sesDetails.name",
-      "sesDetails.no",
-      "sesDetails.amount",
-      "sesDetails.dateGiven",
-      "sesDetails.doneBy",
-      "pimoMumbai.dateReceivedFromIT",
-      "pimoMumbai.dateReturnedFromSES",
-      "pimoMumbai.dateReturnedFromDirector",
-      "approvalDetails.remarksPimoMumbai",
-      "accountsDept.dateGiven",
-      "accountsDept.givenBy",
-      "attachments",
-
-      // advance fi fields:
+      "srNo",
       "natureOfWork",
       "region",
       "projectDescription",
@@ -207,114 +166,33 @@ export const getColumnsForRole = (role) => {
       "proformaInvNo",
       "proformaInvDate",
       "proformaInvAmt",
+      "proformaInvRecdAtSite",
+      "proformaInvRecdBy",
       "taxInvNo",
       "taxInvDate",
       "currency",
       "taxInvAmt",
       "taxInvRecdAtSite",
       "taxInvRecdBy",
+      "department",
       "remarksBySiteTeam",
       "attachments",
       "advanceDate",
       "advanceAmt",
       "advancePercentage",
       "advRequestEnteredBy",
-      "qualityEngineer.dateGiven",
-      "qualityEngineer.name",
-      "qsInspection.dateGiven",
-      "qsInspection.name",
-      "qsMeasurementCheck.dateGiven",
-      "vendorFinalInv.dateGiven",
-      "vendorFinalInv.name",
-      "qsCOP.dateGiven",
-      "qsCOP.name",
-      "copDetails.date",
-      "copDetails.amount",
-      "copDetails.dateReturned",
-      "siteEngineer.dateGiven",
-      "siteEngineer.name",
-      "architect.dateGiven",
-      "architect.name",
-      "siteIncharge.dateGiven",
-      "siteIncharge.name",
-      "remarks",
-      "siteOfficeDispatch.dateGiven",
-      "siteOfficeDispatch.name",
-      "siteStatus",
-      "pimoMumbai.dateGiven",
-    ],
-
-    PIMO_MUMBAI_ADVANCE_FI: [
-      "natureOfWork",
-      "region",
-      "projectDescription",
-      "vendorNo",
-      "vendorName",
-      "poCreated",
-      "poNo",
-      "poDate",
-      "poAmt",
-      "proformaInvNo",
-      "proformaInvDate",
-      "proformaInvAmt",
-      "taxInvNo",
-      "taxInvDate",
-      "currency",
-      "taxInvAmt",
-      "taxInvRecdAtSite",
-      "taxInvRecdBy",
-      "remarksBySiteTeam",
-      "attachments",
-      "advanceDate",
-      "advanceAmt",
-      "advancePercentage",
-      "advRequestEnteredBy",
-      "qualityEngineer.dateGiven",
-      "qualityEngineer.name",
-      "qsInspection.dateGiven",
-      "qsInspection.name",
-      "qsMeasurementCheck.dateGiven",
-      "vendorFinalInv.dateGiven",
-      "vendorFinalInv.name",
-      "qsCOP.dateGiven",
-      "qsCOP.name",
-      "copDetails.date",
-      "copDetails.amount",
-      "copDetails.dateReturned",
       "migoDetails.no",
       "migoDetails.date",
       "migoDetails.amount",
       "migoDetails.doneBy",
-      "siteEngineer.dateGiven",
-      "siteEngineer.name",
-      "architect.dateGiven",
-      "architect.name",
-      "siteIncharge.dateGiven",
-      "siteIncharge.name",
-      "remarks",
-      "siteOfficeDispatch.dateGiven",
-      "siteOfficeDispatch.name",
-      "siteStatus",
-      "pimoMumbai.dateGiven",
       "pimoMumbai.dateReceived",
       "pimoMumbai.receivedBy",
-      "qsMumbai.dateGiven",
-      "qsMumbai.name",
-      "pimoMumbai.dateReturnedFromQs",
-      "itDept.dateGiven",
-      "pimoMumbai.dateGivenPIMO2",
-      "sesDetails.name",
       "sesDetails.no",
       "sesDetails.amount",
       "sesDetails.dateGiven",
       "sesDetails.doneBy",
-      "pimoMumbai.dateReceivedFromIT",
-      "pimoMumbai.dateReceivedFromPIMO",
-      "approvalDetails.directorApproval.dateReceived",
       "approvalDetails.remarksPimoMumbai",
-      "accountsDept.dateGiven",
       "accountsDept.givenBy",
-      "attachments",
     ],
 
     ACCOUNTS_TEAM: [
@@ -322,24 +200,19 @@ export const getColumnsForRole = (role) => {
       "accountsDept.receivedBy",
       "accountsDept.returnedToPimo",
       "accountsDept.receivedBack",
-      "accountsDept.paymentInstructions",
+      "accountsDept.remarksForPayInstructions",
       "accountsDept.f110Identification",
       "accountsDept.paymentDate",
       "accountsDept.hardCopy",
       "accountsDept.accountsIdentification",
       "accountsDept.paymentAmt",
       "accountsDept.remarksAcctsDept",
-      "accountsDept.status",
-      "accountsDept.invBookingChecking",
-      "attachments",
+      "miroDetails.no",
+      "miroDetails.date",
+      "miroDetails.amount",
     ],
 
-    DIRECTOR_TRUSTEE_ADVISOR: [
-      "approvalDetails.directorApproval.dateGiven",
-      "accountsDept.paymentInstructions",
-      "accountsDept.remarksForPayInstructions",
-      "attachments",
-    ],
+    DIRECTOR_TRUSTEE_ADVISOR: [],
 
     ADMIN: allColumns.map((col) => col.field),
   };
