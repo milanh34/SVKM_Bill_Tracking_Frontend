@@ -319,11 +319,7 @@ const Dashboard = () => {
 
       const filteredBills = filterBillsByRole(billsResponse.data, currentUserRole);
 
-      const sortedData = filteredBills.sort((a, b) => {
-        const aDate = new Date(a.taxInvRecdAtSite || 0);
-        const bDate = new Date(b.taxInvRecdAtSite || 0);
-        return bDate - aDate;
-      });
+      const sortedData = sortBillsByRole(filteredBills, currentUserRole);
 
       setBillsData(sortedData);
       setRegionOptions(userRes.data?.data?.region || []);
@@ -900,6 +896,40 @@ const Dashboard = () => {
       }, 250);
     };
   };
+
+  const getRoleSortField = (role) => {
+    const sortConfig = {
+      site_officer: "taxInvRecdAtSite",
+      qs_site: "qsCOP.dateGiven",
+      site_pimo: "pimoMumbai.dateReceived",
+      accounts: "accountsDept.dateReceived",
+      director: "accountsDept.dateReceived",
+      admin: "taxInvRecdAtSite"
+    };
+    return sortConfig[role] || "taxInvRecdAtSite";
+  };
+
+  const sortBillsByRole = (bills, role) => {
+    const sortField = getRoleSortField(role);
+    
+    return bills.sort((a, b) => {
+      let aValue, bValue;
+      
+      if (sortField.includes('.')) {
+        const [obj, field] = sortField.split('.');
+        aValue = a[obj]?.[field];
+        bValue = b[obj]?.[field];
+      } else {
+        aValue = a[sortField];
+        bValue = b[sortField];
+      }
+      
+      const aDate = new Date(aValue || 0);
+      const bDate = new Date(bValue || 0);
+      return bDate - aDate;
+    });
+  };
+
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">

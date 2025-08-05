@@ -184,7 +184,7 @@ function App() {
           element={
             <ProtectedRoute
               element={AdvancedChecklist2}
-              allowedRoles={["site_pimo"]}
+              allowedRoles={["site_pimo", "site_officer"]}
             />
           }
         />
@@ -194,7 +194,7 @@ function App() {
           element={
             <ProtectedRoute
               element={ChecklistDirectFI2}
-              allowedRoles={["site_pimo"]}
+              allowedRoles={["site_pimo", "site_officer"]}
             />
           }
         />
