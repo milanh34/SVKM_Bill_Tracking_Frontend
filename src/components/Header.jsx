@@ -21,11 +21,11 @@ const Header = () => {
   };
 
   const menuItems = [
-    { name: "Home", path: "/", allowedRoles: ["all"] },
+    { name: "Home", path: "/", allowedRoles: ["site_officer", "site_pimo", "accounts", "director", "qs_site"], },
     {
       name: "Create Bill",
       path: "/create-bill",
-      allowedRoles: ["site_officer", "site_pimo", "admin"],
+      allowedRoles: ["site_officer", "site_pimo"],
     },
     { name: "Reports", path: "/reports", allowedRoles: ["all"] },
     {

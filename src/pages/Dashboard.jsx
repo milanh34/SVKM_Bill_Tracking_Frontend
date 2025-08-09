@@ -1017,7 +1017,7 @@ const Dashboard = () => {
                     </button>
                   )}
 
-                {!showIncomingBills && (
+                {!showIncomingBills && currentUserRole !== "director" && (
                   <button
                     className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-white text-sm bg-[#011a99] border border-gray-300 rounded-md hover:bg-blue-800 transition-colors"
                     onClick={() => setOpenUpdateBillModal(true)}
@@ -1027,7 +1027,7 @@ const Dashboard = () => {
                   </button>
                 )}
 
-                {!showIncomingBills && (
+                {!showIncomingBills && currentUserRole !== "director" && (
                   <button
                     className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-white text-sm bg-yellow-600 border border-gray-300 rounded-md hover:bg-yellow-700 transition-colors"
                     onClick={handlePrint}
@@ -1141,7 +1141,7 @@ const Dashboard = () => {
                   )}
                 </div>
 
-                {!showIncomingBills && (
+                {!showIncomingBills && currentUserRole !== "director" && (
                   <button
                     className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors ${
                       showDownloadValidation

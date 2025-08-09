@@ -71,7 +71,7 @@ function App() {
           element={
             <ProtectedRoute
               element={FullBillDetails}
-              allowedRoles={["site_officer", "site_pimo", "admin"]}
+              allowedRoles={["site_officer", "site_pimo"]}
             />
           }
         />
