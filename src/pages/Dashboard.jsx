@@ -164,9 +164,34 @@ const Dashboard = () => {
   };
 
   const handleSendTo = () => {
-    const availableRoles = roleWorkflow[currentUserRole] || [];
+    if (selectedRows.length === 0) {
+      toast.error("Please select bills to proceed");
+      return;
+    }
 
-    if (availableRoles.length === 0) {
+    let availableRoles = [...roleWorkflow[currentUserRole] || []];
+
+    if (currentUserRole === "qs_site") {
+      const selectedBills = billsData.filter(bill => selectedRows.includes(bill._id));
+      
+      const hasMixedStatus = selectedBills.some(bill => bill.qsMumbai?.dateGiven) && 
+                            selectedBills.some(bill => !bill.qsMumbai?.dateGiven);
+      
+      if (hasMixedStatus) {
+        toast.error("Cannot process bills with mixed QS Mumbai date status. Please select bills with consistent status.");
+        return;
+      }
+
+      const qsMumbaiDateFilled = selectedBills.some(bill => bill.qsMumbai?.dateGiven);
+
+      if (qsMumbaiDateFilled) {
+        availableRoles = availableRoles.filter(role => role.value === "pimo_cop");
+      } else {
+        availableRoles = availableRoles.filter(role => ["measure", "site_cop"].includes(role.value));
+      }
+    }
+
+    if (!availableRoles || availableRoles.length === 0) {
       toast.error("You don't have permission to forward bills");
       return;
     }
@@ -1357,7 +1382,16 @@ const Dashboard = () => {
       <SendToModal
         isOpen={isSendBoxOpen}
         onClose={() => setIsSendBoxOpen(false)}
-        availableRoles={roleWorkflow[currentUserRole] || []}
+        availableRoles={currentUserRole === "qs_site" 
+          ? roleWorkflow[currentUserRole].filter(role => {
+              const selectedBills = billsData.filter(bill => selectedRows.includes(bill._id));
+              const qsMumbaiDateFilled = selectedBills.some(bill => bill.qsMumbai?.dateGiven);
+              return qsMumbaiDateFilled 
+                ? role.value === "pimo_cop"
+                : ["measure", "site_cop"].includes(role.value);
+            })
+          : roleWorkflow[currentUserRole] || []
+        }
         handleSendToRole={handleSendToRole}
       />
 
