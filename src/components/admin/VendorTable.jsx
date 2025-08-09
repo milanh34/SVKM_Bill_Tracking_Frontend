@@ -450,7 +450,7 @@ const VendorTable = () => {
                             className="bg-[#14b8a6] hover:bg-[#0d9488] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
 
                         >
-                            Update Vendor
+                            Mass Update
                             <input
                                 type="file"
                                 id="vendorUpdate"

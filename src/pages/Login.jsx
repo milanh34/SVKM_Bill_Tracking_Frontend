@@ -48,17 +48,17 @@ const LoginPage = () => {
     setSelectedRole(event.target.value);
   };
 
-  const validateRole = (selectedRole, userRoles) => {
-    const roleMap = {
-      Site_Officer: "site_officer",
-      QS_Team: "qs_site",
-      "PIMO_Mumbai_&_SES_Team": "site_pimo",
-      // "Advance_&_Direct_FI_Entry": "pimo_mumbai",
-      Accounts_Team: "accounts",
-      "Trustee,_Advisor_&_Director": "director",
-      Admin: "admin",
-    };
+  const roleMap = {
+    Site_Officer: "site_officer",
+    QS_Team: "qs_site",
+    "PIMO_Mumbai_&_SES_Team": "site_pimo",
+    // "Advance_&_Direct_FI_Entry": "pimo_mumbai",
+    Accounts_Team: "accounts",
+    "Trustee,_Advisor_&_Director": "director",
+    Admin: "admin",
+  };
 
+  const validateRole = (selectedRole, userRoles) => {
     return userRoles.includes(roleMap[selectedRole]);
   };
 
@@ -115,7 +115,7 @@ const LoginPage = () => {
 
       const cookieExpiry = 0.333;
       Cookies.set("token", response.data.token, { expires: cookieExpiry });
-      Cookies.set("userRole", response.data.user.role[0], {
+      Cookies.set("userRole",  roleMap[selectedRole], {
         expires: cookieExpiry,
       });
       Cookies.set("availableRoles", JSON.stringify(response.data.user.role), {

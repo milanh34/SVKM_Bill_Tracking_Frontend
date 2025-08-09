@@ -996,7 +996,7 @@ const Dashboard = () => {
                   onClick={() => setOpenUpdateBillModal(true)}
                 >
                   <EditIcon className="w-4 h-4 mr-1" />
-                  Update Bills
+                  Mass Update
                 </button>
 
                 <button
@@ -1007,7 +1007,7 @@ const Dashboard = () => {
                   <span>Print</span>
                 </button>
 
-                {currentUserRole === "accounts" && (
+                {/* {currentUserRole === "accounts" && (
                   <label className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
                     <input
                       type="file"
@@ -1019,7 +1019,7 @@ const Dashboard = () => {
                     <Download className="w-4 h-4" />
                     <span>{uploading ? "Uploading..." : "Upload Excel"}</span>
                   </label>
-                )}
+                )} */}
 
                 <div className="relative" ref={columnSelectorRef}>
                   <button
