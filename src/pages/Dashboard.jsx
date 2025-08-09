@@ -981,31 +981,36 @@ const Dashboard = () => {
 
                 {["site_officer", "accounts", "site_pimo"].includes(
                   currentUserRole
-                ) && (
+                ) &&
+                  !showIncomingBills && (
+                    <button
+                      className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                      onClick={handleChecklist}
+                    >
+                      <CheckSquare className="w-4 h-4" />
+                      <span>Checklist</span>
+                    </button>
+                  )}
+
+                {!showIncomingBills && (
                   <button
-                    className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                    onClick={handleChecklist}
+                    className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-white text-sm bg-[#011a99] border border-gray-300 rounded-md hover:bg-blue-800 transition-colors"
+                    onClick={() => setOpenUpdateBillModal(true)}
                   >
-                    <CheckSquare className="w-4 h-4" />
-                    <span>Checklist</span>
+                    <EditIcon className="w-4 h-4 mr-1" />
+                    Mass Update
                   </button>
                 )}
 
-                <button
-                  className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-white text-sm bg-[#011a99] border border-gray-300 rounded-md hover:bg-blue-800 transition-colors"
-                  onClick={() => setOpenUpdateBillModal(true)}
-                >
-                  <EditIcon className="w-4 h-4 mr-1" />
-                  Mass Update
-                </button>
-
-                <button
-                  className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-white text-sm bg-yellow-600 border border-gray-300 rounded-md hover:bg-yellow-700 transition-colors"
-                  onClick={handlePrint}
-                >
-                  <Printer className="w-4 h-4" />
-                  <span>Print</span>
-                </button>
+                {!showIncomingBills && (
+                  <button
+                    className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-white text-sm bg-yellow-600 border border-gray-300 rounded-md hover:bg-yellow-700 transition-colors"
+                    onClick={handlePrint}
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>Print</span>
+                  </button>
+                )}
 
                 {/* {currentUserRole === "accounts" && (
                   <label className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
@@ -1111,22 +1116,25 @@ const Dashboard = () => {
                   )}
                 </div>
 
-                <button
-                  className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors ${
-                    showDownloadValidation
-                      ? "animate-shake border-2 border-red-500"
-                      : ""
-                  }`}
-                  onClick={handleDownloadReport}
-                  title={
-                    selectedRows.length === 0
-                      ? "Select rows to download"
-                      : "Download Excel Report"
-                  }
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Export</span>
-                </button>
+                {!showIncomingBills && (
+                  <button
+                    className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors ${
+                      showDownloadValidation
+                        ? "animate-shake border-2 border-red-500"
+                        : ""
+                    }`}
+                    onClick={handleDownloadReport}
+                    title={
+                      selectedRows.length === 0
+                        ? "Select rows to download"
+                        : "Download Excel Report"
+                    }
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Export</span>
+                  </button>
+                )}
+
                 {showIncomingBills ? (
                   <div className="flex items-center space-x-2">
                     <button
@@ -1220,6 +1228,7 @@ const Dashboard = () => {
                     natureOfWorkOptions={natureOfWorkOptions}
                     currencyOptions={currencyOptions}
                     vendorOptions={vendorOptions}
+                    showActions={!showIncomingBills}
                   />
                 </div>
 
