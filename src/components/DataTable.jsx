@@ -1093,6 +1093,7 @@ const DataTable = ({
                   key={column.field}
                   onClick={() => requestSort(column.field)}
                   className={`
+                    ${column.field === "srNo" ? "sticky left-10 z-100" : ""}
                     sticky top-0 px-1.5 py-2.5 text-left text-sm font-semibold text-gray-900
                     border-b border-gray-200 bg-gray-50
                     ${sortConfig.key === column.field ? "bg-gray-100" : ""}
@@ -1194,7 +1195,7 @@ const DataTable = ({
                     return (
                       <td
                         key={column.field}
-                        className={`whitespace-nowrap px-1.5 py-2.5 text-sm ${column.field.includes("amount") ||
+                        className={`${column.field === "srNo" ? "sticky left-10 bg-[#fff]" : ""} whitespace-nowrap px-1.5 py-2.5 text-sm ${column.field.includes("amount") ||
                           column.field.includes("Amount")
                           ? "text-right"
                           : "text-gray-900"

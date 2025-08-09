@@ -5,7 +5,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from 'react-toastify';
 
-export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole }) => {
+export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole, fetchAllData }) => {
     const [recipientName, setRecipientName] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -79,7 +79,6 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
 
             if (res.data.success) {
                 toast.success(res.data.message);
-                setTimeout(() => closeWindow(), 3000);
             } else {
                 toast.warning(res.data.message);
             }
@@ -96,6 +95,10 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
             }
         } finally {
             setLoading(false);
+            setTimeout(() => {
+                fetchAllData();
+                closeWindow();
+            }, 2000);
         }
     };
 

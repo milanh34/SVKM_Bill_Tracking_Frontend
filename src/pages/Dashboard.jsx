@@ -1407,6 +1407,7 @@ const Dashboard = () => {
               selectedRows.includes(bill._id)
             )}
             singleRole={selectedRole}
+            fetchAllData={fetchAllData}
           />
         </div>
       )}
