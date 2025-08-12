@@ -173,10 +173,10 @@ const Dashboard = () => {
 
     if (currentUserRole === "qs_site") {
       const selectedBills = billsData.filter(bill => selectedRows.includes(bill._id));
-      
-      const hasMixedStatus = selectedBills.some(bill => bill.qsMumbai?.dateGiven) && 
-                            selectedBills.some(bill => !bill.qsMumbai?.dateGiven);
-      
+
+      const hasMixedStatus = selectedBills.some(bill => bill.qsMumbai?.dateGiven) &&
+        selectedBills.some(bill => !bill.qsMumbai?.dateGiven);
+
       if (hasMixedStatus) {
         toast.error("Cannot process bills with mixed QS Mumbai date status. Please select bills with consistent status.");
         return;
@@ -232,7 +232,21 @@ const Dashboard = () => {
 
       await Promise.all(promises);
       toast.success("Bills marked as received successfully");
-      await fetchAllData(); 
+
+      console.log(promises);
+      // I have to verify once by checking the actual output of this promises from backend. For now I am expecting "promises.bill" to be my expected result.
+      // To verify I will need some bills in incoming bills tab
+
+      if (currentUserRole === 'accounts') {
+        navigate("/checklist-account2", {
+          state: {
+            selectedRows: [promises.bill],
+            bills: [promises.bill],
+          },
+        });
+      }
+
+      await fetchAllData();
       setSelectedRows([]);
     } catch (error) {
       console.error("Error receiving bills:", error);
@@ -251,7 +265,7 @@ const Dashboard = () => {
     try {
       const token = Cookies.get("token");
       const endpoint = currentUserRole === "site_pimo" ? notReceivedPimo : notReceivedAccounts;
-      
+
       const promises = selectedRows.map((billId) =>
         axios.post(
           endpoint,
@@ -559,8 +573,8 @@ const Dashboard = () => {
       roleForColumns = "QS_TEAM";
     } else if (currentUserRole === "site_pimo") {
       roleForColumns = "PIMO_MUMBAI_MIGO_SES";
-    // } else if (currentUserRole === "pimo_mumbai") {
-    //   roleForColumns = "PIMO_MUMBAI_ADVANCE_FI";
+      // } else if (currentUserRole === "pimo_mumbai") {
+      //   roleForColumns = "PIMO_MUMBAI_ADVANCE_FI";
     } else if (currentUserRole === "accounts") {
       roleForColumns = "ACCOUNTS_TEAM";
     } else if (currentUserRole === "director") {
@@ -936,10 +950,10 @@ const Dashboard = () => {
 
   const sortBillsByRole = (bills, role) => {
     const sortField = getRoleSortField(role);
-    
+
     return bills.sort((a, b) => {
       let aValue, bValue;
-      
+
       if (sortField.includes('.')) {
         const [obj, field] = sortField.split('.');
         aValue = a[obj]?.[field];
@@ -948,7 +962,7 @@ const Dashboard = () => {
         aValue = a[sortField];
         bValue = b[sortField];
       }
-      
+
       const aDate = new Date(aValue || 0);
       const bDate = new Date(bValue || 0);
       return bDate - aDate;
@@ -1115,7 +1129,7 @@ const Dashboard = () => {
                                 }
                                 // className={`hover:cursor-pointer ${column.field === "srNo" ? "opacity-60" : ""}`}
                                 className="hover:cursor-pointer"
-                                // disabled={column.field === "srNo"}
+                              // disabled={column.field === "srNo"}
                               />
                               <label
                                 // className={`hover:cursor-pointer text-sm ${column.field === "srNo" ? "opacity-60" : ""}`}
@@ -1132,10 +1146,10 @@ const Dashboard = () => {
                             .toLowerCase()
                             .includes(columnSearchQuery.toLowerCase())
                         ).length === 0 && (
-                          <div className="text-gray-500 text-sm text-center py-2">
-                            No columns found
-                          </div>
-                        )}
+                            <div className="text-gray-500 text-sm text-center py-2">
+                              No columns found
+                            </div>
+                          )}
                       </div>
                     </div>
                   )}
@@ -1143,11 +1157,10 @@ const Dashboard = () => {
 
                 {!showIncomingBills && currentUserRole !== "director" && (
                   <button
-                    className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors ${
-                      showDownloadValidation
-                        ? "animate-shake border-2 border-red-500"
-                        : ""
-                    }`}
+                    className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors ${showDownloadValidation
+                      ? "animate-shake border-2 border-red-500"
+                      : ""
+                      }`}
                     onClick={handleDownloadReport}
                     title={
                       selectedRows.length === 0
@@ -1191,11 +1204,10 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <button
-                    className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors ${
-                      selectedRole
-                        ? "relative after:absolute after:top-0 after:right-0 after:w-2 after:h-2 after:bg-green-500 after:rounded-full"
-                        : ""
-                    }`}
+                    className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors ${selectedRole
+                      ? "relative after:absolute after:top-0 after:right-0 after:w-2 after:h-2 after:bg-green-500 after:rounded-full"
+                      : ""
+                      }`}
                     onClick={handleSendTo}
                     title="Send Bills"
                   >
@@ -1294,11 +1306,10 @@ const Dashboard = () => {
                       {pageNumbers.map((pageNumber) => (
                         <button
                           key={pageNumber}
-                          className={`px-2.5 py-1.5 text-sm hover:cursor-pointer border rounded-md transition-colors ${
-                            currentPage === pageNumber
-                              ? "bg-[#011a99] text-white"
-                              : "bg-white border-gray-300 hover:bg-gray-50"
-                          }`}
+                          className={`px-2.5 py-1.5 text-sm hover:cursor-pointer border rounded-md transition-colors ${currentPage === pageNumber
+                            ? "bg-[#011a99] text-white"
+                            : "bg-white border-gray-300 hover:bg-gray-50"
+                            }`}
                           onClick={() => handlePageChange(pageNumber)}
                         >
                           {pageNumber}
@@ -1382,14 +1393,14 @@ const Dashboard = () => {
       <SendToModal
         isOpen={isSendBoxOpen}
         onClose={() => setIsSendBoxOpen(false)}
-        availableRoles={currentUserRole === "qs_site" 
+        availableRoles={currentUserRole === "qs_site"
           ? roleWorkflow[currentUserRole].filter(role => {
-              const selectedBills = billsData.filter(bill => selectedRows.includes(bill._id));
-              const qsMumbaiDateFilled = selectedBills.some(bill => bill.qsMumbai?.dateGiven);
-              return qsMumbaiDateFilled 
-                ? role.value === "pimo_cop"
-                : ["measure", "site_cop"].includes(role.value);
-            })
+            const selectedBills = billsData.filter(bill => selectedRows.includes(bill._id));
+            const qsMumbaiDateFilled = selectedBills.some(bill => bill.qsMumbai?.dateGiven);
+            return qsMumbaiDateFilled
+              ? role.value === "pimo_cop"
+              : ["measure", "site_cop"].includes(role.value);
+          })
           : roleWorkflow[currentUserRole] || []
         }
         handleSendToRole={handleSendToRole}
