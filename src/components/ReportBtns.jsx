@@ -40,15 +40,15 @@ const ReportBtns = () => {
     };
 
     const allButtons = [
-        { id: 'reportsrecatsite', label: 'Invoices Received at Site' },
+        { id: 'reportsrecatsite', label: 'Invoices at Site' },
         { id: 'reportsbilloutstanding', label: 'Outstanding Bill Report' },
         { id: 'reportsbilloutstandingsubtotal', label: 'Outstanding Bill Report Subtotal' },
-        { id: 'reportscouriermumbai', label: 'Invoices Couriered to Mumbai' },
+        { id: 'reportscouriermumbai', label: 'Invoices Sent to PIMO Mumbai' },      // Invoices Couriered to Mumbai
         { id: 'reportsreceivedmumbai', label: 'Invoices Received at Mumbai' },
-        { id: 'reportsinvoiceacctdept', label: 'Invoices given to Accounts dept' },
-        { id: 'reportsinvoiceqssite', label: 'Invoices given to QS site' },
+        { id: 'reportsinvoiceacctdept', label: 'Invoices sent to Accounts Team' },
+        { id: 'reportsinvoiceqssite', label: 'Invoices with QS Site for Measurement' },     // Invoices given to QS site
         { id: 'reportsinvoicepaid', label: 'Invoices Paid' },
-        { id: 'reportspending', label: 'Reports of pending bills with PIMO/SVKM site office/QS Mumbai office/QS site office' },
+        { id: 'reportspending', label: 'Invoices at PIMO' },        // pending bills
         { id: 'reportsbilljourney', label: 'Bill Journey' }
     ];
 
