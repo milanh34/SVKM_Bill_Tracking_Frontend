@@ -33,7 +33,6 @@ import { SendBoxModal } from "../components/dashboard/SendBoxModal";
 import Loader from "../components/Loader";
 import Cookies from "js-cookie";
 import { handleExportReport } from "../utils/exportExcelDashboard";
-import { patchBills } from "../apis/report.api";
 
 const Dashboard = () => {
   const currentUserRole = Cookies.get("userRole");
@@ -689,35 +688,6 @@ const Dashboard = () => {
   const showIncomingBillsButton = ["accounts", "site_pimo",].includes(
     currentUserRole
   );
-
-  const handleExcelUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const response = await axios.post(patchBills, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${Cookies.get("token")}`,
-        },
-      });
-      if (response.data?.success) {
-        toast.success(response.data.message || "Bills patched successfully!");
-        await fetchAllData();
-      } else {
-        toast.error(response.data?.message || "Failed to patch bills.");
-      }
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Failed to upload and patch bills."
-      );
-    } finally {
-      setUploading(false);
-      event.target.value = "";
-    }
-  };
 
   const handlePrint = () => {
     if (selectedRows.length === 0) {
