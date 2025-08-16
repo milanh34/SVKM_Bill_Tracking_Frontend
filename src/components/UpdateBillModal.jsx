@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { X } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { patchBills } from "../apis/excel.api";
+import { patchBills, importReport } from "../apis/excel.api";
 import updateBillTemplate from '../assets/updateBill.xlsx?url';
+import importBillTemplate from '../assets/importBill.xlsx?url';
 import Cookies from 'js-cookie';
 
 export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, fetchAllData, patch }) => {
@@ -11,8 +12,8 @@ export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, f
 
   const handleDownloadTemplate = () => {
     const link = document.createElement('a');
-    link.href = updateBillTemplate;
-    link.download = 'updateBill.xlsx';
+    link.href = patch ? updateBillTemplate : importBillTemplate;
+    link.download = patch ? 'updateBill.xlsx' : 'importBill.xlsx';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -51,8 +52,10 @@ export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, f
     setLoading(true);
 
     try {
+      const endpoint = patch ? `${patchBills}/?team=${userRole}` : importReport;
+      
       const response = await axios.post(
-        `${patchBills}/?team=${userRole}`,
+        endpoint,
         formData,
         {
           headers: {
@@ -62,12 +65,16 @@ export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, f
         }
       );
 
-      toast.success("Bills updated successfully");
-      fetchAllData();
+      toast.success(patch ? "Bills updated successfully" : "Bills imported successfully");
+      
+      if (patch) {
+        await fetchAllData();
+      }
+      
       setOpenUpdateBillModal(false);
     } catch (error) {
-      console.error("Error updating bills:", error);
-      toast.error(error.response?.data?.message || "Error updating bills");
+      console.error(patch ? "Error updating bills:" : "Error importing bills:", error);
+      toast.error(error.response?.data?.message || (patch ? "Error updating bills" : "Error importing bills"));
     } finally {
       setLoading(false);
     }
@@ -83,7 +90,7 @@ export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, f
       </button>
 
       <div className="mt-5 text-center">
-        <p className="mb-2 font-semibold">Update Bills</p>
+        <p className="mb-2 font-semibold">{patch ? "Update Bills" : "Import Bills"}</p>
         <p className="mb-2">Download the template and fill in the bill details:</p>
         <button
           onClick={handleDownloadTemplate}
@@ -123,7 +130,7 @@ export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, f
                 : 'bg-blue-600 hover:bg-blue-700 hover:cursor-pointer'
             }`}
           >
-            {loading ? "Updating..." : "Update"}
+            {loading ? (patch ? "Updating..." : "Importing...") : (patch ? "Update" : "Import")}
           </button>
         </div>
       </div>

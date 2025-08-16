@@ -520,7 +520,7 @@ const UserTable = () => {
             </div>
 
             {showAddModal && (
-                <div className="fixed inset-0 bg-gray-300/50 backdrop-blur-[10px] flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black/25 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-4 w-full max-w-4xl">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-bold text-gray-800">Add New User</h2>
@@ -714,7 +714,7 @@ const UserTable = () => {
             )}
 
             {showDeleteConfirm && (
-                <div className="fixed inset-0 bg-gray-300/50 backdrop-blur-[10px] flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black/25 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-6 w-full max-w-md">
                         <div className="text-center">
                             <h2 className="text-xl font-bold mb-4">Confirm Delete</h2>

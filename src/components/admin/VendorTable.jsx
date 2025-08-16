@@ -536,7 +536,7 @@ const VendorTable = () => {
 
             {/* Add Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-gray-300/50 backdrop-blur-[10px] flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black/25 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-4 w-full max-w-4xl">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-bold text-gray-800">Add New Vendor</h2>
@@ -672,7 +672,7 @@ const VendorTable = () => {
 
             {/* Delete Modal */}
             {showDeleteModal && (
-                <div className="fixed inset-0 bg-transparent backdrop-blur-[10px] bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black/25 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-6 w-full max-w-md">
                         <div className="text-center">
                             <svg className="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -705,7 +705,7 @@ const VendorTable = () => {
             )}
 
             {showImportModal && (
-                <div className="fixed inset-0 bg-gray-400/50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black/25 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-6 w-full max-w-md">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-bold text-gray-800">Import Vendors</h2>
@@ -775,7 +775,7 @@ const VendorTable = () => {
             )}
 
             {showUpdateModal && (
-                <div className="fixed inset-0 bg-gray-400/50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black/25 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-6 w-full max-w-md">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-bold text-gray-800">Mass Update Vendors</h2>
