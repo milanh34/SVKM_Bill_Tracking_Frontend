@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { EditIcon, CheckIcon } from '../Icons';
 import { vendors, compliances, panstatus } from '../../apis/master.api';
+import { importVendors, updateVendors } from '../../apis/excel.api';
 import { handleExportVendorMaster } from '../../utils/exportDownloadVendorMaster';
-import { importExcel } from '../../apis/bills.api'
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import importVendorTemplate from '../../assets/importVendor.xlsx?url';
+import updateVendorTemplate from '../../assets/updateVendor.xlsx?url';
 
 const VendorTable = () => {
     const [vendorData, setVendorData] = useState([]);
@@ -29,6 +31,10 @@ const VendorTable = () => {
         emailIds: [],
         phoneNumbers: []
     });
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [showUpdateModal, setShowUpdateModal] = useState(false);
+    const [selectedImportFile, setSelectedImportFile] = useState(null);
+    const [selectedUpdateFile, setSelectedUpdateFile] = useState(null);
 
     // Dropdown options states
     const [complianceOptions, setComplianceOptions] = useState([]);
@@ -198,12 +204,37 @@ const VendorTable = () => {
         setShowAddModal(true);
     };
 
-    const handleImportVendor = async (event) => {
-        console.log("Import vendors clicked");
-        const file = event.target.files[0];
-        if (!file)
-            return;
+    const handleDownloadImportTemplate = () => {
+        const link = document.createElement('a');
+        link.href = importVendorTemplate;
+        link.download = 'importVendor.xlsx';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
+    const handleDownloadUpdateTemplate = () => {
+        const link = document.createElement('a');
+        link.href = updateVendorTemplate;
+        link.download = 'updateVendor.xlsx';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleImportFileSelect = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        validateExcelFile(file) && setSelectedImportFile(file);
+    };
+
+    const handleUpdateFileSelect = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        validateExcelFile(file) && setSelectedUpdateFile(file);
+    };
+
+    const validateExcelFile = (file) => {
         const allowedTypes = [
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'application/vnd.ms-excel',
@@ -213,78 +244,62 @@ const VendorTable = () => {
 
         if (!allowedTypes.includes(file.type) && !allowedExtensions.test(file.name)) {
             toast.error('Only .xlsx, .xls, .csv files are allowed');
-            event.target.value = '';
+            return false;
+        }
+        return true;
+    };
+
+    const handleImportSubmit = async () => {
+        if (!selectedImportFile) {
+            toast.error('Please select a file first');
             return;
         }
 
-        const data = new FormData();
-        data.append('file', file);
+        const formData = new FormData();
+        formData.append('file', selectedImportFile);
 
         setIsLoading(true);
         try {
-            const response = await axios.post(`${importExcel}/import-vendors`, data, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
+            await axios.post(importVendors, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
-            console.log(response.data);
-            // toast.success('File imported successfully');
-            toast.success('Vendors added successfully');
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+            toast.success('Vendors imported successfully');
+            setShowImportModal(false);
+            setSelectedImportFile(null);
+            fetchVendors();
         } catch (error) {
-            console.error('Error importing file:', error);
-            toast.error(error.response?.data?.message || 'Error importing file');
+            console.error('Error importing vendors:', error);
+            toast.error(error.response?.data?.message || 'Error importing vendors');
         } finally {
             setIsLoading(false);
-            event.target.value = '';
         }
-    }
+    };
 
-    const handleUpdateVendor = async (event) => {
-        console.log("Update vendor clicked");
-        const file = event.target.files[0];
-        if (!file)
-            return;
-
-        const allowedTypes = [
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'application/vnd.ms-excel',
-            'text/csv'
-        ];
-        const allowedExtensions = /\.(xlsx|xls|csv)$/i;
-
-        if (!allowedTypes.includes(file.type) && !allowedExtensions.test(file.name)) {
-            toast.error('Only .xlsx, .xls, .csv files are allowed');
-            event.target.value = '';
+    const handleUpdateSubmit = async () => {
+        if (!selectedUpdateFile) {
+            toast.error('Please select a file first');
             return;
         }
 
-        const data = new FormData();
-        data.append('file', file);
+        const formData = new FormData();
+        formData.append('file', selectedUpdateFile);
 
         setIsLoading(true);
         try {
-            const response = await axios.post(`${importExcel}/update-vendor`, data, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
+            await axios.post(updateVendors, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
-            console.log(response.data);
-            // toast.success('File imported successfully');
-            toast.success('Vendor Updated successfully');
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+            toast.success('Vendors updated successfully');
+            setShowUpdateModal(false);
+            setSelectedUpdateFile(null);
+            fetchVendors();
         } catch (error) {
-            console.error('Error importing file:', error);
-            toast.error(error.response?.data?.message || 'Error importing file');
+            console.error('Error updating vendors:', error);
+            toast.error(error.response?.data?.message || 'Error updating vendors');
         } finally {
             setIsLoading(false);
-            event.target.value = '';
         }
-    }
+    };
 
     const validateVendorNo = (x) => /^[0-9]{6}$/.test(x);
 
@@ -430,36 +445,18 @@ const VendorTable = () => {
                         >
                             Add Vendor
                         </button>
-                        <label
-                            htmlFor="vendorInput"
+                        <button
+                            onClick={() => setShowImportModal(true)}
                             className="bg-[#4f63d2] hover:bg-[#3d4ebc] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
-
                         >
                             Import Vendors
-                            <input
-                                type="file"
-                                id="vendorInput"
-                                accept=".xlsx,.xls,.csv"
-                                onChange={handleImportVendor}
-                                className="hidden"
-                                disabled={isLoading}
-                            />
-                        </label>
-                        <label
-                            htmlFor="vendorUpdate"
+                        </button>
+                        <button
+                            onClick={() => setShowUpdateModal(true)}
                             className="bg-[#14b8a6] hover:bg-[#0d9488] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
-
                         >
                             Mass Update
-                            <input
-                                type="file"
-                                id="vendorUpdate"
-                                accept=".xlsx,.xls,.csv"
-                                onChange={handleUpdateVendor}
-                                className="hidden"
-                                disabled={isLoading}
-                            />
-                        </label>
+                        </button>
                         <button
                             onClick={handleDownload}
                             className="bg-[#f48d02] hover:bg-[#f7a733] text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
@@ -700,6 +697,146 @@ const VendorTable = () => {
                                     disabled={isLoading}
                                 >
                                     {isLoading ? 'Deleting...' : 'Delete Vendor'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showImportModal && (
+                <div className="fixed inset-0 bg-gray-400/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-bold text-gray-800">Import Vendors</h2>
+                            <button 
+                                onClick={() => {
+                                    setShowImportModal(false);
+                                    setSelectedImportFile(null);
+                                }}
+                                className="text-gray-600 hover:text-gray-800 hover:cursor-pointer"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <p className="text-sm text-gray-600 mb-2">Download the template and fill in your vendor details:</p>
+                                <button
+                                    onClick={handleDownloadImportTemplate}
+                                    className="text-blue-600 hover:text-blue-800 text-sm underline hover:cursor-pointer"
+                                >
+                                    Download Template
+                                </button>
+                            </div>
+
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                                <input
+                                    type="file"
+                                    accept=".xlsx,.xls,.csv"
+                                    onChange={handleImportFileSelect}
+                                    className="w-full text-sm text-gray-500
+                                        file:mr-4 file:py-2 file:px-4
+                                        file:rounded-full file:border-0
+                                        file:text-sm file:font-semibold
+                                        file:bg-blue-50 file:text-blue-700
+                                        hover:file:bg-blue-100"
+                                />
+                            </div>
+
+                            <div className="flex justify-end space-x-3 pt-4">
+                                <button
+                                    onClick={() => {
+                                        setShowImportModal(false);
+                                        setSelectedImportFile(null);
+                                    }}
+                                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md hover:cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleImportSubmit}
+                                    disabled={!selectedImportFile || isLoading}
+                                    className={`px-4 py-2 rounded-md text-white ${
+                                        !selectedImportFile 
+                                            ? 'bg-blue-300 cursor-not-allowed' 
+                                            : 'bg-blue-600 hover:bg-blue-700 hover:cursor-pointer'
+                                    }`}
+                                >
+                                    {isLoading ? 'Importing...' : 'Import'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showUpdateModal && (
+                <div className="fixed inset-0 bg-gray-400/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-bold text-gray-800">Mass Update Vendors</h2>
+                            <button 
+                                onClick={() => {
+                                    setShowUpdateModal(false);
+                                    setSelectedUpdateFile(null);
+                                }}
+                                className="text-gray-600 hover:text-gray-800 hover:cursor-pointer"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <p className="text-sm text-gray-600 mb-2">Download the template and fill in the vendor details to update:</p>
+                                <button
+                                    onClick={handleDownloadUpdateTemplate}
+                                    className="text-blue-600 hover:text-blue-800 text-sm underline hover:cursor-pointer"
+                                >
+                                    Download Template
+                                </button>
+                            </div>
+
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                                <input
+                                    type="file"
+                                    accept=".xlsx,.xls,.csv"
+                                    onChange={handleUpdateFileSelect}
+                                    className="w-full text-sm text-gray-500
+                                        file:mr-4 file:py-2 file:px-4
+                                        file:rounded-full file:border-0
+                                        file:text-sm file:font-semibold
+                                        file:bg-blue-50 file:text-blue-700
+                                        hover:file:bg-blue-100"
+                                />
+                            </div>
+
+                            <div className="flex justify-end space-x-3 pt-4">
+                                <button
+                                    onClick={() => {
+                                        setShowUpdateModal(false);
+                                        setSelectedUpdateFile(null);
+                                    }}
+                                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md hover:cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleUpdateSubmit}
+                                    disabled={!selectedUpdateFile || isLoading}
+                                    className={`px-4 py-2 rounded-md text-white ${
+                                        !selectedUpdateFile 
+                                            ? 'bg-teal-300 cursor-not-allowed' 
+                                            : 'bg-teal-600 hover:bg-teal-700 hover:cursor-pointer'
+                                    }`}
+                                >
+                                    {isLoading ? 'Updating...' : 'Update'}
                                 </button>
                             </div>
                         </div>
