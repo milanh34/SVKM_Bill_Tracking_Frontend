@@ -6,11 +6,11 @@ import download from "../../assets/download.svg";
 import send from "../../assets/send.svg";
 import print from "../../assets/print.svg";
 import axios from 'axios';
-import { givenToQSSite } from '../../apis/report.api';
-// import { handleExportRepGivenToQS } from '../../utils/archive/exportExcelReportGivenToQS';
+import { invoicesPaid, invPaid } from '../../apis/report.api';
+// import { handleExportRepPaid } from '../../utils/archive/exportExcelReportPaid';
 import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
 
-const InvoicesGivenToQSSite = () => {
+const InvPaid = () => {
 
     const getFormattedDate = () => {
         const today = new Date();
@@ -28,11 +28,11 @@ const InvoicesGivenToQSSite = () => {
     const fetchBills = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${givenToQSSite}?startDate=${fromDate}&endDate=${toDate}`);
+            const response = await axios.get(`${invPaid}?startDate=${fromDate}&endDate=${toDate}`);
             console.log(response);
             setBills(response.data.report?.data || []);
         } catch (error) {
-            console.error('Error fetching QS site bills:', error);
+            console.error('Error fetching paid invoices:', error);
         } finally {
             setLoading(false);
         }
@@ -41,6 +41,7 @@ const InvoicesGivenToQSSite = () => {
     useEffect(() => {
         fetchBills();
     }, [fromDate, toDate]);
+
 
     const handleTopDownload = async () => {
         console.log("Rep given to acc dept download clicked");
@@ -58,23 +59,23 @@ const InvoicesGivenToQSSite = () => {
         console.log("Result = " + result.message);
     }
 
-    const titleName = "Invoices with QS-Site for COP";
+    const titleName = "Invoices Paid";
 
     const columns = [
         { field: "srNo", headerName: "Sr. No" },
-        { field: "region", headerName: "Region" },
-        { field: "projectDescription", headerName: "Project Description" },
-        { field: "vendorNo", headerName: "Vendor No" },
+        { field: "dateReceivedAtAccts", headerName: "Dt recd in Accts Dept" },
+        { field: "dateOfPayment", headerName: "Dt of Payment" },
+        { field: "vendorNo", headerName: "Vendor No." },
         { field: "vendorName", headerName: "Vendor Name" },
-        { field: "invoiceNo", headerName: "Tax Invoice No." },
-        { field: "invoiceDate", headerName: "Tax Invoice Date" },
-        { field: "invoiceAmount", headerName: "Tax Invoice Amount (Rs.)" },
-        { field: "qsMumbai.dateGiven", headerName: "Dt given-QS Mumbai for COP" }, // column no 64
-        { field: "poNo", headerName: "PO No" },
+        { field: "taxInvNo", headerName: "Tax Invoice No." },
+        { field: "taxInvDate", headerName: "Tax Invoice Date" },
+        { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
+        { field: "copAmount", headerName: "COP Amount" },
+        { field: "payentAmt", headerName: "Payment Amount" },
     ]
 
     const visibleColumnFields = [
-        "srNo", "region", "projectDescription", "vendorNo", "vendorName", "invoiceNo", "invoiceDate", "invoiceAmount", "qsMumbai.dateGiven", "poNo"
+        "srNo", "dateReceivedAtAccts", "dateOfPayment", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt",  "copAmount", "payentAmt"
     ]
 
     return (
@@ -84,7 +85,7 @@ const InvoicesGivenToQSSite = () => {
 
             <div className="p-[2vh_2vw] mx-auto font-sans h-[100vh] bg-white text-black">
                 <div className="flex justify-between items-center mb-[2vh]">
-                    <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Invoices with QS Site for Prov COP</h2>
+                    <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Invoices Paid</h2>
                     <div className="flex gap-[1vw] w-[50%]">
                         <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]" onClick={handleTopPrint}>
                             Print
@@ -113,15 +114,15 @@ const InvoicesGivenToQSSite = () => {
                         <thead>
                             <tr>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Sr No</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Region</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Project Description</th>
+                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt recd in Accts Dept</th>
+                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt of payment</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor No</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor Name</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv no</th>
+                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv No</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Date</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Amt</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt given-QS Mumbai for COP</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>PO No</th>
+                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>COP Amt</th>
+                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Payment Amt</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -130,40 +131,45 @@ const InvoicesGivenToQSSite = () => {
                                     <td colSpan="9" className="text-center py-4">Loading...</td>
                                 </tr>
                             )
-                                // : bills.length === 0 ? (
-                                //     <tr>
-                                //         <td colSpan="9" className="text-center py-4">No invoices found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
-                                //     </tr>
-                                // ) 
-                                : bills
-                                    .filter(bill => !bill.isSubtotal && bill.srNo)
-                                    .map((bill, index) => (
-                                        <tr key={index} className="hover:bg-[#f5f5f5]">
-                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.srNo}</td>
-                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.region}</td>
-                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.projectDescription}</td>
-                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorNo}</td>
-                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
-                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
-                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvDate}</td>
-                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>1</td>
-                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.poNo}</td>
-                                        </tr>
-                                    ))
+                            // : bills.length === 0 ? (
+                            //     <tr>
+                            //         <td colSpan="9" className="text-center py-4">No invoices found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
+                            //     </tr>
+                            // )
+                            : bills
+                                .filter(bill => !bill.isSubTotal && bill.srNo)
+                                .map((bill, index) => (
+                                    <tr key={index} className="hover:bg-[#f5f5f5]">
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.srNo}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.dateReceivedAtAccts}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.dateOfPayment}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorNo}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvDate}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.copAmount}</td>
+                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.payentAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                    </tr>
+                                ))
                             }
                             {bills
                                 .filter(bill => bill.isGrandTotal)
                                 .map((bill) => (
                                     <tr key={bill.totalCount} className='bg-[#f5f5f5] font-semibold'>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>
-                                            <strong>Total Count: {bill.totalCount.toLocaleString('en-IN')}</strong>
+                                            <strong>Total Count: {bill.count.toLocaleString('en-IN')}</strong>
                                         </td>
                                         <td colSpan={6} className='border border-black'></td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
+                                            <strong>Grand Total: {bill.grandTotalTaxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                        </td>
+                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
+                                            <strong>Grand Total: {bill.grandTotalCopAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                        </td>
+                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                             <strong>Grand Total: {bill.grandTotalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                         </td>
-                                        <td colSpan={2} className='border border-black'></td>
                                     </tr>
                                 ))
                             }
@@ -175,4 +181,4 @@ const InvoicesGivenToQSSite = () => {
     )
 }
 
-export default InvoicesGivenToQSSite;
+export default InvPaid;

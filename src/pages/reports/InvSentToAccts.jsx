@@ -6,11 +6,11 @@ import download from "../../assets/download.svg";
 import send from "../../assets/send.svg";
 import print from "../../assets/print.svg";
 import axios from 'axios';
-import { givenToAccounts } from '../../apis/report.api';
+import { givenToAccounts, invSentToAccts } from '../../apis/report.api';
 // import { handleExportRepGivenToAccounts } from '../../utils/archive/exportExcelReportGivenToAccounts';
 import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
 
-const InvoicesGivenToAccountDept = () => {
+const InvSentToAccts = () => {
 
     const getFormattedDate = () => {
         const today = new Date();
@@ -28,7 +28,7 @@ const InvoicesGivenToAccountDept = () => {
     const fetchBills = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${givenToAccounts}?startDate=${fromDate}&endDate=${toDate}`);
+            const response = await axios.get(`${invSentToAccts}?startDate=${fromDate}&endDate=${toDate}`);
             console.log(response);
             setBills(response.data.report?.data || []);
         } catch (error) {
@@ -66,11 +66,11 @@ const InvoicesGivenToAccountDept = () => {
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
         { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
-        { field: "accountsDept.dateGiven", headerName: "Dt given-Accts" }, // column no 80
+        { field: "dateGivenToAccounts", headerName: "Dt given-Accts" }, // column no 80
     ]
 
     const visibleColumnFields = [
-        "srNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "accountsDept.dateGiven"
+        "srNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dateGivenToAccounts"
     ]
 
     return (
@@ -138,7 +138,7 @@ const InvoicesGivenToAccountDept = () => {
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvDate}</td>
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dtGivenToAcctsDept}</td>
+                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dateGivenToAccounts}</td>
                                         </tr>
                                     ))}
                             {bills
@@ -146,11 +146,11 @@ const InvoicesGivenToAccountDept = () => {
                                 .map((bill) => (
                                     <tr key={bill.totalCount} className='bg-[#f5f5f5] font-semibold'>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
-                                            <strong>Total Count: {bill.totalCount.toLocaleString('en-IN')}</strong>
+                                            <strong>Count: {bill.count.toLocaleString('en-IN')}</strong>
                                         </td>
                                         <td colSpan={4} className='border border-black'></td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
-                                            <strong>Grand Total: {bill.grandTotalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                            <strong>Grand Total: {bill.grandTotalTaxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                         </td>
                                         <td colSpan={1} className='border border-black'></td>
                                     </tr>
@@ -164,4 +164,4 @@ const InvoicesGivenToAccountDept = () => {
     )
 }
 
-export default InvoicesGivenToAccountDept;
+export default InvSentToAccts;

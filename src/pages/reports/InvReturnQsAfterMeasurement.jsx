@@ -6,11 +6,11 @@ import download from "../../assets/download.svg";
 import send from "../../assets/send.svg";
 import print from "../../assets/print.svg";
 import axios from 'axios';
-import { courieredMumbai } from '../../apis/report.api';
+import { courieredMumbai, invReturnQsMeasurement } from '../../apis/report.api';
 // import { handleExportRepCourierToMumbai } from '../../utils/archive/exportExcelReportCourierMumbai';
 import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
 
-const RepCourier = () => {
+const InvReturnQsAfterProvCOP = () => {
 
     const getFormattedDate = () => {
         const today = new Date();
@@ -33,7 +33,7 @@ const RepCourier = () => {
         const fetchBills = async () => {
 
             try {
-                const response = await axios.get(`${courieredMumbai}?startDate=${fromDate}&endDate=${toDate}`);
+                const response = await axios.get(`${invReturnQsMeasurement}?startDate=${fromDate}&endDate=${toDate}`);
                 console.log(response.data.report);
                 setBills(response.data.report.data);
                 setTotals(response.data.report.summary);
@@ -66,7 +66,7 @@ const RepCourier = () => {
         console.log("Result = " + result.message);
     }
 
-    const titleName = "Invoices sent to PIMO Mumbai";
+    const titleName = "Invoices Returned by QS Site after Measurement";
 
     const columns = [
         { field: "srNo", headerName: "Sr. No" },
@@ -74,11 +74,11 @@ const RepCourier = () => {
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
         { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
-        { field: "pimoMumbai.dateGiven", headerName: "Dt dispatched-PIMO" }, // column no 61
+        { field: "dateReturnedFromQsMeasurement", headerName: "Dt ret-QS aft measure" }, // column no 38
     ]
 
     const visibleColumnFields = [
-        "srNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "pimoMumbai.dateGiven"
+        "srNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "pimoMumbai.dateGiven", "dateReturnedFromQsMeasurement"
     ]
 
 
@@ -94,7 +94,7 @@ const RepCourier = () => {
 
             <div className="p-[2vh_2vw] mx-auto font-sans h-[100vh] bg-white text-black">
                 <div className="flex justify-between items-center mb-[2vh]">
-                    <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Invoices Sent to PIMO Mumbai</h2>
+                    <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>{titleName}</h2>
                     <div className="flex gap-[1vw] w-[50%]">
                         <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]" onClick={handleTopPrint}>
                             Print
@@ -128,7 +128,7 @@ const RepCourier = () => {
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv no</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Date</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Amt</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt Dispatched PIMO</th>
+                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt Return QS after Measurement</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -152,8 +152,7 @@ const RepCourier = () => {
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvDate}</td>
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                            {/* <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dtGiven}</td> */}
-                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>left</td>
+                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dateReturnedFromQsMeasurement}</td>
                                         </tr>
                                     ))}
                             {bills
@@ -161,11 +160,11 @@ const RepCourier = () => {
                                 .map((bill) => (
                                     <tr key={bill.totalCount} className='bg-[#f5f5f5] font-semibold'>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>
-                                            <strong>Total Count: {bill.totalCount.toLocaleString('en-IN')}</strong>
+                                            <strong>Total Count: {bill.count.toLocaleString('en-IN')}</strong>
                                         </td>
                                         <td colSpan={4} className='border border-black'></td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
-                                            <strong>Grand Total: {bill.grandTotalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                            <strong>Grand Total: {bill.grandTotalTaxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                         </td>
                                         <td colSpan={3} className='border border-black'></td>
                                     </tr>
@@ -190,4 +189,4 @@ const RepCourier = () => {
     )
 }
 
-export default RepCourier;
+export default InvReturnQsAfterProvCOP;

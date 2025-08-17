@@ -12,17 +12,9 @@ import Profile from "./pages/Profile";
 import UpdatePassword from "./pages/UpdatePassword";
 import ForgotPassword from "./pages/ForgotPassword";
 
-import RepRecAtSite from "./pages/reports/RepRecAtSite";
-import RepRecMumbai from "./pages/reports/RepRecMumbai";
 import ReportsEmpty from "./pages/reports/ReportsEmpty";
-import ReportsPending from "./pages/reports/ReportsPending";
-import InvoicesGivenToQSSite from "./pages/reports/InvoiceQSSite";
-import RepCourier from "./pages/reports/RepCourier";
-import RepBillOutstanding from "./pages/reports/RepBillOutstanding";
-import RepBillOutstandingSubtotal from "./pages/reports/RepBillOutstandingSubtotal";
-import InvoicesGivenToAccountDept from "./pages/reports/InvoiceAccountDepartment";
-import InvoicesPaid from "./pages/reports/InvoicePaid";
-import BillJourney from "./pages/reports/BillJourney";
+// import RepRecMumbai from "./pages/reports/RepRecMumbai";
+// import BillJourney from "./pages/reports/BillJourney";
 
 import ChecklistDirectFI2 from "./pages/checklists/ChecklistDirectFI2";
 import AdvancedChecklist2 from "./pages/checklists/AdvancedChecklist2";
@@ -39,6 +31,21 @@ import ChecklistBillList from "./pages/archive/ChecklistBillList";
 import AdvancedChecklist from "./pages/archive/AdvancedChecklist";
 import ChecklistDirectFI from "./pages/archive/ChecklistDirectFI";
 import ChecklistAccount from "./pages/archive/ChecklistAccount";
+
+// final reports
+import InvAtSite from "./pages/reports/InvAtSite";
+import InvAtPIMO from "./pages/reports/InvAtPIMO";
+import InvQsMeasurement from "./pages/reports/InvQsMeasurement";
+import InvQSSiteProvCop from "./pages/reports/InvQSSiteProvCop";
+import InvQSSiteCOP from "./pages/reports/InvQSSiteCOP";
+import InvReturnQsAfterMeasurement from "./pages/reports/InvReturnQsAfterMeasurement";
+import InvReturnQsAfterProvCOP from "./pages/reports/InvReturnQsAfterProvCOP";
+import InvReturnQsAfterCOP from "./pages/reports/InvReturnQsAfterCOP";
+import InvSentToAccts from "./pages/reports/InvSentToAccts";
+import InvSentToPIMO from "./pages/reports/InvSentToPIMO";
+import RepBillOutstanding from "./pages/reports/RepBillOutstanding";
+import RepBillOutstandingSubtotal from "./pages/reports/RepBillOutstandingSubtotal";
+import InvPaid from "./pages/reports/InvPaid";
 
 function App() {
   return (
@@ -85,17 +92,26 @@ function App() {
           }
         />
 
+        {/* REPORTS */}
         <Route path="/reports" element={<ReportsEmpty />} />
         <Route
-          path="/reportsrecatsite"
+          path="/invatsite"
           element={
             <ProtectedRoute
-              element={RepRecAtSite}
+              element={InvAtSite}
               allowedRoles={["site_officer", "site_pimo", "director", "admin"]}
             />
           }
         />
-
+        <Route
+          path="/invatpimo"
+          element={
+            <ProtectedRoute
+              element={InvAtPIMO}
+              allowedRoles={["site_pimo", "director", "admin"]}
+            />
+          }
+        />
         <Route
           path="/reportsbilloutstanding"
           element={
@@ -114,67 +130,84 @@ function App() {
             />
           }
         />
-
         <Route
-          path="/reportscouriermumbai"
+          path="/invqsmeasurement"
           element={
             <ProtectedRoute
-              element={RepCourier}
-              allowedRoles={["site_officer", "site_pimo", "director", "admin"]}
+              element={InvQsMeasurement}
+              allowedRoles={["site_officer", "qs_site", "site_pimo", "admin"]}
             />
           }
         />
         <Route
-          path="/reportsreceivedmumbai"
+          path="/invqsprovcop"
           element={
             <ProtectedRoute
-              element={RepRecMumbai}
-              allowedRoles={["site_pimo", "director", "admin"]}
+              element={InvQSSiteProvCop}
+              allowedRoles={["site_officer", "qs_site", "site_pimo", "admin"]}
             />
           }
         />
         <Route
-          path="/reportsinvoiceacctdept"
+          path="/invqsmumbaicop"
           element={
             <ProtectedRoute
-              element={InvoicesGivenToAccountDept}
-              allowedRoles={["site_pimo", "accounts", "director", "admin"]}
+              element={InvQSSiteCOP}
+              allowedRoles={["qs_site", "site_pimo", "admin"]}
             />
           }
         />
         <Route
-          path="/reportsinvoiceqssite"
+          path="/invsentpimo"
           element={
             <ProtectedRoute
-              element={InvoicesGivenToQSSite}
-              allowedRoles={["director", "admin"]}
+              element={InvSentToPIMO}
+              allowedRoles={["site_officer", "site_pimo", "admin"]}
             />
           }
         />
         <Route
-          path="/reportsinvoicepaid"
+          path="/invreturnqsmeasurement"
           element={
             <ProtectedRoute
-              element={InvoicesPaid}
-              allowedRoles={["accounts", "director", "admin"]}
+              element={InvReturnQsAfterMeasurement}
+              allowedRoles={["qs_site", "admin"]}
             />
           }
         />
         <Route
-          path="/reportspending"
+          path="/invreturnqsprovcop"
           element={
             <ProtectedRoute
-              element={ReportsPending}
-              allowedRoles={["site_pimo", "director", "admin"]}
+              element={InvReturnQsAfterProvCOP}
+              allowedRoles={["qs_site", "admin"]}
             />
           }
         />
         <Route
-          path="/reportsbilljourney"
+          path="/invreturnqsmumbaicop"
           element={
             <ProtectedRoute
-              element={BillJourney}
-              allowedRoles={["accounts", "director", "admin"]}
+              element={InvReturnQsAfterCOP}
+              allowedRoles={["qs_site", "admin"]}
+            />
+          }
+        />
+        <Route
+          path="/invsentaccts"
+          element={
+            <ProtectedRoute
+              element={InvSentToAccts}
+              allowedRoles={["site_pimo", "admin"]}
+            />
+          }
+        />
+        <Route
+          path="/invpaid"
+          element={
+            <ProtectedRoute
+              element={InvPaid}
+              allowedRoles={["accounts", "admin"]}
             />
           }
         />

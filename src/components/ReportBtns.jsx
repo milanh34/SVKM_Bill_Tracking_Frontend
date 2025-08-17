@@ -20,36 +20,57 @@ const ReportBtns = () => {
         e.preventDefault();
 
         let clickedId = e.target.id;
-        
+
         setButtonClicked(clickedId);
         console.log("buttonClicked = " + buttonClicked);
-        
+
         navigate(`/${clickedId}`);
-        
+
     };
 
     // Define role-based access
+    // const roleAccess = {
+    //     "site_officer": ["invAtSite", "reportscouriermumbai"],
+    //     "qs_site": [],
+    //     "site_pimo": ["invAtSite", "reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "invAtPIMO"],
+    //     // "pimo_mumbai": ["invAtSite"],
+    //     "accounts": ["reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportsinvoiceacctdept", "reportsinvoicepaid", "reportsbilljourney"],
+    //     "director": ["invAtSite", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportsinvoiceqssite", "reportsinvoicepaid", "invAtPIMO", "reportsbilljourney"],
+    //     "admin": ["invAtSite", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportsinvoiceqssite", "reportsinvoicepaid", "invAtPIMO", "reportsbilljourney"]
+    // };
     const roleAccess = {
-        "site_officer": ["reportsrecatsite", "reportscouriermumbai"],
-        "qs_site": [],
-        "site_pimo": ["reportsrecatsite", "reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportspending"],
-        // "pimo_mumbai": ["reportsrecatsite"],
-        "accounts": ["reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportsinvoiceacctdept", "reportsinvoicepaid", "reportsbilljourney"],
-        "director": ["reportsrecatsite", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportsinvoiceqssite", "reportsinvoicepaid", "reportspending", "reportsbilljourney"],
-        "admin": ["reportsrecatsite", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportsinvoiceqssite", "reportsinvoicepaid", "reportspending", "reportsbilljourney"]
+        "site_officer": ["invAtSite", "invqsmeasurement", "invqsprovcop", "invsentpimo"],
+        "qs_site": ["invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invreturnqsmeasurement", "invreturnqsprovcop", "invreturnqsmumbaicop"],
+        "site_pimo": ["invAtSite", "invatpimo", "invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invsentpimo", "invsentaccts"],
+        "accounts": ["reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invpaid"],
+        "director": ["invAtSite", "invatpimo", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invpaid"],
+        "admin": ["invAtSite", "invatpimo", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invsentpimo", "invreturnqsmeasurement", "invreturnqsprovcop", "invreturnqsmumbaicop", "invsentaccts", "invpaid"]
     };
 
     const allButtons = [
-        { id: 'reportsrecatsite', label: 'Invoices at Site' },
+        { id: 'invatsite', label: 'Invoices at Site' },
+        { id: 'invatpimo', label: 'Invoices at PIMO' },
+
         { id: 'reportsbilloutstanding', label: 'Outstanding Bill Report' },
         { id: 'reportsbilloutstandingsubtotal', label: 'Outstanding Bill Report Subtotal' },
-        { id: 'reportscouriermumbai', label: 'Invoices Sent to PIMO Mumbai' },      // Invoices Couriered to Mumbai
-        { id: 'reportsreceivedmumbai', label: 'Invoices Received at Mumbai' },
-        { id: 'reportsinvoiceacctdept', label: 'Invoices sent to Accounts Team' },
-        { id: 'reportsinvoiceqssite', label: 'Invoices with QS Site for Measurement' },     // Invoices given to QS site
-        { id: 'reportsinvoicepaid', label: 'Invoices Paid' },
-        { id: 'reportspending', label: 'Invoices at PIMO' },        // pending bills
-        { id: 'reportsbilljourney', label: 'Bill Journey' }
+
+        { id: 'invqsmeasurement', label: 'Invoices With QS site for Measurement' },
+        { id: 'invqsprovcop', label: 'Invoices With QS site for Prov Cop' },
+        { id: 'invqsmumbaicop', label: 'Invoices With QS Mumbai for Cop' },
+
+        { id: 'invsentpimo', label: 'Invoices Sent to PIMO Mumbai' },
+
+        { id: 'invreturnqsmeasurement', label: 'Invoices returned by QS site for Measurement' },
+        { id: 'invreturnqsprovcop', label: 'Invoices returned by QS site for Prov Cop' },
+        { id: 'invreturnqsmumbaicop', label: 'Invoices returned by QS Mumbai for Cop' },
+
+        { id: 'invsentaccts', label: 'Invoices sent to Accounts Team' },
+
+        { id: 'invpaid', label: 'Invoices Paid' },
+
+        // { id: 'reportsreceivedmumbai', label: 'Invoices Received at Mumbai' },
+        // { id: 'reportsinvoiceqssite', label: 'Invoices with QS Site for Measurement' },     // Invoices given to QS site
+        // { id: 'reportsbilljourney', label: 'Bill Journey' }
     ];
 
     // Get allowed buttons for the user role

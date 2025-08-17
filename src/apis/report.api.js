@@ -13,3 +13,16 @@ export const receivedAtMumbai = `${SERVER_API}/api/reports/invoices-received-at-
 export const receivedAtSitePIMO = `${SERVER_API}/api/reports/invoices-received-at-site-pimo`;
 export const receivedAtSiteQS = `${SERVER_API}/api/reports/invoices-received-at-site-qs`;
 export const patchBills = `${SERVER_API}/report/patch-bills`;
+
+
+export const invAtSite = `${SERVER_API}/api/reports/invoices-received-at-site`
+export const invAtPIMO = `${SERVER_API}/api/reports/invoices-received-at-pimo-mumbai`
+export const invWithQsMeasurement = `${SERVER_API}/api/reports/invoices-received-at-qsmeasurement`
+export const invWithQsProvCOP = `${SERVER_API}/api/reports/invoices-received-at-qscop`
+export const invWithQsCOP = `${SERVER_API}/api/reports/invoices-received-at-qsmumbai`
+export const invSentToPIMO = `${SERVER_API}/api/reports/invoices-courier-to-pimo-mumbai`
+export const invReturnQsMeasurement = `${SERVER_API}/api/reports/invoices-returned-by-qsmeasurement`
+export const invReturnQsProvCop = `${SERVER_API}/api/reports/invoices-returned-by-qscop`
+export const invReturnQsCop = `${SERVER_API}/api/reports/invoices-returned-by-qsmumbai`
+export const invSentToAccts = `${SERVER_API}/api/reports/invoices-given-to-accounts`
+export const invPaid = `${SERVER_API}/api/reports/invoices-Paid`
