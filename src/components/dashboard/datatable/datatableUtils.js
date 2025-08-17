@@ -70,6 +70,9 @@ export const isNumericField = (field) => {
 
 export const getUniqueValues = (data, field) => {
   const values = new Set();
+
+  values.add("");
+
   data.forEach((row) => {
     const value = getNestedValue(row, field);
     if (value !== undefined && value !== null) {
