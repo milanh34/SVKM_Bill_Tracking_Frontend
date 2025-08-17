@@ -1,11 +1,13 @@
 import React from "react";
-import { Send } from "lucide-react";
+import { Send, X } from "lucide-react";
 
 export const SendToModal = ({
   isOpen,
   onClose,
   availableRoles,
   handleSendToRole,
+  role,
+  handleNotReceiveBills,
 }) => {
   if (!isOpen) return null;
 
@@ -38,6 +40,16 @@ export const SendToModal = ({
               <span>{role.label}</span>
             </button>
           ))}
+          {role == "site_pimo" || role == "accounts" ? (
+            <button
+              key={role.value}
+              className="w-full flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors hover:cursor-pointer"
+              onClick={() => handleNotReceiveBills()}
+            >
+              <X className="w-4 h-4" />
+              <span>Mark as Not Received</span>
+            </button>
+          ) : null}
         </div>
       </div>
     </div>

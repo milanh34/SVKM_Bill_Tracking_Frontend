@@ -160,6 +160,7 @@ const Dashboard = () => {
       { value: "accounts_department", label: "Accounts Team" }
     ],
     director: [{ value: "pimo_mumbai", label: "Returned to PIMO" }],
+    accounts: [{ value: "booking_checking", label: "Booking & Checking" }],
   };
 
   const handleSendTo = () => {
@@ -1374,6 +1375,8 @@ const Dashboard = () => {
           : roleWorkflow[currentUserRole] || []
         }
         handleSendToRole={handleSendToRole}
+        role={currentUserRole}
+        handleNotReceiveBills={handleNotReceiveBills}
       />
 
       {isWindowOpen && (

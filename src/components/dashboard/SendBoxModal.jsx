@@ -50,8 +50,6 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
             toRoleVariable = "trustee";
         }else if(currentUserRole === "site_pimo") {
             toRoleVariable = "pimo_mumbai";
-        } else if(currentUserRole === "accounts") {
-            toRoleVariable = "accounts_department";
         } else{
             toRoleVariable = currentUserRole;
         }
