@@ -151,23 +151,41 @@ export const handleExportAllReports = async (
                     rowValues = allColumnsToExport.map((column) => {
                         const field = column.field;
 
-                        if (field === "srNo") {
-                            return `Total Count: ${rowData.totalCount}`
-                        }
-                        if (field === "taxInvAmt" || field === "invoiceAmount") {
-                            if (titleName === "Invoices Paid")
-                                return `Grand Total: ${rowData.grandTotalInvoiceAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
-                            else
+                        if (titleName === "Outstanding Bills Report as on" || titleName === "Outstanding Bills Report Subtotal as on") {
+                            if (field === "srNo") {
+                                return `Total Count: ${rowData.totalCount}`
+                            }
+                            if (field === "taxInvAmt" || field === "invoiceAmount") {
                                 return `Grand Total: ${rowData.grandTotalAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
+                            }
+                            if (field === "copAmt") {
+                                return `Grand Total: ${rowData.grandTotalCopAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
+                            }
+                            if (field === "paymentAmt") {
+                                return `Grand Total: ${rowData.grandTotalPaymentAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
+                            }
+
+                            return ""; // Empty for other columns
                         }
-                        if (field === "copAmt") {
-                            return `Grand Total: ${rowData.grandTotalCopAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
-                        }
-                        if (field === "paymentAmt") {
-                            return `Grand Total: ${rowData.grandTotalPaymentAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
+
+                        else {
+                            if (field === "srNo") {
+                                return `Total Count: ${rowData.count}`
+                            }
+                            if (field === "taxInvAmt" || field === "invoiceAmount") {
+                                return `Grand Total: ${rowData.grandTotalTaxAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
+                            }
+                            if (field === "copAmount") {
+                                return `Grand Total: ${rowData.grandTotalCopAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
+                            }
+                            if (field === "paymentAmt" || field === "payentAmt") {
+                                return `Grand Total: ${rowData.grandTotalAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
+                            }
+                            return ""; // Empty for other columns
                         }
 
                         return ""; // Empty for other columns
+
                     });
                 } else {
                     // Normal data row
@@ -290,21 +308,31 @@ export const handleExportAllReports = async (
                     // Grand Total row handling
                     allColumnsToExport.forEach((column) => {
                         const field = column.field;
-
-                        if (field === "srNo") {
-                            formattedRow[column.headerName] = `Total Count: ${row.totalCount}`;
-                        } else if (field === "taxInvAmt" || field === "invoiceAmount") {
-                            if (titleName === "Invoices Paid") {
-                                formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalInvoiceAmount || 0)}`;
-                            } else {
+                        if (titleName === "Outstanding Bills Report as on" || titleName === "Outstanding Bills Report Subtotal as on") {
+                            if (field === "srNo") {
+                                formattedRow[column.headerName] = `Total Count: ${row.totalCount}`;
+                            } else if (field === "taxInvAmt" || field === "invoiceAmount") {
                                 formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalAmount || 0)}`;
+                            } else if (field === "copAmt") {
+                                formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalCopAmt || 0)}`;
+                            } else if (field === "paymentAmt") {
+                                formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalPaymentAmount || 0)}`;
+                            } else {
+                                formattedRow[column.headerName] = ""; // Empty for other columns
                             }
-                        } else if (field === "copAmt") {
-                            formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalCopAmt || 0)}`;
-                        } else if (field === "paymentAmt") {
-                            formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalPaymentAmount || 0)}`;
-                        } else {
-                            formattedRow[column.headerName] = ""; // Empty for other columns
+                        }
+                        else {
+                            if (field === "srNo") {
+                                formattedRow[column.headerName] = `Total Count: ${row.count}`;
+                            } else if (field === "taxInvAmt" || field === "invoiceAmount") {
+                                formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalTaxAmount || 0)}`;
+                            } else if (field === "copAmt" || field === "copAmount") {
+                                formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalCopAmt || 0)}`;
+                            } else if (field === "paymentAmt" || field === "payentAmt") {
+                                formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalAmount || 0)}`;
+                            } else {
+                                formattedRow[column.headerName] = ""; // Empty for other columns
+                            }
                         }
                     });
                 } else {

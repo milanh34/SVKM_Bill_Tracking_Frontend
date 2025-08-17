@@ -130,7 +130,7 @@ const InvAtSite = () => {
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Project Description</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor No</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor Name</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv no</th>
+                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv No</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Date</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Amt</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt Tax Inv recd at Site</th>
@@ -170,11 +170,11 @@ const InvAtSite = () => {
                                 .map((bill) => (
                                     <tr key={bill.totalCount} className='bg-[#f5f5f5] font-semibold'>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
-                                            <strong>Total Count: {bill.count.toLocaleString('en-IN')}</strong>
+                                            {/* <strong>Total Count: {bill.count.toLocaleString('en-IN')}</strong> */}
                                         </td>
                                         <td colSpan={6} className='border border-black'></td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
-                                            <strong>Grand Total: {bill.grandTotalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                            <strong>Grand Total: {bill.grandTotalTaxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                         </td>
                                         <td colSpan={2} className='border border-black'></td>
                                     </tr>

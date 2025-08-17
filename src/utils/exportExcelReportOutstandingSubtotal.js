@@ -11,7 +11,9 @@ const formatCurrency = (value) => {
 };
 
 export const handleExportOutstandingSubtotalReport = async (selectedRows, filteredData, columns, visibleColumnFields, toPrint) => {
+    const titleName = 'Report Outstanding Subtotal';
     try {
+
         const dataToExport = selectedRows.length > 0
             ? filteredData.filter((item) => selectedRows.includes(item._id))
             : filteredData;
@@ -169,7 +171,6 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
             });
             const url = URL.createObjectURL(blob);
             const now1 = new Date();
-            const titleName = 'Report Outstanding Subtotal';
             const filename = `${titleName.replace(/[\/ ]/g, '_')}_${now1.getDate().toString().padStart(2, '0')}${(now1.getMonth() + 1).toString().padStart(2, '0')}${now1.getFullYear().toString().slice(-2)}_${now1.getHours().toString().padStart(2, '0')}${now1.getMinutes().toString().padStart(2, '0')}${now1.getSeconds().toString().padStart(2, '0')}.xlsx`;
 
             const link = document.createElement("a");
@@ -298,7 +299,7 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 });
                 const url = URL.createObjectURL(blob);
-                const now = new Date();
+                const now1 = new Date();
                 const filename = `${titleName.replace(/[\/ ]/g, '_')}_${now1.getDate().toString().padStart(2, '0')}${(now1.getMonth() + 1).toString().padStart(2, '0')}${now1.getFullYear().toString().slice(-2)}_${now1.getHours().toString().padStart(2, '0')}${now1.getMinutes().toString().padStart(2, '0')}${now1.getSeconds().toString().padStart(2, '0')}.xlsx`;
 
                 // Trigger download

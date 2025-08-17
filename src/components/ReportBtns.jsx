@@ -44,7 +44,7 @@ const ReportBtns = () => {
         "site_pimo": ["invAtSite", "invatpimo", "invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invsentpimo", "invsentaccts"],
         "accounts": ["reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invpaid"],
         "director": ["invAtSite", "invatpimo", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invpaid"],
-        "admin": ["invAtSite", "invatpimo", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invsentpimo", "invreturnqsmeasurement", "invreturnqsprovcop", "invreturnqsmumbaicop", "invsentaccts", "invpaid"]
+        "admin": ["invatsite", "invatpimo", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invsentpimo", "invreturnqsmeasurement", "invreturnqsprovcop", "invreturnqsmumbaicop", "invsentaccts", "invpaid"]
     };
 
     const allButtons = [
@@ -67,10 +67,6 @@ const ReportBtns = () => {
         { id: 'invsentaccts', label: 'Invoices sent to Accounts Team' },
 
         { id: 'invpaid', label: 'Invoices Paid' },
-
-        // { id: 'reportsreceivedmumbai', label: 'Invoices Received at Mumbai' },
-        // { id: 'reportsinvoiceqssite', label: 'Invoices with QS Site for Measurement' },     // Invoices given to QS site
-        // { id: 'reportsbilljourney', label: 'Bill Journey' }
     ];
 
     // Get allowed buttons for the user role
