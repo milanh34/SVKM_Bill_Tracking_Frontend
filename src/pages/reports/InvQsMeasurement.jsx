@@ -32,7 +32,6 @@ const InvQsMeasurement = () => {
             console.log(response);
             setBills(response.data.report?.data || []);
         } catch (error) {
-            console.log(invWithQsMeasurement)
             console.error('Error fetching QS site bills:', error);
         } finally {
             setLoading(false);
@@ -70,12 +69,12 @@ const InvQsMeasurement = () => {
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
         { field: "taxInvAmt", headerName: "Tax Invoice Amount (Rs.)" },
-        { field: "qsInspection.dateGiven", headerName: "Dt given-QS for measure" }, // column no 35
+        { field: "dateGivenToQSMeasurement", headerName: "Dt given-QS for measure" }, // column no 35
         { field: "poNo", headerName: "PO No" },
     ]
 
     const visibleColumnFields = [
-        "srNo", "region", "projectDescription", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "Dt given-QS for measure", "poNo"
+        "srNo", "region", "projectDescription", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dateGivenToQSMeasurement", "poNo"
     ]
 
     return (
@@ -148,7 +147,7 @@ const InvQsMeasurement = () => {
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvDate}</td>
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>1</td>
+                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.dateGivenToQSMeasurement}</td>
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.poNo}</td>
                                         </tr>
                                     ))
@@ -162,7 +161,7 @@ const InvQsMeasurement = () => {
                                         </td>
                                         <td colSpan={6} className='border border-black'></td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
-                                            <strong>Grand Total: {bill.grandTotalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                            <strong>Grand Total: {bill.grandTotalTaxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                         </td>
                                         <td colSpan={2} className='border border-black'></td>
                                     </tr>

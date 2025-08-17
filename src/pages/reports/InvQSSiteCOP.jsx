@@ -66,15 +66,15 @@ const InvQSSiteCOP = () => {
         { field: "projectDescription", headerName: "Project Description" },
         { field: "vendorNo", headerName: "Vendor No" },
         { field: "vendorName", headerName: "Vendor Name" },
-        { field: "invoiceNo", headerName: "Tax Invoice No." },
-        { field: "invoiceDate", headerName: "Tax Invoice Date" },
-        { field: "invoiceAmount", headerName: "Tax Invoice Amount (Rs.)" },
-        { field: "qsMumbai.dateGiven", headerName: "Dt given-QS Mumbai for COP" }, // column no 64
+        { field: "taxInvNo", headerName: "Tax Invoice No." },
+        { field: "taxInvDate", headerName: "Tax Invoice Date" },
+        { field: "taxInvAmt", headerName: "Tax Invoice Amount (Rs.)" },
+        { field: "dateGivenToQsMumbai", headerName: "Dt given-QS Mumbai for COP" }, // column no 64
         { field: "poNo", headerName: "PO No" },
     ]
 
     const visibleColumnFields = [
-        "srNo", "region", "projectDescription", "vendorNo", "vendorName", "invoiceNo", "invoiceDate", "invoiceAmount", "qsMumbai.dateGiven", "poNo"
+        "srNo", "region", "projectDescription", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dateGivenToQsMumbai", "poNo"
     ]
 
     return (
@@ -147,7 +147,7 @@ const InvQSSiteCOP = () => {
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvDate}</td>
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>1</td>
+                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.dateGivenToQsMumbai}</td>
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.poNo}</td>
                                         </tr>
                                     ))
@@ -157,11 +157,11 @@ const InvQSSiteCOP = () => {
                                 .map((bill) => (
                                     <tr key={bill.totalCount} className='bg-[#f5f5f5] font-semibold'>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>
-                                            <strong>Total Count: {bill.totalCount.toLocaleString('en-IN')}</strong>
+                                            <strong>Total Count: {bill.count.toLocaleString('en-IN')}</strong>
                                         </td>
                                         <td colSpan={6} className='border border-black'></td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
-                                            <strong>Grand Total: {bill.grandTotalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                            <strong>Grand Total: {bill.grandTotalTaxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                         </td>
                                         <td colSpan={2} className='border border-black'></td>
                                     </tr>
