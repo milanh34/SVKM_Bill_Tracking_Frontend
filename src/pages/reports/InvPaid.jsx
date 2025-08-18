@@ -5,6 +5,7 @@ import ReportBtns from '../../components/ReportBtns';
 import download from "../../assets/download.svg";
 import send from "../../assets/send.svg";
 import print from "../../assets/print.svg";
+import Cookies from "js-cookie";
 import axios from 'axios';
 import { invoicesPaid, invPaid } from '../../apis/report.api';
 // import { handleExportRepPaid } from '../../utils/archive/exportExcelReportPaid';
@@ -20,16 +21,33 @@ const InvPaid = () => {
         return `${year}-${month}-${day}`;
     };
 
+    const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
+
     const [fromDate, setFromDate] = useState(getFormattedDate());
     const [toDate, setToDate] = useState(getFormattedDate());
     const [bills, setBills] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [regionOptions, setRegionOptions] = useState([]);
+    const [region, setRegion] = useState("all");
+
+    useEffect(() => {
+        setRegionOptions(availableRegions);
+        setRegion(availableRegions);
+    }, [])
 
     const fetchBills = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${invPaid}?startDate=${fromDate}&endDate=${toDate}`);
-            console.log(response);
+            const params = {
+                startDate: fromDate,
+                endDate: toDate,
+            };
+
+            if (region !== "all" && region != "ALL") {
+                params.region = region;
+            }
+            const response = await axios.get(invPaid, { params });
+            console.log(response.data);
             setBills(response.data.report?.data || []);
         } catch (error) {
             console.error('Error fetching paid invoices:', error);
@@ -40,7 +58,7 @@ const InvPaid = () => {
 
     useEffect(() => {
         fetchBills();
-    }, [fromDate, toDate]);
+    }, [fromDate, toDate, region]);
 
 
     const handleTopDownload = async () => {
@@ -75,7 +93,7 @@ const InvPaid = () => {
     ]
 
     const visibleColumnFields = [
-        "srNo", "dateReceivedAtAccts", "dateOfPayment", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt",  "copAmount", "payentAmt"
+        "srNo", "dateReceivedAtAccts", "dateOfPayment", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "copAmount", "payentAmt"
     ]
 
     return (
@@ -107,6 +125,9 @@ const InvPaid = () => {
                     setFromDate={setFromDate}
                     toDate={toDate}
                     setToDate={setToDate}
+                    region={region}
+                    setRegion={setRegion}
+                    regionOptions={regionOptions}
                 />
 
                 <div className="overflow-x-auto shadow-md max-h-[85vh] relative border border-black">
@@ -131,27 +152,27 @@ const InvPaid = () => {
                                     <td colSpan="9" className="text-center py-4">Loading...</td>
                                 </tr>
                             )
-                            // : bills.length === 0 ? (
-                            //     <tr>
-                            //         <td colSpan="9" className="text-center py-4">No invoices found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
-                            //     </tr>
-                            // )
-                            : bills
-                                .filter(bill => !bill.isSubTotal && bill.srNo)
-                                .map((bill, index) => (
-                                    <tr key={index} className="hover:bg-[#f5f5f5]">
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.srNo}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.dateReceivedAtAccts}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.dateOfPayment}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorNo}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvDate}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.copAmount}</td>
-                                        <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.payentAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                    </tr>
-                                ))
+                                // : bills.length === 0 ? (
+                                //     <tr>
+                                //         <td colSpan="9" className="text-center py-4">No invoices found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
+                                //     </tr>
+                                // )
+                                : bills
+                                    .filter(bill => !bill.isSubTotal && bill.srNo)
+                                    .map((bill, index) => (
+                                        <tr key={index} className="hover:bg-[#f5f5f5]">
+                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.srNo}</td>
+                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.dateReceivedAtAccts}</td>
+                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.dateOfPayment}</td>
+                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorNo}</td>
+                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
+                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
+                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvDate}</td>
+                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.copAmount}</td>
+                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.payentAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                        </tr>
+                                    ))
                             }
                             {bills
                                 .filter(bill => bill.isGrandTotal)

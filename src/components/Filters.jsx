@@ -11,6 +11,9 @@ const Filters = ({
     setFromDate,
     toDate,
     setToDate,
+    region,
+    setRegion,
+    regionOptions
 }) => {
     return (
         <div className="flex justify-between mb-3 items-center bg-transparent md:flex-nowrap md:gap-[2vh] md:pl-8">
@@ -43,6 +46,22 @@ const Filters = ({
                 </div>
             ) : <div />}
             <div className="w-full flex justify-end z-20 text-black bg-transparent">
+                <select
+                    value={region}
+                    onChange={(e) => setRegion(e.target.value)}
+                    className="bg-white rounded-md border-[1px] border-[#bfbfbf] p-[6px_3px] text-[14px] min-h-[32px] min-w-[110px] text-center cursor-pointer text-black"
+                >
+                    <option value="all">
+                        All Regions
+                    </option>
+                    {regionOptions?.map((r, i) => (
+                        <option key={i} value={r}>
+                            {r}
+                        </option>
+                    ))}
+                </select>
+            </div>
+            <div className="flex justify-end z-20 text-black bg-transparent">
                 <div className="w-[300px] flex items-center gap-2 bg-transparent">
                     <label className="text-[14px] bg-transparent">From:</label>
                     <input

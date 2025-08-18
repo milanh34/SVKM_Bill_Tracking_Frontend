@@ -5,6 +5,7 @@ import ReportBtns from '../../components/ReportBtns';
 import download from "../../assets/download.svg";
 import send from "../../assets/send.svg";
 import print from "../../assets/print.svg";
+import Cookies from "js-cookie";
 import axios from 'axios';
 import { givenToQSSite, invWithQsCOP } from '../../apis/report.api';
 // import { handleExportRepGivenToQS } from '../../utils/archive/exportExcelReportGivenToQS';
@@ -20,15 +21,32 @@ const InvQSSiteCOP = () => {
         return `${year}-${month}-${day}`;
     };
 
+    const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
+
     const [fromDate, setFromDate] = useState(getFormattedDate());
     const [toDate, setToDate] = useState(getFormattedDate());
     const [bills, setBills] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [regionOptions, setRegionOptions] = useState([]);
+    const [region, setRegion] = useState("all");
+
+    useEffect(() => {
+        setRegionOptions(availableRegions);
+        setRegion(availableRegions);
+    }, [])
 
     const fetchBills = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${invWithQsCOP}?startDate=${fromDate}&endDate=${toDate}`);
+            const params = {
+                startDate: fromDate,
+                endDate: toDate,
+            };
+
+            if (region !== "all" && region != "ALL") {
+                params.region = region;
+            }
+            const response = await axios.get(invWithQsCOP, { params });
             console.log(response);
             setBills(response.data.report?.data || []);
         } catch (error) {
@@ -40,7 +58,7 @@ const InvQSSiteCOP = () => {
 
     useEffect(() => {
         fetchBills();
-    }, [fromDate, toDate]);
+    }, [fromDate, toDate, region]);
 
     const handleTopDownload = async () => {
         console.log("Rep given to acc dept download clicked");
@@ -106,6 +124,9 @@ const InvQSSiteCOP = () => {
                     setFromDate={setFromDate}
                     toDate={toDate}
                     setToDate={setToDate}
+                    region={region}
+                    setRegion={setRegion}
+                    regionOptions={regionOptions}
                 />
 
                 <div className="overflow-x-auto shadow-md max-h-[85vh] relative border border-black">

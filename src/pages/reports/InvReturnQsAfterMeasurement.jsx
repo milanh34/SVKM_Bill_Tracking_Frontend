@@ -5,6 +5,7 @@ import ReportBtns from '../../components/ReportBtns';
 import download from "../../assets/download.svg";
 import send from "../../assets/send.svg";
 import print from "../../assets/print.svg";
+import Cookies from "js-cookie";
 import axios from 'axios';
 import { courieredMumbai, invReturnQsMeasurement } from '../../apis/report.api';
 // import { handleExportRepCourierToMumbai } from '../../utils/archive/exportExcelReportCourierMumbai';
@@ -20,6 +21,8 @@ const InvReturnQsAfterProvCOP = () => {
         return `${year}-${month}-${day}`;
     };
 
+    const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
+
     const [loading, setLoading] = useState(true);
     const [fromDate, setFromDate] = useState(getFormattedDate());
     const [toDate, setToDate] = useState(getFormattedDate());
@@ -27,27 +30,32 @@ const InvReturnQsAfterProvCOP = () => {
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [totals, setTotals] = useState([]);
+    const [regionOptions, setRegionOptions] = useState([]);
+    const [region, setRegion] = useState("all");
 
     useEffect(() => {
-        console.log("Inside use effect inv couriered to mum");
-        const fetchBills = async () => {
+        setRegionOptions(availableRegions);
+        setRegion(availableRegions);
+    }, [])
 
-            try {
-                const response = await axios.get(`${invReturnQsMeasurement}?startDate=${fromDate}&endDate=${toDate}`);
-                console.log(response.data.report);
-                setBills(response.data.report.data);
-                setTotals(response.data.report.summary);
-            }
-            catch (err) {
-                setError("Failed to load data");
-                console.error("Error = " + error);
-            } finally {
-                setLoading(false);
-            }
+    const fetchBills = async () => {
+        try {
+            const response = await axios.get(invReturnQsMeasurement, { params });
+            console.log(response.data.report);
+            setBills(response.data.report.data);
+            setTotals(response.data.report.summary);
         }
+        catch (err) {
+            setError("Failed to load data");
+            console.error("Error = " + error);
+        } finally {
+            setLoading(false);
+        }
+    }
 
+    useEffect(() => {
         fetchBills();
-    }, [fromDate, toDate]);
+    }, [fromDate, toDate, region]);
 
 
     const handleTopDownload = async () => {
@@ -116,6 +124,9 @@ const InvReturnQsAfterProvCOP = () => {
                     setFromDate={setFromDate}
                     toDate={toDate}
                     setToDate={setToDate}
+                    region={region}
+                    setRegion={setRegion}
+                    regionOptions={regionOptions}
                 />
 
                 <div className="overflow-x-auto shadow-md max-h-[85vh] relative border border-black">
