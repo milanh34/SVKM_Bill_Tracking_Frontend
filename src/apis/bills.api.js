@@ -1,6 +1,7 @@
 import SERVER_API from "./server.api.js";
 
 export const bills = `${SERVER_API}/bill`;
+export const getFilteredBills = `${SERVER_API}/bill/get-filtered-bills`;
 export const report = `${SERVER_API}/report/generate-report`;
 export const importReport = `${SERVER_API}/report/import-report`;
 export const receiveBills = `${SERVER_API}/bill/receiveBill`;

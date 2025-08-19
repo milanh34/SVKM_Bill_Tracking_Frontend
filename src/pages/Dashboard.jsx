@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import axios from "axios";
-import { bills, receiveBills, notReceivedPimo, notReceivedAccounts } from "../apis/bills.api";
+import { getFilteredBills, bills, receiveBills, notReceivedPimo, notReceivedAccounts } from "../apis/bills.api";
 import {
   natureOfWorks,
   currencies,
@@ -300,35 +300,35 @@ const Dashboard = () => {
 
   const filterBillsByRole = (bills, userRole) => {
     console.log("Filtering bills for role:", bills);
-    return bills.filter((bill) => {
-      const currentCount = bill?.currentCount || 0;
+    // return bills.filter((bill) => {
+    //   const currentCount = bill?.currentCount || 0;
 
-      switch (userRole) {
-        case "site_officer":
-          return currentCount === 1;
+    //   switch (userRole) {
+    //     case "site_officer":
+    //       return currentCount === 1;
 
-        case "site_pimo":
-          return currentCount === 3;
+    //     case "site_pimo":
+    //       return currentCount === 3;
 
-        // case "pimo_mumbai":
-        //   return currentCount === 3;
+    //     // case "pimo_mumbai":
+    //     //   return currentCount === 3;
 
-        case "qs_site":
-          return currentCount === 2;
+    //     case "qs_site":
+    //       return currentCount === 2;
 
-        case "director":
-          return currentCount === 4;
+    //     case "director":
+    //       return currentCount === 4;
 
-        case "accounts":
-          return currentCount === 5 && bill.accountsDept.paymentDate === null;
+    //     case "accounts":
+    //       return currentCount === 5 && bill.accountsDept.paymentDate === null;
 
-        case "admin":
-          return true;
+    //     case "admin":
+    //       return true;
 
-        default:
-          return false;
-      }
-    });
+    //     default:
+    //       return false;
+    //   }
+    // });
   };
 
   useEffect(() => {
@@ -349,16 +349,20 @@ const Dashboard = () => {
         vendorsRes,
         userRes,
       ] = await Promise.all([
-        axios.get(bills, { headers }),
+        axios.get(getFilteredBills, { 
+          headers,
+          params: { role: currentUserRole }  // Change from query string to params
+        }),
         axios.get(natureOfWorks, { headers }),
         axios.get(currencies, { headers }),
         axios.get(vendors, { headers }),
         axios.get(user, { headers }),
       ]);
 
-      const filteredBills = filterBillsByRole(billsResponse.data, currentUserRole);
+      // const filteredBills = filterBillsByRole(billsResponse.data, currentUserRole);
+      // const sortedData = sortBillsByRole(filteredBills, currentUserRole);
+      const sortedData = sortBillsByRole(billsResponse.data, currentUserRole);
 
-      const sortedData = sortBillsByRole(filteredBills, currentUserRole);
 
       setBillsData(sortedData);
       setRegionOptions(userRes.data?.data?.region || []);
@@ -476,7 +480,7 @@ const Dashboard = () => {
         if (currentUserRole === "accounts") {
           result = result.filter(
             (bill) =>
-              bill.accountsDept?.dateGiven && !bill.accountsDept?.dateReceived
+              !bill.accountsDept?.dateReceived
           );
         } else if (currentUserRole === "site_pimo") {
           result = result.filter(
@@ -489,7 +493,7 @@ const Dashboard = () => {
         if (currentUserRole === "accounts") {
           result = result.filter((bill) => bill.accountsDept?.dateReceived);
         } else if (currentUserRole === "site_pimo") {
-          result = result.filter((bill) => bill.pimoMumbai?.markReceived === true);
+          result = result.filter((bill) => bill.pimoMumbai?.markReceived === true && bill.pimoMumbai?.dateReceived);
         }
       }
     }

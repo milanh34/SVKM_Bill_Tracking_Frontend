@@ -341,6 +341,25 @@ const DataTable = ({
       let response;
       if (uploadFiles.length > 0) {
         const formData = new FormData();
+        if (
+          editedFieldsForRow.siteStatus &&
+          ["reject", "proforma"].includes(editedFieldsForRow.siteStatus)
+        ) {
+          formData.append(
+            "pimoMumbai",
+            JSON.stringify({
+              ...row.pimoMumbai,
+              dateReceived: new Date().toISOString(),
+            })
+          );
+          formData.append(
+            "accountsDept",
+            JSON.stringify({
+              ...row.accountsDept,
+              paymentDate: new Date().toISOString(),
+            })
+          );
+        }
         Object.entries(editedFieldsForRow).forEach(([key, value]) => {
           formData.append(key, value);
         });
@@ -364,6 +383,20 @@ const DataTable = ({
         delete payload.billId;
         delete payload._id;
         delete payload.srNo;
+
+        if (
+          payload.siteStatus &&
+          ["reject", "proforma"].includes(payload.siteStatus)
+        ) {
+          payload.pimoMumbai = {
+            ...row.pimoMumbai,
+            dateReceived: new Date().toISOString(),
+          };
+          payload.accountsDept = {
+            ...row.accountsDept,
+            paymentDate: new Date().toISOString(),
+          };
+        }
 
         if (Object.keys(payload).length > 0) {
           try {

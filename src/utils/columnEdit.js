@@ -75,8 +75,8 @@ export const getColumnsForRole = (role) => {
     { field: "sesDetails.name", headerName: "Name-PIMO for SES" }, // column no 71
     { field: "sesDetails.no", headerName: "SES no" }, // column no 72
     { field: "sesDetails.amount", headerName: "SES Amt" }, // column no 73
-    // { field: "sesDetails.dateGiven", headerName: "Dt given to PIMO for SES" },
-    { field: "sesDetails.dateGiven", headerName: "SES Dt" }, // column no 74
+    { field: "sesDetails.dateGiven", headerName: "Dt given to PIMO for SES" },
+    { field: "sesDetails.date", headerName: "SES Dt" }, // column no 74
     { field: "sesDetails.doneBy", headerName: "SES done by" }, // column no 74A
     { field: "pimoMumbai.dateReceivedFromIT", headerName: "Dt ret-IT Dept aft SES" }, // column no 75
     { field: "pimoMumbai.dateReturnedFromSES", headerName: "Dt ret-PIMO aft SES" }, // column no 76
@@ -189,7 +189,7 @@ export const getColumnsForRole = (role) => {
       "pimoMumbai.receivedBy",
       "sesDetails.no",
       "sesDetails.amount",
-      "sesDetails.dateGiven",
+      "sesDetails.date",
       "sesDetails.doneBy",
       "approvalDetails.remarksPimoMumbai",
       "accountsDept.givenBy",

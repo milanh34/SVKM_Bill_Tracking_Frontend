@@ -31,7 +31,7 @@ const Header = () => {
     {
       name: "Forwarded Bills",
       path: "/forwardedbills",
-      allowedRoles: ["site_officer", "site_pimo", "accounts"],
+      allowedRoles: ["site_officer", "site_pimo", "director", "accounts"],
     },
     { name: "Masters", path: "/admin", allowedRoles: ["admin"] },
   ];
