@@ -21,6 +21,8 @@ const InvAtSite = () => {
         return `${year}-${month}-${day}`;
     };
 
+    const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
+
     const [bills, setBills] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -28,11 +30,26 @@ const InvAtSite = () => {
     const [sortBy, setSortBy] = useState("");
     const [fromDate, setFromDate] = useState(getFormattedDate());
     const [toDate, setToDate] = useState(getFormattedDate());
+    const [regionOptions, setRegionOptions] = useState([]);
+    const [region, setRegion] = useState("all");
+
+    useEffect(() => {
+        setRegionOptions(availableRegions);
+        setRegion(availableRegions);
+    }, [])
 
     useEffect(() => {
         const fetchBills = async () => {
             try {
-                const response = await axios.get(`${invAtSite}?startDate=${fromDate}&endDate=${toDate}`);
+                const params = {
+                    startDate: fromDate,
+                    endDate: toDate,
+                };
+
+                if (region !== "all" && region != "ALL") {
+                    params.region = region;
+                }
+                const response = await axios.get(invAtSite, { params });
                 console.log(response.data.report);
                 setBills(response.data.report.data);
                 // await setSelectedRows(bills.map(bill => bill.srNo));
@@ -43,7 +60,7 @@ const InvAtSite = () => {
             }
         };
         fetchBills();
-    }, [fromDate, toDate]);
+    }, [fromDate, toDate, region]);
 
     // useEffect(() => {
     //     if (selectAll) {
@@ -119,6 +136,9 @@ const InvAtSite = () => {
                     setFromDate={setFromDate}
                     toDate={toDate}
                     setToDate={setToDate}
+                    region={region}
+                    setRegion={setRegion}
+                    regionOptions={regionOptions}
                 />
 
                 <div className="overflow-x-auto shadow-md max-h-[85vh] relative border border-black">
@@ -170,7 +190,7 @@ const InvAtSite = () => {
                                 .map((bill) => (
                                     <tr key={bill.totalCount} className='bg-[#f5f5f5] font-semibold'>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
-                                            {/* <strong>Total Count: {bill.count.toLocaleString('en-IN')}</strong> */}
+                                            <strong>Total Count: {bill.count.toLocaleString('en-IN')}</strong>
                                         </td>
                                         <td colSpan={6} className='border border-black'></td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>

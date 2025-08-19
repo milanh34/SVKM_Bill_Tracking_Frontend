@@ -5,6 +5,7 @@ import ReportBtns from '../../components/ReportBtns';
 import download from "../../assets/download.svg";
 import send from "../../assets/send.svg";
 import print from "../../assets/print.svg";
+import Cookies from "js-cookie";
 import axios from 'axios';
 import { invAtPIMO, pendingBills } from '../../apis/report.api';
 // import { handleExportRepPendingBills } from '../../utils/archive/exportExcelReportPendingBills';
@@ -20,15 +21,28 @@ const InvAtPIMO = () => {
         return `${year}-${month}-${day}`;
     };
 
+    const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
+
+    const [bills, setBills] = useState([]);
     const [fromDate, setFromDate] = useState(getFormattedDate());
     const [toDate, setToDate] = useState(getFormattedDate());
-    const [bills, setBills] = useState([]);
+    const [regionOptions, setRegionOptions] = useState([]);
+    const [region, setRegion] = useState("all");
     const [loading, setLoading] = useState(false);
-
+    
     const fetchBills = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${invAtPIMO}?startDate=${fromDate}&endDate=${toDate}`);
+            const params = {
+                startDate: fromDate,
+                endDate: toDate,
+            };
+
+            if (region !== "all" && region != "ALL") {
+                params.region = region;
+            }
+            console.log(region);
+            const response = await axios.get(invAtPIMO, { params });
             console.log(response.data.report);
             setBills(response.data.report?.data);
         } catch (error) {
@@ -39,8 +53,13 @@ const InvAtPIMO = () => {
     };
 
     useEffect(() => {
+        setRegionOptions(availableRegions);
+        setRegion(availableRegions);
+    }, [])
+
+    useEffect(() => {
         fetchBills();
-    }, [fromDate, toDate]);
+    }, [fromDate, toDate, region]);
 
     const handleTopDownload = async () => {
         console.log("Rep given to acc dept download clicked");
@@ -106,6 +125,9 @@ const InvAtPIMO = () => {
                     setFromDate={setFromDate}
                     toDate={toDate}
                     setToDate={setToDate}
+                    region={region}
+                    setRegion={setRegion}
+                    regionOptions={regionOptions}
                 />
 
                 <div className="overflow-x-auto shadow-md max-h-[85vh] relative border border-black">
@@ -157,7 +179,7 @@ const InvAtPIMO = () => {
                                 .map((bill) => (
                                     <tr key={bill.totalCount} className='bg-[#f5f5f5] font-semibold'>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
-                                            {/* <strong>Total Count: {bill.count.toLocaleString('en-IN')}</strong> */}
+                                            <strong>Total Count: {bill.count.toLocaleString('en-IN')}</strong>
                                         </td>
                                         <td colSpan={6} className='border border-black'></td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>

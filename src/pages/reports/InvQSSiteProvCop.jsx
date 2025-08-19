@@ -5,6 +5,7 @@ import ReportBtns from '../../components/ReportBtns';
 import download from "../../assets/download.svg";
 import send from "../../assets/send.svg";
 import print from "../../assets/print.svg";
+import Cookies from "js-cookie";
 import axios from 'axios';
 import { givenToQSSite, invWithQsProvCOP } from '../../apis/report.api';
 // import { handleExportRepGivenToQS } from '../../utils/archive/exportExcelReportGivenToQS';
@@ -20,15 +21,32 @@ const InvQSSiteProvCop = () => {
         return `${year}-${month}-${day}`;
     };
 
+    const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
+
     const [fromDate, setFromDate] = useState(getFormattedDate());
     const [toDate, setToDate] = useState(getFormattedDate());
     const [bills, setBills] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [regionOptions, setRegionOptions] = useState([]);
+    const [region, setRegion] = useState("all");
+
+    useEffect(() => {
+        setRegionOptions(availableRegions);
+        setRegion(availableRegions);
+    }, [])
 
     const fetchBills = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${invWithQsProvCOP}?startDate=${fromDate}&endDate=${toDate}`);
+            const params = {
+                startDate: fromDate,
+                endDate: toDate,
+            };
+
+            if (region !== "all" && region != "ALL") {
+                params.region = region;
+            }
+            const response = await axios.get(invWithQsProvCOP, { params });
             console.log(response);
             setBills(response.data.report?.data || []);
         } catch (error) {
@@ -40,7 +58,7 @@ const InvQSSiteProvCop = () => {
 
     useEffect(() => {
         fetchBills();
-    }, [fromDate, toDate]);
+    }, [fromDate, toDate, region]);
 
     const handleTopDownload = async () => {
         console.log("Rep given to acc dept download clicked");
@@ -66,15 +84,15 @@ const InvQSSiteProvCop = () => {
         { field: "projectDescription", headerName: "Project Description" },
         { field: "vendorNo", headerName: "Vendor No" },
         { field: "vendorName", headerName: "Vendor Name" },
-        { field: "invoiceNo", headerName: "Tax Invoice No." },
-        { field: "invoiceDate", headerName: "Tax Invoice Date" },
-        { field: "invoiceAmount", headerName: "Tax Invoice Amount (Rs.)" },
-        { field: "qsCOP.dateGiven", headerName: "Dt Given-QS for Prov COP" }, // column no 40
+        { field: "taxInvNo", headerName: "Tax Invoice No." },
+        { field: "taxInvDate", headerName: "Tax Invoice Date" },
+        { field: "taxInvAmt", headerName: "Tax Invoice Amount (Rs.)" },
+        { field: "dateGiventoQsCOP", headerName: "Dt Given-QS for Prov COP" }, // column no 40
         { field: "poNo", headerName: "PO No" },
     ]
 
     const visibleColumnFields = [
-        "srNo", "region", "projectDescription", "vendorNo", "vendorName", "invoiceNo", "invoiceDate", "invoiceAmount", "qsCOP.dateGiven", "poNo"
+        "srNo", "region", "projectDescription", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dateGiventoQsCOP", "poNo"
     ]
 
     return (
@@ -106,6 +124,9 @@ const InvQSSiteProvCop = () => {
                     setFromDate={setFromDate}
                     toDate={toDate}
                     setToDate={setToDate}
+                    region={region}
+                    setRegion={setRegion}
+                    regionOptions={regionOptions}
                 />
 
                 <div className="overflow-x-auto shadow-md max-h-[85vh] relative border border-black">
@@ -147,7 +168,7 @@ const InvQSSiteProvCop = () => {
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.taxInvNo}</td>
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvDate}</td>
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>1</td>
+                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.dateGiventoQsCOP}</td>
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.poNo}</td>
                                         </tr>
                                     ))
@@ -157,11 +178,11 @@ const InvQSSiteProvCop = () => {
                                 .map((bill) => (
                                     <tr key={bill.totalCount} className='bg-[#f5f5f5] font-semibold'>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>
-                                            <strong>Total Count: {bill.totalCount.toLocaleString('en-IN')}</strong>
+                                            <strong>Total Count: {bill.count.toLocaleString('en-IN')}</strong>
                                         </td>
                                         <td colSpan={6} className='border border-black'></td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
-                                            <strong>Grand Total: {bill.grandTotalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                            <strong>Grand Total: {bill.grandTotalTaxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                         </td>
                                         <td colSpan={2} className='border border-black'></td>
                                     </tr>
