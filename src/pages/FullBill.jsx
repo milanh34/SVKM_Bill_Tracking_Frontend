@@ -147,7 +147,7 @@ const FullBillDetails = () => {
 
   const validateVendorNo = (x) => /^[0-9]{6}$/.test(x);
   const validatePoNo = (x) => /^[0-9]{10}$/.test(x);
-  const validateTaxInvNo = (x) => /^[a-zA-Z0-9]{0,16}$/.test(x);
+  const validateTaxInvNo = (x) => /^[a-zA-Z0-9\-\/\.\\\_]{0,16}$/.test(x);
 
   const handleVendorLookup = async (e) => {
     if (e.key === "Enter" && billFormData.vendorNo) {

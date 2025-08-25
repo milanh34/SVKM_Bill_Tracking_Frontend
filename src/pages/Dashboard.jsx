@@ -486,7 +486,7 @@ const Dashboard = () => {
         if (currentUserRole === "accounts") {
           result = result.filter(
             (bill) =>
-              !bill.accountsDept?.dateReceived
+              bill.accountsDept?.dateReceived == null
           );
         } else if (currentUserRole === "site_pimo") {
           result = result.filter(
@@ -499,7 +499,7 @@ const Dashboard = () => {
         if (currentUserRole === "accounts") {
           result = result.filter((bill) => bill.accountsDept?.dateReceived);
         } else if (currentUserRole === "site_pimo") {
-          result = result.filter((bill) => bill.pimoMumbai?.markReceived === true && bill.pimoMumbai?.dateReceived);
+          result = result.filter((bill) => (bill.pimoMumbai?.markReceived === true && bill.pimoMumbai?.dateReceived) || bill.siteStatus === "accept");
         }
       }
     }
@@ -923,11 +923,12 @@ const Dashboard = () => {
       qs_site: "qsCOP.dateGiven",
       site_pimo: "pimoMumbai.dateReceived",
       accounts: "accountsDept.dateReceived",
-      director: "accountsDept.dateReceived",
+      director: "taxInvRecdAtSite",
       admin: "taxInvRecdAtSite"
     };
     return sortConfig[role] || "taxInvRecdAtSite";
   };
+
 
   const sortBillsByRole = (bills, role) => {
     const sortField = getRoleSortField(role);

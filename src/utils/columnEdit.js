@@ -99,7 +99,7 @@ export const getColumnsForRole = (role) => {
     { field: "accountsDept.paymentAmt", headerName: "Payment Amt" }, // column no 91
     { field: "accountsDept.remarksAcctsDept", headerName: "Remarks Accts" }, // column no 92
     { field: "accountsDept.status", headerName: "Payment Status" }, // column no 93
-    { field: "miroDetails.no", headerName: "MIRO no" }, // column no 94
+    { field: "miroDetails.number", headerName: "MIRO no" }, // column no 94
     { field: "miroDetails.date", headerName: "MIRO Dt" }, // column no 95
     { field: "miroDetails.amount", headerName: "MIRO Amt" } // column no 96
   ];
@@ -138,7 +138,7 @@ export const getColumnsForRole = (role) => {
       "migoDetails.date",
       "migoDetails.amount",
       "migoDetails.doneBy",
-      "invReturnedToSite",
+      // "invReturnedToSite",
       "remarks",
       "siteOfficeDispatch.dateGiven",
       "siteOfficeDispatch.name",
@@ -207,7 +207,7 @@ export const getColumnsForRole = (role) => {
       "accountsDept.accountsIdentification",
       "accountsDept.paymentAmt",
       "accountsDept.remarksAcctsDept",
-      "miroDetails.no",
+      "miroDetails.number",
       "miroDetails.date",
       "miroDetails.amount",
     ],

@@ -39,13 +39,14 @@ const ReportBtns = () => {
     //     "admin": ["invAtSite", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportsinvoiceqssite", "reportsinvoicepaid", "invAtPIMO", "reportsbilljourney"]
     // };
     const roleAccess = {
-        "site_officer": ["invAtSite", "invqsmeasurement", "invqsprovcop", "invsentpimo"],
+        "site_officer": ["invatsite", "invqsmeasurement", "invqsprovcop", "invsentpimo"],
         "qs_site": ["invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invreturnqsmeasurement", "invreturnqsprovcop", "invreturnqsmumbaicop"],
-        "site_pimo": ["invAtSite", "invatpimo", "invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invsentpimo", "invsentaccts"],
+        "site_pimo": ["invatsite", "invatpimo", "invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invsentpimo", "invsentaccts"],
         "accounts": ["reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invpaid"],
-        "director": ["invAtSite", "invatpimo", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invpaid"],
+        "director": ["invatsite", "invatpimo", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invpaid"],
         "admin": ["invatsite", "invatpimo", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invsentpimo", "invreturnqsmeasurement", "invreturnqsprovcop", "invreturnqsmumbaicop", "invsentaccts", "invpaid"]
     };
+
 
     const allButtons = [
         { id: 'invatsite', label: 'Invoices at Site' },
