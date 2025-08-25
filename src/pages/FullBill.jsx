@@ -1187,7 +1187,7 @@ const FullBillDetails = () => {
         </div> */}
         <div className="w-1/2">
           <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">
-            Advanced Details
+            Advance Details
           </h1>
 
           <div>
@@ -1196,7 +1196,7 @@ const FullBillDetails = () => {
                 className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
                 htmlFor="advDate"
               >
-                Advanced Date
+                Advance Date
               </label>
               <input
                 type="date"
