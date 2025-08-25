@@ -349,7 +349,7 @@ const Dashboard = () => {
         vendorsRes,
         userRes,
       ] = await Promise.all([
-        axios.get(getFilteredBills, { 
+        axios.get(getFilteredBills, {
           headers,
           params: { role: currentUserRole }  // Change from query string to params
         }),
@@ -1396,6 +1396,16 @@ const Dashboard = () => {
             )}
             singleRole={selectedRole}
             fetchAllData={fetchAllData}
+            availableRoles={currentUserRole === "qs_site"
+              ? roleWorkflow[currentUserRole].filter(role => {
+                const selectedBills = billsData.filter(bill => selectedRows.includes(bill._id));
+                const qsMumbaiDateFilled = selectedBills.some(bill => bill.qsMumbai?.dateGiven);
+                return qsMumbaiDateFilled
+                  ? role.value === "pimo_cop"
+                  : ["measure", "site_cop"].includes(role.value);
+              })
+              : roleWorkflow[currentUserRole] || []
+            }
           />
         </div>
       )}

@@ -111,6 +111,7 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
                 </button>
 
                 <form className="flex flex-col gap-4 mt-2.5" onSubmit={handleSubmit}>
+                    <p className="flex gap-[10px]"> Sending To: <p style={{fontWeight: '600'}}> {singleRole.label} </p> </p>
                     <div className="flex flex-col gap-2">
                         <label className="text-base font-medium text-gray-700">Send To:</label>
                         <input
