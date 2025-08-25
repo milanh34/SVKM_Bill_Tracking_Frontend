@@ -31,7 +31,7 @@ const DataTable = ({
   searchQuery,
   currentUserRole,
   regionOptions,
-  showActions = true,
+  showActions = false,
 }) => {
   const [columnFilters, setColumnFilters] = useState({});
   const [activeFilter, setActiveFilter] = useState(null);
