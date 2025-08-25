@@ -91,38 +91,36 @@ const SentBills = () => {
 
   // Filtering
   const getFilteredData = () => {
-    // Custom logic, matches original
-    return billsData.filter((bill) => {
-      // Search
-      const searchFields = ["billNo", "customerName", "referenceNo", "region"];
-      const matchesSearch =
-        searchQuery === "" ||
-        searchFields.some((field) =>
-          bill[field]
-            ?.toString()
-            ?.toLowerCase()
-            .includes(searchQuery.toLowerCase())
-        );
-      // Region
-      const matchesRegion =
-        selectedRegion.length === 0 || selectedRegion.includes(bill.region);
-      // Date
-      let matchesDateRange = true;
-      if (fromDate || toDate) {
-        const path = selectedDateField.split(".");
-        let dateValue = bill;
-        for (const key of path) dateValue = dateValue?.[key];
-        if (dateValue) {
-          const date = new Date(dateValue);
-          if (fromDate && new Date(fromDate) > date) matchesDateRange = false;
-          if (toDate && new Date(toDate) < date) matchesDateRange = false;
-        } else {
-          matchesDateRange = false;
-        }
+  return billsData.filter((bill) => {
+    const matchesSearch = 
+      searchQuery === "" ||
+      Object.values(bill).some((value) =>
+        value
+          ?.toString()
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase())
+      );
+    
+    const matchesRegion =
+      selectedRegion.length === 0 || selectedRegion.includes(bill.region);
+    
+    let matchesDateRange = true;
+    if (fromDate || toDate) {
+      const path = selectedDateField.split(".");
+      let dateValue = bill;
+      for (const key of path) dateValue = dateValue?.[key];
+      if (dateValue) {
+        const date = new Date(dateValue);
+        if (fromDate && new Date(fromDate) > date) matchesDateRange = false;
+        if (toDate && new Date(toDate) < date) matchesDateRange = false;
+      } else {
+        matchesDateRange = false;
       }
-      return matchesSearch && matchesRegion && matchesDateRange;
-    });
-  };
+    }
+    
+    return matchesSearch && matchesRegion && matchesDateRange;
+  });
+};
 
   // Pagination
   const filteredData = useMemo(() => {
@@ -435,6 +433,8 @@ const SentBills = () => {
       </div>
     </div>
   );
+
+  console.log(searchQuery);
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
