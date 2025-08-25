@@ -29,7 +29,9 @@ const VendorTable = () => {
         complianceStatus: '',
         PANStatus: '',
         emailIds: [],
-        phoneNumbers: []
+        phoneNumbers: [],
+        addl1: '',
+        addl2: ''
     });
     const [showImportModal, setShowImportModal] = useState(false);
     const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -98,7 +100,9 @@ const VendorTable = () => {
             (v.complianceStatus?.toLowerCase().includes(lowerSearch)) ||
             (v.PANStatus?.toLowerCase().includes(lowerSearch)) ||
             (Array.isArray(v.emailIds) && v.emailIds.join(', ').toLowerCase().includes(lowerSearch)) ||
-            (Array.isArray(v.phoneNumbers) && v.phoneNumbers.join(', ').toLowerCase().includes(lowerSearch))
+            (Array.isArray(v.phoneNumbers) && v.phoneNumbers.join(', ').toLowerCase().includes(lowerSearch)) ||
+            (v.addl1?.toLowerCase().includes(lowerSearch)) ||
+            (v.addl2?.toLowerCase().includes(lowerSearch))
         );
 
         setFilteredData(filtered);
@@ -420,10 +424,12 @@ const VendorTable = () => {
         { field: 'complianceStatus', headerName: '206AB Compliance' },
         { field: 'PANStatus', headerName: 'PAN Status' },
         { field: 'emailIds', headerName: 'Email IDs' },
-        { field: 'phoneNumbers', headerName: 'Phone No' }
+        { field: 'phoneNumbers', headerName: 'Phone No' },
+        { field: 'addl1', headerName: 'Addl1' },
+        { field: 'addl2', headerName: 'Addl2' }
     ];
 
-    const visibleColumnFields = ['vendorNo', 'vendorName', 'PAN', 'GSTNumber', 'complianceStatus', 'PANStatus', 'emailIds', 'phoneNumbers']
+    const visibleColumnFields = ['vendorNo', 'vendorName', 'PAN', 'GSTNumber', 'complianceStatus', 'PANStatus', 'emailIds', 'phoneNumbers', 'addl1', 'addl2']
 
     return (
         <div className="relative w-full flex flex-col border border-gray-200 rounded-lg">
@@ -590,6 +596,15 @@ const VendorTable = () => {
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                                         />
                                     </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Addl 1</label>
+                                        <input
+                                            type="text"
+                                            value={newVendor.addl1}
+                                            onChange={(e) => setNewVendor({ ...newVendor, addl1: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+                                        />
+                                    </div>
                                 </div>
 
                                 {/* Status and Contact Section */}
@@ -644,6 +659,15 @@ const VendorTable = () => {
                                             onChange={(e) => setNewVendor({ ...newVendor, phoneNumbers: e.target.value.split(',').map(item => item.trim()) })}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                                             placeholder="1234567890, 0987654321"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Addl 2</label>
+                                        <input
+                                            type="text"
+                                            value={newVendor.addl2}
+                                            onChange={(e) => setNewVendor({ ...newVendor, addl2: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                                         />
                                     </div>
                                 </div>
