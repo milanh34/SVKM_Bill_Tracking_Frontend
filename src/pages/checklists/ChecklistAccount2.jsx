@@ -53,7 +53,7 @@ const ChecklistAccount = () => {
   }, []);
 
 
-  console.log("Bills Data:", billsData);
+  console.log("Bills Data:", billsData[0]);
 
   const handlePrint = () => {
     const win = window.open("", "_blank");
@@ -133,13 +133,13 @@ const ChecklistAccount = () => {
         <body>
     `);
 
-    billsData.forEach((item) => {
+    billsData[0].map((item) => {
       const content = `
         <div class="checklist-page">
           <div class="content-row">
             <img src="${logo}" alt="" class="logo-img" style="height: 40px; vertical-align: middle;" />
             &nbsp;&nbsp;&nbsp;
-            Region-Project Name: ${item?.region || ""} - ${
+            Region-Project Name: ${item.region || ""} - ${
         item?.projectDescription || ""
       }
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

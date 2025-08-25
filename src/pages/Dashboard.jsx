@@ -218,8 +218,8 @@ const Dashboard = () => {
 
     try {
       const token = Cookies.get("token");
-      const promises = selectedRows.map((billId) =>
-        axios.post(
+      const promises = selectedRows.map(async (billId) =>
+        await axios.post(
           receiveBills,
           { billId, role: currentUserRole },
           {
@@ -230,18 +230,24 @@ const Dashboard = () => {
         )
       );
 
-      await Promise.all(promises);
+      const response = await Promise.all(promises);
       toast.success("Bills marked as received successfully");
 
-      console.log(promises);
+      let allBills = [];
+
+      for(let i=0; i<response.length; i++) {
+        allBills.push(response[i].data.bill)
+      }
+
+      console.log("THESE ARE ALL BILLS: ", allBills);
       // I have to verify once by checking the actual output of this promises from backend. For now I am expecting "promises.bill" to be my expected result.
       // To verify I will need some bills in incoming bills tab
 
       if (currentUserRole === 'accounts') {
         navigate("/checklist-account2", {
           state: {
-            selectedRows: [promises.bill],
-            bills: [promises.bill],
+            selectedRows: allBills,
+            bills: allBills,
           },
         });
       }
