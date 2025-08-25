@@ -1179,7 +1179,7 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <button
-                    className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors ${selectedRole
+                    className={`${(currentUserRole === "director") ? "hidden" : ""} flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors ${selectedRole
                       ? "relative after:absolute after:top-0 after:right-0 after:w-2 after:h-2 after:bg-green-500 after:rounded-full"
                       : ""
                       }`}
