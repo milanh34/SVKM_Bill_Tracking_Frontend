@@ -156,7 +156,7 @@ const ChecklistAccount = () => {
             text-align: left;
             vertical-align: top;
             font-size: 11px;
-            line-height: 1.3;
+            
           }
           .main-table th {
             background-color: #f0f0f0;
@@ -179,11 +179,12 @@ const ChecklistAccount = () => {
             font-size: 10px;
           }
           .amt {
-            font-size: 20px !important;
+            font-size: 18px !important;
             font-weight: 400;
+            margin-bottom: 2px !important;
           }
           .na-mum {
-            font-size: 14px !important;
+            font-size: 12px !important;
             font-weight: 200;
           }
         }
@@ -332,7 +333,7 @@ const ChecklistAccount = () => {
                 
                 <tr>
                   <td class="row-data">Gleed's Certification Amount</td>
-                  <td class="row-data amt">INR ${item?.copDetails?.amount || "18,644.00"}<br/>
+                  <td class="amt">INR ${item?.copDetails?.amount || "18,644.00"}
                   <p class="na-mum">N.A. for Mumbai; amt < 50,000 </p>
                   </td>
                   <td class="row-data">Is certificate signed & stamped? Yes / No<br/>Is PO no correct? Yes / No</td>
