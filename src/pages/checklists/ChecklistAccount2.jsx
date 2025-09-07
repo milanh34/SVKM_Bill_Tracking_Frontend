@@ -52,11 +52,15 @@ const ChecklistAccount = () => {
     fetchVendors();
   }, []);
 
-
   console.log("Bills Data:", billsData[0]);
 
   const handlePrint = () => {
-    const win = window.open("", "_blank");
+    const printWindow = window.open("", "_blank");
+    
+    if (!printWindow) {
+      alert("Please allow pop-ups to enable printing");
+      return;
+    }
 
     const printStyles = `
       <style>
@@ -66,264 +70,351 @@ const ChecklistAccount = () => {
             size: A4;
           }
           body { 
-            padding: 5px;
-            margin: 10px;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            margin: 0;
+            padding: 10px;
+            color: #000;
           }
-          .checklist-page {
+          .print-page {
             width: 100%;
             margin: 0 auto;
             page-break-after: always;
+            background: white;
           }
-          .checklist-page:last-child {
+          .print-page:last-child {
             page-break-after: avoid;
           }
-          .content-row {
-            padding: 0px;
-            font-size: 0.770rem;
-            border-bottom: 1px solid #e5e7eb;
+          .header-section {
+            border: 2px solid #000;
+            margin-bottom: 10px;
           }
-          table {
+          .header-row {
+            display: flex;
+            justify-content: between;
+            border-bottom: 1px solid #000;
+            min-height: 25px;
+            align-items: center;
+          }
+          .header-row-2 {
+            display: flex;
+            border-bottom: 1px solid #000;
+            min-height: 25px;
+            align-items: center;
+            background-color: #bdbdbdff;
+          }
+          .header-row:last-child {
+            border-bottom: none;
+          }
+          .header-cell {
+            padding: 4px 8px;
+            border-right: 1px solid #000;
+            flex: 2;
+          }
+          .header-cell-1 {
+            padding: 4px 8px;
+            border-right: none !important;
+            flex: 2;
+          }
+          .header-cell-2 {
+            border-right: none;
+            padding: 4px 8px;
+            flex: 1;
+          }
+          .header-cell:last-child {
+            border-right: none;
+          }
+          .header-cell.wide {
+            flex: 2.5;
+          }
+          .narrow {
+            flex: 0.5;
+          }
+          .duedate {
+            width: fit-content;
+          }
+          .logo-section {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            background-color: #f0f0f0;
+          }
+          .logo {
+            height: 30px;
+            margin-right: 10px;
+          }
+          .main-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 12px;
-            border: 1px solid #e5e7eb;
+            border: 2px solid #000;
+            margin-top: 10px;
           }
-          th, td {
-            border: 1px solid #e5e7eb;
-            padding: 4px 6px;
-            font-size: 0.770rem;
-          }
-          th {
-            background-color: #f3f4f6;
+          .main-table th,
+          .main-table td {
+            border: 1px solid #000;
+            padding: 6px 8px;
             text-align: left;
+            vertical-align: top;
+            font-size: 11px;
+            line-height: 1.3;
           }
-          tr:nth-child(even) { background-color: #f9fafb; }
-          .logo-img { height: 40px; }
-          .grid-row {
-            display: grid;
-            padding: 4px 0px;
-            font-size: 0.770rem;
-            border-bottom: 1px solid #e5e7eb;
+          .main-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            text-align: center;
           }
-          .grid-3 {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
+          .main-table .desc-col {
+            width: 30%;
           }
-          .grid-6 {
-            grid-template-columns: repeat(6, 1fr);
-            gap: 16px;
+          .main-table .remarks-col {
+            width: 31%;
           }
-          .grid-span-2 {
-            grid-column: span 2;
+          .main-table .additional-col {
+            width: 39%;
           }
-          .grid-span-4 {
-            grid-column: span 4;
+          .row-data {
+            font-weight: normal;
+          }
+          .small-text {
+            font-size: 10px;
+          }
+          .amt {
+            font-size: 20px !important;
+            font-weight: 400;
+          }
+          .na-mum {
+            font-size: 14px !important;
+            font-weight: 200;
+          }
+        }
+        @media screen {
+          body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
           }
         }
       </style>
     `;
 
-    win.document.write(`
+    let printContent = `
       <html>
         <head>
           <title>Account Checklist</title>
           ${printStyles}
         </head>
         <body>
-    `);
+    `;
 
-    billsData[0].map((item) => {
-      const content = `
-        <div class="checklist-page">
-          <div class="content-row">
-            <img src="${logo}" alt="" class="logo-img" style="height: 40px; vertical-align: middle;" />
-            &nbsp;&nbsp;&nbsp;
-            Region-Project Name: ${item.region || ""} - ${
-        item?.projectDescription || ""
-      }
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            ${item?.srNo || ""}
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            Due Date:
+    // Process each bill
+    if (billsData) {
+      billsData.forEach((item, index) => {
+        printContent += `
+          <div class="print-page">
+            <!-- Header Section -->
+            <div class="header-section">
+              <!-- Logo and Project Info Row -->
+              <div class="header-row logo-section">
+                <div class="header-cell-1 wide">
+                  <strong>SVKM</strong> &nbsp;&nbsp;&nbsp;
+                  Project name: ${item?.region || ""}- ${item?.projectDescription || ""}
+                </div>
+                <div class="narrow">${item?.srNo || ""}</div>
+                <div class="duedate">Due Date:__/__/____</div>
+              </div>
+              
+              <!-- Invoice Details Row -->
+              <div class="header-row-2">
+                <div class="header-cell-2">Invoice no and Date: ${item?.taxInvNo || ""}</div>
+                <div class="header-cell-2">Dt: ${formatDate(item?.taxInvDate)}</div>
+                <div class="header-cell-2">Nature of Work: ${item?.natureOfWork || item?.typeOfInv || ""}</div>
+              </div>
+              
+              <!-- Vendor Info Row -->
+              <div class="header-row">
+                <div class="header-cell wide">Vendor Description: ${item?.vendorName || ""}</div>
+                <div class="header-cell">Vendor Code: ${item?.vendorNo || ""}</div>
+              </div>
+              
+              <!-- PO Info Row -->
+              <div class="header-row">
+                <div class="header-cell wide">PO No and Date: ${item?.poNo || ""} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${formatDate(item?.poDate)}</div>
+                <div class="header-cell">PO Amt: ${item?.currency || ""} ${item?.poAmt || ""}</div>
+              </div>
+              
+              <!-- GST and PAN Row -->
+              <div class="header-row">
+                <div class="header-cell wide">Vendor GST No as per SAP: ${item?.gstNumber || ""}</div>
+                <div class="header-cell">LC exist in vendor A/c: Yes / No</div>
+              </div>
+              
+              <!-- Compliance Row -->
+              <div class="header-row">
+                <div class="header-cell wide">Compliance u/s 206AB: ${item?.compliance206AB || ""}</div>
+                <div class="header-cell">PAN Status: ${item?.panStatus || ""}</div>
+              </div>
+            </div>
+
+            <!-- Main Checklist Table -->
+            <table class="main-table">
+              <thead>
+                <tr>
+                  <th class="desc-col">Description</th>
+                  <th class="remarks-col">Remarks</th>
+                  <th class="additional-col">Additional remarks</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="row-data">Vendor Original Tax Invoice attached</td>
+                  <td class="row-data">Yes / No</td>
+                  <td class="row-data">SAP doc no. 17/</td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">Invoice Approved By Project Incharge</td>
+                  <td class="row-data">VP / JKB / RB / DG / PP /<br/>Shirpur/Dhule</td>
+                  <td class="row-data">Same bill no. in vendor ledger: Yes / No<br/>Is MIGO entry done: Yes / No</td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">Invoice Approved By Trustee</td>
+                  <td class="row-data">HS / HC / JP / JK / BP / RB /<br/>Member -LMC</td>
+                  <td class="row-data">IS PO no mentioned on Bill? Yes / No<br/>IS PO no mentioned is correct? Yes / No</td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">Invoice Amount</td>
+                  <td class="row-data amt">${item?.currency || "INR"} ${item?.taxInvAmt || ""}</td>
+                  <td class="row-data">Bill for Material / services / material + services<br/>Total Material Purchases - < 50 lacs / > 50 lacs</td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">TDS u/s 194C / 194J / 194I or 194Q<br/>+ TDS deducted- cement/steel,etc.</td>
+                  <td class="row-data">Rs.</td>
+                  <td class="row-data">Net amount : Rs.</td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">Is GST charged in bill</td>
+                  <td class="row-data">Yes / No / RCM (consult Mr Mekap)</td>
+                  <td class="row-data">SVKM GST no mentioned on bill? Yes / No</td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">Vendor Original Delivery Challan</td>
+                  <td class="row-data">Yes - with Stamp<br/>Yes - w/o Stamp</td>
+                  <td class="row-data">No - with Stamp on bill / No - Services<br/>No - w/o Stamp on bill</td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">E Way bill attached</td>
+                  <td class="row-data">Yes - Part A avbl & Part B avbl<br/>Yes - bill to ship to E-Way bill avbl<br/>Yes - Works Contract E-way bill avbl</td>
+                  <td class="row-data">No - distance < 50 kms / No- Mat couriered<br/>No - inter state; amt < 50,000/No-Mat hand delivery<br/>No - intra state; amt < 1,00,000 /No -Services</td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">Loading / Unloading / Debris /<br/>Debit Note - by SVKM or Vendor</td>
+                  <td class="row-data">Rs.</td>
+                  <td class="row-data">G L account: 480<br/>Network: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Activity:</td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">Purchase Order Copy attached</td>
+                  <td class="row-data">Yes / No</td>
+                  <td class="row-data">Is PO signed by authorised? Yes/No</td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">Vendor GST No as per Invoice</td>
+                  <td class="row-data">Same / different<br/>If diff, check Venor PAN & RTGS details</td>
+                  <td class="row-data">Vendor GST validity: Yes / No</td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">Gleed's Certification Amount</td>
+                  <td class="row-data amt">INR ${item?.copDetails?.amount || "18,644.00"}<br/>
+                  <p class="na-mum">N.A. for Mumbai; amt < 50,000 </p>
+                  </td>
+                  <td class="row-data">Is certificate signed & stamped? Yes / No<br/>Is PO no correct? Yes / No</td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">Retention Amount</td>
+                  <td class="row-data">Rs.</td>
+                  <td class="row-data">Gleeds COP amt: <br/>Rs.SAP doc no: 35/</td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">This bill hold amount</td>
+                  <td class="row-data">Rs.</td>
+                  <td class="row-data">SAP doc no: 10/<br/>SAP doc no: 10/</td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">Earlier bill hold/retention release amount</td>
+                  <td class="row-data">Rs.</td>
+                  <td class="row-data"></td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">Measurment Sheet/Drawings</td>
+                  <td class="row-data">Yes / No</td>
+                  <td class="row-data">PO no on measurement sheet same?<br/>Yes / No / Not mentioned</td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">Others</td>
+                  <td class="row-data"></td>
+                  <td class="row-data">Declaration for no TDS : u/s 194 C (6) received/<br/>under notification 21/dated 13.06.12 received</td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">Advance in Vendor Account</td>
+                  <td class="row-data">Rs.</td>
+                  <td class="row-data">In various POs as on</td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">Advance adj. agst this invoice</td>
+                  <td class="row-data">Rs.</td>
+                  <td class="row-data"></td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">Net Payable</td>
+                  <td class="row-data">Rs.</td>
+                  <td class="row-data"></td>
+                </tr>
+                
+                <tr>
+                  <td class="row-data">Project / Campus on Bill, PO and Certificate</td>
+                  <td class="row-data">Same / different</td>
+                  <td class="row-data">Not for payment since adjusted against advance.<br/>Email sent?_______ / Entered in Access ___</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
+        `;
+      });
+    }
 
-          <div class="grid-row grid-3">
-            <div>Invoice No: ${item?.taxInvNo || ""}</div>
-            <div>Dt: ${formatDate(item?.taxInvDate)}</div>
-            <div>Nature of Work: ${
-              item?.natureOfWork || item?.typeOfInv || ""
-            }</div>
-          </div>
+    printContent += `
+        </body>
+      </html>
+    `;
 
-          <div class="grid-row grid-6">
-            <div class="grid-span-4">Vendor Description: ${
-              item?.vendorName || ""
-            }</div>
-            <div class="grid-span-2">Vendor code: ${item?.vendorNo || ""}</div>
-          </div>
+    printWindow.document.write(printContent);
+    printWindow.document.close();
 
-          <div class="grid-row grid-6">
-            <div class="grid-span-4">PO Number and Date: ${
-              item?.poNo || ""
-            } &nbsp; ${formatDate(item?.poDate)}</div>
-            <div class="grid-span-2">PO Amt: ${item?.currency || ""} ${
-        item?.poAmt || ""
-      }</div>
-          </div>
-
-          <div class="grid-row grid-6">
-            <div class="grid-span-4">Vendor GST No & PAN as per SAP: ${
-              item?.gstNumber || ""
-            } / ${vendorPANMap[item?.vendorNo] || ""}</div>
-            <div class="grid-span-2">LC exists in vendor A/c: &nbsp; Yes / No</div>
-          </div>
-
-          <div class="grid-row grid-6">
-            <div class="grid-span-4">Compliance u/s 206AB: ${
-              item?.compliance206AB || ""
-            }</div>
-            <div class="grid-span-2">Pan Status: ${item?.panStatus || ""}</div>
-          </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th style="width: 33.333333%">Description</th>
-                <th style="width: 33.333333%">Remarks</th>
-                <th style="width: 33.333333%">Additional remarks</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Vendor Original Tax Invoice attached</td>
-                <td>Yes / No</td>
-                <td>SAP doc no.</td>
-              </tr>
-              <tr>
-                <td>Invoice Approved By Project Incharge</td>
-                <td>VP / JKB / RB / DG / PP /<br/>Shirpur/Dhule</td>
-                <td>Same bill no.in vendor ledger: Yes / No<br/>Is Migo Entry done: Yes / No</td>
-              </tr>
-              <tr>
-                <td>Invoice Approved By Trustee</td>
-                <td>HS / HC / JP / JK / BP / RB / Member -LMC</td>
-                <td>IS PO no mentioned on Bill? Yes / No<br/>IS PO no mentioned is correct? Yes / No</td>
-              </tr>
-              <tr>
-                <td>Invoice Amount</td>
-                <td>${item?.currency} ${item?.taxInvAmt}</td>
-                <td>Bill for Material / services / material + services<br/>Total Material Purchases -&lt;50lacs / &gt;50 lacs</td>
-              </tr>
-              <tr>
-                <td>TDS u/s 194C / 194J/194I or 194Q + TDS deducted-cement/steel,etc<br/>TDS deducted on cement/steel,etc.</td>
-                <td>Rs.</td>
-                <td>Net Amount: Rs.</td>
-              </tr>
-              <tr>
-                <td>Is GST charged in bill</td>
-                <td>Yes / No / RCM(Consult Mr Mekap)</td>
-                <td>SVKM GST no mentioned on bill ? Yes / No</td>
-              </tr>
-              <tr>
-                <td>Vendor Original Delivery Challan</td>
-                <td>Yes - with stamp / Yes - w/o stamp</td>
-                <td>No- with stamp on bill / No-Services<br/>No - w/o stamp on bill</td>
-              </tr>
-              <tr>
-                <td>E-Way bill attached</td>
-                <td>Yes - Part A avbl & Part B avbl<br/>Yes - bill to ship to E-Way bill avbl<br/>Yes - Works Contract E-way bill avbl</td>
-                <td>No - distance &lt; 50 kms / No- Mat couriered<br/>No - inter state; amt &lt; 50,000/No-Mat hand delivery<br/>No - intra state; amt &lt; 1,00,000 /No -Services</td>
-              </tr>
-              <tr>
-                <td>Loading/Unloading/Debris/Debit Note - by SVKM or Vendor</td>
-                <td>Rs.</td>
-                <td>G L Account:480<br/>Network:<br/>Activity:</td>
-              </tr>
-              <tr>
-                <td>Purchase Order Copy attached</td>
-                <td>Yes / No</td>
-                <td>Is PO signed by authorised? Yes / No</td>
-              </tr>
-              <tr>
-                <td>Vendor GST No as per Invoice</td>
-                <td>Same / different</td>
-                <td>Venor GST Validity : Yes / No</td>
-              </tr>
-              <tr>
-                <td>Gleed's Certification Amount</td>
-                <td>INR ${
-                  item?.copDetails?.amount
-                }<br/>N.A. for Mumbai; amt &lt; 50,000</td>
-                <td>Is certificate signed & stamped? Yes / No<br/>Is PO no correct? Yes / No</td>
-              </tr>
-              <tr>
-                <td>Retention Amount</td>
-                <td>Rs.</td>
-                <td>Gleeds COP amt : Rs.<br/>SAP Doc no : 35/<br/>Rs.</td>
-              </tr>
-              <tr>
-                <td>This bill hold amount</td>
-                <td>Rs.</td>
-                <td>SAP Doc no : 35/<br/>Rs.</td>
-              </tr>
-              <tr>
-                <td>Earlier bill hold release amount</td>
-                <td>Rs.</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>Measurment Sheet/Drawings</td>
-                <td>Yes / No</td>
-                <td>PO no on measurement sheet same?<br/>Yes / No / Not mentioned</td>
-              </tr>
-              <tr>
-                <td>Others</td>
-                <td></td>
-                <td>Declaration for no TDS :u/s 194 © received/ under notification 21/dated 13.06.12 received</td>
-              </tr>
-              <tr>
-                <td>Advance in Vendor Account</td>
-                <td>Rs.</td>
-                <td>In various POs as on</td>
-              </tr>
-              <tr>
-                <td>Advance adj. agst this Invoice</td>
-                <td>Rs.</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>Net Payable</td>
-                <td>Rs.</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>Project/Campus on Bill,PO and Certificate</td>
-                <td>Same / different</td>
-                <td>Not for payment since adjusted against advance. Email sent ? ________ /Entered in Access ___________</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      `;
-      win.document.write(content);
-    });
-
-    win.document.write("</body></html>");
-    win.document.close();
-
-    const style = document.createElement("style");
-    style.textContent = "@page { size: auto; margin: 0mm; }";
-    win.document.head.appendChild(style);
-
-    win.onload = () => {
+    // Wait for content to load then print
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+      // Don't close immediately to allow user to see print dialog
       setTimeout(() => {
-        win.document.title = "Account Checklist";
-        win.focus();
-        win.print();
-        win.close();
-      }, 250);
-    };
+        printWindow.close();
+      }, 1000);
+    }, 500);
   };
 
   const goToNextPage = () => {
