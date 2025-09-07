@@ -119,6 +119,12 @@ const ChecklistBillJourney = () => {
           .grid-span-2 {
             grid-column: span 2;
           }
+          .vend-desc {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            padding-right: 100px;
+          }
         }
       </style>
     `;
@@ -161,16 +167,16 @@ const ChecklistBillJourney = () => {
       }</div>
           </div>
 
-          <div class="grid-row grid-3">
+          <div class="vend-desc">
             <div>Vendor Description: ${item?.vendorName || ""}</div>
-            <div></div>
+            
             <div>Vendor code: ${item?.vendorNo || ""}</div>
           </div>
 
           <div class="grid-row grid-3">
             <div class="grid-span-2">PO Number and Date: ${
               item?.poNo || ""
-            } &nbsp; ${formatDate(item?.poDate)}</div>
+            } &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${formatDate(item?.poDate)}</div>
             <div>PO Amt: ${item?.currency || ""} ${item?.poAmt || ""}</div>
           </div>
 
