@@ -235,19 +235,17 @@ const Dashboard = () => {
 
       let allBills = [];
 
-      for(let i=0; i<response.length; i++) {
+      for (let i = 0; i < response.length; i++) {
         allBills.push(response[i].data.bill)
       }
 
       console.log("THESE ARE ALL BILLS: ", allBills);
-      // I have to verify once by checking the actual output of this promises from backend. For now I am expecting "promises.bill" to be my expected result.
-      // To verify I will need some bills in incoming bills tab
 
       if (currentUserRole === 'accounts') {
         navigate("/checklist-account2", {
           state: {
-            selectedRows: allBills,
-            bills: allBills,
+            selectedRows,
+            bills: billsData.filter((bill) => selectedRows?.includes(bill._id)),
           },
         });
       }
