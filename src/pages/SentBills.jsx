@@ -69,8 +69,8 @@ const SentBills = () => {
       currentUserRole === "site_officer"
         ? "SITE_OFFICER"
         : currentUserRole === "accounts"
-        ? "ACCOUNTS_TEAM"
-        : "PIMO_MUMBAI_MIGO_SES";
+          ? "ACCOUNTS_TEAM"
+          : "PIMO_MUMBAI_MIGO_SES";
     return getColumnsForRole(roleForColumns);
   }, [currentUserRole]);
 
@@ -91,39 +91,39 @@ const SentBills = () => {
 
   // Filtering
   const getFilteredData = () => {
-  return billsData.filter((bill) => {
-    const matchesSearch = 
-      searchQuery === "" ||
-      Object.values(bill).some((value) =>
-        value
-          ?.toString()
-          ?.toLowerCase()
-          .includes(searchQuery.toLowerCase())
-      );
-    
-    const matchesRegion =
-      selectedRegion.length === 0 || selectedRegion.includes(bill.region);
-    
-    let matchesDateRange = true;
-    if (fromDate || toDate) {
-      const path = selectedDateField.split(".");
-      let dateValue = bill;
-      for (const key of path) dateValue = dateValue?.[key];
-      if (dateValue) {
-        const date = new Date(dateValue);
-        if (fromDate && new Date(fromDate) > date) matchesDateRange = false;
-        if (toDate && new Date(toDate) < date) matchesDateRange = false;
-      } else {
-        matchesDateRange = false;
+    return billsData.filter((bill) => {
+      const matchesSearch =
+        searchQuery === "" ||
+        Object.values(bill).some((value) =>
+          value
+            ?.toString()
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase())
+        );
+
+      const matchesRegion =
+        selectedRegion.length === 0 || selectedRegion.includes(bill.region);
+
+      let matchesDateRange = true;
+      if (fromDate || toDate) {
+        const path = selectedDateField.split(".");
+        let dateValue = bill;
+        for (const key of path) dateValue = dateValue?.[key];
+        if (dateValue) {
+          const date = new Date(dateValue);
+          if (fromDate && new Date(fromDate) > date) matchesDateRange = false;
+          if (toDate && new Date(toDate) < date) matchesDateRange = false;
+        } else {
+          matchesDateRange = false;
+        }
       }
-    }
-    
-    return matchesSearch && matchesRegion && matchesDateRange;
-  });
-};
+
+      return matchesSearch && matchesRegion && matchesDateRange;
+    });
+  };
 
   // Pagination
-  const filteredData = useMemo(() => {
+  const filteredUnpaginatedData = useMemo(() => {
     let data = getFilteredData();
     // Sorting
     if (sortConfig.key) {
@@ -154,12 +154,13 @@ const SentBills = () => {
         );
       });
     }
-    setTotalFilteredItems(data.length);
+    // setTotalFilteredItems(data.length);
     // Paginate
-    return data.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
-    );
+    // return data.slice(
+    //   (currentPage - 1) * itemsPerPage,
+    //   currentPage * itemsPerPage
+    // );
+    return data;
   }, [
     billsData,
     searchQuery,
@@ -168,9 +169,24 @@ const SentBills = () => {
     toDate,
     selectedDateField,
     sortConfig,
-    itemsPerPage,
-    currentPage,
+    // itemsPerPage,
+    // currentPage,
   ]);
+  // Update totalFilteredItems when filteredUnpaginatedData changes
+  useEffect(() => {
+    setTotalFilteredItems(filteredUnpaginatedData.length);
+  }, [filteredUnpaginatedData]);
+
+  // Memoized paginated data
+  const paginatedData = useMemo(() => {
+    const startIdx = (currentPage - 1) * itemsPerPage;
+    const endIdx = startIdx + itemsPerPage;
+    return filteredUnpaginatedData.slice(startIdx, endIdx);
+  }, [filteredUnpaginatedData, currentPage, itemsPerPage]);
+
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [searchQuery, selectedRegion, fromDate, toDate, itemsPerPage, sortConfig, selectedDateField]);
 
   const totalPages = Math.ceil(totalFilteredItems / itemsPerPage);
 
@@ -219,7 +235,7 @@ const SentBills = () => {
   // Select
   const handleSelectAll = (e) => {
     setSelectAll(e.target.checked);
-    setSelectedRows(e.target.checked ? filteredData.map((row) => row._id) : []);
+    setSelectedRows(e.target.checked ? paginatedData.map((row) => row._id) : []);
   };
 
   // Export Excel
@@ -268,21 +284,22 @@ const SentBills = () => {
 
   // DataTable Props
   const dataTableProps = {
-    data: filteredData,
+    // data: filteredData,
+    data: paginatedData,
     searchQuery: searchQuery,
     availableColumns: columns,
     visibleColumnFields: visibleColumnFields,
     selectedRows: selectedRows,
     onRowSelect: setSelectedRows,
     totalSelected: selectedRows.length,
-    totalItems: filteredData.length,
+    totalItems: paginatedData.length,
     selectAll: selectAll,
     onSelectAll: handleSelectAll,
     sortConfig: sortConfig,
     onSort: handleSort,
     currentPage: currentPage,
     itemsPerPage: itemsPerPage,
-    onPaginatedDataChange: setTotalFilteredItems,
+    onPaginatedDataChange: undefined,
     onEdit: undefined,
     showActions: false,
   };
@@ -325,11 +342,10 @@ const SentBills = () => {
           typeof page === "number" ? (
             <button
               key={page}
-              className={`px-2.5 py-1.5 text-sm hover:cursor-pointer border rounded-md transition-colors ${
-                currentPage === page
+              className={`px-2.5 py-1.5 text-sm hover:cursor-pointer border rounded-md transition-colors ${currentPage === page
                   ? "bg-[#011a99] text-white"
                   : "bg-white border-gray-300 hover:bg-gray-50"
-              }`}
+                }`}
               onClick={() => setCurrentPage(page)}
             >
               {page}
@@ -358,14 +374,14 @@ const SentBills = () => {
       <div className="flex items-center text-sm text-gray-600">
         <div>
           Showing{" "}
-          {filteredData.length ? (currentPage - 1) * itemsPerPage + 1 : 0} to{" "}
+          {paginatedData.length ? (currentPage - 1) * itemsPerPage + 1 : 0} to{" "}
           {Math.min(currentPage * itemsPerPage, totalFilteredItems)} entries
           <span className="ml-2">
             <span className="text-gray-400">|</span>
             <span className="ml-2">
               Total: <span className="font-medium">{billsData.length}</span>
             </span>
-            {totalFilteredItems !== billsData.length && (
+            {filteredUnpaginatedData.length !== billsData.length && (
               <>
                 <span className="text-gray-400 mx-2">|</span>
                 <span className="text-blue-600">

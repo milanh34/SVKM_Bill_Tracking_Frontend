@@ -302,11 +302,11 @@ const DataTable = ({
     });
   }, [filteredData, sortConfig]);
 
-  const displayData = useMemo(() => {
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    return sortedData.slice(indexOfFirstItem, indexOfLastItem);
-  }, [sortedData, currentPage, itemsPerPage]);
+  // const displayData = useMemo(() => {
+  //   const indexOfLastItem = currentPage * itemsPerPage;
+  //   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  //   return sortedData.slice(indexOfFirstItem, indexOfLastItem);
+  // }, [sortedData, currentPage, itemsPerPage]);
 
   useEffect(() => {
     if (onPaginatedDataChange) {
@@ -1163,7 +1163,8 @@ const DataTable = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">
-            {displayData.map((row) => {
+            {/* {displayData.map((row) => { */}
+            {data.map((row) => {
               const isSelected = selectedRows.includes(row._id);
               const bgColor = isSelected
                 ? "bg-blue-50"
