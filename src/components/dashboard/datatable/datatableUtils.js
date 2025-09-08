@@ -44,7 +44,7 @@ export const getNestedValue = (obj, path) => {
 };
 
 export const isDateField = (field) => {
-  const dateIndicators = ["date", "dt", "recdatsite", "booking"];
+  const dateIndicators = ["date", "dt", "recdatsite", "booking", "receivedback"];
 
   if (field.includes(".")) {
     const parts = field.split(".");
@@ -70,23 +70,48 @@ export const isNumericField = (field) => {
 
 export const getUniqueValues = (data, field) => {
   const values = new Set();
-
-  values.add("");
+  let hasBlank = false;
 
   data.forEach((row) => {
     const value = getNestedValue(row, field);
-    if (value !== undefined && value !== null) {
-      if (isDateField(field)) {
-        const formattedDate = formatDate(value);
-        if (formattedDate !== "-") {
-          values.add(formattedDate);
-        }
-      } else {
-        values.add(value.toString());
+    if (value === undefined || value === null) {
+      hasBlank = true;
+      return;
+    }
+
+    if (field === "attachments" && Array.isArray(value)) {
+      if (value.length === 0) {
+        hasBlank = true;
+        return;
       }
+      const label = `${value.length} attachment${value.length > 1 ? 's' : ''}`;
+      values.add(label);
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      values.add(value.toString());
+      return;
+    }
+
+    if (typeof value === 'string' && value.trim() === '') {
+      hasBlank = true;
+      return;
+    }
+
+    if (isDateField(field)) {
+      const formattedDate = formatDate(value);
+      if (formattedDate !== "-") {
+        values.add(formattedDate);
+      } else {
+        hasBlank = true;
+      }
+    } else {
+      values.add(value.toString());
     }
   });
-  return Array.from(values).sort((a, b) => {
+
+  const result = Array.from(values).sort((a, b) => {
     if (a.includes("-") && b.includes("-")) {
       const [dayA, monthA, yearA] = a.split("-").map(Number);
       const [dayB, monthB, yearB] = b.split("-").map(Number);
@@ -96,6 +121,16 @@ export const getUniqueValues = (data, field) => {
     }
     return a.localeCompare(b);
   });
+
+  if (hasBlank) {
+    if (field === "attachments") {
+      result.unshift("0 attachments");
+    } else {
+      result.unshift("");
+    }
+  }
+
+  return result;
 };
 
 export const applyFilter = (
@@ -107,13 +142,38 @@ export const applyFilter = (
   columnFilters,
   dateRanges
 ) => {
-  if (!value) return false;
+  const isBlank =
+    value === null ||
+    value === undefined ||
+    (typeof value === "string" && value.trim() === "") ||
+    (field === "attachments" && Array.isArray(value) && value.length === 0);
+
+  const blankSelector = field === "attachments" ? "0 attachments" : "";
+
+  if (Array.isArray(filterValue) && filterValue.includes(blankSelector)) {
+    if (isBlank) return true;
+  }
+
+  if (isBlank) return false;
+
+  if (!operator) return true;
+  if (operator === "multiSelect" && (!filterValue || filterValue.length === 0)) return true;
+
+  let comparableValue;
+  if (field === "attachments" && Array.isArray(value)) {
+    comparableValue = `${value.length} attachment${value.length > 1 ? 's' : ''}`;
+  } else if (isDateField(field)) {
+    comparableValue = formatDate(value);
+  } else {
+    comparableValue = value;
+  }
 
   if (isNumericField(field)) {
+    const filter = columnFilters[field];
+
     const numValue = parseFloat(value);
     if (isNaN(numValue)) return false;
 
-    const filter = columnFilters[field];
     if (filter?.range) {
       const min =
         filter.range.min !== "" ? parseFloat(filter.range.min) : -Infinity;
@@ -136,21 +196,15 @@ export const applyFilter = (
       }
       return true;
     } else {
-      const formattedDate = formatDate(value);
-      return filterValue.some((val) => formattedDate === val);
+      return filterValue.some((val) => comparableValue === val);
     }
   }
 
-  const stringValue = value.toString().toLowerCase();
-
-  if (value instanceof Date || !isNaN(new Date(value))) {
-    const formattedDate = formatDate(value);
-    return filterValue.some((val) => formattedDate === val);
-  }
+  const stringValue = String(comparableValue).toLowerCase();
 
   switch (operator) {
     case "multiSelect":
-      return filterValue.some((val) => stringValue === val.toLowerCase());
+      return filterValue.some((val) => stringValue === String(val).toLowerCase());
     default:
       return true;
   }

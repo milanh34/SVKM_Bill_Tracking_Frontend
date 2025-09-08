@@ -34,6 +34,59 @@ export const renderFilterPopup = (
     max: "",
   };
 
+  const compareValuesAsc = (a, b) => {
+    if (a === b) return 0;
+
+    if (a === "") return -1;
+    if (b === "") return 1;
+
+    if (isDate) {
+      const parseDMY = (v) => {
+        if (typeof v !== "string") return null;
+        const m = v.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+        if (m) {
+          const d = parseInt(m[1], 10);
+          const mon = parseInt(m[2], 10) - 1;
+          const y = parseInt(m[3], 10);
+          return new Date(y, mon, d);
+        }
+        const dObj = new Date(v);
+        return isNaN(dObj.getTime()) ? null : dObj;
+      };
+      const da = parseDMY(a);
+      const db = parseDMY(b);
+      if (da && db) return da - db;
+      if (da && !db) return -1;
+      if (!da && db) return 1;
+      return String(a).localeCompare(String(b));
+    }
+
+    if (isAmount) {
+      const toNum = (v) => {
+        if (v === null || v === undefined) return NaN;
+        const s = String(v).replace(/[^0-9.-]+/g, "");
+        return parseFloat(s);
+      };
+      const na = toNum(a);
+      const nb = toNum(b);
+      if (!isNaN(na) && !isNaN(nb)) return na - nb;
+      if (!isNaN(na) && isNaN(nb)) return -1;
+      if (isNaN(na) && !isNaN(nb)) return 1;
+      return String(a).localeCompare(String(b));
+    }
+
+    return String(a).localeCompare(String(b));
+  };
+
+  const getDisplayedValues = (valuesArray) => {
+    return valuesArray
+      .filter((value) =>
+        String(value).toLowerCase().includes(filterSearchQuery.toLowerCase())
+      )
+      .slice()
+      .sort(compareValuesAsc);
+  };
+
   const handleFilterChange = (field, operator, selectedValues) => {
     setColumnFilters((prev) => ({
       ...prev,
@@ -55,11 +108,14 @@ export const renderFilterPopup = (
       max: "",
     };
 
+    const currentAmountMode = filterType[column.field] || "individual";
+    const includeBlank = columnFilters[column.field]?.includeBlank || false;
+
     return (
       <div
         ref={filterRef}
         className="absolute mt-2.5 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-[250px] flex flex-col"
-        style={{ maxHeight: `${Math.min(maxHeight, 400)}px` }}
+        style={{ maxHeight: `${Math.min(maxHeight, 400)}px`, minHeight: "250px" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 z-30 bg-white border-b border-gray-200 p-3">
@@ -73,8 +129,80 @@ export const renderFilterPopup = (
             </button>
           </div>
 
-          <div className="mt-3 space-y-3">
-            <div>
+          <div className="mt-2">
+            <select
+              value={currentAmountMode}
+              onChange={(e) =>
+                setFilterType((prev) => ({ ...prev, [column.field]: e.target.value }))
+              }
+              className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm"
+            >
+              <option value="individual">Select Individual Values</option>
+              <option value="range">Select Range</option>
+            </select>
+          </div>
+
+          {currentAmountMode === "individual" && (
+            <div className="mt-2 relative">
+              <input
+                type="text"
+                placeholder="Search values..."
+                value={filterSearchQuery}
+                onChange={(e) => setFilterSearchQuery(e.target.value)}
+                className="w-full px-2 py-1.5 border border-gray-300 rounded-md text-sm pr-8"
+              />
+              {filterSearchQuery && (
+                <button
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  onClick={() => setFilterSearchQuery("")}
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {currentAmountMode === "individual" && (
+          <div className="flex-1 overflow-y-auto p-2 bg-white" style={{ maxHeight: '200px' }}>
+            {uniqueValues
+              .filter((value) =>
+                value.toLowerCase().includes(filterSearchQuery.toLowerCase())
+              )
+              .slice()
+              .sort(compareValuesAsc)
+              .map((value) => (
+                <label
+                  key={value}
+                  className="flex items-center space-x-2 px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={currentFilter.value?.includes(value)}
+                    onChange={(e) => {
+                      let newValues = e.target.checked
+                        ? [...(currentFilter.value || []), value]
+                        : (currentFilter.value || []).filter((v) => v !== value);
+                      if (newValues.length === 0) {
+                        handleFilterClear(column.field);
+                      } else {
+                        handleFilterChange(column.field, "multiSelect", newValues);
+                      }
+                    }}
+                    className="rounded border-gray-300"
+                  />
+                  <span className="text-sm">{value}</span>
+                </label>
+              ))}
+            {uniqueValues.length === 0 && (
+              <div className="text-gray-500 text-sm text-center py-2">No values found</div>
+            )}
+          </div>
+        )}
+
+        {currentAmountMode === "range" && (
+          <div className="flex-1 overflow-y-auto p-3 bg-white">
+            <div className="mb-3">
               <label className="text-xs text-gray-500">Minimum Amount</label>
               <input
                 type="number"
@@ -93,7 +221,7 @@ export const renderFilterPopup = (
                 placeholder="Enter minimum amount"
               />
             </div>
-            <div>
+            <div className="mb-3">
               <label className="text-xs text-gray-500">Maximum Amount</label>
               <input
                 type="number"
@@ -113,7 +241,7 @@ export const renderFilterPopup = (
               />
             </div>
           </div>
-        </div>
+        )}
 
         <div className="sticky bottom-0 z-30 bg-white border-t border-gray-200 p-2 flex justify-between gap-2">
           <button
@@ -134,17 +262,31 @@ export const renderFilterPopup = (
           <button
             className="px-2 py-1 text-xs bg-[#011a99] text-white hover:bg-[#015099] rounded"
             onClick={() => {
-              const pendingFilter = pendingAmountFilters[column.field];
-              if (pendingFilter) {
-                setColumnFilters((prev) => ({
-                  ...prev,
-                  [column.field]: {
-                    operator: "range",
-                    range: pendingFilter,
-                  },
-                }));
-                onPageChange(1);
+              const pending = pendingAmountFilters[column.field];
+
+              if (currentAmountMode === "range") {
+                if (pending && (pending.min !== "" || pending.max !== "")) {
+                  setColumnFilters((prev) => ({
+                    ...prev,
+                    [column.field]: {
+                      operator: "range",
+                      range: pending || { min: "", max: "" },
+                    },
+                  }));
+                  onPageChange(1);
+                } else {
+                  handleFilterClear(column.field);
+                  onPageChange(1);
+                }
+              } else {
+                if (currentFilter.value && currentFilter.value.length > 0) {
+                  onPageChange(1);
+                } else {
+                  handleFilterClear(column.field);
+                  onPageChange(1);
+                }
               }
+
               setActiveFilter(null);
             }}
           >
@@ -266,6 +408,8 @@ export const renderFilterPopup = (
             .filter((value) =>
               value.toLowerCase().includes(filterSearchQuery.toLowerCase())
             )
+            .slice()
+            .sort(compareValuesAsc)
             .map((value) => (
               <label
                 key={value}
