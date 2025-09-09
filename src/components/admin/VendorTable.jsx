@@ -55,6 +55,7 @@ const VendorTable = () => {
             const response = await axios.get(vendors, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            console.log(response.data);
             setVendorData(response.data);
             setFilteredData(response.data);
         } catch (error) {
@@ -264,9 +265,10 @@ const VendorTable = () => {
 
         setIsLoading(true);
         try {
-            await axios.post(importVendors, formData, {
+            const response = await axios.post(importVendors, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
+            console.log(response);
             toast.success('Vendors imported successfully');
             setShowImportModal(false);
             setSelectedImportFile(null);

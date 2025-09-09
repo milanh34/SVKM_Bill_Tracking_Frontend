@@ -65,7 +65,11 @@ export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, f
         }
       );
 
-      toast.success(patch ? "Bills updated successfully" : "Bills imported successfully");
+      if (!patch && response?.status === 202) {
+        toast.error("res.message");
+      } else {
+        toast.success(patch ? "Bills updated successfully" : "Bills imported successfully");
+      }
       
       if (patch) {
         await fetchAllData();
