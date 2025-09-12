@@ -65,12 +65,20 @@ const SentBills = () => {
 
   // Columns
   const columns = useMemo(() => {
-    let roleForColumns =
-      currentUserRole === "site_officer"
-        ? "SITE_OFFICER"
-        : currentUserRole === "accounts"
-          ? "ACCOUNTS_TEAM"
-          : "PIMO_MUMBAI_MIGO_SES";
+    let roleForColumns;
+    switch (currentUserRole) {
+      case "site_officer":
+        roleForColumns = "SITE_OFFICER";
+        break;
+      case "accounts":
+        roleForColumns = "ACCOUNTS_TEAM";
+        break;
+      case "director":
+        roleForColumns = "DIRECTOR_TRUSTEE_ADVISOR";
+        break;
+      default:
+        roleForColumns = "PIMO_MUMBAI_MIGO_SES";
+    }
     return getColumnsForRole(roleForColumns);
   }, [currentUserRole]);
 
@@ -482,13 +490,15 @@ const SentBills = () => {
               </div>
               {/* Actions */}
               <div className="flex items-center space-x-3">
-                <button
-                  onClick={handleExportExcel}
-                  className="flex items-center px-3 py-1.5 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors"
-                >
-                  <Download className="w-4 h-4 mr-1" />
-                  Download
-                </button>
+                {currentUserRole !== "director" && (
+                  <button
+                    onClick={handleExportExcel}
+                    className="flex items-center px-3 py-1.5 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors"
+                  >
+                    <Download className="w-4 h-4 mr-1" />
+                    Download
+                  </button>
+                )}
                 {currentUserRole === "accounts" && (
                   <button
                     className="flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"

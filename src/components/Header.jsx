@@ -21,7 +21,8 @@ const Header = () => {
   };
 
   const menuItems = [
-    { name: "Home", path: "/", allowedRoles: ["site_officer", "site_pimo", "accounts", "director", "qs_site"], },
+    // { name: "Home", path: "/", allowedRoles: ["site_officer", "site_pimo", "accounts", "director", "qs_site"], },
+    { name: "Home", path: "/", allowedRoles: ["all"], },
     {
       name: "Create Bill",
       path: "/create-bill",

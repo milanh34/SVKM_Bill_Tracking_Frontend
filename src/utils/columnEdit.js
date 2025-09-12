@@ -201,6 +201,7 @@ export const getColumnsForRole = (role) => {
       "accountsDept.receivedBy",
       "accountsDept.returnedToPimo",
       "accountsDept.receivedBack",
+      "accountsDept.paymentInstructions",
       "accountsDept.remarksForPayInstructions",
       "accountsDept.f110Identification",
       "accountsDept.paymentDate",

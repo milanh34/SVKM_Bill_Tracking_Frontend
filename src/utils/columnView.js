@@ -199,8 +199,6 @@ export const getColumnsForRole = (role) => {
       "advanceAmt",
       "advancePercentage",
       "advRequestEnteredBy",
-      "qualityEngineer.dateGiven",
-      "qualityEngineer.name",
       "qsInspection.dateGiven",
       "qsInspection.name",
       "qsMeasurementCheck.dateGiven",

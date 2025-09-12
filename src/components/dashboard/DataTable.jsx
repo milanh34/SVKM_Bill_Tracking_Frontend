@@ -341,6 +341,14 @@ const DataTable = ({
       let response;
       if (uploadFiles.length > 0) {
         const formData = new FormData();
+        const accountsDeptToAppend = editedFieldsForRow['accountsDept.paymentDate']
+          ? {
+              ...(row.accountsDept || {}),
+              paymentDate: editedFieldsForRow['accountsDept.paymentDate'],
+              status: 'Paid',
+            }
+          : null;
+
         if (
           editedFieldsForRow.siteStatus &&
           ["reject", "proforma"].includes(editedFieldsForRow.siteStatus)
@@ -352,23 +360,22 @@ const DataTable = ({
               dateReceived: new Date().toISOString(),
             })
           );
-          formData.append(
-            "accountsDept",
-            JSON.stringify({
-              ...row.accountsDept,
-              paymentDate: new Date().toISOString(),
-            })
-          );
         }
+
+        if (accountsDeptToAppend) {
+          formData.append('accountsDept.paymentDate', accountsDeptToAppend.paymentDate);
+          formData.append('accountsDept.status', accountsDeptToAppend.status);
+        }
+
         Object.entries(editedFieldsForRow).forEach(([key, value]) => {
+          if (key === 'accountsDept.paymentDate') return;
           formData.append(key, value);
         });
+
         uploadFiles.forEach((file) => formData.append("files", file));
         try {
           setEditSubmitting(true);
-          response = await axios.patch(`${bills}/${row._id}`, formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-          });
+          response = await axios.patch(`${bills}/${row._id}`, formData);
         } catch (err) {
           toast.error(
             err.response?.data?.message ||
@@ -384,6 +391,16 @@ const DataTable = ({
         delete payload._id;
         delete payload.srNo;
 
+        if (editedFieldsForRow['accountsDept.paymentDate']) {
+          payload.accountsDept = {
+            ...(row.accountsDept || {}),
+            ...(payload.accountsDept || {}),
+            paymentDate: editedFieldsForRow['accountsDept.paymentDate'],
+            status: 'Paid',
+          };
+          delete payload['accountsDept.paymentDate'];
+        }
+
         if (
           payload.siteStatus &&
           ["reject", "proforma"].includes(payload.siteStatus)
@@ -395,6 +412,7 @@ const DataTable = ({
           payload.accountsDept = {
             ...row.accountsDept,
             paymentDate: new Date().toISOString(),
+            status: 'Paid',
           };
         }
 
