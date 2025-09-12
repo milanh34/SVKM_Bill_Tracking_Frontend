@@ -406,6 +406,20 @@ const FullBillDetails = () => {
         }));
       }
 
+      const amountFieldRegex = /(Amt|amt|Amount|amount)/;
+      if (amountFieldRegex.test(id)) {
+        let sanitized = String(value).replace(/[^0-9.]/g, "");
+        const parts = sanitized.split('.');
+        if (parts.length > 2) {
+          sanitized = parts.shift() + '.' + parts.join('');
+        }
+        setBillFormData((prevData) => ({
+          ...prevData,
+          [id]: sanitized,
+        }));
+        return;
+      }
+
       setBillFormData((prevData) => ({
         ...prevData,
         [id]: value,
@@ -888,7 +902,9 @@ const FullBillDetails = () => {
                 PO Amount
               </label>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9.]*"
                 className={`w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]
                   ${billFormData.poCreated === "No"
                     ? "bg-gray-100 cursor-not-allowed"
@@ -913,7 +929,7 @@ const FullBillDetails = () => {
               Proforma Invoice No
             </label>
             <input
-              type="number"
+              type="text"
               className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
               id="proformaInvNo"
               value={billFormData.proformaInvNo}
@@ -948,7 +964,9 @@ const FullBillDetails = () => {
               Proforma Invoice Amount
             </label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9.]*"
               className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
               id="proformaInvAmt"
               value={billFormData.proformaInvAmt}
@@ -1067,7 +1085,9 @@ const FullBillDetails = () => {
               Tax Invoice Amount
             </label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9.]*"
               className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
               id="taxInvAmt"
               value={billFormData.taxInvAmt}
@@ -1116,7 +1136,7 @@ const FullBillDetails = () => {
               htmlFor="department"
               className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
             >
-              Department
+              Additional Info
             </label>
             <input
               type="text"
@@ -1216,7 +1236,9 @@ const FullBillDetails = () => {
                 Advance Amount
               </label>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9.]*"
                 className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
                 id="advAmt"
                 value={billFormData.advAmt}
@@ -1263,9 +1285,6 @@ const FullBillDetails = () => {
         <div className="bg-card rounded-lg px-6 py-2 space-y-4 ont-semibold text-[#01073F]">
           <div>
             <h2 className="text-lg font-semibold">Attachments</h2>
-            <p className="text-sm text-muted-foreground">
-              Add files to your email
-            </p>
           </div>
           <div
             {...getRootProps()}

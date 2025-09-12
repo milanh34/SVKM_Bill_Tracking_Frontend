@@ -487,7 +487,7 @@ const SentBills = () => {
                   className="flex items-center px-3 py-1.5 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors"
                 >
                   <Download className="w-4 h-4 mr-1" />
-                  Export
+                  Download
                 </button>
                 {currentUserRole === "accounts" && (
                   <button

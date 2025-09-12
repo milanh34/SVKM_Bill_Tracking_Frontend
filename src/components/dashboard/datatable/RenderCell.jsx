@@ -42,6 +42,12 @@ export function RenderCell({
 
   const prevEditingRef = React.useRef(false);
   const [initialVendorValue, setInitialVendorValue] = useState("");
+  const isAmountField = /amt|amount/i.test(column.field);
+  const baseIsNumeric = isNumericField(column.field);
+  const computedInputType = baseIsNumeric && !isAmountField ? "number" : "text";
+  const computedInputMode = baseIsNumeric ? "numeric" : undefined;
+  const computedPattern = baseIsNumeric ? "[0-9.]*" : undefined;
+
   useEffect(() => {
     if (
       column.field === "vendorName" &&
@@ -456,11 +462,12 @@ export function RenderCell({
         </div>
       );
     }
-    const inputType = isNumericField(column.field) ? "number" : "text";
     return (
       <div className="relative w-full">
         <input
-          type={inputType}
+          type={computedInputType}
+          inputMode={computedInputMode}
+          pattern={computedPattern}
           value={editedValue !== undefined ? editedValue : value || ""}
           onChange={(e) =>
             handleCellEdit(

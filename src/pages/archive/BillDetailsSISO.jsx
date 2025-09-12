@@ -649,7 +649,7 @@ const BillDetailsSISO = () => {
                     className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
                     htmlFor="department"
                   >
-                    Department *
+                    Additional Info *
                   </label>
                   <input
                     type="text"

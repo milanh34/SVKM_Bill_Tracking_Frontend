@@ -1149,7 +1149,7 @@ const Dashboard = () => {
                     }
                   >
                     <Download className="w-4 h-4" />
-                    <span>Export</span>
+                    <span>Download</span>
                   </button>
                 )}
 

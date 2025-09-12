@@ -25,7 +25,7 @@ export const getColumnsForRole = (role) => {
     { field: "currency", headerName: "Currency" }, // column no 22
     { field: "taxInvRecdAtSite", headerName: "Dt Recd at site" }, // column no 24
     { field: "taxInvRecdBy", headerName: "Tax Inv Recd by" }, // column no 25
-    { field: "department", headerName: "Department" }, // column no 26
+    { field: "department", headerName: "Additional Info" }, // column no 26
     { field: "remarksBySiteTeam", headerName: "Remarks related to Inv" }, // column no 27
     { field: "attachments", headerName: "Attachment" }, // column no 28
     { field: "advanceDate", headerName: "Advance Dt" }, // column no 29
@@ -75,7 +75,8 @@ export const getColumnsForRole = (role) => {
     { field: "sesDetails.name", headerName: "Name-PIMO for SES" }, // column no 71
     { field: "sesDetails.no", headerName: "SES no" }, // column no 72
     { field: "sesDetails.amount", headerName: "SES Amt" }, // column no 73
-    { field: "sesDetails.dateGiven", headerName: "Dt given to PIMO for SES" },
+    { field: "sesDetails.dateGiven", headerName: "Extra" }, // any change in workflow?
+    // { field: "sesDetails.dateGiven", headerName: "Dt given to PIMO for SES" },
     { field: "sesDetails.date", headerName: "SES Dt" }, // column no 74
     { field: "sesDetails.doneBy", headerName: "SES done by" }, // column no 74A
     { field: "pimoMumbai.dateReceivedFromIT", headerName: "Dt ret-IT Dept aft SES" }, // column no 75
