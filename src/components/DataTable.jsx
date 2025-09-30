@@ -23,6 +23,7 @@ const DataTable = ({
   selectAll,
   onSelectAll,
   sortConfig,
+  setSortConfig,
   onSort,
   selectedRows,
   currentPage,
@@ -263,44 +264,99 @@ const DataTable = ({
     });
   }, [data, searchQuery, columnFilters, visibleColumns]);
 
+  const getRoleSortColumn = (role) => {
+    const roleColumnMap = {
+      site_officer: "pimoMumbai.dateGiven",
+      qs_site: "pimoMumbai.dateReturnedFromQs",
+      site_pimo: "accountsDept.dateGiven",
+      director: "accountsDept.paymentDate",
+      accounts: "accountsDept.paymentDate",
+    };
+    return roleColumnMap[role] || null;
+  };
+  
+  useEffect(() => {
+    const roleSortColumn = getRoleSortColumn(currentUserRole);
+    if (roleSortColumn) {
+      setSortConfig({
+        key: roleSortColumn,
+        direction: "desc",
+      });
+    }
+  }, [currentUserRole]);
+  
   const sortedData = useMemo(() => {
     if (!sortConfig.key || !sortConfig.direction) return filteredData;
+  
     return [...filteredData].sort((a, b) => {
       const aValue = getNestedValue(a, sortConfig.key);
       const bValue = getNestedValue(b, sortConfig.key);
+  
       if (aValue === undefined && bValue === undefined) return 0;
       if (aValue === undefined) return 1;
       if (bValue === undefined) return -1;
+  
+      let comparison = 0;
+  
       if (typeof aValue === "number" && typeof bValue === "number") {
-        return sortConfig.direction === "asc"
-          ? aValue - bValue
-          : bValue - aValue;
-      }
-      if (aValue instanceof Date && bValue instanceof Date) {
-        return sortConfig.direction === "asc"
-          ? aValue.getTime() - bValue.getTime()
-          : bValue.getTime() - aValue.getTime();
-      }
-      if (typeof aValue === "string" && typeof bValue === "string") {
+        comparison =
+          sortConfig.direction === "asc"
+            ? aValue - bValue
+            : bValue - aValue;
+      } else if (aValue instanceof Date && bValue instanceof Date) {
+        comparison =
+          sortConfig.direction === "asc"
+            ? aValue.getTime() - bValue.getTime()
+            : bValue.getTime() - aValue.getTime();
+      } else if (typeof aValue === "string" && typeof bValue === "string") {
         const aDate = new Date(aValue);
         const bDate = new Date(bValue);
         if (!isNaN(aDate) && !isNaN(bDate)) {
-          return sortConfig.direction === "asc"
-            ? aDate.getTime() - bDate.getTime()
-            : bDate.getTime() - aDate.getTime();
+          comparison =
+            sortConfig.direction === "asc"
+              ? aDate.getTime() - bDate.getTime()
+              : bDate.getTime() - aDate.getTime();
+        } else {
+          const aString = aValue.toLowerCase();
+          const bString = bValue.toLowerCase();
+          if (aString < bString)
+            comparison = sortConfig.direction === "asc" ? -1 : 1;
+          else if (aString > bString)
+            comparison = sortConfig.direction === "asc" ? 1 : -1;
+        }
+      } else {
+        const aString = String(aValue).toLowerCase();
+        const bString = String(bValue).toLowerCase();
+        if (aString < bString)
+          comparison = sortConfig.direction === "asc" ? -1 : 1;
+        else if (aString > bString)
+          comparison = sortConfig.direction === "asc" ? 1 : -1;
+      }
+  
+      // Tiebreaker with srNo
+      if (
+        comparison === 0 &&
+        sortConfig.key === getRoleSortColumn(currentUserRole)
+      ) {
+        const aSrNo = getNestedValue(a, "srNo");
+        const bSrNo = getNestedValue(b, "srNo");
+  
+        if (aSrNo !== undefined && bSrNo !== undefined) {
+          const aSrNoNum =
+            typeof aSrNo === "number" ? aSrNo : parseFloat(aSrNo);
+          const bSrNoNum =
+            typeof bSrNo === "number" ? bSrNo : parseFloat(bSrNo);
+  
+          if (!isNaN(aSrNoNum) && !isNaN(bSrNoNum)) {
+            comparison = aSrNoNum - bSrNoNum;
+          }
         }
       }
-      const aString = String(aValue).toLowerCase();
-      const bString = String(bValue).toLowerCase();
-      if (aString < bString) {
-        return sortConfig.direction === "asc" ? -1 : 1;
-      }
-      if (aString > bString) {
-        return sortConfig.direction === "asc" ? 1 : -1;
-      }
-      return 0;
+  
+      return comparison;
     });
-  }, [filteredData, sortConfig]);
+  }, [filteredData, sortConfig, currentUserRole]);
+  
 
   // const displayData = useMemo(() => {
   //   const indexOfLastItem = currentPage * itemsPerPage;

@@ -130,37 +130,114 @@ const SentBills = () => {
     });
   };
 
+  const getNestedValue = (obj, path) => {
+    if (!obj || !path) return undefined;
+    const keys = path.split(".");
+    let value = obj;
+    for (const key of keys) {
+      if (value && typeof value === "object") {
+        value = value[key];
+      } else {
+        value = undefined;
+        break;
+      }
+    }
+    return value;
+  };
+
+  const getRoleSortColumn = (role) => {
+      const roleColumnMap = {
+        site_officer: "pimoMumbai.dateGiven",
+        qs_site: "pimoMumbai.dateReturnedFromQs",
+        site_pimo: "accountsDept.dateGiven",
+        director: "accountsDept.paymentDate",
+        accounts: "accountsDept.paymentDate",
+      };
+      return roleColumnMap[role] || null;
+    };
+    
+    useEffect(() => {
+      const roleSortColumn = getRoleSortColumn(currentUserRole);
+      if (roleSortColumn) {
+        setSortConfig({
+          key: roleSortColumn,
+          direction: "desc",
+        });
+      }
+    }, [currentUserRole]);
+
   // Pagination
   const filteredUnpaginatedData = useMemo(() => {
     let data = getFilteredData();
     // Sorting
     if (sortConfig.key) {
       data = [...data].sort((a, b) => {
-        const getValue = (obj, path) =>
-          path.split(".").reduce((o, k) => (o ? o[k] : undefined), obj);
-        const aValue = getValue(a, sortConfig.key);
-        const bValue = getValue(b, sortConfig.key);
-        if (typeof aValue === "number" && typeof bValue === "number") {
-          return sortConfig.direction === "asc"
+      const aValue = getNestedValue(a, sortConfig.key);
+      const bValue = getNestedValue(b, sortConfig.key);
+  
+      if (aValue === undefined && bValue === undefined) return 0;
+      if (aValue === undefined) return 1;
+      if (bValue === undefined) return -1;
+  
+      let comparison = 0;
+  
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        comparison =
+          sortConfig.direction === "asc"
             ? aValue - bValue
             : bValue - aValue;
+      } else if (aValue instanceof Date && bValue instanceof Date) {
+        comparison =
+          sortConfig.direction === "asc"
+            ? aValue.getTime() - bValue.getTime()
+            : bValue.getTime() - aValue.getTime();
+      } else if (typeof aValue === "string" && typeof bValue === "string") {
+        const aDate = new Date(aValue);
+        const bDate = new Date(bValue);
+        if (!isNaN(aDate) && !isNaN(bDate)) {
+          comparison =
+            sortConfig.direction === "asc"
+              ? aDate.getTime() - bDate.getTime()
+              : bDate.getTime() - aDate.getTime();
+        } else {
+          const aString = aValue.toLowerCase();
+          const bString = bValue.toLowerCase();
+          if (aString < bString)
+            comparison = sortConfig.direction === "asc" ? -1 : 1;
+          else if (aString > bString)
+            comparison = sortConfig.direction === "asc" ? 1 : -1;
         }
-        if (
-          aValue &&
-          bValue &&
-          !isNaN(Date.parse(aValue)) &&
-          !isNaN(Date.parse(bValue))
-        ) {
-          return sortConfig.direction === "asc"
-            ? new Date(aValue) - new Date(bValue)
-            : new Date(bValue) - new Date(aValue);
+      } else {
+        const aString = String(aValue).toLowerCase();
+        const bString = String(bValue).toLowerCase();
+        if (aString < bString)
+          comparison = sortConfig.direction === "asc" ? -1 : 1;
+        else if (aString > bString)
+          comparison = sortConfig.direction === "asc" ? 1 : -1;
+      }
+  
+      // Tiebreaker with srNo
+      if (
+        comparison === 0 &&
+        sortConfig.key === getRoleSortColumn(currentUserRole)
+      ) {
+        const aSrNo = getNestedValue(a, "srNo");
+        const bSrNo = getNestedValue(b, "srNo");
+  
+        if (aSrNo !== undefined && bSrNo !== undefined) {
+          const aSrNoNum =
+            typeof aSrNo === "number" ? aSrNo : parseFloat(aSrNo);
+          const bSrNoNum =
+            typeof bSrNo === "number" ? bSrNo : parseFloat(bSrNo);
+  
+          if (!isNaN(aSrNoNum) && !isNaN(bSrNoNum)) {
+            comparison = aSrNoNum - bSrNoNum;
+          }
         }
-        return (
-          String(aValue ?? "").localeCompare(String(bValue ?? ""), undefined, {
-            numeric: true,
-          }) * (sortConfig.direction === "asc" ? 1 : -1)
-        );
-      });
+      }
+  
+      return comparison;
+    });
     }
     // setTotalFilteredItems(data.length);
     // Paginate
@@ -304,6 +381,7 @@ const SentBills = () => {
     selectAll: selectAll,
     onSelectAll: handleSelectAll,
     sortConfig: sortConfig,
+    setSortConfig: setSortConfig,
     onSort: handleSort,
     currentPage: currentPage,
     itemsPerPage: itemsPerPage,
