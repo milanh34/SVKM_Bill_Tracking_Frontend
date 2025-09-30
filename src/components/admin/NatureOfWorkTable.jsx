@@ -168,6 +168,10 @@ const NatureOfWorkTable = () => {
         { field: 'natureOfWork', headerName: 'Nature of Work' }
     ];
 
+    const sortedData = [...filteredData].sort((a, b) => {
+        return String(a.natureOfWork).localeCompare(String(b.natureOfWork), undefined, {sensitivity: 'base'});
+    });
+
     const renderCell = (work, column) => {
         const isEditing = editingRow === work._id;
         const value = work[column.field];
@@ -269,7 +273,7 @@ const NatureOfWorkTable = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
-                        {filteredData.map((work, index) => (
+                        {sortedData.map((work, index) => (
                             <tr key={work._id} className="hover:bg-gray-50">
                                 <td className="sticky left-0 z-30 px-4 py-3 text-sm text-gray-900 bg-white whitespace-nowrap">
                                     <div className="absolute inset-0 bg-white border-b border-r-2 border-gray-200"></div>
