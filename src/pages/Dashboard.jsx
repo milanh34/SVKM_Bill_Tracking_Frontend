@@ -1224,6 +1224,7 @@ const Dashboard = () => {
                     selectAll={selectAll}
                     onSelectAll={handleSelectAll}
                     sortConfig={sortConfig}
+                    setSortConfig={setSortConfig}
                     onSort={handleSort}
                     currentPage={currentPage}
                     onPageChange={setCurrentPage}
