@@ -366,11 +366,17 @@ const Dashboard = () => {
       // const filteredBills = filterBillsByRole(billsResponse.data, currentUserRole);
       // const sortedData = sortBillsByRole(filteredBills, currentUserRole);
       const sortedData = sortBillsByRole(billsResponse.data, currentUserRole);
+      const sortedNatureOfWork = natureOfWorksRes.data.sort((a, b) => {
+        return String(a.natureOfWork).localeCompare(String(b.natureOfWork), undefined, {sensitivity: 'base'});
+      })
 
+      const sortedRegions = userRes.data?.data?.region.sort((a, b) => {
+        return String(a).localeCompare(String(b), undefined, {sensitivity: 'base'});
+      })
 
       setBillsData(sortedData);
-      setRegionOptions(userRes.data?.data?.region || []);
-      setNatureOfWorkOptions(natureOfWorksRes.data || []);
+      setRegionOptions(sortedRegions || []);
+      setNatureOfWorkOptions(sortedNatureOfWork || []);
       setCurrencyOptions(currenciesRes.data || []);
       setVendorOptions(vendorsRes.data || []);
       setUserData(userRes.data?.data || null);
