@@ -168,6 +168,10 @@ const RegionTable = () => {
         { field: 'name', headerName: 'Region' }
     ];
 
+    const sortedData = [...filteredData].sort((a, b) => {
+        return String(a.name).localeCompare(String(b.name), undefined, {sensitivity: 'base'});
+    });
+
     const renderCell = (region, column) => {
         const isEditing = editingRow === region._id;
         const value = region[column.field];
@@ -269,7 +273,7 @@ const RegionTable = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
-                        {filteredData.map((region, index) => (
+                        {sortedData.map((region, index) => (
                             <tr key={region._id} className="hover:bg-gray-50">
                                 <td className="sticky left-0 z-30 px-4 py-3 text-sm text-gray-900 bg-white whitespace-nowrap">
                                     <div className="absolute inset-0 bg-white border-b border-r-2 border-gray-200"></div>
