@@ -133,8 +133,17 @@ const FullBillDetails = () => {
           axios.get(currencies, { headers }),
         ]);
 
-        setNatureOfWorkOptions(naturesRes.data || []);
-        setRegionOptions(availableRegions);
+        const sortedNatureRes = naturesRes.data.sort((a, b) => {
+          return String(a.natureOfWork).localeCompare(String(b.natureOfWork), undefined, {sensitivity: 'base'});
+        })
+
+        console.log("available regions: ", availableRegions);
+        const sortedAvailableRegions = availableRegions.sort((a, b) => {
+          return String(a).localeCompare(String(b), undefined, {sensitivity: 'base'});
+        })
+
+        setNatureOfWorkOptions(sortedNatureRes || []);
+        setRegionOptions(sortedAvailableRegions);
         setCurrencyOptions(currenciesRes.data || []);
       } catch (error) {
         console.error("Error fetching dropdown data:", error);
