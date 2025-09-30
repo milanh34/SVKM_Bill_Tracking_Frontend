@@ -356,6 +356,10 @@ const VendorTable = () => {
         console.log("Result = " + result.message);
     }
 
+    const sortedData = [...filteredData].sort((a, b) => {
+        return Number(a.vendorNo) - Number(b.vendorNo);
+    });
+
     const renderCell = (vendor, column) => {
         const isEditing = editingRow === vendor._id;
         const value = vendor[column.field];
@@ -500,7 +504,7 @@ const VendorTable = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
-                        {filteredData.map((vendor, index) => (
+                        {sortedData.map((vendor, index) => (
                             <tr key={vendor._id} className="hover:bg-gray-50">
                                 <td className="sticky left-0 z-30 px-4 py-3 text-sm text-gray-900 bg-white whitespace-nowrap">
                                     <div className="absolute inset-0 bg-white border-b border-r-2 border-gray-200"></div>
@@ -735,7 +739,7 @@ const VendorTable = () => {
                     <div className="bg-white rounded-lg p-6 w-full max-w-md">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-bold text-gray-800">Import Vendors</h2>
-                            <button 
+                            <button
                                 onClick={() => {
                                     setShowImportModal(false);
                                     setSelectedImportFile(null);
@@ -786,11 +790,10 @@ const VendorTable = () => {
                                 <button
                                     onClick={handleImportSubmit}
                                     disabled={!selectedImportFile || isLoading}
-                                    className={`px-4 py-2 rounded-md text-white ${
-                                        !selectedImportFile 
-                                            ? 'bg-blue-300 cursor-not-allowed' 
+                                    className={`px-4 py-2 rounded-md text-white ${!selectedImportFile
+                                            ? 'bg-blue-300 cursor-not-allowed'
                                             : 'bg-blue-600 hover:bg-blue-700 hover:cursor-pointer'
-                                    }`}
+                                        }`}
                                 >
                                     {isLoading ? 'Importing...' : 'Import'}
                                 </button>
@@ -805,7 +808,7 @@ const VendorTable = () => {
                     <div className="bg-white rounded-lg p-6 w-full max-w-md">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-bold text-gray-800">Mass Update Vendors</h2>
-                            <button 
+                            <button
                                 onClick={() => {
                                     setShowUpdateModal(false);
                                     setSelectedUpdateFile(null);
@@ -856,11 +859,10 @@ const VendorTable = () => {
                                 <button
                                     onClick={handleUpdateSubmit}
                                     disabled={!selectedUpdateFile || isLoading}
-                                    className={`px-4 py-2 rounded-md text-white ${
-                                        !selectedUpdateFile 
-                                            ? 'bg-teal-300 cursor-not-allowed' 
+                                    className={`px-4 py-2 rounded-md text-white ${!selectedUpdateFile
+                                            ? 'bg-teal-300 cursor-not-allowed'
                                             : 'bg-teal-600 hover:bg-teal-700 hover:cursor-pointer'
-                                    }`}
+                                        }`}
                                 >
                                     {isLoading ? 'Updating...' : 'Update'}
                                 </button>
