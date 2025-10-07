@@ -76,6 +76,10 @@ const DataTable = ({
     fileName: null
   });
 
+  if(currentUserRole === "director") {
+    showActions = false;
+  }
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (filterRef.current && !filterRef.current.contains(event.target)) {
