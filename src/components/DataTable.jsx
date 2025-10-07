@@ -6,9 +6,9 @@ import {
   Filter,
   CheckIcon,
 } from "./Icons";
-import { X } from "lucide-react";
+import { X, FileImage, FileText, File, FileVideo, FileAudio, Plus, Trash2 } from "lucide-react";
 import { getColumnsForRole } from "../utils/columnEdit";
-import { bills } from "../apis/bills.api";
+import { bills, deleteAttachments } from "../apis/bills.api";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -46,6 +46,20 @@ const DataTable = ({
   const [editedValues, setEditedValues] = useState({});
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [pendingAmountFilters, setPendingAmountFilters] = useState({});
+  const [uploadModal, setUploadModal] = useState({ open: false, rowId: null });
+  const [uploadFiles, setUploadFiles] = useState([]);
+  const [viewAttachments, setViewAttachments] = useState(false);
+  const [allAttachments, setAllAttachments] = useState([
+    "https://demolink1.com",
+    "https://demolink2.com",
+    "https://demolink3.com",
+  ]);
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState({
+    show: false,
+    fileKey: null,
+    billId: null,
+    fileName: null
+  });
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -501,16 +515,113 @@ const DataTable = ({
     });
   };
 
+  const handleFileInputChange = (e) => {
+    const newFiles = Array.from(e.target.files);
+    setUploadFiles((prev) => {
+      const existingNames = new Set(prev.map(f => f.name));
+      return [...prev, ...newFiles.filter(f => !existingNames.has(f.name))];
+    });
+  };
 
-  const [viewAttachments, setViewAttachments] = useState(false);
-  const [allAttachments, setAllAttachments] = useState(["https://demolink1.com", "https://demolink2.com", "https://demolink3.com"]);
-  const handleAttachments = (id) => {
-   console.log(data[id].attachments);
-    if (data[id].attachments.length > 0) {
-      setAllAttachments(data[id].attachments);
+  const handleRemoveUploadFile = (idx) => {
+    setUploadFiles((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleDeleteClick = (fileKey, billId, fileName) => {
+    setDeleteConfirmModal({
+      show: true,
+      fileKey,
+      billId,
+      fileName
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    const { fileKey, billId } = deleteConfirmModal;
+    
+    console.log('Deleting attachment with:', { fileKey, billId }); // Debug log
+    
+    try {
+      const response = await axios.post(deleteAttachments, {
+        billId,
+        fileKey
+      });
+
+      if (response.data?.success) {
+        toast.success("Attachment deleted successfully");
+
+        const updatedAttachments = allAttachments.filter(file => file.url?.split(".com/")[1] !== fileKey);
+        setAllAttachments(updatedAttachments);
+        
+        const rowIndex = data.findIndex(row => row._id === billId);
+        if (rowIndex !== -1) {
+          onEdit && onEdit();
+        }
+
+        if (updatedAttachments.length === 0) {
+          setViewAttachments(false);
+        }
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete attachment");
+    } finally {
+      setDeleteConfirmModal({ show: false, fileKey: null, billId: null, fileName: null });
+    }
+  };
+
+  const getFileTypeIcon = (url) => {
+    if (!url) return <File className="w-8 h-8 text-gray-400" />;
+    const ext = url.split('.').pop().toLowerCase();
+    if (["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg"].includes(ext)) {
+      return <FileImage className="w-8 h-8 text-blue-500" />;
+    }
+    if (["pdf"].includes(ext)) {
+      return <FileText className="w-8 h-8 text-red-500" />;
+    }
+    if (["doc", "docx", "odt", "rtf"].includes(ext)) {
+      return <FileText className="w-8 h-8 text-blue-700" />;
+    }
+    if (["xls", "xlsx", "csv"].includes(ext)) {
+      return <FileText className="w-8 h-8 text-green-600" />;
+    }
+    if (["mp4", "avi", "mov", "wmv", "webm", "mkv"].includes(ext)) {
+      return <FileVideo className="w-8 h-8 text-purple-500" />;
+    }
+    if (["mp3", "wav", "ogg", "aac"].includes(ext)) {
+      return <FileAudio className="w-8 h-8 text-orange-500" />;
+    }
+    return <File className="w-8 h-8 text-gray-400" />;
+  };
+
+  const getDisplayFileName = (name, url) => {
+    let fileName = name;
+    if (!fileName && url) {
+      try {
+        fileName = decodeURIComponent(url.split("/").pop().split("?")[0]);
+      } catch {
+        fileName = url;
+      }
+    }
+    if (!fileName) return "";
+    return fileName.length > 30 ? fileName.slice(0, 27) + "..." : fileName;
+  };
+
+  const handleAttachments = (value) => {
+    if (Array.isArray(value) && value.length > 0) {
+      const files = value
+        .map(obj =>
+          obj && typeof obj === "object" && obj.fileUrl
+            ? { url: obj.fileUrl, name: obj.fileName || "" }
+            : null
+        )
+        .filter(obj => obj && typeof obj.url === "string" && obj.url.length > 0);
+        console.log(files);
+      setAllAttachments(files);
+    } else {
+      setAllAttachments([]);
     }
     setViewAttachments(true);
-  }
+  };
 
   const renderFilterPopup = (column) => {
     const uniqueValues = getUniqueValues(data, column.field);
@@ -1006,53 +1117,122 @@ const DataTable = ({
         return;
       }
 
-      const payload = { ...editedFieldsForRow };
-      delete payload.billId;
-      delete payload._id;
-      delete payload.srNo;
+      let response;
+      if (uploadFiles.length > 0) {
+        const formData = new FormData();
+        const accountsDeptToAppend = editedFieldsForRow['accountsDept.paymentDate']
+          ? {
+              ...(row.accountsDept || {}),
+              paymentDate: editedFieldsForRow['accountsDept.paymentDate'],
+              status: 'Paid',
+            }
+          : null;
 
-      if (Object.keys(payload).length > 0) {
+        if (
+          editedFieldsForRow.siteStatus &&
+          ["reject", "proforma"].includes(editedFieldsForRow.siteStatus)
+        ) {
+          formData.append(
+            "pimoMumbai",
+            JSON.stringify({
+              ...row.pimoMumbai,
+              dateReceived: new Date().toISOString(),
+            })
+          );
+        }
+
+        if (accountsDeptToAppend) {
+          formData.append('accountsDept.paymentDate', accountsDeptToAppend.paymentDate);
+          formData.append('accountsDept.status', accountsDeptToAppend.status);
+        }
+
+        Object.entries(editedFieldsForRow).forEach(([key, value]) => {
+          if (key === 'accountsDept.paymentDate') return;
+          formData.append(key, value);
+        });
+
+        uploadFiles.forEach((file) => formData.append("files", file));
         try {
           setEditSubmitting(true);
-          const response = await axios.put(`${bills}/${row._id}`, payload);
-
-          if (response.status === 200) {
-            toast.success("Bill updated successfully!");
-            onEdit && onEdit();
-          } else {
-            toast.info("No changes were made to the bill");
-          }
-
-          setEditingRow(null);
-          setEditedValues((prev) => {
-            const newValues = { ...prev };
-            delete newValues[row._id];
-            return newValues;
-          });
+          response = await axios.patch(`${bills}/${row._id}`, formData);
         } catch (err) {
-          console.error("Edit error:", err);
-          const errorMessage =
+          toast.error(
             err.response?.data?.message ||
             err.response?.data?.error ||
-            "Failed to update bill";
-          toast.error(errorMessage);
-
-          if (err.response?.data?.errors) {
-            Object.values(err.response.data.errors).forEach((error) => {
-              toast.error(error);
-            });
-          }
-        } finally {
+            "Failed to upload attachments"
+          );
           setEditSubmitting(false);
+          return;
         }
       } else {
-        setEditingRow(null);
-        setEditedValues((prev) => {
-          const newValues = { ...prev };
-          delete newValues[row._id];
-          return newValues;
-        });
+        const payload = { ...editedFieldsForRow };
+        delete payload.billId;
+        delete payload._id;
+        delete payload.srNo;
+
+        if (editedFieldsForRow['accountsDept.paymentDate']) {
+          payload.accountsDept = {
+            ...(row.accountsDept || {}),
+            ...(payload.accountsDept || {}),
+            paymentDate: editedFieldsForRow['accountsDept.paymentDate'],
+            status: 'Paid',
+          };
+          delete payload['accountsDept.paymentDate'];
+        }
+
+        if (
+          payload.siteStatus &&
+          ["reject", "proforma"].includes(payload.siteStatus)
+        ) {
+          payload.pimoMumbai = {
+            ...row.pimoMumbai,
+            dateReceived: new Date().toISOString(),
+          };
+          payload.accountsDept = {
+            ...row.accountsDept,
+            paymentDate: new Date().toISOString(),
+            status: 'Paid',
+          };
+        }
+
+        if (Object.keys(payload).length > 0) {
+          try {
+            setEditSubmitting(true);
+            response = await axios.patch(`${bills}/${row._id}`, payload);
+          } catch (err) {
+            console.error("Edit error:", err);
+            const errorMessage =
+              err.response?.data?.error ||
+              err.response?.data?.message ||
+              "Failed to update bill";
+            toast.error(errorMessage);
+
+            if (err.response?.data?.errors) {
+              Object.values(err.response.data.errors).forEach((error) => {
+                toast.error(error);
+              });
+            }
+            setEditSubmitting(false);
+            return;
+          }
+        }
       }
+
+      if (response && (response.status === 200 || response.data?.success)) {
+        toast.success("Bill updated successfully!");
+        onEdit && onEdit();
+      } else if (response && response.status !== 200) {
+        toast.info("No changes were made to the bill");
+      }
+
+      setEditingRow(null);
+      setEditedValues((prev) => {
+        const newValues = { ...prev };
+        delete newValues[row._id];
+        return newValues;
+      });
+      setUploadFiles([]);
+      setEditSubmitting(false);
     } else {
       setEditingRow(row._id);
       setEditedValues((prev) => ({
@@ -1067,38 +1247,169 @@ const DataTable = ({
       className={`relative w-full flex flex-col border border-gray-200 rounded-lg ${data.length > 8 ? "h-full" : ""
         }`}
     >
-      {
-        viewAttachments && (
-          <div className="fixed top-0 left-0 w-full h-full z-50 flex items-center justify-center">
-            <div className="bg-white w-full max-w-md rounded-lg shadow-lg p-6 relative">
-
-              <button className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl font-bold" onClick={() => setViewAttachments(false)}>
-                &times;
-              </button>
-
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Attachments</h2>
-
-              {/* Attachment Links List */}
-              <ul className="space-y-3 max-h-64 overflow-y-auto">
-                {allAttachments.map((link, index) => (
-                  <li key={index}>
-                    <a
-                      href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline break-words"
+      {uploadModal.open && (
+        <div className="fixed top-0 left-0 w-full h-full z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white w-full max-w-md rounded-xl shadow-2xl p-6 relative border border-blue-200">
+            <button
+              className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-2xl font-bold cursor-pointer"
+              onClick={() => {
+                setUploadModal({ open: false, rowId: null });
+                setUploadFiles([]);
+              }}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-xl font-semibold text-blue-800 mb-4 flex items-center gap-2">
+              <Plus className="w-6 h-6 text-blue-600" />
+              Upload Attachments
+            </h2>
+            <div className="mb-4">
+              <label
+                htmlFor="file-upload"
+                className="flex items-center justify-center px-4 py-2 bg-blue-50 border border-blue-400 text-blue-700 rounded-lg cursor-pointer hover:bg-blue-100 transition"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                <span>Add Files</span>
+                <input
+                  id="file-upload"
+                  type="file"
+                  multiple
+                  accept="*"
+                  className="hidden"
+                  onChange={handleFileInputChange}
+                />
+              </label>
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                You can add multiple files (max 15). Only new files will be added.
+              </p>
+            </div>
+            <div className="mb-4">
+              {uploadFiles.length === 0 ? (
+                <div className="text-gray-400 text-center py-6 border border-dashed border-gray-300 rounded-lg bg-gray-50">
+                  No files selected.
+                </div>
+              ) : (
+                <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-gray-50 max-h-40 overflow-y-auto">
+                  {uploadFiles.map((file, idx) => (
+                    <li
+                      key={file.name + idx}
+                      className="flex items-center justify-between px-3 py-2"
                     >
-                      {link}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-
+                      <span className="truncate text-gray-800 text-sm">{file.name}</span>
+                      <button
+                        className="ml-2 text-red-500 hover:bg-red-100 rounded-full p-1 transition cursor-pointer"
+                        title="Remove"
+                        onClick={() => handleRemoveUploadFile(idx)}
+                        aria-label="Remove file"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 cursor-pointer"
+                onClick={() => setUploadModal({ open: false, rowId: null })}
+                disabled={uploadFiles.length === 0}
+              >
+                Done
+              </button>
+              <button
+                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition cursor-pointer"
+                onClick={() => {
+                  setUploadModal({ open: false, rowId: null });
+                  setUploadFiles([]);
+                }}
+              >
+                Cancel
+              </button>
             </div>
           </div>
-
-        )
-      }
+        </div>
+      )}
+      {viewAttachments && (
+        <div className="fixed top-0 left-0 w-full h-full z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white w-full max-w-3xl rounded-lg shadow-lg p-6 relative">
+            <button
+              className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl font-bold cursor-pointer"
+              onClick={() => setViewAttachments(false)}
+            >
+              &times;
+            </button>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <File className="w-6 h-6 text-blue-600" />
+              Attachments
+            </h2>
+            <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {allAttachments.length === 0 && (
+                  <div className="col-span-full text-gray-500 text-center py-4">
+                    No attachments found.
+                  </div>
+                )}
+                {allAttachments.map((file, index) => (
+                  <div
+                    key={index}
+                    className="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition relative group"
+                  >
+                    {editingRow && (
+                      <button
+                        onClick={() => handleDeleteClick(file.url?.split(".com/")[1], editingRow, file.name || getDisplayFileName(file.name, file.url))}
+                        className="absolute top-2 right-2 text-red-500 hover:text-red-700 p-1 rounded-lg bg-white shadow-sm border border-gray-200 hover:cursor-pointer"
+                        title="Delete attachment"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                    <a
+                      href={file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center group space-y-2"
+                      title={getDisplayFileName(file.name, file.url)}
+                    >
+                      {getFileTypeIcon(file.url)}
+                      <span className="text-sm text-gray-700 text-center break-words w-full group-hover:underline">
+                        {getDisplayFileName(file.name, file.url)}
+                      </span>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {deleteConfirmModal.show && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[1000]">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Confirm Delete</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete "{deleteConfirmModal.fileName}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteConfirmModal({ show: false, fileKey: null, billId: null, fileName: null })}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 hover:cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 hover:cursor-pointer"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div
         className={`overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 scrollbar-thumb-rounded-full ${data.length < 10 ? "h-fit" : "flex-1"
           }`}
@@ -1263,24 +1574,63 @@ const DataTable = ({
                         data-field={column.field}
                       >
                         {column.field === "attachments" ? (
-                          <div className="flex justify-center items-center">
-                            <svg
-                              style={{ cursor: 'pointer' }}
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-5 w-5 text-blue-600"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              onClick={() => handleAttachments(key)}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15.172 7l-6.586 6.586a2 2 0 002.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-6.586 6.586a6 6 0 108.485 8.485l6.586-6.586"
-                              />
-                            </svg>
-                          </div>
+                          editingRow === row._id ? (
+                            <div className="flex justify-center items-center gap-2">
+                              {Array.isArray(value) && value.length > 0 ? (
+                                <svg
+                                  style={{ cursor: "pointer" }}
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-5 w-5 text-blue-600"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  onClick={() => handleAttachments(value)}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15.172 7l-6.586 6.586a2 2 0 002.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-6.586 6.586a6 6 0 108.485 8.485l6.586-6.586"
+                                  />
+                                </svg>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                              <button
+                                type="button"
+                                className="ml-1 p-1 border border-blue-600 bg-blue-50 rounded-full hover:bg-blue-100 cursor-pointer"
+                                title="Add attachments"
+                                onClick={() =>
+                                  setUploadModal({ open: true, rowId: row._id })
+                                }
+                              >
+                                <Plus className="w-5 h-5 text-blue-600" />
+                              </button>
+                            </div>
+                          ) : (
+                            (!Array.isArray(value) || value.length === 0) ? (
+                              <span className="text-gray-400 flex justify-center items-center">-</span>
+                            ) : (
+                              <div className="flex justify-center items-center">
+                                <svg
+                                  style={{ cursor: "pointer" }}
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-5 w-5 text-blue-600"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  onClick={() => handleAttachments(value)}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15.172 7l-6.586 6.586a2 2 0 002.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-6.586 6.586a6 6 0 108.485 8.485l6.586-6.586"
+                                  />
+                                </svg>
+                              </div>
+                            )
+                          )
                         ) : (
                           renderCell(row, column, value)
                         )}
