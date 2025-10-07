@@ -151,6 +151,7 @@ export const getColumnsForRole = (role) => {
       "copDetails.amount",
       "remarksByQSTeam",
       "pimoMumbai.namePIMO2",
+      "qsMeasurementCheck.dateGiven",
     ],
 
     PIMO_MUMBAI_MIGO_SES: [
