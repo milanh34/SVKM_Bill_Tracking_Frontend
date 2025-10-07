@@ -21,7 +21,7 @@ import {
 } from "./datatable/datatableUtils";
 import { renderFilterPopup } from "./datatable/FilterPopup";
 import { RenderCell } from "./datatable/RenderCell";
-import { FileImage, FileText, File, FileVideo, FileAudio, Plus, Trash2 } from "lucide-react";
+import { FileImage, FileText, File, FileVideo, FileAudio, Plus, Trash2, X } from "lucide-react";
 
 const DataTable = ({
   data,
@@ -524,6 +524,16 @@ const sortedData = useMemo(() => {
     }
   };
 
+  const handleUndoClick = (row) => {
+    setEditingRow(null);
+    setEditedValues((prev) => {
+      const newValues = { ...prev };
+      delete newValues[row._id];
+      return newValues;
+    });
+    setUploadFiles([]);
+  };
+
   const handleDeleteClick = (fileKey, billId, fileName) => {
     setDeleteConfirmModal({
       show: true,
@@ -913,7 +923,7 @@ const sortedData = useMemo(() => {
                 </th>
               ))}
               {showActions && (
-                <th className="sticky right-0 top-0 z-50 w-16 bg-blue-50 px-1.5 py-2.5 border-b border-gray-200">
+                <th className="sticky right-0 top-0 z-50 w-20 bg-blue-50 px-1.5 py-2.5 border-b border-gray-200">
                   <div
                     className="absolute inset-0 bg-blue-50 border-l border-blue-200"
                     style={{ bottom: "-1px", zIndex: -1 }}
@@ -1055,43 +1065,60 @@ const sortedData = useMemo(() => {
                           } border-l border-blue-200`}
                         style={{ bottom: "-1px", top: "-1px" }}
                       ></div>
-                      <div className="relative z-10">
-                        <button
-                          className="rounded-md p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                          onClick={() => handleEditClick(row)}
-                          disabled={editSubmitting && editingRow === row._id}
-                        >
-                          {editingRow === row._id ? (
-                            editSubmitting ? (
-                              <span className="inline-block animate-spin">
-                                <svg
-                                  className="w-5 h-5 text-green-500"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                  ></circle>
-                                  <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                  ></path>
-                                </svg>
-                              </span>
-                            ) : (
-                              <CheckIcon className="w-5 h-5 text-green-500" />
-                            )
-                          ) : (
+                      <div className="relative z-10 flex items-center gap-1">
+                        {editingRow === row._id ? (
+                          <>
+                            <button
+                              className="rounded-md p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                              onClick={() => handleEditClick(row)}
+                              disabled={editSubmitting}
+                              title="Save changes"
+                            >
+                              {editSubmitting ? (
+                                <span className="inline-block animate-spin">
+                                  <svg
+                                    className="w-5 h-5 text-green-500"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <circle
+                                      className="opacity-25"
+                                      cx="12"
+                                      cy="12"
+                                      r="10"
+                                      stroke="currentColor"
+                                      strokeWidth="4"
+                                    ></circle>
+                                    <path
+                                      className="opacity-75"
+                                      fill="currentColor"
+                                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    ></path>
+                                  </svg>
+                                </span>
+                              ) : (
+                                <CheckIcon className="w-5 h-5 text-green-500" />
+                              )}
+                            </button>
+                            <button
+                              className="rounded-md p-1 text-gray-400 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer"
+                              onClick={() => handleUndoClick(row)}
+                              disabled={editSubmitting}
+                              title="Cancel editing"
+                            >
+                              <X className="w-5 h-5" />
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            className="rounded-md p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                            onClick={() => handleEditClick(row)}
+                            title="Edit row"
+                          >
                             <EditIcon className="w-5 h-5" />
-                          )}
-                        </button>
+                          </button>
+                        )}
                       </div>
                     </td>
                   )}
