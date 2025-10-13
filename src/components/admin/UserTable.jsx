@@ -99,16 +99,28 @@ const UserTable = () => {
     const handleSearchChange = (e) => {
         const query = e.target.value.toLowerCase();
         setSearchQuery(query);
-        const filtered = userData.filter(user =>
-            user.name.toLowerCase().includes(query) ||
-            user.email.toLowerCase().includes(query) ||
-            user.role.toLowerCase().includes(query) ||
-            // user.department.toLowerCase().includes(query) ||
-            user.region.toLowerCase().includes(query)
-        );
+        
+        const filtered = userData.filter(user => {
+            // Check name and email (strings)
+            const nameMatch = user.name?.toLowerCase().includes(query);
+            const emailMatch = user.email?.toLowerCase().includes(query);
+            
+            // Check roles (array)
+            const roleMatch = user.role?.some(role => 
+                roleDisplayMap[role]?.toLowerCase().includes(query) || 
+                role?.toLowerCase().includes(query)
+            );
+            
+            // Check regions (array)
+            const regionMatch = user.region?.some(region => 
+                region?.toLowerCase().includes(query)
+            );
+
+            return nameMatch || emailMatch || roleMatch || regionMatch;
+        });
+        
         setFilteredData(filtered);
     };
-
     const handleCellEdit = (field, value, rowId) => {
         setEditedValues(prev => ({
             ...prev,

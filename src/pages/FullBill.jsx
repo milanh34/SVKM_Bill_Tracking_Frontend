@@ -5,6 +5,7 @@ import {
   natureOfWorks,
   vendors,
   currencies,
+  regions
 } from "../apis/master.api";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -128,22 +129,25 @@ const FullBillDetails = () => {
       try {
         const headers = { Authorization: `Bearer ${Cookies.get("token")}` };
 
-        const [naturesRes, currenciesRes] = await Promise.all([
+        const [naturesRes, currenciesRes, availableRegions] = await Promise.all([
           axios.get(natureOfWorks, { headers }),
           axios.get(currencies, { headers }),
+          axios.get(regions, { headers })
         ]);
 
         const sortedNatureRes = naturesRes.data.sort((a, b) => {
           return String(a.natureOfWork).localeCompare(String(b.natureOfWork), undefined, {sensitivity: 'base'});
         })
 
-        console.log("available regions: ", availableRegions);
-        const sortedAvailableRegions = availableRegions.sort((a, b) => {
-          return String(a).localeCompare(String(b), undefined, {sensitivity: 'base'});
-        })
+        console.log("nature of work: ", naturesRes.data);
+        console.log("available regions: ", availableRegions.data);
+        // const sortedAvailableRegions = availableRegions.sort((a, b) => {
+        //   return String(a).localeCompare(String(b), undefined, {sensitivity: 'base'});
+        // })
 
         setNatureOfWorkOptions(sortedNatureRes || []);
-        setRegionOptions(sortedAvailableRegions);
+        // setRegionOptions(sortedAvailableRegions);
+        setRegionOptions(availableRegions.data || []);
         setCurrencyOptions(currenciesRes.data || []);
       } catch (error) {
         console.error("Error fetching dropdown data:", error);
@@ -694,9 +698,9 @@ const FullBillDetails = () => {
                 <option value="" disabled hidden>
                   Select Region
                 </option>
-                {regionOptions.map((region, i) => (
-                  <option key={i} value={region}>
-                    {region}
+                {regionOptions.map((region) => (
+                  <option key={region._id} value={region.name}>
+                    {region.name}
                   </option>
                 ))}
               </select>

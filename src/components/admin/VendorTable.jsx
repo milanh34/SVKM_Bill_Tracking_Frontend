@@ -288,13 +288,41 @@ const VendorTable = () => {
         }
 
         const formData = new FormData();
-        formData.append('file', selectedUpdateFile);
+        formData.append('files', selectedUpdateFile);
 
         setIsLoading(true);
         try {
-            await axios.post(updateVendors, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
+            const token = Cookies.get("token");
+            const response = await axios.post(updateVendors, formData, {
+                headers: { 
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}`
+                }
             });
+
+            console.log(response.status);
+
+            if (response.data.success) {
+                toast.success('Vendors updated successfully');
+                fetchVendors(); // Refresh the table data
+            } else if (response.data.details) {
+                // Handle partial success/errors
+                const details = response.data.details;
+                if (details.updated > 0) {
+                    toast.success(`Updated ${details.updated} vendors`);
+                }
+                if (details.skipped > 0) {
+                    toast.warning(`Skipped ${details.skipped} rows`);
+                }
+                if (details.errors?.length > 0) {
+                    toast.error(`Errors: ${details.errors.join(', ')}`);
+                }
+                fetchVendors(); // Refresh even with partial success
+            } else {
+                toast.error(response.data.message || 'Error updating vendors');
+            }
+
+
             toast.success('Vendors updated successfully');
             setShowUpdateModal(false);
             setSelectedUpdateFile(null);
@@ -437,6 +465,8 @@ const VendorTable = () => {
 
     const visibleColumnFields = ['vendorNo', 'vendorName', 'PAN', 'GSTNumber', 'complianceStatus', 'PANStatus', 'emailIds', 'phoneNumbers', 'addl1', 'addl2']
 
+    const RequiredStar = () => <span className="text-red-500 ml-1">*</span>;
+
     return (
         <div className="relative w-full flex flex-col border border-gray-200 rounded-lg">
             {/* Header with Search and Add Button */}
@@ -564,7 +594,7 @@ const VendorTable = () => {
                                 {/* Basic Info Section */}
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Vendor Name</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Vendor Name<RequiredStar /></label>
                                         <input
                                             type="text"
                                             value={newVendor.vendorName}
@@ -574,7 +604,7 @@ const VendorTable = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Vendor No</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Vendor No<RequiredStar /></label>
                                         <input
                                             type="number"
                                             value={newVendor.vendorNo}
@@ -616,7 +646,7 @@ const VendorTable = () => {
                                 {/* Status and Contact Section */}
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Compliance Status</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">206 AB Compliance Status<RequiredStar /></label>
                                         <select
                                             value={newVendor.complianceStatus}
                                             onChange={(e) => setNewVendor({ ...newVendor, complianceStatus: e.target.value })}
@@ -632,7 +662,7 @@ const VendorTable = () => {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">PAN Status</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">PAN Status<RequiredStar /></label>
                                         <select
                                             value={newVendor.PANStatus}
                                             onChange={(e) => setNewVendor({ ...newVendor, PANStatus: e.target.value })}
@@ -648,23 +678,25 @@ const VendorTable = () => {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Email IDs (comma-separated)</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Email IDs (comma-separated)<RequiredStar /></label>
                                         <input
                                             type="text"
                                             value={newVendor.emailIds.join(', ')}
                                             onChange={(e) => setNewVendor({ ...newVendor, emailIds: e.target.value.split(',').map(item => item.trim()) })}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                                             placeholder="email1@example.com, email2@example.com"
+                                            required
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Numbers (comma-separated)</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Numbers (comma-separated)<RequiredStar /></label>
                                         <input
                                             type="text"
                                             value={newVendor.phoneNumbers.join(', ')}
                                             onChange={(e) => setNewVendor({ ...newVendor, phoneNumbers: e.target.value.split(',').map(item => item.trim()) })}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                                             placeholder="1234567890, 0987654321"
+                                            required
                                         />
                                     </div>
                                     <div>
