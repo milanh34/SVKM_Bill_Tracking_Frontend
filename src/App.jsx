@@ -46,6 +46,8 @@ import InvSentToPIMO from "./pages/reports/InvSentToPIMO";
 import RepBillOutstanding from "./pages/reports/RepBillOutstanding";
 import RepBillOutstandingSubtotal from "./pages/reports/RepBillOutstandingSubtotal";
 import InvPaid from "./pages/reports/InvPaid";
+import VendorTable from "./components/admin/VendorTable";
+import VendorTablePage from "./pages/VendorTablePage";
 
 function App() {
   return (
@@ -251,6 +253,8 @@ function App() {
             />
           }
         />
+
+        <Route path="/vendor-master" element={<VendorTablePage />} />
 
         {/* Not being used */}
         <Route path="/billqs" element={<BillDetailsQS />} />

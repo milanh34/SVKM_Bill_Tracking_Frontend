@@ -35,6 +35,7 @@ const Header = () => {
       allowedRoles: ["site_officer", "site_pimo", "director", "accounts"],
     },
     { name: "Masters", path: "/admin", allowedRoles: ["admin"] },
+    { name: "Vendor Master", path: "/vendor-master", allowedRoles: ["accounts"]}
   ];
 
   const filteredMenuItems = menuItems.filter((item) => {
