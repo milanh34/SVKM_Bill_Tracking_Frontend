@@ -15,7 +15,6 @@ const LoginPage = () => {
   const [selectedRole, setSelectedRole] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isTermsAgreed, setIsTermsAgreed] = useState(false);
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -88,9 +87,6 @@ const LoginPage = () => {
       hasError = true;
     } else if (!selectedRole) {
       toast.error("Please select a role");
-      hasError = true;
-    } else if (!isTermsAgreed) {
-      toast.error("Please agree to the terms and conditions");
       hasError = true;
     }
 
@@ -252,22 +248,6 @@ const LoginPage = () => {
               </div>
 
               <div className="mt-4 sm:mt-6 lg:mt-8 xl:mt-10">
-                <div className="flex items-start mb-1 lg:mb-3 xl:mb-5">
-                  <input
-                    type="checkbox"
-                    id="terms"
-                    checked={isTermsAgreed}
-                    onChange={() => setIsTermsAgreed(!isTermsAgreed)}
-                    className="appearance-none xl:w-4 xl:h-4 w-3 h-3 rounded-full border-2 border-[#011A99] checked:bg-[#011A99] mt-1 mr-2 flex-shrink-0"
-                  />
-                  <label
-                    htmlFor="terms"
-                    className="text-[#011A99] text-xs sm:text-sm xl:text-base"
-                  >
-                    I agree with the terms and conditions.
-                  </label>
-                </div>
-
                 <button
                   className="w-full bg-[#011A99] text-white rounded-2xl py-2 xl:py-3 font-semibold hover:bg-[#021678] transition-colors duration-200 cursor-pointer text-xs sm:text-sm xl:text-base disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
                   onClick={handleLogin}
