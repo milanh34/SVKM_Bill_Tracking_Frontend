@@ -11,9 +11,15 @@ export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, f
   const [selectedFile, setSelectedFile] = useState(null);
 
   const handleDownloadTemplate = () => {
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const year = today.getFullYear();
+    const dateString = `${day}${month}${year}`;
+
     const link = document.createElement('a');
     link.href = patch ? updateBillTemplate : importBillTemplate;
-    link.download = patch ? 'updateBill.xlsx' : 'importBill.xlsx';
+    link.download = patch ? `UpdateBill${dateString}.xlsx` : `ImportBill.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

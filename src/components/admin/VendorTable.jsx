@@ -210,18 +210,30 @@ const VendorTable = () => {
     };
 
     const handleDownloadImportTemplate = () => {
+        const today = new Date();
+        const day = String(today.getDate()).padStart(2, '0');
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const year = today.getFullYear();
+        const dateString = `${day}${month}${year}`;
+
         const link = document.createElement('a');
         link.href = importVendorTemplate;
-        link.download = 'importVendor.xlsx';
+        link.download = `ImportVendor${dateString}.xlsx`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     };
 
     const handleDownloadUpdateTemplate = () => {
+        const today = new Date();
+        const day = String(today.getDate()).padStart(2, '0');
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const year = today.getFullYear();
+        const dateString = `${day}${month}${year}`;
+
         const link = document.createElement('a');
         link.href = updateVendorTemplate;
-        link.download = 'updateVendor.xlsx';
+        link.download = `UpdateVendor${dateString}.xlsx`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
