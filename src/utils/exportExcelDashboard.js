@@ -66,7 +66,7 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
     const workbook = XLSX.utils.book_new();
 
     // Define which fields should be treated as numbers
-    const numberFields = ["taxInvAmt", "poAmt", "copDetails.amount", "accountsDept.paymentAmt"];
+    const numberFields = ["taxInvAmt", "poAmt", "copDetails.amount", "accountsDept.paymentAmt", "proformaInvAmt"];
 
     // Create timestamp row
     const now = new Date();
@@ -85,46 +85,76 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
         } else {
           value = row[column.field];
         }
+        console.log(column.field);
 
-        console.log(column.field, value);
-        // Format dates
-        if (
-          column.field.includes("date") ||
-          column.field.includes("Date") ||
-          column.field.includes("Booking") ||
-          column.field.includes("booking") ||
-          column.field.includes("receivedBack") ||
-          column.field.includes("RecdAtSite") ||
-          column.field.includes("invReturnedToSite") ||
-          column.field.includes("returnedToPimo")
-        ) {
+        // detect by name
+        const isDateField = /date|Date|Dt|Booking|booking|RecdAtSite|receivedBack|invReturnedToSite|returnedToPimo/i.test(column.field);
+        const isNumberField = numberFields.includes(column.field) ||
+          /amount|Amount|Amt|amt|Amt$|amt$/.test(column.field);
+
+        // Normalize values: keep raw types for sheetjs
+        if (isDateField) {
+          // convert to JS Date if possible, else empty string
           if (value) {
-            value = formatDate(value);
+            const d = new Date(value);
+            value = !isNaN(d.getTime()) ? d : "";
+          } else {
+            value = "";
           }
+        } else if (isNumberField) {
+          if (value === null || value === undefined || value === "") {
+            value = "";
+          } else {
+            // strip non numeric characters (commas, currency symbols, spaces) then convert
+            const num = Number(String(value).replace(/[^\d.-]/g, ""));
+            value = !isNaN(num) ? num : "";
+          }
+        } else {
+          value = value === undefined || value === null ? "" : String(value);
         }
 
-        // Keep numeric values as numbers for specific fields, format others as currency strings
-        if (
-          column.field.includes("amount") ||
-          column.field.includes("Amount") ||
-          column.field.endsWith("Amt") ||
-          column.field.endsWith("amt")
-        ) {
-          if (typeof value === "number") {
-            // Keep as number if it's one of the specified number fields
-            if (numberFields.includes(column.field)) {
-              // Keep as number - don't format to string
-              value = value;
-            } else {
-              // Format as currency string for other amount fields
-              value = formatCurrency(value);
-            }
-          }
-        }
-
-        formattedRow[column.headerName] = value !== undefined && value !== null ? value : "";
+        formattedRow[column.headerName] = value;
       });
       return formattedRow;
+
+      //   // Format dates
+      //   if (
+      //     column.field.includes("date") ||
+      //     column.field.includes("Date") ||
+      //     column.field.includes("Booking") ||
+      //     column.field.includes("booking") ||
+      //     column.field.includes("receivedBack") ||
+      //     column.field.includes("RecdAtSite") ||
+      //     column.field.includes("invReturnedToSite") ||
+      //     column.field.includes("returnedToPimo")
+      //   ) {
+      //     if (value) {
+      //       value = formatDate(value);
+      //     }
+      //   }
+
+      //   // Keep numeric values as numbers for specific fields, format others as currency strings
+      //   if (
+      //     column.field.includes("amount") ||
+      //     column.field.includes("Amount") ||
+      //     column.field.includes("Amt") ||
+      //     column.field.includes("amt")
+      //   ) {
+      //     if (typeof value === "number") {
+      //       // Keep as number if it's one of the specified number fields
+      //       if (numberFields.includes(column.field)) {
+      //         // Keep as number - don't format to string
+      //         value = value;
+      //       } else {
+      //         // Format as currency string for other amount fields
+      //         value = formatCurrency(value);
+      //       }
+      //     }
+      //   }
+
+      //   formattedRow[column.headerName] = value !== undefined && value !== null ? value : "";
+      // });
+      // return formattedRow;
     });
 
     // Calculate grand totals for multiple fields
