@@ -22,7 +22,8 @@ import {
   ArrowRightFromLine,
   Printer,
   EditIcon,
-  X
+  X,
+  Trash2
 } from "lucide-react";
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnView";
@@ -33,6 +34,7 @@ import { SendBoxModal } from "../components/dashboard/SendBoxModal";
 import Loader from "../components/Loader";
 import Cookies from "js-cookie";
 import { handleExportReport } from "../utils/exportExcelDashboard";
+import { RemoveDateModal } from "../components/dashboard/RemoveDateModal";
 
 const Dashboard = () => {
   const currentUserRole = Cookies.get("userRole");
@@ -60,6 +62,7 @@ const Dashboard = () => {
   const [isSendBoxOpen, setIsSendBoxOpen] = useState(false);
   const [isWindowOpen, setIsWindowOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
+  const [isRemoveDateOpen, setIsRemoveDateOpen] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
   const [totalFilteredItems, setTotalFilteredItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -1189,17 +1192,62 @@ const Dashboard = () => {
                     </button>
                   </div>
                 ) : (
-                  <button
-                    className={`${(currentUserRole === "director") ? "hidden" : ""} flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors ${selectedRole
-                      ? "relative after:absolute after:top-0 after:right-0 after:w-2 after:h-2 after:bg-green-500 after:rounded-full"
-                      : ""
-                      }`}
-                    onClick={handleSendTo}
-                    title="Send Bills"
-                  >
-                    <Send className="w-4 h-4" />
-                    <span>Send To</span>
-                  </button>
+                  <>
+                    {!showIncomingBills && currentUserRole !== "director" && (
+                      <button
+                        className="flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                        onClick={() => {
+                          if (selectedRows.length === 0) {
+                            toast.error("Please select bills to proceed");
+                            return;
+                          }
+
+                          if (currentUserRole === "qs_site") {
+                            const selectedBills = billsData.filter(bill => selectedRows.includes(bill._id));
+
+                            const hasMixedStatus = selectedBills.some(bill => bill.qsMumbai?.dateGiven) &&
+                              selectedBills.some(bill => !bill.qsMumbai?.dateGiven);
+
+                            if (hasMixedStatus) {
+                              toast.error("Cannot process bills with mixed QS Mumbai date status. Please select bills with consistent status.");
+                              return;
+                            }
+
+                            const qsMumbaiDateFilled = selectedBills.some(bill => bill.qsMumbai?.dateGiven);
+
+                            let availableRoles = [...roleWorkflow[currentUserRole] || []];
+                            if (qsMumbaiDateFilled) {
+                              availableRoles = availableRoles.filter(role => role.value === "pimo_cop");
+                            } else {
+                              availableRoles = availableRoles.filter(role => ["measure", "site_cop"].includes(role.value));
+                            }
+
+                            if (!availableRoles || availableRoles.length === 0) {
+                              toast.error("You don't have permission to remove dates for selected bills");
+                              return;
+                            }
+                          }
+
+                          setIsRemoveDateOpen(true);
+                        }}
+                        title="Remove Date"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>Remove Date</span>
+                      </button>
+                    )}
+                    <button
+                      className={`${(currentUserRole === "director") ? "hidden" : ""} flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors ${selectedRole
+                        ? "relative after:absolute after:top-0 after:right-0 after:w-2 after:h-2 after:bg-green-500 after:rounded-full"
+                        : ""
+                        }`}
+                      onClick={handleSendTo}
+                      title="Send Bills"
+                    >
+                      <Send className="w-4 h-4" />
+                      <span>Send To</span>
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -1393,6 +1441,25 @@ const Dashboard = () => {
         handleSendToRole={handleSendToRole}
         role={currentUserRole}
         handleNotReceiveBills={handleNotReceiveBills}
+      />
+
+      <RemoveDateModal
+        isOpen={isRemoveDateOpen}
+        onClose={() => setIsRemoveDateOpen(false)}
+        availableRoles={currentUserRole === "qs_site"
+          ? roleWorkflow[currentUserRole].filter(role => {
+            const selectedBills = billsData.filter(bill => selectedRows.includes(bill._id));
+            const qsMumbaiDateFilled = selectedBills.some(bill => bill.qsMumbai?.dateGiven);
+            return qsMumbaiDateFilled
+              ? role.value === "pimo_cop"
+              : ["measure", "site_cop"].includes(role.value);
+          })
+          : roleWorkflow[currentUserRole] || []
+        }
+        role={currentUserRole}
+        selectedRows={selectedRows}
+        billsData={billsData}
+        fetchAllData={fetchAllData}
       />
 
       {isWindowOpen && (
