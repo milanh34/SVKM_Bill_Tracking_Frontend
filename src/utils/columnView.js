@@ -45,12 +45,15 @@ export const getColumnsForRole = (role) => {
     { field: "copDetails.amount", headerName: "COP Amt" }, // column no 43
     { field: "remarksByQSTeam", headerName: "Remarks by QS Team" }, // column no 44
     { field: "copDetails.dateReturned", headerName: "Dt ret-QS aft Prov COP" }, // column no 44A
+    { field: "copDetails.nameReturned", headerName: "Name ret-QS aft Prov COP" }, // column no 44B
     { field: "migoDetails.dateGiven", headerName: "Dt given-MIGO" }, // column no 45
+    { field: "migoDetails.name", headerName: "Name given-MIGO" }, // column no 45A
     { field: "migoDetails.no", headerName: "MIGO no" }, // column no 46
     { field: "migoDetails.date", headerName: "MIGO Dt" }, // column no 47
     { field: "migoDetails.amount", headerName: "MIGO Amt" }, // column no 48
     { field: "migoDetails.doneBy", headerName: "MIGO done by" }, // column no 49
     { field: "invReturnedToSite", headerName: "Dt-ret aft MIGO to Site" }, // column no 50
+    { field: "invReturnedToSiteName", headerName: "Name-ret aft MIGO to Site" }, // column no 50A
     { field: "siteEngineer.dateGiven", headerName: "Dt given-Site Engineer" }, // column no 51
     { field: "siteEngineer.name", headerName: "Name-Site Engineer" }, // column no 52
     { field: "architect.dateGiven", headerName: "Dt given-Architect" }, // column no 53
@@ -67,7 +70,7 @@ export const getColumnsForRole = (role) => {
     { field: "qsMumbai.dateGiven", headerName: "Dt given-QS Mumbai for COP" }, // column no 64
     { field: "qsMumbai.name", headerName: "Name-QS Mumbai for COP" }, // column no 65
     { field: "pimoMumbai.dateReturnedFromQs", headerName: "Dt ret-PIMO by QS Mumbai" }, // column no 66
-    { field: "pimoMumbai.namePIMO2", headerName: "Name ret-PIMO by QS Mumbai" }, // column no 67
+    { field: "pimoMumbai.nameReturnedFromQs", headerName: "Name ret-PIMO by QS Mumbai" }, // column no 67
     // { field: "pimoMumbai.namePIMO", headerName: "Name given by Site to PIMO" },
     { field: "itDept.dateGiven", headerName: "Date given-IT Dept for SES" }, // column no 68
     { field: "itDept.name", headerName: "Name-IT Dept for SES" }, // column no 69
@@ -80,7 +83,9 @@ export const getColumnsForRole = (role) => {
     { field: "sesDetails.date", headerName: "SES Dt" }, // column no 74
     { field: "sesDetails.doneBy", headerName: "SES done by" }, // column no 74A
     { field: "pimoMumbai.dateReceivedFromIT", headerName: "Dt ret-IT Dept aft SES" }, // column no 75
+    { field: "pimoMumbai.nameReceivedFromIT", headerName: "Name ret-IT Dept aft SES" }, // column no 75A
     { field: "pimoMumbai.dateReturnedFromSES", headerName: "Dt ret-PIMO aft SES" }, // column no 76
+    { field: "pimoMumbai.nameReturnedFromSES", headerName: "Name ret-PIMO aft SES" }, // column no 76A
     { field: "approvalDetails.directorApproval.dateGiven", headerName: "Dt given-for approval" }, // column no 77
     { field: "pimoMumbai.dateReturnedFromDirector", headerName: "Dt ret-PIMO aft approval" }, // column no 78
     { field: "approvalDetails.remarksPimoMumbai", headerName: "Remarks PIMO Mumbai" }, // column no 79
@@ -151,12 +156,15 @@ export const getColumnsForRole = (role) => {
       "copDetails.amount",
       "remarksByQSTeam",
       "copDetails.dateReturned",
+      "copDetails.nameReturned",
       "migoDetails.dateGiven",
+      "migoDetails.name",
       "migoDetails.no",
       "migoDetails.date",
       "migoDetails.amount",
       "migoDetails.doneBy",
       "invReturnedToSite",
+      "invReturnedToSiteName",
       "siteEngineer.dateGiven",
       "siteEngineer.name",
       "architect.dateGiven",
@@ -210,12 +218,13 @@ export const getColumnsForRole = (role) => {
       "copDetails.amount",
       "remarksByQSTeam",
       "copDetails.dateReturned",
+      "copDetails.nameReturned",
       "remarks",
       "siteStatus",
       "qsMumbai.dateGiven",
       "qsMumbai.name",
       "pimoMumbai.dateReturnedFromQs",
-      "pimoMumbai.namePIMO2",
+      "pimoMumbai.nameReturnedFromQs",
     ],
 
     PIMO_MUMBAI_MIGO_SES: [
@@ -263,12 +272,15 @@ export const getColumnsForRole = (role) => {
       "copDetails.amount",
       "remarksByQSTeam",
       "copDetails.dateReturned",
+      "copDetails.nameReturned",
       "migoDetails.dateGiven",
+      "migoDetails.name",
       "migoDetails.no",
       "migoDetails.date",
       "migoDetails.amount",
       "migoDetails.doneBy",
       "invReturnedToSite",
+      "invReturnedToSiteName",
       "siteEngineer.dateGiven",
       "siteEngineer.name",
       "architect.dateGiven",
@@ -285,7 +297,7 @@ export const getColumnsForRole = (role) => {
       "qsMumbai.dateGiven",
       "qsMumbai.name",
       "pimoMumbai.dateReturnedFromQs",
-      "pimoMumbai.namePIMO2",
+      "pimoMumbai.nameReturnedFromQs",
       "itDept.dateGiven",
       "itDept.name",
       "sesDetails.dateGiven",
@@ -296,7 +308,9 @@ export const getColumnsForRole = (role) => {
       "sesDetails.date",
       "sesDetails.doneBy",
       "pimoMumbai.dateReceivedFromIT",
+      "pimoMumbai.nameReceivedFromIT",
       "pimoMumbai.dateReturnedFromSES",
+      "pimoMumbai.nameReturnedFromSES",
       "approvalDetails.directorApproval.dateGiven",
       "pimoMumbai.dateReturnedFromDirector",
       "approvalDetails.remarksPimoMumbai",
