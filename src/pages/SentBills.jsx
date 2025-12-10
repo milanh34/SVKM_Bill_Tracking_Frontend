@@ -6,10 +6,11 @@ import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
 import DataTable from "../components/DataTable";
 // import DataTable from "../components/dashboard/DataTable";
-import { Funnel, Grid3x3, Download, X } from "lucide-react";
+import { Funnel, Grid3x3, Download, X, AlertTriangle } from "lucide-react";
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnView";
 import { FilterModal } from "../components/dashboard/FilterModal";
+import { handleExportReport } from "../utils/exportExcelDashboard";
 import Loader from "../components/Loader";
 import Cookies from "js-cookie";
 
@@ -324,27 +325,67 @@ const SentBills = () => {
   };
 
   // Export Excel
-  const handleExportExcel = () => {
-    const exportData = getFilteredData();
-    const worksheet = XLSX.utils.json_to_sheet(
-      exportData.map((item) => {
-        const row = {};
-        visibleColumnFields.forEach((field) => {
-          const column = columns.find((col) => col.field === field);
-          if (column) {
-            const path = field.split(".");
-            let value = item;
-            for (const key of path) value = value?.[key];
-            row[column.headerName] = value !== undefined ? value : "";
-          }
-        });
-        return row;
-      })
-    );
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Paid Bills");
-    XLSX.writeFile(workbook, "Paid_Bills_Export.xlsx");
-    toast.success("Export successful!");
+  // const handleExportExcel = () => {
+  //   const exportData = getFilteredData();
+  //   const worksheet = XLSX.utils.json_to_sheet(
+  //     exportData.map((item) => {
+  //       const row = {};
+  //       visibleColumnFields.forEach((field) => {
+  //         const column = columns.find((col) => col.field === field);
+  //         if (column) {
+  //           const path = field.split(".");
+  //           let value = item;
+  //           for (const key of path) value = value?.[key];
+  //           row[column.headerName] = value !== undefined ? value : "";
+  //         }
+  //       });
+  //       return row;
+  //     })
+  //   );
+  //   const workbook = XLSX.utils.book_new();
+  //   XLSX.utils.book_append_sheet(workbook, worksheet, "Paid Bills");
+  //   XLSX.writeFile(workbook, "Paid_Bills_Export.xlsx");
+  //   toast.success("Export successful!");
+  // };
+
+  const handleDownloadReport = async () => {
+    if (!selectedRows || selectedRows.length === 0) {
+      toast.warning(
+        <div className="send-toast">
+          <span>Please select at least one row to download</span>
+        </div>
+      );
+      return;
+    }
+    try {
+      const result = await handleExportReport(
+        selectedRows,
+        filteredUnpaginatedData,
+        columns,
+        visibleColumnFields
+      );
+      if (result.success) {
+        toast.success(result.message);
+      } else {
+        if (result.message.includes("Please select at least one row")) {
+          toast.warning(
+            <div className="send-toast">
+              <span>
+                <AlertTriangle size={18} />
+              </span>
+              <span>{result.message}</span>
+            </div>,
+            { autoClose: 3000 }
+          );
+          setShowDownloadValidation(true);
+          setTimeout(() => setShowDownloadValidation(false), 3000);
+        } else {
+          toast.error(result.message);
+        }
+      }
+    } catch (error) {
+      toast.error("Failed to download report");
+    }
   };
 
   // Reject
@@ -570,7 +611,7 @@ const SentBills = () => {
               <div className="flex items-center space-x-3">
                 {currentUserRole !== "director" && (
                   <button
-                    onClick={handleExportExcel}
+                    onClick={handleDownloadReport}
                     className="flex items-center px-3 py-1.5 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors"
                   >
                     <Download className="w-4 h-4 mr-1" />
