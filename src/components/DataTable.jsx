@@ -278,6 +278,14 @@ const DataTable = ({
     });
   }, [data, searchQuery, columnFilters, visibleColumns]);
 
+  const displayData = useMemo(() => {
+    const page = Number(currentPage) || 1;
+    const perPage = Number(itemsPerPage) || filteredData.length || 1;
+    const indexOfLastItem = page * perPage;
+    const indexOfFirstItem = indexOfLastItem - perPage;
+    return filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  }, [filteredData, currentPage, itemsPerPage]);
+
   const getRoleSortColumn = (role) => {
     const roleColumnMap = {
       site_officer: "pimoMumbai.dateGiven",
@@ -429,6 +437,22 @@ const DataTable = ({
 
     return value.toString();
   };
+
+  const grandTotals = useMemo(() => {
+    const sum = (field) =>
+      filteredData.reduce((acc, row) => {
+        const val = getNestedValue(row, field);
+        const num = parseFloat(val);
+        return !isNaN(num) ? acc + num : acc;
+      }, 0);
+
+    return {
+      taxInvAmt: sum("taxInvAmt"),
+      copDetailsAmount: sum("copDetails.amount"),
+      accountsDeptPaymentAmt: sum("accountsDept.paymentAmt"),
+      poAmt: sum("poAmt"),
+    };
+  }, [filteredData]);
 
   const getStatusStyle = (status) => {
     if (!status) return {};
@@ -1531,7 +1555,7 @@ const DataTable = ({
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">
             {/* {displayData.map((row) => { */}
-            {data.map((row) => {
+            {displayData.map((row) => {
               const isSelected = selectedRows.includes(row._id);
               const bgColor = isSelected
                 ? "bg-blue-50"
@@ -1687,6 +1711,70 @@ const DataTable = ({
                 </tr>
               );
             })}
+            <tr className="bg-blue-100/75 font-bold">
+              <td className="sticky left-0 z-20 whitespace-nowrap px-3 py-3 text-center"></td>
+              {visibleColumns.map((column) => {
+                if (column.field === "taxInvAmt") {
+                  return (
+                    <td
+                      key={column.field}
+                      className="whitespace-nowrap px-1.5 py-2.5 text-sm border-l border-r border-gray-300"
+                    >
+                      {formatCellValue(grandTotals.taxInvAmt, "taxInvAmt")}
+                    </td>
+                  );
+                }
+                if (column.field === "copDetails.amount") {
+                  return (
+                    <td
+                      key={column.field}
+                      className="whitespace-nowrap px-1.5 py-2.5 text-sm border-l border-r border-gray-300"
+                    >
+                      {formatCellValue(grandTotals.copDetailsAmount, "copDetails.amount")}
+                    </td>
+                  );
+                }
+                if (column.field === "accountsDept.paymentAmt") {
+                  return (
+                    <td
+                      key={column.field}
+                      className="whitespace-nowrap px-1.5 py-2.5 text-sm border-l border-r border-gray-300"
+                    >
+                      {formatCellValue(grandTotals.accountsDeptPaymentAmt, "accountsDept.paymentAmt")}
+                    </td>
+                  );
+                }
+                if (column.field === "poAmt") {
+                  return (
+                    <td
+                      key={column.field}
+                      className="whitespace-nowrap px-1.5 py-2.5 text-sm border-l border-r border-gray-300"
+                    >
+                      {formatCellValue(grandTotals.poAmt, "poAmt")}
+                    </td>
+                  );
+                }
+                if (visibleColumns.findIndex((col) => col.field === column.field) === 0) {
+                  return (
+                    <td
+                      key={column.field}
+                      className="whitespace-nowrap px-1.5 py-2.5 text-sm text-left border-r border-gray-300"
+                    >
+                      Grand Total
+                    </td>
+                  );
+                }
+                return (
+                  <td
+                    key={column.field}
+                    className="whitespace-nowrap px-1.5 py-2.5 text-sm"
+                  ></td>
+                );
+              })}
+              {showActions && (
+                <td className="sticky right-0 z-20 whitespace-nowrap px-1.5 py-2.5 text-center"></td>
+              )}
+            </tr>
           </tbody>
         </table>
       </div>
