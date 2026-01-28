@@ -134,6 +134,10 @@ const DataTable = ({
   };
 
   const isDateField = (field) => {
+    // Explicit date fields that don't contain common "date/dt" keywords
+    // (backend sends ISO strings; we want DD-MM-YYYY display)
+    if (field === "accountsDept.receivedBack") return true;
+
     const dateIndicators = ["date", "dt", "recdatsite", "booking"];
 
     if (field.includes(".")) {
