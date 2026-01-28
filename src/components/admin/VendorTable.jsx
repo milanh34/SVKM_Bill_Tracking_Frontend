@@ -711,11 +711,34 @@ const VendorTable = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Numbers (comma-separated)<RequiredStar /></label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Phone Numbers (comma-separated)<RequiredStar />
+                                        </label>
                                         <input
                                             type="text"
                                             value={newVendor.phoneNumbers.join(', ')}
-                                            onChange={(e) => setNewVendor({ ...newVendor, phoneNumbers: e.target.value.split(',').map(item => item.trim()) })}
+                                            onChange={(e) => {
+                                                const input = e.target.value;
+                                                // Allow only numbers, commas, and spaces
+                                                const sanitized = input.replace(/[^0-9,\s]/g, '');
+
+                                                // Update the value directly without immediate splitting
+                                                // Split only when needed (on submit/validation)
+                                                setNewVendor({
+                                                    ...newVendor,
+                                                    phoneNumbers: sanitized ? [sanitized] : []
+                                                });
+                                            }}
+                                            onBlur={(e) => {
+                                                // On blur, properly format into array
+                                                const input = e.target.value;
+                                                const phoneArray = input
+                                                    .split(',')
+                                                    .map(item => item.trim())
+                                                    .filter(item => item !== '');
+
+                                                setNewVendor({ ...newVendor, phoneNumbers: phoneArray });
+                                            }}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
                                             placeholder="1234567890, 0987654321"
                                             required
