@@ -73,6 +73,7 @@ const Dashboard = () => {
   const [showIncomingBills, setShowIncomingBills] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [openUpdateBillModal, setOpenUpdateBillModal] = useState(false);
+  const [countOfSelectedBills, setCountOfSelectedBills] = useState(0);
 
   const navigate = useNavigate();
 
@@ -176,6 +177,8 @@ const Dashboard = () => {
 
     if (currentUserRole === "qs_site") {
       const selectedBills = billsData.filter(bill => selectedRows.includes(bill._id));
+
+      setCountOfSelectedBills(selectedBills.length);
 
       const hasMixedStatus = selectedBills.some(bill => bill.qsMumbai?.dateGiven) &&
         selectedBills.some(bill => !bill.qsMumbai?.dateGiven);
@@ -1441,6 +1444,7 @@ const Dashboard = () => {
         handleSendToRole={handleSendToRole}
         role={currentUserRole}
         handleNotReceiveBills={handleNotReceiveBills}
+        countOfSelectedBills={countOfSelectedBills}
       />
 
       <RemoveDateModal
@@ -1485,6 +1489,7 @@ const Dashboard = () => {
               })
               : roleWorkflow[currentUserRole] || []
             }
+            countOfSelectedBills={countOfSelectedBills}
           />
         </div>
       )}

@@ -8,6 +8,7 @@ export const SendToModal = ({
   handleSendToRole,
   role,
   handleNotReceiveBills,
+  countOfSelectedBills
 }) => {
   if (!isOpen) return null;
 
@@ -51,6 +52,7 @@ export const SendToModal = ({
             </button>
           ) : null}
         </div>
+        <p className="text-center mt-5">You have selected {countOfSelectedBills} bills</p>
       </div>
     </div>
   );

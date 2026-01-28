@@ -5,7 +5,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from 'react-toastify';
 
-export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole, fetchAllData }) => {
+export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole, fetchAllData, countOfSelectedBills }) => {
     const [recipientName, setRecipientName] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -125,7 +125,7 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
                     </div>
 
                     <div className="flex flex-col gap-2">
-                        <label className="text-base font-medium text-gray-700">Selected Bills:</label>
+                        <label className="text-base font-medium text-gray-700">Selected {countOfSelectedBills} Bills:</label>
                         <div className="max-h-[200px] overflow-y-auto bg-white border border-gray-300 rounded p-2">
                             {selectedBillDetails.map((bill, index) => (
                                 <div key={index} className="p-2 border-b border-gray-200 text-sm last:border-b-0 text-gray-700 flex justify-between items-center">
