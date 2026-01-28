@@ -306,7 +306,7 @@ const VendorTable = () => {
         try {
             const token = Cookies.get("token");
             const response = await axios.post(updateVendors, formData, {
-                headers: { 
+                headers: {
                     'Content-Type': 'multipart/form-data',
                     'Authorization': `Bearer ${token}`
                 }
@@ -533,10 +533,15 @@ const VendorTable = () => {
                             {columns.map(column => (
                                 <th
                                     key={column.field}
-                                    className="sticky top-0 z-40 px-4 py-3 text-left text-sm font-semibold text-gray-900 bg-gray-50 border-b border-r border-gray-200"
+                                    className={`${column.field === "vendorNo"
+                                        ? "sticky left-[50px] z-[49]"
+                                        : "sticky"
+                                        } top-0 px-4 py-3 text-left text-sm font-semibold text-gray-900 bg-gray-50 border-b border-r border-gray-200`}
                                 >
                                     <div className="absolute inset-0 bg-gray-50 border-b border-r border-gray-200"></div>
-                                    <div className="relative z-[41]">{column.headerName}</div>
+                                    <div className={`relative ${column.field === "vendorNo" ? "z-[50]" : "z-[41]"}`}>
+                                        {column.headerName}
+                                    </div>
                                 </th>
                             ))}
                             <th className="sticky right-0 top-0 z-50 w-20 px-4 py-3 text-center text-sm font-semibold text-gray-900 bg-gray-50 border-b border-gray-200">
@@ -553,7 +558,12 @@ const VendorTable = () => {
                                     <div className="relative z-[31]">{index + 1}</div>
                                 </td>
                                 {columns.map(column => (
-                                    <td key={column.field} className="px-4 py-3 text-sm text-gray-900 border-b border-r border-gray-200 whitespace-nowrap">
+                                    <td key={column.field} className={`
+                                    ${column.field === "vendorNo"
+                                            ? "sticky left-[50px] z-[49] bg-white"
+                                            : "sticky"
+                                        }
+                                    px-4 py-3 text-sm text-gray-900 border-b border-r border-gray-200 whitespace-nowrap`}>
                                         {renderCell(vendor, column)}
                                     </td>
                                 ))}
@@ -835,8 +845,8 @@ const VendorTable = () => {
                                     onClick={handleImportSubmit}
                                     disabled={!selectedImportFile || isLoading}
                                     className={`px-4 py-2 rounded-md text-white ${!selectedImportFile
-                                            ? 'bg-blue-300 cursor-not-allowed'
-                                            : 'bg-blue-600 hover:bg-blue-700 hover:cursor-pointer'
+                                        ? 'bg-blue-300 cursor-not-allowed'
+                                        : 'bg-blue-600 hover:bg-blue-700 hover:cursor-pointer'
                                         }`}
                                 >
                                     {isLoading ? 'Importing...' : 'Import'}
@@ -904,8 +914,8 @@ const VendorTable = () => {
                                     onClick={handleUpdateSubmit}
                                     disabled={!selectedUpdateFile || isLoading}
                                     className={`px-4 py-2 rounded-md text-white ${!selectedUpdateFile
-                                            ? 'bg-teal-300 cursor-not-allowed'
-                                            : 'bg-teal-600 hover:bg-teal-700 hover:cursor-pointer'
+                                        ? 'bg-teal-300 cursor-not-allowed'
+                                        : 'bg-teal-600 hover:bg-teal-700 hover:cursor-pointer'
                                         }`}
                                 >
                                     {isLoading ? 'Updating...' : 'Update'}
