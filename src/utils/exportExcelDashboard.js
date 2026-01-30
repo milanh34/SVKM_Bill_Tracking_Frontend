@@ -66,7 +66,7 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
     const workbook = XLSX.utils.book_new();
 
     // Define which fields should be treated as numbers
-    const numberFields = ["taxInvAmt", "poAmt", "copDetails.amount", "accountsDept.paymentAmt", "proformaInvAmt"];
+    const numberFields = ["taxInvAmt", "poAmt", "copDetails.amount", "accountsDept.paymentAmt", "proformaInvAmt", "advanceAmt"];
 
     // Create timestamp row
     const now = new Date();
@@ -307,8 +307,13 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
     });
     const url = URL.createObjectURL(blob);
     const now1 = new Date();
-    const filename = `${now1.getDate().toString().padStart(2, '0')}${(now1.getMonth() + 1).toString().padStart(2, '0')}${now1.getFullYear().toString().slice(-2)}_${now1.getHours().toString().padStart(2, '0')}${now1.getMinutes().toString().padStart(2, '0')}${now1.getSeconds().toString().padStart(2, '0')}.xlsx`;
-    
+    // const filename = `${now1.getDate().toString().padStart(2, '0')}${(now1.getMonth() + 1).toString().padStart(2, '0')}${now1.getFullYear().toString().slice(-2)}_${now1.getHours().toString().padStart(2, '0')}${now1.getMinutes().toString().padStart(2, '0')}${now1.getSeconds().toString().padStart(2, '0')}.xlsx`;
+    // const now = new Date();
+
+    const filename = `${now1.getDate().toString().padStart(2, '0')}-${(now1.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}-${now1.getFullYear()}.xlsx`;
+
     const link = document.createElement("a");
     link.href = url;
     link.setAttribute("download", filename);
