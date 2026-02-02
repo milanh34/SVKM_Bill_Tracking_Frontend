@@ -101,15 +101,31 @@ const SentBills = () => {
   // Filtering
   const getFilteredData = () => {
     return billsData.filter((bill) => {
+      // const matchesSearch =
+      //   searchQuery === "" ||
+      //   Object.values(bill).some((value) =>
+      //     value
+      //       ?.toString()
+      //       ?.toLowerCase()
+      //       .includes(searchQuery.toLowerCase())
+      //   );
+      const query = (searchQuery || "").trim().toLowerCase();
       const matchesSearch =
-        searchQuery === "" ||
+        query === "" ||
+        // match across columns (handles nested fields like a.b.c)
+        columns.some((col) => {
+          const value = getNestedValue(bill, col.field);
+          if (value === undefined || value === null) return false;
+          const str = typeof value === "object" ? JSON.stringify(value) : String(value);
+          return str.toLowerCase().includes(query);
+        }) ||
+        // fallback: check top-level values
         Object.values(bill).some((value) =>
           value
             ?.toString()
             ?.toLowerCase()
-            .includes(searchQuery.toLowerCase())
+            .includes(query)
         );
-
       const matchesRegion =
         selectedRegion.length === 0 || selectedRegion.includes(bill.region);
 
@@ -411,14 +427,22 @@ const SentBills = () => {
   // DataTable Props
   const dataTableProps = {
     // data: filteredData,
-    data: paginatedData,
+    // data: paginatedData,
+    // searchQuery: searchQuery,
+    // availableColumns: columns,
+    // visibleColumnFields: visibleColumnFields,
+    // selectedRows: selectedRows,
+    // onRowSelect: setSelectedRows,
+    // totalSelected: selectedRows.length,
+    // totalItems: paginatedData.length,
+    data: filteredUnpaginatedData, // pass full filtered set so column filters work across all data
     searchQuery: searchQuery,
     availableColumns: columns,
     visibleColumnFields: visibleColumnFields,
     selectedRows: selectedRows,
     onRowSelect: setSelectedRows,
     totalSelected: selectedRows.length,
-    totalItems: paginatedData.length,
+    totalItems: totalFilteredItems,
     selectAll: selectAll,
     onSelectAll: handleSelectAll,
     sortConfig: sortConfig,

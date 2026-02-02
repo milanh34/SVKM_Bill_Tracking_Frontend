@@ -162,19 +162,53 @@ const DataTable = ({
     );
   };
 
+  // Normalize any value (objects, dates, arrays) into a display string used for filters/search
+  const normalizeValueForDisplay = (value, field) => {
+    if (value === null || value === undefined) return "";
+    if (isDateField(field)) {
+      const fd = formatDate(value);
+      return fd === "-" ? "" : fd;
+    }
+    if (Array.isArray(value)) {
+      return value
+        .map((v) =>
+          v && typeof v === "object"
+            ? v.vendorName || v.name || JSON.stringify(v)
+            : String(v)
+        )
+        .join(", ");
+    }
+    if (typeof value === "object") {
+      // common vendor object shape handling
+      const name = value.vendorName || value.name || value.vendor || "";
+      const no = value.vendorNo || value.vendor_number || value.vendorNo || "";
+      if (name && no) return `${name} (${no})`;
+      if (name) return String(name);
+      if (no) return String(no);
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return String(value);
+      }
+    }
+    return String(value);
+  };
+
   const getUniqueValues = (data, field) => {
     const values = new Set();
     data.forEach((row) => {
       const value = getNestedValue(row, field);
       if (value !== undefined && value !== null) {
-        if (isDateField(field)) {
-          const formattedDate = formatDate(value);
-          if (formattedDate !== "-") {
-            values.add(formattedDate);
-          }
-        } else {
-          values.add(value.toString());
-        }
+        // if (isDateField(field)) {
+        //   const formattedDate = formatDate(value);
+        //   if (formattedDate !== "-") {
+        //     values.add(formattedDate);
+        //   }
+        // } else {
+        //   values.add(value.toString());
+        // }
+        const norm = normalizeValueForDisplay(value, field);
+        if (norm !== "") values.add(norm);
       }
     });
     return Array.from(values).sort((a, b) => {
@@ -190,7 +224,8 @@ const DataTable = ({
   };
 
   const applyFilter = (value, filterValue, operator, field) => {
-    if (!value) return false;
+    // if (!value) return false;
+    if (value === null || value === undefined) return false;
 
     if (isNumericField(field)) {
       const numValue = parseFloat(value);
@@ -224,16 +259,18 @@ const DataTable = ({
       }
     }
 
-    const stringValue = value.toString().toLowerCase();
+    // const stringValue = value.toString().toLowerCase();
 
-    if (value instanceof Date || !isNaN(new Date(value))) {
-      const formattedDate = formatDate(value);
-      return filterValue.some((val) => formattedDate === val);
-    }
+    // if (value instanceof Date || !isNaN(new Date(value))) {
+    //   const formattedDate = formatDate(value);
+    //   return filterValue.some((val) => formattedDate === val);
+    // }
+    const stringValue = normalizeValueForDisplay(value, field).toLowerCase();
 
     switch (operator) {
       case "multiSelect":
-        return filterValue.some((val) => stringValue === val.toLowerCase());
+        // return filterValue.some((val) => stringValue === val.toLowerCase());
+        return filterValue.some((val) => stringValue === String(val).toLowerCase());
       default:
         return true;
     }
@@ -244,8 +281,11 @@ const DataTable = ({
       if (searchQuery) {
         const searchLower = searchQuery.toLowerCase();
         const isMatchingSearch = visibleColumns.some((column) => {
+          // const value = getNestedValue(row, column.field);
+          // return value && value.toString().toLowerCase().includes(searchLower);
           const value = getNestedValue(row, column.field);
-          return value && value.toString().toLowerCase().includes(searchLower);
+          const norm = normalizeValueForDisplay(value, column.field).toLowerCase();
+          return norm.includes(searchLower);
         });
         if (!isMatchingSearch) return false;
       }
