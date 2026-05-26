@@ -522,81 +522,89 @@ const VendorTable = () => {
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-250px)] scrollbar-thin scrollbar-thumb-gray-300">
-                <table className="w-full border-collapse">
-                    <thead>
-                        <tr className="divide-x divide-gray-200">
-                            <th className="sticky left-0 top-0 z-50 px-4 py-3 text-left text-sm font-semibold text-gray-900 bg-gray-50 border-b border-gray-200">
-                                <div className="absolute inset-0 bg-gray-50 border-b border-r-2 border-gray-200"></div>
-                                <div className="relative z-[51]">Sr No.</div>
-                            </th>
-                            {columns.map(column => (
-                                <th
-                                    key={column.field}
-                                    className={`${column.field === "vendorNo"
-                                        ? "sticky left-[50px] z-[49]"
-                                        : "sticky"
-                                        } top-0 px-4 py-3 text-left text-sm font-semibold text-gray-900 bg-gray-50 border-b border-r border-gray-200`}
+<div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-250px)] scrollbar-thin scrollbar-thumb-gray-300">
+    <table className="w-full border-collapse">
+        <thead>
+            <tr className="divide-x divide-gray-200">
+                {/* 1. Header: Sr No - Top/Left Intersection */}
+                <th className="sticky left-0 top-0 z-[60] px-4 py-3 text-left text-sm font-semibold text-gray-900 bg-gray-50 border-b border-gray-200">
+                    <div className="absolute inset-0 bg-gray-50 border-b border-r-2 border-gray-200"></div>
+                    <div className="relative z-[51]">Sr No.</div>
+                </th>
+                
+                {/* 2. Header: Dynamic Columns */}
+                {columns.map(column => (
+                    <th
+                        key={column.field}
+                        className={`${column.field === "vendorNo"
+                                ? "sticky left-[50px] z-[60]" // Top/Left Intersection
+                                : "sticky z-[50]"             // Standard Top Header
+                            } top-0 px-4 py-3 text-left text-sm font-semibold text-gray-900 bg-gray-50 border-b border-r border-gray-200`}
+                    >
+                        <div className="absolute inset-0 bg-gray-50 border-b border-r border-gray-200"></div>
+                        <div className="relative z-[41]">
+                            {column.headerName}
+                        </div>
+                    </th>
+                ))}
+                
+                {/* 3. Header: Actions - Top/Right Intersection */}
+                <th className="sticky right-0 top-0 z-[60] w-20 px-4 py-3 text-center text-sm font-semibold text-gray-900 bg-gray-50 border-b border-gray-200">
+                    <div className="absolute inset-0 bg-gray-50 border-b border-l-2 border-gray-200"></div>
+                    <div className="relative z-[51]">Actions</div>
+                </th>
+            </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200 bg-white">
+            {sortedData.map((vendor, index) => (
+                <tr key={vendor._id} className="hover:bg-gray-50">
+                    {/* Body: Sr No - Left sticky */}
+                    <td className="sticky left-0 z-[40] px-4 py-3 text-sm text-gray-900 bg-white whitespace-nowrap">
+                        <div className="absolute inset-0 bg-white border-b border-r-2 border-gray-200"></div>
+                        <div className="relative z-[31]">{index + 1}</div>
+                    </td>
+                    
+                    {/* Body: Dynamic Columns */}
+                    {columns.map(column => (
+                        <td key={column.field} className={`${column.field === "vendorNo"
+                                    ? "sticky left-[50px] z-[40] bg-white" // Left sticky
+                                    : "" // Standard body cell (removed unnecessary sticky)
+                                } px-4 py-3 text-sm text-gray-900 border-b border-r border-gray-200 whitespace-nowrap`}>
+                            {renderCell(vendor, column)}
+                        </td>
+                    ))}
+                    
+                    {/* Body: Actions - Right sticky */}
+                    <td className="sticky right-0 z-[40] px-4 py-3 text-sm text-gray-900 bg-white">
+                        <div className="absolute inset-0 bg-white border-b border-l-2 border-gray-200"></div>
+                        <div className="relative z-[31] flex justify-center space-x-2">
+                            <button
+                                onClick={() => handleEditClick(vendor)}
+                                className={`${editingRow === vendor._id ? 'text-green-600 hover:text-green-800' : 'text-blue-600 hover:text-blue-800 cursor-pointer'}`}
+                            >
+                                {editingRow === vendor._id ? (
+                                    <CheckIcon className="w-5 h-5 cursor-pointer" />
+                                ) : (
+                                    <EditIcon className="w-5 h-5" />
+                                )}
+                            </button>
+                            {!editingRow && (
+                                <button
+                                    onClick={() => handleDeleteClick(vendor)}
+                                    className="text-red-600 hover:text-red-800 cursor-pointer"
                                 >
-                                    <div className="absolute inset-0 bg-gray-50 border-b border-r border-gray-200"></div>
-                                    <div className={`relative ${column.field === "vendorNo" ? "z-[50]" : "z-[41]"}`}>
-                                        {column.headerName}
-                                    </div>
-                                </th>
-                            ))}
-                            <th className="sticky right-0 top-0 z-50 w-20 px-4 py-3 text-center text-sm font-semibold text-gray-900 bg-gray-50 border-b border-gray-200">
-                                <div className="absolute inset-0 bg-gray-50 border-b border-l-2 border-gray-200"></div>
-                                <div className="relative z-[51]">Actions</div>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
-                        {sortedData.map((vendor, index) => (
-                            <tr key={vendor._id} className="hover:bg-gray-50">
-                                <td className="sticky left-0 z-30 px-4 py-3 text-sm text-gray-900 bg-white whitespace-nowrap">
-                                    <div className="absolute inset-0 bg-white border-b border-r-2 border-gray-200"></div>
-                                    <div className="relative z-[31]">{index + 1}</div>
-                                </td>
-                                {columns.map(column => (
-                                    <td key={column.field} className={`
-                                    ${column.field === "vendorNo"
-                                            ? "sticky left-[50px] z-[49] bg-white"
-                                            : "sticky"
-                                        }
-                                    px-4 py-3 text-sm text-gray-900 border-b border-r border-gray-200 whitespace-nowrap`}>
-                                        {renderCell(vendor, column)}
-                                    </td>
-                                ))}
-                                <td className="sticky right-0 z-30 px-4 py-3 text-sm text-gray-900 bg-white">
-                                    <div className="absolute inset-0 bg-white border-b border-l-2 border-gray-200"></div>
-                                    <div className="relative z-[31] flex justify-center space-x-2">
-                                        <button
-                                            onClick={() => handleEditClick(vendor)}
-                                            className={`${editingRow === vendor._id ? 'text-green-600 hover:text-green-800' : 'text-blue-600 hover:text-blue-800 cursor-pointer'}`}
-                                        >
-                                            {editingRow === vendor._id ? (
-                                                <CheckIcon className="w-5 h-5 cursor-pointer" />
-                                            ) : (
-                                                <EditIcon className="w-5 h-5" />
-                                            )}
-                                        </button>
-                                        {!editingRow && (
-                                            <button
-                                                onClick={() => handleDeleteClick(vendor)}
-                                                className="text-red-600 hover:text-red-800 cursor-pointer"
-                                            >
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                            </button>
-                                        )}
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            )}
+                        </div>
+                    </td>
+                </tr>
+            ))}
+        </tbody>
+    </table>
+</div>
 
             {/* Add Modal */}
             {showAddModal && (
