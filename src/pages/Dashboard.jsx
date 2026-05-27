@@ -462,27 +462,45 @@ const Dashboard = () => {
       if (aValue === undefined && bValue === undefined) return 0;
       if (aValue === undefined) return 1;
       if (bValue === undefined) return -1;
+      let comparison = 0;
       if (typeof aValue === "number" && typeof bValue === "number") {
-        return sortConfig.direction === "asc"
+        comparison = sortConfig.direction === "asc"
           ? aValue - bValue
           : bValue - aValue;
+      } else {
+        const aDate = new Date(aValue);
+        const bDate = new Date(bValue);
+        if (!isNaN(aDate) && !isNaN(bDate)) {
+          comparison = sortConfig.direction === "asc"
+            ? aDate.getTime() - bDate.getTime()
+            : bDate.getTime() - aDate.getTime();
+        } else {
+          const aString = String(aValue).toLowerCase();
+          const bString = String(bValue).toLowerCase();
+          if (aString < bString) {
+            comparison = sortConfig.direction === "asc" ? -1 : 1;
+          } else if (aString > bString) {
+            comparison = sortConfig.direction === "asc" ? 1 : -1;
+          }
+        }
       }
-      const aDate = new Date(aValue);
-      const bDate = new Date(bValue);
-      if (!isNaN(aDate) && !isNaN(bDate)) {
-        return sortConfig.direction === "asc"
-          ? aDate.getTime() - bDate.getTime()
-          : bDate.getTime() - aDate.getTime();
+
+      if (comparison !== 0) {
+        return comparison;
       }
-      const aString = String(aValue).toLowerCase();
-      const bString = String(bValue).toLowerCase();
-      if (aString < bString) {
-        return sortConfig.direction === "asc" ? -1 : 1;
+
+      // Secondary sort by srNo (ascending)
+      const aSrNo = Number(a.srNo);
+      const bSrNo = Number(b.srNo);
+
+      if (!isNaN(aSrNo) && !isNaN(bSrNo)) {
+        return aSrNo - bSrNo;
       }
-      if (aString > bString) {
-        return sortConfig.direction === "asc" ? 1 : -1;
-      }
-      return 0;
+
+      // Fallback string comparison if srNo is not a valid number
+      const aStr = String(a.srNo || "");
+      const bStr = String(b.srNo || "");
+      return aStr.localeCompare(bStr);
     });
   };
 
@@ -930,7 +948,7 @@ const Dashboard = () => {
   const getRoleSortField = (role) => {
     const sortConfig = {
       site_officer: "taxInvRecdAtSite",
-      qs_site: "qsCOP.dateGiven",
+      qs_site: "qsInspection.dateGiven",
       site_pimo: "pimoMumbai.dateReceived",
       accounts: "accountsDept.dateReceived",
       director: "taxInvRecdAtSite",
@@ -957,7 +975,24 @@ const Dashboard = () => {
 
       const aDate = new Date(aValue || 0);
       const bDate = new Date(bValue || 0);
-      return bDate - aDate;
+      const dateDiff = bDate - aDate;
+
+      if (dateDiff !== 0) {
+        return dateDiff;
+      }
+
+      // Secondary sort by srNo (ascending)
+      const aSrNo = Number(a.srNo);
+      const bSrNo = Number(b.srNo);
+
+      if (!isNaN(aSrNo) && !isNaN(bSrNo)) {
+        return aSrNo - bSrNo;
+      }
+
+      // Fallback string comparison if srNo is not a valid number
+      const aStr = String(a.srNo || "");
+      const bStr = String(b.srNo || "");
+      return aStr.localeCompare(bStr);
     });
   };
 
