@@ -76,7 +76,7 @@ const DataTable = ({
     fileName: null
   });
 
-  if(currentUserRole === "director") {
+  if (currentUserRole === "director") {
     showActions = false;
   }
 
@@ -192,97 +192,97 @@ const DataTable = ({
   }, [filteredData, currentPage, itemsPerPage, onPageChange]);
 
   const getRoleSortColumn = (role) => {
-  const roleColumnMap = {
-    site_officer: "taxInvRecdAtSite",
-    qs_site: "qsInspection.dateGiven",
-    site_pimo: "pimoMumbai.dateReceived",
-    director: "taxInvRecdAtSite",
-    accounts: "accountsDept.dateReceived",
+    const roleColumnMap = {
+      site_officer: "taxInvRecdAtSite",
+      qs_site: "qsInspection.dateGiven",
+      site_pimo: "pimoMumbai.dateReceived",
+      director: "taxInvRecdAtSite",
+      accounts: "accountsDept.dateReceived",
+    };
+    return roleColumnMap[role] || null;
   };
-  return roleColumnMap[role] || null;
-};
 
-useEffect(() => {
-  const roleSortColumn = getRoleSortColumn(currentUserRole);
-  if (roleSortColumn) {
-    setSortConfig({
-      key: roleSortColumn,
-      direction: "desc",
-    });
-  }
-}, [currentUserRole]);
+  useEffect(() => {
+    const roleSortColumn = getRoleSortColumn(currentUserRole);
+    if (roleSortColumn) {
+      setSortConfig({
+        key: roleSortColumn,
+        direction: "desc",
+      });
+    }
+  }, [currentUserRole]);
 
-const sortedData = useMemo(() => {
-  if (!sortConfig.key || !sortConfig.direction) return filteredData;
+  const sortedData = useMemo(() => {
+    if (!sortConfig.key || !sortConfig.direction) return filteredData;
 
-  return [...filteredData].sort((a, b) => {
-    const aValue = getNestedValue(a, sortConfig.key);
-    const bValue = getNestedValue(b, sortConfig.key);
+    return [...filteredData].sort((a, b) => {
+      const aValue = getNestedValue(a, sortConfig.key);
+      const bValue = getNestedValue(b, sortConfig.key);
 
-    if (aValue === undefined && bValue === undefined) return 0;
-    if (aValue === undefined) return 1;
-    if (bValue === undefined) return -1;
+      if (aValue === undefined && bValue === undefined) return 0;
+      if (aValue === undefined) return 1;
+      if (bValue === undefined) return -1;
 
-    let comparison = 0;
+      let comparison = 0;
 
-    if (typeof aValue === "number" && typeof bValue === "number") {
-      comparison =
-        sortConfig.direction === "asc"
-          ? aValue - bValue
-          : bValue - aValue;
-    } else if (aValue instanceof Date && bValue instanceof Date) {
-      comparison =
-        sortConfig.direction === "asc"
-          ? aValue.getTime() - bValue.getTime()
-          : bValue.getTime() - aValue.getTime();
-    } else if (typeof aValue === "string" && typeof bValue === "string") {
-      const aDate = new Date(aValue);
-      const bDate = new Date(bValue);
-      if (!isNaN(aDate) && !isNaN(bDate)) {
+      if (typeof aValue === "number" && typeof bValue === "number") {
         comparison =
           sortConfig.direction === "asc"
-            ? aDate.getTime() - bDate.getTime()
-            : bDate.getTime() - aDate.getTime();
+            ? aValue - bValue
+            : bValue - aValue;
+      } else if (aValue instanceof Date && bValue instanceof Date) {
+        comparison =
+          sortConfig.direction === "asc"
+            ? aValue.getTime() - bValue.getTime()
+            : bValue.getTime() - aValue.getTime();
+      } else if (typeof aValue === "string" && typeof bValue === "string") {
+        const aDate = new Date(aValue);
+        const bDate = new Date(bValue);
+        if (!isNaN(aDate) && !isNaN(bDate)) {
+          comparison =
+            sortConfig.direction === "asc"
+              ? aDate.getTime() - bDate.getTime()
+              : bDate.getTime() - aDate.getTime();
+        } else {
+          const aString = aValue.toLowerCase();
+          const bString = bValue.toLowerCase();
+          if (aString < bString)
+            comparison = sortConfig.direction === "asc" ? -1 : 1;
+          else if (aString > bString)
+            comparison = sortConfig.direction === "asc" ? 1 : -1;
+        }
       } else {
-        const aString = aValue.toLowerCase();
-        const bString = bValue.toLowerCase();
+        const aString = String(aValue).toLowerCase();
+        const bString = String(bValue).toLowerCase();
         if (aString < bString)
           comparison = sortConfig.direction === "asc" ? -1 : 1;
         else if (aString > bString)
           comparison = sortConfig.direction === "asc" ? 1 : -1;
       }
-    } else {
-      const aString = String(aValue).toLowerCase();
-      const bString = String(bValue).toLowerCase();
-      if (aString < bString)
-        comparison = sortConfig.direction === "asc" ? -1 : 1;
-      else if (aString > bString)
-        comparison = sortConfig.direction === "asc" ? 1 : -1;
-    }
 
-    // Tiebreaker with srNo
-    if (
-      comparison === 0 &&
-      sortConfig.key === getRoleSortColumn(currentUserRole)
-    ) {
-      const aSrNo = getNestedValue(a, "srNo");
-      const bSrNo = getNestedValue(b, "srNo");
+      // Tiebreaker with srNo
+      if (
+        comparison === 0 &&
+        sortConfig.key === getRoleSortColumn(currentUserRole)
+      ) {
+        const aSrNo = getNestedValue(a, "srNo");
+        const bSrNo = getNestedValue(b, "srNo");
 
-      if (aSrNo !== undefined && bSrNo !== undefined) {
-        const aSrNoNum =
-          typeof aSrNo === "number" ? aSrNo : parseFloat(aSrNo);
-        const bSrNoNum =
-          typeof bSrNo === "number" ? bSrNo : parseFloat(bSrNo);
+        if (aSrNo !== undefined && bSrNo !== undefined) {
+          const aSrNoNum =
+            typeof aSrNo === "number" ? aSrNo : parseFloat(aSrNo);
+          const bSrNoNum =
+            typeof bSrNo === "number" ? bSrNo : parseFloat(bSrNo);
 
-        if (!isNaN(aSrNoNum) && !isNaN(bSrNoNum)) {
-          comparison = aSrNoNum - bSrNoNum;
+          if (!isNaN(aSrNoNum) && !isNaN(bSrNoNum)) {
+            comparison = aSrNoNum - bSrNoNum;
+          }
         }
       }
-    }
 
-    return comparison;
-  });
-}, [filteredData, sortConfig, currentUserRole]);
+      return comparison;
+    });
+  }, [filteredData, sortConfig, currentUserRole]);
 
   const displayData = useMemo(() => {
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -356,7 +356,7 @@ const sortedData = useMemo(() => {
             : null
         )
         .filter(obj => obj && typeof obj.url === "string" && obj.url.length > 0);
-        console.log(files);
+      console.log(files);
       setAllAttachments(files);
     } else {
       setAllAttachments([]);
@@ -397,17 +397,17 @@ const sortedData = useMemo(() => {
       if (editedFieldsForRow.taxInvNo && !validateTaxInvNo(editedFieldsForRow.taxInvNo)) {
         toast.error("Tax Invoice Number can be max 16 characters");
         return;
-      } 
+      }
 
       let response;
       if (uploadFiles.length > 0) {
         const formData = new FormData();
         const accountsDeptToAppend = editedFieldsForRow['accountsDept.paymentDate']
           ? {
-              ...(row.accountsDept || {}),
-              paymentDate: editedFieldsForRow['accountsDept.paymentDate'],
-              status: 'Paid',
-            }
+            ...(row.accountsDept || {}),
+            paymentDate: editedFieldsForRow['accountsDept.paymentDate'],
+            status: 'Paid',
+          }
           : null;
 
         if (
@@ -417,7 +417,7 @@ const sortedData = useMemo(() => {
           formData.append(
             "pimoMumbai",
             JSON.stringify({
-              ...row.pimoMumbai,  
+              ...row.pimoMumbai,
               dateReceived: new Date().toISOString(),
             })
           );
@@ -517,9 +517,14 @@ const sortedData = useMemo(() => {
       setEditSubmitting(false);
     } else {
       setEditingRow(row._id);
+      // Initialize editedValues with current row data
+      const rowData = {};
+      visibleColumnFields.forEach(field => {
+        rowData[field] = getNestedValue(row, field) || "";
+      });
       setEditedValues((prev) => ({
         ...prev,
-        [row._id]: {},
+        [row._id]: rowData,
       }));
     }
   };
@@ -545,9 +550,9 @@ const sortedData = useMemo(() => {
 
   const handleDeleteConfirm = async () => {
     const { fileKey, billId } = deleteConfirmModal;
-    
+
     console.log('Deleting attachment with:', { fileKey, billId }); // Debug log
-    
+
     try {
       const response = await axios.post(deleteAttachments, {
         billId,
@@ -559,7 +564,7 @@ const sortedData = useMemo(() => {
 
         const updatedAttachments = allAttachments.filter(file => file.url?.split(".com/")[1] !== fileKey);
         setAllAttachments(updatedAttachments);
-        
+
         const rowIndex = data.findIndex(row => row._id === billId);
         if (rowIndex !== -1) {
           onEdit && onEdit();
@@ -894,8 +899,8 @@ const sortedData = useMemo(() => {
                       >
                         <Filter
                           className={`w-4 h-4 ${columnFilters[column.field]?.value?.length > 0
-                              ? "text-blue-500"
-                              : "text-gray-400 hover:text-gray-600"
+                            ? "text-blue-500"
+                            : "text-gray-400 hover:text-gray-600"
                             }`}
                         />
                       </button>
@@ -967,9 +972,9 @@ const sortedData = useMemo(() => {
                       <td
                         key={column.field}
                         className={`${column.field === "srNo" ? "sticky left-10 bg-[#fff] z-20" : ""} whitespace-nowrap px-1.5 py-2.5 text-sm ${column.field.includes("amount") ||
-                            column.field.includes("Amount")
-                            ? "text-right"
-                            : "text-gray-900"
+                          column.field.includes("Amount")
+                          ? "text-right"
+                          : "text-gray-900"
                           }`}
                         style={
                           column.field.includes("status")
