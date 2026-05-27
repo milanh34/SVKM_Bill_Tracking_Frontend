@@ -371,7 +371,6 @@ const Dashboard = () => {
 
       // const filteredBills = filterBillsByRole(billsResponse.data, currentUserRole);
       // const sortedData = sortBillsByRole(filteredBills, currentUserRole);
-      const sortedData = sortBillsByRole(billsResponse.data, currentUserRole);
       const sortedNatureOfWork = natureOfWorksRes.data.sort((a, b) => {
         return String(a.natureOfWork).localeCompare(String(b.natureOfWork), undefined, {sensitivity: 'base'});
       })
@@ -380,7 +379,7 @@ const Dashboard = () => {
         return String(a).localeCompare(String(b), undefined, {sensitivity: 'base'});
       })
 
-      setBillsData(sortedData);
+      setBillsData(billsResponse.data);
       setRegionOptions(sortedRegions || []);
       setNatureOfWorkOptions(sortedNatureOfWork || []);
       setCurrencyOptions(currenciesRes.data || []);
@@ -454,55 +453,6 @@ const Dashboard = () => {
     return value;
   };
 
-  const sortData = (data, sortConfig) => {
-    if (!sortConfig.key || !sortConfig.direction) return data;
-    return [...data].sort((a, b) => {
-      const aValue = getNestedValue(a, sortConfig.key);
-      const bValue = getNestedValue(b, sortConfig.key);
-      if (aValue === undefined && bValue === undefined) return 0;
-      if (aValue === undefined) return 1;
-      if (bValue === undefined) return -1;
-      let comparison = 0;
-      if (typeof aValue === "number" && typeof bValue === "number") {
-        comparison = sortConfig.direction === "asc"
-          ? aValue - bValue
-          : bValue - aValue;
-      } else {
-        const aDate = new Date(aValue);
-        const bDate = new Date(bValue);
-        if (!isNaN(aDate) && !isNaN(bDate)) {
-          comparison = sortConfig.direction === "asc"
-            ? aDate.getTime() - bDate.getTime()
-            : bDate.getTime() - aDate.getTime();
-        } else {
-          const aString = String(aValue).toLowerCase();
-          const bString = String(bValue).toLowerCase();
-          if (aString < bString) {
-            comparison = sortConfig.direction === "asc" ? -1 : 1;
-          } else if (aString > bString) {
-            comparison = sortConfig.direction === "asc" ? 1 : -1;
-          }
-        }
-      }
-
-      if (comparison !== 0) {
-        return comparison;
-      }
-
-      // Secondary sort by srNo (ascending)
-      const aSrNo = Number(a.srNo);
-      const bSrNo = Number(b.srNo);
-
-      if (!isNaN(aSrNo) && !isNaN(bSrNo)) {
-        return aSrNo - bSrNo;
-      }
-
-      // Fallback string comparison if srNo is not a valid number
-      const aStr = String(a.srNo || "");
-      const bStr = String(b.srNo || "");
-      return aStr.localeCompare(bStr);
-    });
-  };
 
   const filteredData = useMemo(() => {
     let result = billsData;
@@ -537,13 +487,11 @@ const Dashboard = () => {
       result = result.filter((row) => selectedRegion.includes(row.region));
     }
     result = result.filter(isWithinDateRange);
-    result = sortData(result, sortConfig);
 
     return result;
   }, [
     billsData,
     selectedRegion,
-    sortConfig,
     isWithinDateRange,
     showIncomingBills,
     currentUserRole,
@@ -945,56 +893,6 @@ const Dashboard = () => {
     };
   };
 
-  const getRoleSortField = (role) => {
-    const sortConfig = {
-      site_officer: "taxInvRecdAtSite",
-      qs_site: "qsInspection.dateGiven",
-      site_pimo: "pimoMumbai.dateReceived",
-      accounts: "accountsDept.dateReceived",
-      director: "taxInvRecdAtSite",
-      admin: "taxInvRecdAtSite"
-    };
-    return sortConfig[role] || "taxInvRecdAtSite";
-  };
-
-
-  const sortBillsByRole = (bills, role) => {
-    const sortField = getRoleSortField(role);
-
-    return bills.sort((a, b) => {
-      let aValue, bValue;
-
-      if (sortField.includes('.')) {
-        const [obj, field] = sortField.split('.');
-        aValue = a[obj]?.[field];
-        bValue = b[obj]?.[field];
-      } else {
-        aValue = a[sortField];
-        bValue = b[sortField];
-      }
-
-      const aDate = new Date(aValue || 0);
-      const bDate = new Date(bValue || 0);
-      const dateDiff = bDate - aDate;
-
-      if (dateDiff !== 0) {
-        return dateDiff;
-      }
-
-      // Secondary sort by srNo (ascending)
-      const aSrNo = Number(a.srNo);
-      const bSrNo = Number(b.srNo);
-
-      if (!isNaN(aSrNo) && !isNaN(bSrNo)) {
-        return aSrNo - bSrNo;
-      }
-
-      // Fallback string comparison if srNo is not a valid number
-      const aStr = String(a.srNo || "");
-      const bStr = String(b.srNo || "");
-      return aStr.localeCompare(bStr);
-    });
-  };
 
 
   return (
