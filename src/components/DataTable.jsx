@@ -340,7 +340,7 @@ const DataTable = ({
     };
     return roleColumnMap[role] || null;
   };
-  
+
   useEffect(() => {
     const roleSortColumn = getRoleSortColumn(currentUserRole);
     if (roleSortColumn) {
@@ -350,20 +350,20 @@ const DataTable = ({
       });
     }
   }, [currentUserRole]);
-  
+
   const sortedData = useMemo(() => {
     if (!sortConfig.key || !sortConfig.direction) return filteredData;
-  
+
     return [...filteredData].sort((a, b) => {
       const aValue = getNestedValue(a, sortConfig.key);
       const bValue = getNestedValue(b, sortConfig.key);
-  
+
       if (aValue === undefined && bValue === undefined) return 0;
       if (aValue === undefined) return 1;
       if (bValue === undefined) return -1;
-  
+
       let comparison = 0;
-  
+
       if (typeof aValue === "number" && typeof bValue === "number") {
         comparison =
           sortConfig.direction === "asc"
@@ -398,7 +398,7 @@ const DataTable = ({
         else if (aString > bString)
           comparison = sortConfig.direction === "asc" ? 1 : -1;
       }
-  
+
       // Tiebreaker with srNo
       if (
         comparison === 0 &&
@@ -406,23 +406,23 @@ const DataTable = ({
       ) {
         const aSrNo = getNestedValue(a, "srNo");
         const bSrNo = getNestedValue(b, "srNo");
-  
+
         if (aSrNo !== undefined && bSrNo !== undefined) {
           const aSrNoNum =
             typeof aSrNo === "number" ? aSrNo : parseFloat(aSrNo);
           const bSrNoNum =
             typeof bSrNo === "number" ? bSrNo : parseFloat(bSrNo);
-  
+
           if (!isNaN(aSrNoNum) && !isNaN(bSrNoNum)) {
             comparison = aSrNoNum - bSrNoNum;
           }
         }
       }
-  
+
       return comparison;
     });
   }, [filteredData, sortConfig, currentUserRole]);
-  
+
 
   // const displayData = useMemo(() => {
   //   const indexOfLastItem = currentPage * itemsPerPage;
@@ -606,9 +606,9 @@ const DataTable = ({
 
   const handleDeleteConfirm = async () => {
     const { fileKey, billId } = deleteConfirmModal;
-    
+
     console.log('Deleting attachment with:', { fileKey, billId }); // Debug log
-    
+
     try {
       const response = await axios.post(deleteAttachments, {
         billId,
@@ -620,7 +620,7 @@ const DataTable = ({
 
         const updatedAttachments = allAttachments.filter(file => file.url?.split(".com/")[1] !== fileKey);
         setAllAttachments(updatedAttachments);
-        
+
         const rowIndex = data.findIndex(row => row._id === billId);
         if (rowIndex !== -1) {
           onEdit && onEdit();
@@ -683,7 +683,7 @@ const DataTable = ({
             : null
         )
         .filter(obj => obj && typeof obj.url === "string" && obj.url.length > 0);
-        console.log(files);
+      console.log(files);
       setAllAttachments(files);
     } else {
       setAllAttachments([]);
@@ -1010,7 +1010,7 @@ const DataTable = ({
     const editableFields = getColumnsForRole(mappedRole).map(
       (col) => col.field
     );
-    
+
     return editableFields || [];
   };
 
@@ -1190,10 +1190,10 @@ const DataTable = ({
         const formData = new FormData();
         const accountsDeptToAppend = editedFieldsForRow['accountsDept.paymentDate']
           ? {
-              ...(row.accountsDept || {}),
-              paymentDate: editedFieldsForRow['accountsDept.paymentDate'],
-              status: 'Paid',
-            }
+            ...(row.accountsDept || {}),
+            paymentDate: editedFieldsForRow['accountsDept.paymentDate'],
+            status: 'Paid',
+          }
           : null;
 
         if (

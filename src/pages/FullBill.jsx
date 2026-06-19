@@ -539,6 +539,7 @@ const FullBillDetails = () => {
         setTimeout(() => {
 
           console.log("nature of work:", billFormData.natureOfWork);
+          console.log("current role: ", currentUserRole);
 
           if (billFormData.natureOfWork === "Direct FI Entry") {
             navigate("/checklist-directFI2", {
@@ -558,7 +559,7 @@ const FullBillDetails = () => {
             });
           }
 
-          else if (currentRole === "site_officer") {
+          else if (currentUserRole === "site_officer") {
             navigate("/checklist-bill-journey", {
               state: {
                 selectedRows: [normalizedBill],
