@@ -59,20 +59,42 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
         // Create worksheet with data
         const excelData = [];
 
+        // Column indices for date and number fields (0-indexed within the data columns)
+        // Columns: Sr.No(0), Region(1), VendorNo(2), VendorName(3), TaxInvNo(4), TaxInvDate(5), TaxInvAmt(6), CopAmt(7), DateRecd(8)
+        const dateColumnIndices = [5, 8]; // "Tax Invoice Date", "Date Received in Accts Dept"
+        const numberColumnIndices = [6, 7]; // "Tax Invoice Amount", "Cop Amount"
+        const numberFormat = '#,##0.00';
+        const dateFormat = 'DD-MM-YYYY';
+
         dataToExport.forEach((item) => {
             if (!item.isSubtotal && !item.isGrandTotal) {
+                // Convert date values with new Date() so Excel recognizes Date type
+                const taxInvDate = item.taxInvDate ? new Date(item.taxInvDate) : "";
+                const dateRecd = item.dateRecdInAcctsDept ? new Date(item.dateRecdInAcctsDept) : "";
+
+                // Convert amount values with Number() so Excel recognizes Number type
+                const taxInvAmt = (item.taxInvAmt !== null && item.taxInvAmt !== undefined && item.taxInvAmt !== "") 
+                    ? Number(String(item.taxInvAmt).replace(/[^\d.-]/g, "")) : 0;
+                const copAmt = (item.copAmt !== null && item.copAmt !== undefined && item.copAmt !== "") 
+                    ? Number(String(item.copAmt).replace(/[^\d.-]/g, "")) : 0;
+
                 excelData.push({
                     "Sr. No": item.srNo,
                     "Region": item.region,
                     "Vendor No.": item.vendorNo,
                     "Vendor Name": item.vendorName,
                     "Tax Invoice No.": item.taxInvNo,
-                    "Tax Invoice Date": item.taxInvDate,
-                    "Tax Invoice Amount": formatCurrency(item.taxInvAmt),
-                    "Cop Amount": formatCurrency(item.copAmt),
-                    "Date Received in Accts Dept": item.dateRecdInAcctsDept
+                    "Tax Invoice Date": (taxInvDate instanceof Date && !isNaN(taxInvDate.getTime())) ? taxInvDate : "",
+                    "Tax Invoice Amount": !isNaN(taxInvAmt) ? taxInvAmt : 0,
+                    "Cop Amount": !isNaN(copAmt) ? copAmt : 0,
+                    "Date Received in Accts Dept": (dateRecd instanceof Date && !isNaN(dateRecd.getTime())) ? dateRecd : ""
                 });
             } else if (item.isSubtotal) {
+                const subtotalAmt = (item.subtotalAmount !== null && item.subtotalAmount !== undefined && item.subtotalAmount !== "") 
+                    ? Number(String(item.subtotalAmount).replace(/[^\d.-]/g, "")) : 0;
+                const subtotalCopAmt = (item.subtotalCopAmt !== null && item.subtotalCopAmt !== undefined && item.subtotalCopAmt !== "") 
+                    ? Number(String(item.subtotalCopAmt).replace(/[^\d.-]/g, "")) : 0;
+
                 excelData.push({
                     "Sr. No": "",
                     "Region": "",
@@ -80,11 +102,16 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                     "Vendor Name": item.vendorName,
                     "Tax Invoice No.": "",
                     "Tax Invoice Date": "",
-                    "Tax Invoice Amount": formatCurrency(item.subtotalAmount),
-                    "Cop Amount": formatCurrency(item.subtotalCopAmt),
+                    "Tax Invoice Amount": !isNaN(subtotalAmt) ? subtotalAmt : 0,
+                    "Cop Amount": !isNaN(subtotalCopAmt) ? subtotalCopAmt : 0,
                     "Date Received in Accts Dept": ""
                 });
             } else if (item.isGrandTotal) {
+                const grandTotalAmt = (item.grandTotalAmount !== null && item.grandTotalAmount !== undefined && item.grandTotalAmount !== "") 
+                    ? Number(String(item.grandTotalAmount).replace(/[^\d.-]/g, "")) : 0;
+                const grandTotalCopAmt = (item.grandTotalCopAmt !== null && item.grandTotalCopAmt !== undefined && item.grandTotalCopAmt !== "") 
+                    ? Number(String(item.grandTotalCopAmt).replace(/[^\d.-]/g, "")) : 0;
+
                 excelData.push({
                     "Sr. No": "",
                     "Region": "",
@@ -92,8 +119,8 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                     "Vendor Name": "",
                     "Tax Invoice No.": "",
                     "Tax Invoice Date": "",
-                    "Tax Invoice Amount": formatCurrency(item.grandTotalAmount),
-                    "Cop Amount": formatCurrency(item.grandTotalCopAmt),
+                    "Tax Invoice Amount": !isNaN(grandTotalAmt) ? grandTotalAmt : 0,
+                    "Cop Amount": !isNaN(grandTotalCopAmt) ? grandTotalCopAmt : 0,
                     "Date Received in Accts Dept": ""
                 });
             }
@@ -104,7 +131,27 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
 
             const worksheet = XLSX.utils.aoa_to_sheet(timestamp);
             worksheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
-            XLSX.utils.sheet_add_json(worksheet, excelData, { origin: 'A2', skipHeader: false });
+            XLSX.utils.sheet_add_json(worksheet, excelData, { origin: 'A2', skipHeader: false, cellDates: true });
+
+            // Apply number and date formatting to data cells
+            const dataRange = XLSX.utils.decode_range(worksheet["!ref"]);
+            for (let row = 2; row <= dataRange.e.r; row++) { // Start from row 2 (after timestamp + header)
+                // Apply date format to date columns
+                dateColumnIndices.forEach((colIndex) => {
+                    const cellAddress = XLSX.utils.encode_cell({ r: row, c: colIndex });
+                    if (worksheet[cellAddress] && worksheet[cellAddress].v instanceof Date) {
+                        worksheet[cellAddress].t = 'd';
+                        worksheet[cellAddress].z = dateFormat;
+                    }
+                });
+                // Apply number format to number columns
+                numberColumnIndices.forEach((colIndex) => {
+                    const cellAddress = XLSX.utils.encode_cell({ r: row, c: colIndex });
+                    if (worksheet[cellAddress] && typeof worksheet[cellAddress].v === 'number') {
+                        worksheet[cellAddress].z = numberFormat;
+                    }
+                });
+            }
 
             // Style the worksheet
             const range = XLSX.utils.decode_range(worksheet["!ref"]);
@@ -226,7 +273,25 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
             const worksheet = XLSX.utils.aoa_to_sheet(timestamp);
             // const worksheet = XLSX.utils.aoa_to_sheet(`Outstanding Bills Report Subtotal as on\t\t${timestamp}`);
             worksheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
-            XLSX.utils.sheet_add_json(worksheet, excelData, { origin: 'A2', skipHeader: false });
+            XLSX.utils.sheet_add_json(worksheet, excelData, { origin: 'A2', skipHeader: false, cellDates: true });
+
+            // Apply number and date formatting to data cells
+            const dataRange2 = XLSX.utils.decode_range(worksheet["!ref"]);
+            for (let row = 2; row <= dataRange2.e.r; row++) {
+                dateColumnIndices.forEach((colIndex) => {
+                    const cellAddress = XLSX.utils.encode_cell({ r: row, c: colIndex });
+                    if (worksheet[cellAddress] && worksheet[cellAddress].v instanceof Date) {
+                        worksheet[cellAddress].t = 'd';
+                        worksheet[cellAddress].z = dateFormat;
+                    }
+                });
+                numberColumnIndices.forEach((colIndex) => {
+                    const cellAddress = XLSX.utils.encode_cell({ r: row, c: colIndex });
+                    if (worksheet[cellAddress] && typeof worksheet[cellAddress].v === 'number') {
+                        worksheet[cellAddress].z = numberFormat;
+                    }
+                });
+            }
 
             // Style the worksheet
             const range = XLSX.utils.decode_range(worksheet["!ref"]);

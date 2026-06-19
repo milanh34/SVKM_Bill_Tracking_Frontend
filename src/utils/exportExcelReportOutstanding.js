@@ -176,17 +176,31 @@ export const handleExportOutstandingBillReports = async (
                             value = rowData[column.field];
                         }
 
-                        if (
+                        // Detect field type by name (same approach as exportExcelDashboard.js)
+                        const isDateField = /date|Date|Dt|dt|Booking|booking|RecdAtSite|receivedBack|invReturnedToSite|returnedToPimo/i.test(column.field);
+                        const isNumberField =
                             column.field.includes("amount") ||
                             column.field.includes("Amount") ||
                             column.field.endsWith("Amt") ||
-                            column.field.endsWith("amt")
-                        ) {
-                            return typeof value === "number" ? value : 0;
+                            column.field.endsWith("amt");
+
+                        if (isDateField) {
+                            // Convert to JS Date so Excel recognizes it as a date type
+                            if (value) {
+                                const d = new Date(value);
+                                return !isNaN(d.getTime()) ? d : "";
+                            }
+                            return "";
+                        } else if (isNumberField) {
+                            // Convert to Number so Excel recognizes it as a number type
+                            if (value === null || value === undefined || value === "") {
+                                return 0;
+                            }
+                            const num = Number(String(value).replace(/[^\d.-]/g, ""));
+                            return !isNaN(num) ? num : 0;
                         }
 
-                        // return value ?? "";
-                        // to not print N/A
+                        // Default: return as string
                         if (value === "N/A" || value === null || value === undefined) {
                             return "";
                         }
@@ -211,6 +225,13 @@ export const handleExportOutstandingBillReports = async (
                         };
                     }
 
+                    // Date field formatting
+                    const isDateField = /date|Date|Dt|dt|Booking|booking|RecdAtSite|receivedBack|invReturnedToSite|returnedToPimo/i.test(colField);
+                    if (isDateField && cell.value instanceof Date) {
+                        cell.numFmt = 'DD-MM-YYYY';
+                    }
+
+                    // Amount field formatting
                     if (
                         colField.includes("amount") ||
                         colField.includes("Amount") ||

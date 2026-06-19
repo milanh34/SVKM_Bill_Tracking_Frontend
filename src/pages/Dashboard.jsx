@@ -247,14 +247,15 @@ const Dashboard = () => {
 
       console.log("THESE ARE ALL BILLS: ", allBills);
 
-      if (currentUserRole === 'accounts') {
-        navigate("/checklist-account2", {
-          state: {
-            selectedRows,
-            bills: billsData.filter((bill) => selectedRows?.includes(bill._id)),
-          },
-        });
-      }
+      // Account dept: open checklist when bill marked as recieved
+      // if (currentUserRole === 'accounts') {
+      //   navigate("/checklist-account2", {
+      //     state: {
+      //       selectedRows,
+      //       bills: billsData.filter((bill) => selectedRows?.includes(bill._id)),
+      //     },
+      //   });
+      // }
 
       await fetchAllData();
       setSelectedRows([]);

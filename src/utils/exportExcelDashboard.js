@@ -88,7 +88,7 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
         console.log(column.field);
 
         // detect by name
-        const isDateField = /date|Date|Dt|Booking|booking|RecdAtSite|receivedBack|invReturnedToSite|returnedToPimo/i.test(column.field);
+        const isDateField = /date|Date|Dt|dt|Booking|booking|RecdAtSite|receivedBack|invReturnedToSite|returnedToPimo/i.test(column.field);
         const isNumberField = numberFields.includes(column.field) ||
           /amount|Amount|Amt|amt|Amt$|amt$/.test(column.field);
 
