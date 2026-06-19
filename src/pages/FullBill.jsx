@@ -524,10 +524,17 @@ const FullBillDetails = () => {
       if (res.status === 200 || res.status === 201) {
         setShowSuccess(true);
 
-        setNatureOfWork(res.data.bill.natureOfWork);
-        console.log("Bill response: ", res.data.bill);
+        const normalizedBill = {
+          ...res.data.bill,
+          currency: typeof res.data.bill.currency === 'object' && res.data.bill.currency !== null ? res.data.bill.currency.currency : res.data.bill.currency,
+          natureOfWork: typeof res.data.bill.natureOfWork === 'object' && res.data.bill.natureOfWork !== null ? res.data.bill.natureOfWork.natureOfWork : res.data.bill.natureOfWork,
+          region: typeof res.data.bill.region === 'object' && res.data.bill.region !== null ? res.data.bill.region.name : res.data.bill.region,
+        };
 
-        setResponseBill(res.data.bill);
+        setNatureOfWork(normalizedBill.natureOfWork);
+        console.log("Bill response: ", normalizedBill);
+
+        setResponseBill(normalizedBill);
 
         setTimeout(() => {
 
@@ -536,8 +543,8 @@ const FullBillDetails = () => {
           if (billFormData.natureOfWork === "Direct FI Entry") {
             navigate("/checklist-directFI2", {
               state: {
-                selectedRows: [res.data.bill],
-                bills: [res.data.bill],
+                selectedRows: [normalizedBill],
+                bills: [normalizedBill],
               },
             });
           }
@@ -545,8 +552,8 @@ const FullBillDetails = () => {
           else if (billFormData.natureOfWork === "Advance/LC/BG") {
             navigate("/checklist-advance2", {
               state: {
-                selectedRows: [res.data.bill],
-                bills: [res.data.bill],
+                selectedRows: [normalizedBill],
+                bills: [normalizedBill],
               },
             });
           }
@@ -554,8 +561,8 @@ const FullBillDetails = () => {
           else if (currentRole === "site_officer") {
             navigate("/checklist-bill-journey", {
               state: {
-                selectedRows: [res.data.bill],
-                bills: [res.data.bill],
+                selectedRows: [normalizedBill],
+                bills: [normalizedBill],
               },
             });
           } else {
