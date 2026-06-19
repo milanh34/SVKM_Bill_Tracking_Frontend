@@ -89,7 +89,7 @@ function App() {
           element={
             <ProtectedRoute
               element={SentBills}
-              allowedRoles={["site_officer", "site_pimo", "director", "accounts"]}
+              allowedRoles={["site_officer", "site_pimo", "director", "accounts", "qs_site"]}
             />
           }
         />

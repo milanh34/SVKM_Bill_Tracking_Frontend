@@ -32,12 +32,12 @@ const SentBills = () => {
   );
   const [visibleColumnFields, setVisibleColumnFields] = useState([]);
   const columnSelectorRef = useRef(null);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
   const [totalFilteredItems, setTotalFilteredItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(30);
   const rowsPerPageOptions = [10, 20, 30, 50, 100];
   const [columnSearchQuery, setColumnSearchQuery] = useState("");
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
 
   // Fetch
   const fetchBills = async () => {
@@ -88,15 +88,6 @@ const SentBills = () => {
       setVisibleColumnFields(columns.slice(0, 12).map((col) => col.field));
     }
   }, [columns]);
-
-  // Sorting
-  const handleSort = (key) => {
-    let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
-  };
 
   // Filtering
   const getFilteredData = () => {
@@ -162,106 +153,9 @@ const SentBills = () => {
     return value;
   };
 
-  const getRoleSortColumn = (role) => {
-      const roleColumnMap = {
-        site_officer: "pimoMumbai.dateGiven",
-        qs_site: "pimoMumbai.dateReturnedFromQs",
-        site_pimo: "accountsDept.dateGiven",
-        director: "accountsDept.paymentDate",
-        accounts: "accountsDept.paymentDate",
-      };
-      return roleColumnMap[role] || null;
-    };
-    
-    useEffect(() => {
-      const roleSortColumn = getRoleSortColumn(currentUserRole);
-      if (roleSortColumn) {
-        setSortConfig({
-          key: roleSortColumn,
-          direction: "desc",
-        });
-      }
-    }, [currentUserRole]);
-
   // Pagination
   const filteredUnpaginatedData = useMemo(() => {
     let data = getFilteredData();
-    // Sorting
-    if (sortConfig.key) {
-      data = [...data].sort((a, b) => {
-      const aValue = getNestedValue(a, sortConfig.key);
-      const bValue = getNestedValue(b, sortConfig.key);
-  
-      if (aValue === undefined && bValue === undefined) return 0;
-      if (aValue === undefined) return 1;
-      if (bValue === undefined) return -1;
-  
-      let comparison = 0;
-  
-      if (typeof aValue === "number" && typeof bValue === "number") {
-        comparison =
-          sortConfig.direction === "asc"
-            ? aValue - bValue
-            : bValue - aValue;
-      } else if (aValue instanceof Date && bValue instanceof Date) {
-        comparison =
-          sortConfig.direction === "asc"
-            ? aValue.getTime() - bValue.getTime()
-            : bValue.getTime() - aValue.getTime();
-      } else if (typeof aValue === "string" && typeof bValue === "string") {
-        const aDate = new Date(aValue);
-        const bDate = new Date(bValue);
-        if (!isNaN(aDate) && !isNaN(bDate)) {
-          comparison =
-            sortConfig.direction === "asc"
-              ? aDate.getTime() - bDate.getTime()
-              : bDate.getTime() - aDate.getTime();
-        } else {
-          const aString = aValue.toLowerCase();
-          const bString = bValue.toLowerCase();
-          if (aString < bString)
-            comparison = sortConfig.direction === "asc" ? -1 : 1;
-          else if (aString > bString)
-            comparison = sortConfig.direction === "asc" ? 1 : -1;
-        }
-      } else {
-        const aString = String(aValue).toLowerCase();
-        const bString = String(bValue).toLowerCase();
-        if (aString < bString)
-          comparison = sortConfig.direction === "asc" ? -1 : 1;
-        else if (aString > bString)
-          comparison = sortConfig.direction === "asc" ? 1 : -1;
-      }
-  
-      // Tiebreaker with srNo
-      if (
-        comparison === 0 &&
-        sortConfig.key === getRoleSortColumn(currentUserRole)
-      ) {
-        const aSrNo = getNestedValue(a, "srNo");
-        const bSrNo = getNestedValue(b, "srNo");
-  
-        if (aSrNo !== undefined && bSrNo !== undefined) {
-          const aSrNoNum =
-            typeof aSrNo === "number" ? aSrNo : parseFloat(aSrNo);
-          const bSrNoNum =
-            typeof bSrNo === "number" ? bSrNo : parseFloat(bSrNo);
-  
-          if (!isNaN(aSrNoNum) && !isNaN(bSrNoNum)) {
-            comparison = aSrNoNum - bSrNoNum;
-          }
-        }
-      }
-  
-      return comparison;
-    });
-    }
-    // setTotalFilteredItems(data.length);
-    // Paginate
-    // return data.slice(
-    //   (currentPage - 1) * itemsPerPage,
-    //   currentPage * itemsPerPage
-    // );
     return data;
   }, [
     billsData,
@@ -270,9 +164,7 @@ const SentBills = () => {
     fromDate,
     toDate,
     selectedDateField,
-    sortConfig,
-    // itemsPerPage,
-    // currentPage,
+    // sortConfig, // removed since backend handles it
   ]);
   // Update totalFilteredItems when filteredUnpaginatedData changes
   useEffect(() => {
@@ -445,9 +337,9 @@ const SentBills = () => {
     totalItems: totalFilteredItems,
     selectAll: selectAll,
     onSelectAll: handleSelectAll,
-    sortConfig: sortConfig,
-    setSortConfig: setSortConfig,
-    onSort: handleSort,
+    sortConfig: { key: null, direction: null },
+    setSortConfig: () => {},
+    onSort: () => {},
     currentPage: currentPage,
     itemsPerPage: itemsPerPage,
     onPaginatedDataChange: undefined,
@@ -650,7 +542,7 @@ const SentBills = () => {
                         toast.error("Please select bills to reject payment");
                         return;
                       }
-                      handlePaymentReject();
+                      setIsRejectModalOpen(true);
                     }}
                     title={
                       selectedRows.length === 0
@@ -720,6 +612,41 @@ const SentBills = () => {
           setIsFilterPopupOpen(false);
         }}
       />
+
+      {isRejectModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl transform transition-all">
+            <div className="flex items-start space-x-3 mb-4">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mt-1">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">Reject Payment</h3>
+                <p className="text-sm text-gray-500 mt-2">
+                  Are you sure you want to reject payment for the selected <span className="font-semibold">{selectedRows.length}</span> bill(s)? <br/> This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none transition-colors"
+                onClick={() => setIsRejectModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none transition-colors"
+                onClick={() => {
+                  handlePaymentReject();
+                  setIsRejectModalOpen(false);
+                }}
+              >
+                Confirm Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

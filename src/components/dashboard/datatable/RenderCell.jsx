@@ -408,7 +408,7 @@ export function RenderCell({
           <option value="" disabled>
             Select Site Status
           </option>
-          <option value="accept">accept</option>
+          <option value="accept" disabled={currentUserRole === "site_officer"}>accept</option>
           <option value="reject">reject invoice</option>
           <option value="proforma">proforma invoice</option>
           <option value="hold">hold</option>
