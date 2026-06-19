@@ -391,7 +391,7 @@ const VendorTable = () => {
         // if(selectedRows.length === 0){
         //     setSelectedRows(bills.map(bill => bill.srNo));
         // }
-        const titleName = 'Vendor Master';
+        const titleName = 'VendorMaster';
         const result = await handleExportVendorMaster(vendorData.map(vendorData => vendorData.vendorNo), vendorData, columns, visibleColumnFields, titleName, false);
         console.log("Result = " + result.message);
     }
