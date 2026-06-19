@@ -46,6 +46,7 @@ const FullBillDetails = () => {
     currency: "INR",
     department: "",
     remarks: "",
+    remarksBySiteTeam: "",
     attachment: "",
     natureOfWork: "",
     vendor: null,
@@ -598,6 +599,7 @@ const FullBillDetails = () => {
       currency: "INR",
       department: "",
       remarks: "",
+      remarksBySiteTeam: "",
       attachment: "",
       natureOfWork: "",
       advDate: "",
@@ -1143,42 +1145,7 @@ const FullBillDetails = () => {
             />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-[2vw]">
-          <div className="relative mb-[4vh]">
-            <label
-              htmlFor="department"
-              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-            >
-              Additional Info
-            </label>
-            <input
-              type="text"
-              className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-              id="department"
-              value={billFormData.department}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-[2vw]">
-          <div className="relative mb-[2.5vh]">
-            <label
-              htmlFor="remarks"
-              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-            >
-              Remarks by Site Team
-            </label>
-            <input
-              type="text"
-              className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-              id="remarks"
-              value={billFormData.remarks}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        </div>
+
         {/* File Upload Section */}
         {/* <div className="border border-dashed border-[#ccc] p-[2vh_2vw] text-center rounded-[0.5vw] mt-[2vh] w-[57vw] h-[45vh] relative">
           <label
@@ -1293,6 +1260,41 @@ const FullBillDetails = () => {
                 required
               />
             </div>
+
+            <div className="relative mb-[4vh]">
+              <label
+                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                htmlFor="remarksBySiteTeam"
+              >
+                Remarks
+              </label>
+              <input
+                type="text"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                id="remarksBySiteTeam"
+                value={billFormData.remarksBySiteTeam}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="relative mb-[4vh]">
+              <label
+                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                htmlFor="department"
+              >
+                Additional Info
+              </label>
+              <input
+                type="text"
+                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                id="department"
+                value={billFormData.department}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            
           </div>
         </div>
         <div className="bg-card rounded-lg px-6 py-2 space-y-4 ont-semibold text-[#01073F]">
