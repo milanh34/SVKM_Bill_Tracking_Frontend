@@ -159,6 +159,7 @@ export function RenderCell({
     if (isEditing) {
       return (
         <select
+          autoComplete="off"
           value={editedValue !== undefined ? editedValue : value || "No"}
           onChange={(e) =>
             handleCellEdit(
@@ -184,6 +185,7 @@ export function RenderCell({
     if (column.field === "natureOfWork") {
       return (
         <select
+          autoComplete="off"
           value={editedValue !== undefined ? editedValue : value || ""}
           onChange={(e) =>
             handleCellEdit(column.field, e.target.value, row._id, setEditedValues)
@@ -208,6 +210,7 @@ export function RenderCell({
     if (column.field === "currency") {
       return (
         <select
+          autoComplete="off"
           value={editedValue !== undefined ? editedValue : value || ""}
           onChange={(e) =>
             handleCellEdit(column.field, e.target.value, row._id, setEditedValues)
@@ -365,6 +368,7 @@ export function RenderCell({
     if (column.field === "region") {
       return (
         <select
+          autoComplete="off"
           value={editedValue !== undefined ? editedValue : value || ""}
           onChange={(e) =>
             handleCellEdit(column.field, e.target.value, row._id, setEditedValues)
@@ -391,6 +395,7 @@ export function RenderCell({
     if (column.field === "siteStatus") {
       return (
         <select
+          autoComplete="off"
           value={editedValue !== undefined ? editedValue : value || ""}
           onChange={e =>
             handleCellEdit(column.field, e.target.value, row._id, setEditedValues)
@@ -414,6 +419,7 @@ export function RenderCell({
     if (column.field === "poCreated") {
       return (
         <select
+          autoComplete="off"
           value={editedValue !== undefined ? editedValue : value || ""}
           onChange={e =>
             handleCellEdit(column.field, e.target.value, row._id, setEditedValues)
@@ -445,6 +451,7 @@ export function RenderCell({
         <div className="relative w-full">
           <input
             type="date"
+            autoComplete="off"
             value={formattedDate || ""}
             onChange={(e) =>
               handleCellEdit(
@@ -468,6 +475,7 @@ export function RenderCell({
           type={computedInputType}
           inputMode={computedInputMode}
           pattern={computedPattern}
+          autoComplete="off"
           value={editedValue !== undefined ? editedValue : value || ""}
           onChange={(e) =>
             handleCellEdit(
