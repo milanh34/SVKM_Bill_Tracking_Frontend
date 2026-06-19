@@ -37,6 +37,7 @@ const SentBills = () => {
   const [itemsPerPage, setItemsPerPage] = useState(30);
   const rowsPerPageOptions = [10, 20, 30, 50, 100];
   const [columnSearchQuery, setColumnSearchQuery] = useState("");
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
 
   // Fetch
   const fetchBills = async () => {
@@ -541,7 +542,7 @@ const SentBills = () => {
                         toast.error("Please select bills to reject payment");
                         return;
                       }
-                      handlePaymentReject();
+                      setIsRejectModalOpen(true);
                     }}
                     title={
                       selectedRows.length === 0
@@ -611,6 +612,41 @@ const SentBills = () => {
           setIsFilterPopupOpen(false);
         }}
       />
+
+      {isRejectModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl transform transition-all">
+            <div className="flex items-start space-x-3 mb-4">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mt-1">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">Reject Payment</h3>
+                <p className="text-sm text-gray-500 mt-2">
+                  Are you sure you want to reject payment for the selected <span className="font-semibold">{selectedRows.length}</span> bill(s)? <br/> This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none transition-colors"
+                onClick={() => setIsRejectModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none transition-colors"
+                onClick={() => {
+                  handlePaymentReject();
+                  setIsRejectModalOpen(false);
+                }}
+              >
+                Confirm Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
