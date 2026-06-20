@@ -1,7 +1,8 @@
 import { useState } from "react";
 import cross from "../assets/cross.svg";
 import axios from "axios";
-import { paymentInstructions } from "../apis/bills.api";
+import { paymentInstructions, bills, getFilteredBills } from "../apis/bills.api";
+import Cookies from "js-cookie";
 import { toast } from "react-toastify";
 
 const PaymentModal = ({ closeWindow, selectedBills, billsData, fetchBills }) => {
@@ -29,11 +30,28 @@ const PaymentModal = ({ closeWindow, selectedBills, billsData, fetchBills }) => 
         }
         setLoading(true);
         try {
-            await Promise.all(selectedBills.map(srNo =>
-                axios.patch(`${paymentInstructions}/${srNo}`, {
-                    paymentInstructions: remark
-                })
-            ));
+            const token = Cookies.get("token");
+            const headers = { Authorization: `Bearer ${token}` };
+            
+            // Fetch all bills to get the true database IDs, since the report API doesn't provide them
+            const allBillsRes = await axios.get(getFilteredBills, { headers });
+            const allDbBills = allBillsRes.data;
+
+            // Route the update through the generic bills endpoint instead of the broken payment endpoint
+            await Promise.all(selectedBills.map(async (srNo) => {
+                const dbBill = allDbBills.find(b => String(b.srNo) === String(srNo));
+                
+                if (!dbBill || !dbBill._id) {
+                    throw new Error(`Cannot find ID for bill ${srNo}`);
+                }
+
+                return axios.patch(`${bills}/${dbBill._id}`, {
+                    "accountsDept.paymentInstructions": remark,
+                    "accountsDept.remarksForPayInstructions": remark,
+                    paymentInstructions: remark // Adding flat just in case
+                }, { headers });
+            }));
+
             toast.success(`Remarks saved for ${selectedBills.length} bill(s).`);
             if (fetchBills) await fetchBills();
             setShowLoader(true);

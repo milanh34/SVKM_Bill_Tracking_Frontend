@@ -19,7 +19,7 @@
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "react-dropzone": "^14.3.8",
-    "react-router-dom": "^7.10.1",
+    "react-router-dom": "^7.18.0",
     "react-to-print": "^3.2.0",
     "react-toastify": "^11.0.5",
     "styled-components": "^6.1.19",
