@@ -10,6 +10,47 @@ const formatCurrency = (value) => {
     }).format(value);
 };
 
+/**
+ * Parses a date value (DD-MM-YYYY string, ISO string, or Date object)
+ * and returns a UTC Date object that preserves the original date
+ * without any timezone conversion.
+ */
+const parseDateValue = (value) => {
+    if (!value) return "";
+
+    let day, month, year;
+
+    if (typeof value === 'string') {
+        // Check for DD-MM-YYYY format
+        const ddmmyyyy = value.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+        if (ddmmyyyy) {
+            day = parseInt(ddmmyyyy[1], 10);
+            month = parseInt(ddmmyyyy[2], 10);
+            year = parseInt(ddmmyyyy[3], 10);
+        } else {
+            // ISO string or other parseable date string
+            const d = new Date(value);
+            if (isNaN(d.getTime())) return "";
+            day = d.getDate();
+            month = d.getMonth() + 1;
+            year = d.getFullYear();
+        }
+    } else if (value instanceof Date) {
+        if (isNaN(value.getTime())) return "";
+        day = value.getDate();
+        month = value.getMonth() + 1;
+        year = value.getFullYear();
+    } else {
+        return "";
+    }
+
+    if (!day || !month || !year || month < 1 || month > 12 || day < 1 || day > 31) {
+        return "";
+    }
+
+    return new Date(Date.UTC(year, month - 1, day));
+};
+
 export const handleExportOutstandingSubtotalReport = async (selectedRows, filteredData, columns, visibleColumnFields, toPrint) => {
     const titleName = 'Report Outstanding Subtotal';
     try {
@@ -69,8 +110,8 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
         dataToExport.forEach((item) => {
             if (!item.isSubtotal && !item.isGrandTotal) {
                 // Convert date values with new Date() so Excel recognizes Date type
-                const taxInvDate = item.taxInvDate ? new Date(item.taxInvDate) : "";
-                const dateRecd = item.dateRecdInAcctsDept ? new Date(item.dateRecdInAcctsDept) : "";
+                const taxInvDate = parseDateValue(item.taxInvDate);
+                const dateRecd = parseDateValue(item.dateRecdInAcctsDept);
 
                 // Convert amount values with Number() so Excel recognizes Number type
                 const taxInvAmt = (item.taxInvAmt !== null && item.taxInvAmt !== undefined && item.taxInvAmt !== "") 

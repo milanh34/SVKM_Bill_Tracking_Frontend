@@ -180,6 +180,12 @@ const RepBillOutstanding = () => {
                     setToDate={setToDate}
                 />
 
+                {selectedRows.length > 0 && (
+                    <div className="text-[16px] font-medium text-[#333] mb-[1vh] ml-[0.5vw]">
+                        Selected: {selectedRows.length}
+                    </div>
+                )}
+
                 <div className="overflow-x-auto shadow-md max-h-[85vh] relative border border-black">
                     {loading ? (
                         <p>Loading data...</p>

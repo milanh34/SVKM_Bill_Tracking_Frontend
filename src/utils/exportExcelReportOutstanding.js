@@ -11,6 +11,59 @@ const formatCurrency = (value) => {
     }).format(value);
 };
 
+/**
+ * Parses a date value (DD-MM-YYYY string, ISO string, or Date object)
+ * and returns a UTC Date object that preserves the original date
+ * without any timezone conversion.
+ */
+const parseDateValue = (value) => {
+    if (!value) return "";
+
+    let day, month, year;
+
+    if (typeof value === 'string') {
+        // Check for DD-MM-YYYY format
+        const ddmmyyyy = value.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+        if (ddmmyyyy) {
+            day = parseInt(ddmmyyyy[1], 10);
+            month = parseInt(ddmmyyyy[2], 10);
+            year = parseInt(ddmmyyyy[3], 10);
+        } else {
+            // ISO string or other parseable date string
+            const d = new Date(value);
+            if (isNaN(d.getTime())) return "";
+            // Use local date parts to preserve the intended date (avoids -5:30 shift)
+            day = d.getDate();
+            month = d.getMonth() + 1;
+            year = d.getFullYear();
+        }
+    } else if (value instanceof Date) {
+        if (isNaN(value.getTime())) return "";
+        day = value.getDate();
+        month = value.getMonth() + 1;
+        year = value.getFullYear();
+    } else {
+        return "";
+    }
+
+    if (!day || !month || !year || month < 1 || month > 12 || day < 1 || day > 31) {
+        return "";
+    }
+
+    // Create date using UTC to prevent timezone offset during Excel serial number conversion
+    return new Date(Date.UTC(year, month - 1, day));
+};
+
+/** Formats a date value as DD-MM-YYYY string for display/print */
+const formatDateForDisplay = (value) => {
+    const d = parseDateValue(value);
+    if (d === "" || !(d instanceof Date)) return "";
+    const dd = d.getUTCDate().toString().padStart(2, '0');
+    const mm = (d.getUTCMonth() + 1).toString().padStart(2, '0');
+    const yyyy = d.getUTCFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+};
+
 export const handleExportOutstandingBillReports = async (
     selectedRows,
     filteredData,
@@ -185,12 +238,7 @@ export const handleExportOutstandingBillReports = async (
                             column.field.endsWith("amt");
 
                         if (isDateField) {
-                            // Convert to JS Date so Excel recognizes it as a date type
-                            if (value) {
-                                const d = new Date(value);
-                                return !isNaN(d.getTime()) ? d : "";
-                            }
-                            return "";
+                            return parseDateValue(value);
                         } else if (isNumberField) {
                             // Convert to Number so Excel recognizes it as a number type
                             if (value === null || value === undefined || value === "") {
@@ -527,7 +575,13 @@ export const handleExportOutstandingBillReports = async (
                             }
                         }
 
-                        formattedRow[column.headerName] = (value !== undefined && value !== null && value !== 'N/A') ? value : "";
+                        // Format date fields as DD-MM-YYYY for print display
+                        const isDateField = /date|Date|Dt|dt|Booking|booking|RecdAtSite|receivedBack|invReturnedToSite|returnedToPimo/i.test(column.field);
+                        if (isDateField) {
+                            formattedRow[column.headerName] = formatDateForDisplay(value);
+                        } else {
+                            formattedRow[column.headerName] = (value !== undefined && value !== null && value !== 'N/A') ? value : "";
+                        }
                     });
                 }
 
