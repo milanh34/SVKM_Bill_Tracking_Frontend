@@ -373,11 +373,11 @@ const Dashboard = () => {
       // const filteredBills = filterBillsByRole(billsResponse.data, currentUserRole);
       // const sortedData = sortBillsByRole(filteredBills, currentUserRole);
       const sortedNatureOfWork = natureOfWorksRes.data.sort((a, b) => {
-        return String(a.natureOfWork).localeCompare(String(b.natureOfWork), undefined, {sensitivity: 'base'});
+        return String(a.natureOfWork).localeCompare(String(b.natureOfWork), undefined, { sensitivity: 'base' });
       })
 
       const sortedRegions = userRes.data?.data?.region.sort((a, b) => {
-        return String(a).localeCompare(String(b), undefined, {sensitivity: 'base'});
+        return String(a).localeCompare(String(b), undefined, { sensitivity: 'base' });
       })
 
       setBillsData(billsResponse.data);
@@ -488,6 +488,41 @@ const Dashboard = () => {
       result = result.filter((row) => selectedRegion.includes(row.region));
     }
     result = result.filter(isWithinDateRange);
+
+    // Sort incoming bills by dispatch/given date descending, then srNo descending
+    if (showIncomingBills) {
+      if (currentUserRole === "site_pimo") {
+        result.sort((a, b) => {
+          // Primary: Dt dispatched-PIMO descending (truncated to day)
+          const dateA = a.pimoMumbai?.dateGiven
+            ? new Date(new Date(a.pimoMumbai.dateGiven).setHours(0, 0, 0, 0)).getTime()
+            : 0;
+          const dateB = b.pimoMumbai?.dateGiven
+            ? new Date(new Date(b.pimoMumbai.dateGiven).setHours(0, 0, 0, 0)).getTime()
+            : 0;
+          if (dateB !== dateA) return dateB - dateA;
+          // Secondary: Sr no descending (string compare)
+          const aSrNo = a.srNo ? String(a.srNo) : "";
+          const bSrNo = b.srNo ? String(b.srNo) : "";
+          return bSrNo.localeCompare(aSrNo);
+        });
+      } else if (currentUserRole === "accounts") {
+        result.sort((a, b) => {
+          // Primary: Dt given-Accts descending (truncated to day)
+          const dateA = a.accountsDept?.dateGiven
+            ? new Date(new Date(a.accountsDept.dateGiven).setHours(0, 0, 0, 0)).getTime()
+            : 0;
+          const dateB = b.accountsDept?.dateGiven
+            ? new Date(new Date(b.accountsDept.dateGiven).setHours(0, 0, 0, 0)).getTime()
+            : 0;
+          if (dateB !== dateA) return dateB - dateA;
+          // Secondary: Sr no descending (string compare)
+          const aSrNo = a.srNo ? String(a.srNo) : "";
+          const bSrNo = b.srNo ? String(b.srNo) : "";
+          return bSrNo.localeCompare(aSrNo);
+        });
+      }
+    }
 
     return result;
   }, [
