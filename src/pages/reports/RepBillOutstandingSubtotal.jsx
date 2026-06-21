@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 import { outstanding } from '../../apis/report.api.js';
 import { handleExportOutstandingSubtotalReport } from "../../utils/exportExcelReportOutstandingSubtotal.js";
 import Header from '../../components/Header.jsx';
@@ -29,7 +30,10 @@ const RepBillOutstandingSubtotal = () => {
     const [error, setError] = useState(null);
     const [fromDate, setFromDate] = useState("2025-04-01");
     const [toDate, setToDate] = useState(getFormattedDate());
+    const [regionOptions, setRegionOptions] = useState([]);
+    const [region, setRegion] = useState("all");
     const [selectedRows, setSelectedRows] = useState([]);
+    const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
 
     useEffect(() => {
         const fetchBills = async () => {
@@ -61,6 +65,23 @@ const RepBillOutstandingSubtotal = () => {
         };
         fetchBills();
     }, [fromDate, toDate]);
+
+    useEffect(() => {
+        setRegionOptions(availableRegions);
+        setRegion("all");
+    }, []);
+
+    const visibleBills = billsData.filter((item) => {
+        if (item.isGrandTotal) {
+            return false;
+        }
+
+        if (region !== "all" && region !== "ALL" && item.region !== region) {
+            return false;
+        }
+
+        return true;
+    });
 
     // const handleSelectAll = (e) => {
     //     if (e.target.checked) {
@@ -130,13 +151,13 @@ const RepBillOutstandingSubtotal = () => {
 
     const handleTopDownload = async () => {
         console.log("Subtotal download clicked");
-        const result = await handleExportOutstandingSubtotalReport(billsData.map(bill => bill.srNo), billsData, columns, visibleColumnFields, false);
+        const result = await handleExportOutstandingSubtotalReport(visibleBills.map(bill => bill.srNo), visibleBills, columns, visibleColumnFields, false);
         console.log(result);
     }
 
     const handleTopPrint = async () => {
         console.log("Subtotal print clicked");
-        const result = await handleExportOutstandingSubtotalReport(billsData.map(bill => bill.srNo), billsData, columns, visibleColumnFields, true);
+        const result = await handleExportOutstandingSubtotalReport(visibleBills.map(bill => bill.srNo), visibleBills, columns, visibleColumnFields, true);
         console.log(result);
     }
 
@@ -190,6 +211,9 @@ const RepBillOutstandingSubtotal = () => {
                     setFromDate={setFromDate}
                     toDate={toDate}
                     setToDate={setToDate}
+                    region={region}
+                    setRegion={setRegion}
+                    regionOptions={regionOptions}
                 />
 
                 <div className="overflow-x-auto shadow-md max-h-[85vh] relative border border-black">
@@ -213,7 +237,7 @@ const RepBillOutstandingSubtotal = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {billsData.map((item, index) => (
+                                {visibleBills.map((item, index) => (
                                     item.isSubtotal ? (
                                         <tr key={`subtotal-${index}`} className='bg-[#f8f9fa]'>
                                             <td colSpan={2} className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw]'></td>

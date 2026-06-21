@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 import { outstanding } from '../../apis/report.api';
 import Header from "../../components/Header";
 import Filters from '../../components/Filters';
@@ -28,15 +29,15 @@ const RepBillOutstanding = () => {
     const [selectedRows, setSelectedRows] = useState([]);
     const [fromDate, setFromDate] = useState("2025-04-01");
     const [toDate, setToDate] = useState(getFormattedDate());
+    const [regionOptions] = useState(() => JSON.parse(Cookies.get('availableRegions') || '[]'));
+    const [region, setRegion] = useState("all");
     const [isModalOpen, setIsModalOpen] = useState(false);
     
-    const fetchBills = async () => {
+    const fetchBills = useCallback(async () => {
         try {
             const response = await axios.get(`${outstanding}?startDate=${fromDate}&endDate=${toDate}`);
             console.log(response.data);
-            let count = 0;
             // const filteredData = response?.data?.report.data.map(report => ({
-            //     id: count++,
             //     copAmt: report.copAmt || '',
             //     srNo: report.srNo || '',
             //     region: report.region || '',
@@ -57,19 +58,34 @@ const RepBillOutstanding = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [fromDate, toDate]);
 
     useEffect(() => {
         fetchBills();
-    }, [fromDate, toDate]);
+    }, [fetchBills]);
+
+    const visibleBills = billsData.filter((bill) => {
+        if (bill.isSubtotal || bill.isGrandTotal || !bill.srNo) {
+            return false;
+        }
+
+        if (region !== "all" && region !== "ALL" && bill.region !== region) {
+            return false;
+        }
+
+        return true;
+    });
+
+    useEffect(() => {
+        setSelectedRows([]);
+    }, [region]);
 
     const handleSelectAll = () => {
         const newSelectAll = !selectAll;
         setSelectAll(newSelectAll);
 
-        const filteredBills = billsData.filter(bill => !bill.isSubtotal && bill.srNo);
         if (newSelectAll) {
-            setSelectedRows(filteredBills.map(bill => bill.srNo));
+            setSelectedRows(visibleBills.map(bill => bill.srNo));
         } else {
             setSelectedRows([]);
         }
@@ -82,14 +98,14 @@ const RepBillOutstanding = () => {
 
         setSelectedRows(newSelectedRows);
 
-        const validBills = billsData.filter(bill => !bill.isSubtotal && bill.srNo);
+        const validBills = visibleBills;
         setSelectAll(newSelectedRows.length === validBills.length);
     };
 
     useEffect(() => {
-        const validBills = billsData.filter(bill => !bill.isSubtotal && bill.srNo);
+        const validBills = visibleBills;
         setSelectAll(selectedRows.length === validBills.length && validBills.length > 0);
-    }, [selectedRows, billsData]);
+    }, [selectedRows, visibleBills]);
 
     const handleTopDownload = async () => {
         console.log("Download outstanding bill clicked");
@@ -98,7 +114,8 @@ const RepBillOutstanding = () => {
         //     return;
         // }
         // const result = await handleExportAllReports(selectedRows, billsData.filter(bill => bill.srNo || bill.isGrandTotal), columns, visibleColumnFields, titleName, false);
-        const result = await handleExportOutstandingBillReports(selectedRows, billsData.filter(bill => bill.srNo || bill.isGrandTotal), columns, visibleColumnFields, titleName, false);
+        const rowsToExport = selectedRows.length > 0 ? selectedRows : visibleBills.map((bill) => bill.srNo);
+        const result = await handleExportOutstandingBillReports(rowsToExport, visibleBills, columns, visibleColumnFields, titleName, false);
         console.log(result.message);
     }
 
@@ -108,7 +125,8 @@ const RepBillOutstanding = () => {
         //     toast.error("Select atleast one row to print");
         //     return;
         // }
-        const result = await handleExportOutstandingBillReports(selectedRows, billsData.filter(bill => !bill.isSubtotal && bill.srNo), columns, visibleColumnFields, titleName, true);
+        const rowsToExport = selectedRows.length > 0 ? selectedRows : visibleBills.map((bill) => bill.srNo);
+        const result = await handleExportOutstandingBillReports(rowsToExport, visibleBills, columns, visibleColumnFields, titleName, true);
         console.log(result.message);
     }
 
@@ -137,21 +155,12 @@ const RepBillOutstanding = () => {
         setIsModalOpen(true);
     };
 
-    const isWithinDateRange = (date) => {
-        const from = new Date(fromDate);
-        const to = new Date(toDate);
-        const currentDate = new Date(date);
-        return (!fromDate || currentDate >= from) && (!toDate || currentDate <= to);
-    };
-
-    const uniqueRegions = [...new Set(billsData.map(bill => bill.region))];
-
     return (
         <div className='mb-[12vh]'>
             <Header />
             <ReportBtns />
 
-            <div className="p-[2vh_2vw] mx-auto font-sans h-[100vh] bg-white text-black">
+            <div className="p-[2vh_2vw] mx-auto font-sans h-screen bg-white text-black">
                 <div className="flex justify-between items-center mb-[2vh]">
                     <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Outstanding Bills Report as on</h2>
                     <div className="flex gap-[1vw] w-[50%]">
@@ -178,6 +187,9 @@ const RepBillOutstanding = () => {
                     setFromDate={setFromDate}
                     toDate={toDate}
                     setToDate={setToDate}
+                    region={region}
+                    setRegion={setRegion}
+                    regionOptions={regionOptions}
                 />
 
                 {selectedRows.length > 0 && (
@@ -195,30 +207,28 @@ const RepBillOutstanding = () => {
                         <table className='w-full border-collapse bg-white'>
                             <thead>
                                 <tr>
-                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>
+                                    <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>
                                         <input
                                             type="checkbox"
                                             onChange={handleSelectAll}
                                             checked={selectAll}
                                         />
                                     </th>
-                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Sr No</th>
-                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Region</th>
-                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor No</th>
-                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor Name</th>
-                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv no</th>
-                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Date</th>
-                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Amt</th>
-                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt Recd in Accounts Dept.</th>
-                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>COP Amt</th>
-                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Payment Instructions</th>
-                                    <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Remarks for Payment Instructions</th>
+                                    <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Sr No</th>
+                                    <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Region</th>
+                                    <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor No</th>
+                                    <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor Name</th>
+                                    <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv no</th>
+                                    <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Date</th>
+                                    <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Amt</th>
+                                    <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt Recd in Accounts Dept.</th>
+                                    <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>COP Amt</th>
+                                    <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Payment Instructions</th>
+                                    <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Remarks for Payment Instructions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {billsData
-                                    .filter(bill => !bill.isSubtotal && bill.srNo)
-                                    .map((bill) => (
+                                {visibleBills.map((bill) => (
                                         <tr key={bill.srNo} className="hover:bg-[#f5f5f5]">
                                             <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>
                                                 <input
@@ -268,7 +278,7 @@ const RepBillOutstanding = () => {
             </div>
 
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black/25 backdrop-blur-sm flex justify-center items-center z-[1000]">
+                <div className="fixed inset-0 bg-black/25 backdrop-blur-sm flex justify-center items-center z-1000">
                     <PaymentModal
                         closeWindow={() => setIsModalOpen(false)}
                         selectedBills={selectedRows}

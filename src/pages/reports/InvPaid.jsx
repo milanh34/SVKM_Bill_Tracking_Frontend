@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from '../../components/Header';
 import Filters from "../../components/Filters";
 import ReportBtns from '../../components/ReportBtns';
 import download from "../../assets/download.svg";
-import send from "../../assets/send.svg";
 import print from "../../assets/print.svg";
 import Cookies from "js-cookie";
 import axios from 'axios';
-import { invoicesPaid, invPaid } from '../../apis/report.api';
+import { invPaid } from '../../apis/report.api';
 // import { handleExportRepPaid } from '../../utils/archive/exportExcelReportPaid';
 import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
 
@@ -21,21 +20,14 @@ const InvPaid = () => {
         return `${year}-${month}-${day}`;
     };
 
-    const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
-
     const [fromDate, setFromDate] = useState(getFormattedDate());
     const [toDate, setToDate] = useState(getFormattedDate());
     const [bills, setBills] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [regionOptions, setRegionOptions] = useState([]);
+    const [regionOptions] = useState(() => JSON.parse(Cookies.get('availableRegions') || '[]'));
     const [region, setRegion] = useState("all");
 
-    useEffect(() => {
-        setRegionOptions(availableRegions);
-        setRegion(availableRegions);
-    }, [])
-
-    const fetchBills = async () => {
+    const fetchBills = useCallback(async () => {
         try {
             setLoading(true);
             const params = {
@@ -54,11 +46,11 @@ const InvPaid = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [fromDate, toDate, region]);
 
     useEffect(() => {
         fetchBills();
-    }, [fromDate, toDate, region]);
+    }, [fetchBills]);
 
 
     const handleTopDownload = async () => {
@@ -101,7 +93,7 @@ const InvPaid = () => {
             <Header />
             <ReportBtns />
 
-            <div className="p-[2vh_2vw] mx-auto font-sans h-[100vh] bg-white text-black">
+            <div className="p-[2vh_2vw] mx-auto font-sans h-screen bg-white text-black">
                 <div className="flex justify-between items-center mb-[2vh]">
                     <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Invoices Paid</h2>
                     <div className="flex gap-[1vw] w-[50%]">
@@ -134,16 +126,16 @@ const InvPaid = () => {
                     <table className='w-full border-collapse bg-white'>
                         <thead>
                             <tr>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Sr No</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt recd in Accts Dept</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt of payment</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor No</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor Name</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv No</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Date</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Amt</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>COP Amt</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Payment Amt</th>
+                                <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Sr No</th>
+                                <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt recd in Accts Dept</th>
+                                <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt of payment</th>
+                                <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor No</th>
+                                <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor Name</th>
+                                <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv No</th>
+                                <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Date</th>
+                                <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Amt</th>
+                                <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>COP Amt</th>
+                                <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Payment Amt</th>
                             </tr>
                         </thead>
                         <tbody>
