@@ -209,7 +209,7 @@ function App() {
           element={
             <ProtectedRoute
               element={InvPaid}
-              allowedRoles={["accounts", "admin"]}
+              allowedRoles={["accounts", "admin", "director"]}
             />
           }
         />
