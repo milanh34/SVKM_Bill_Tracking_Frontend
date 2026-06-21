@@ -676,6 +676,7 @@ const Dashboard = () => {
   const showIncomingBillsButton = ["accounts", "site_pimo",].includes(
     currentUserRole
   );
+  const isTrusteeAdvisorDirectorLogin = ["director", "trustee", "advisor"].includes(currentUserRole);
 
   const handlePrint = () => {
     if (selectedRows.length === 0) {
@@ -1081,7 +1082,7 @@ const Dashboard = () => {
                   )}
                 </div>
 
-                {!showIncomingBills && currentUserRole !== "director" && (
+                {!showIncomingBills && isTrusteeAdvisorDirectorLogin && (
                   <button
                     className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors ${showDownloadValidation
                       ? "animate-shake border-2 border-red-500"
@@ -1090,12 +1091,12 @@ const Dashboard = () => {
                     onClick={handleDownloadReport}
                     title={
                       selectedRows.length === 0
-                        ? "Select rows to download"
-                        : "Download Excel Report"
+                        ? "Select rows to export"
+                        : "Export Excel Report"
                     }
                   >
                     <Download className="w-4 h-4" />
-                    <span>Download</span>
+                    <span>Export/Download</span>
                   </button>
                 )}
 
