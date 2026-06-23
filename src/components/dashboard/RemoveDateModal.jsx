@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from "react-toastify";
-import { deleteDate } from "../../apis/bills.api.js";
+import { deleteDate, bills } from "../../apis/bills.api.js";
 import { Trash2 } from "lucide-react";
 
 export const RemoveDateModal = ({
@@ -55,6 +55,20 @@ export const RemoveDateModal = ({
 
   const teamName = teamNameMap[role] || "Site Team";
 
+  // Direct field map: for roles where backend deleteDate may not clear the field,
+  // we send a supplementary PATCH directly to the bills endpoint.
+  const directClearFieldsMap = {
+    // ── Site Team ──
+    qs_measurement:     { "qsInspection.dateGiven": null, "qsInspection.name": null }, // col 35
+    pimo_mumbai:        { "pimoMumbai.dateGiven": null },                               // col 61
+    // ── QS Team ──
+    measure:            { "vendorFinalInv.dateGiven": null, "vendorFinalInv.name": null }, // col 38
+    // ── PIMO Team ──
+    qs_mumbai:          { "qsMumbai.dateGiven": null, "qsMumbai.name": null },          // col 64
+    trustee:            { "approvalDetails.directorApproval.dateGiven": null },          // col 77
+    accounts_department:{ "accountsDept.dateGiven": null, "accountsDept.givenBy": null }, // col 80
+  };
+
   const handleRemoveDateClick = async (selectedRole) => {
     if (!selectedRows || selectedRows.length === 0) {
       toast.error("Please select bills to proceed");
@@ -64,22 +78,31 @@ export const RemoveDateModal = ({
     setLoading(true);
     try {
       const token = Cookies.get("token");
-      
-      // Map the role value to its label using roleLabelMap
-      const sendToLabel = roleLabelMap[selectedRole.value] || selectedRole.label;
+      const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 
+      // Check if this role needs a direct supplementary DB patch
+      const directClearFields = directClearFieldsMap[selectedRole.value];
+
+      if (directClearFields) {
+        // Directly patch the bills using the reliable /bill/:id endpoint
+        await Promise.all(selectedRows.map(async (billId) => {
+          return axios.patch(`${bills}/${billId}`, directClearFields, { headers });
+        }));
+        toast.success("Date removed successfully");
+        await fetchAllData();
+        onClose();
+        return;
+      }
+
+      // For all other roles, use the standard deleteDate endpoint
+      const sendToLabel = roleLabelMap[selectedRole.value] || selectedRole.label;
       const payload = {
         teamName,
         sendTo: sendToLabel,
         billId: selectedRows
       };
 
-      const res = await axios.post(deleteDate, payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
-      });
+      const res = await axios.post(deleteDate, payload, { headers });
 
       if (res.data && res.data.success) {
         toast.success(res.data.message || "Dates removed successfully");

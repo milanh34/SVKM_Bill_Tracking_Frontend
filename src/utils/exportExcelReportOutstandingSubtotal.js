@@ -426,61 +426,70 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                 // Convert Excel to HTML format
                 const htmlOptions = {
                     header: `<html><head><style>
-                    @media print{
-                        table { 
-                            page-break-inside: auto; 
-                        } 
-                        tr {
-                            page-break-inside: avoid; 
-                            page-break-after: auto; 
-                        }
-                        thead { display: table-header-group; }
-                    tfoot { display: table-footer-group; }
-                    .no-break { page-break-inside: avoid; }
-                    .page-break { page-break-before: always; }
-                    .report-header { page-break-after: avoid; }
-                    }
-                    table {
-                        border-collapse: collapse; 
+                      body {
+                        font-family: Arial, sans-serif;
+                        margin: 20px;
+                      }
+                      table {
                         width: 100%;
-                    }
-                    th, td { 
-                        font-size: 10.5px; 
-                        border: 1px solid #ddd; 
-                        padding: 8px; 
-                    } 
-                    th { 
-                        font-size: 14px; 
-                        background-color: #f8f9fa; 
-                        color: black; 
-                    } 
-                    .timestamp { 
+                        border-collapse: collapse;
+                      }
+                      thead {
+                        background-color: #f2f2f2;
+                      }
+                      th {
+                        background-color: #f8f9fa;
+                        color: #000000;
+                        font-size: 14px;
+                        font-weight: bold;
+                        text-align: center;
+                        padding: 8px;
+                        border: 1px solid #ddd;
+                      }
+                      td {
+                        padding: 8px;
+                        font-size: 10.5px;
+                        border: 1px solid #ddd;
+                        text-align: left;
+                      }
+                      .timestamp { 
                         font-weight: bold; 
                         font-style: italic; 
                         padding: 15px; 
                         padding-right: 4px;
-                    } 
-                    .count-row { 
+                      } 
+                      .count-row { 
                         background-color: #F8F9FA; 
                         font-weight: bold; 
-                    } 
-                    .total-row { 
+                      } 
+                      .total-row { 
                         background-color: #E9ECEF; 
                         font-weight: bold;
-                    } 
-                    .report-header { 
+                      } 
+                      .report-header { 
                         background-color: #D3D3D3;
                         margin-bottom: 0px; 
                         display: flex; 
                         justify-content: space-between; 
-                    } 
-                    .report-title {  
+                      } 
+                      .report-title {  
                         font-size: 24px;  
                         font-weight: bold; 
                         text-align: left; 
                         padding: 15px; 
-                    }
-                    
+                      }
+                      /* Add page break control for printing */
+                      @media print {
+                        thead {
+                          display: table-header-group;
+                        }
+                        tfoot {
+                          display: table-footer-group;
+                        }
+                        @page {
+                          margin: 0.5cm;
+                        }
+                      }
                     </style></head><body>`,
                     footer: "</body></html>"
                 };
@@ -493,7 +502,7 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                 const range = XLSX.utils.decode_range(ws["!ref"]);
 
                 // Add timestamp row (if present)
-                let html = `<div></div>`;
+                let html = "";
                 if (ws['A1']) {
                     const timestampValue = ws['A1'].v || '';
                     // html += `<tr><td colspan="${range.e.c + 1}" class="timestamp">Outstanding Bills Report Subtotal as on\t\t${timestampValue}</td></tr>`;
@@ -513,7 +522,7 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                     const cellValue = ws[cellAddress] ? ws[cellAddress].v || '' : '';
                     html += `<th>${cellValue}</th>`;
                 }
-                html += "</tr>";
+                html += "</tr></thead><tbody>";
 
                 // Add data rows
                 for (let row = 2; row <= range.e.r; row++) {
@@ -541,53 +550,31 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                     html += "</tr>";
                 }
 
-                html += "</table>";
+                html += "</tbody></table>";
                 return htmlOptions.header + html + htmlOptions.footer;
             };
 
             // Function to print HTML content
             const printHTMLContent = (htmlContent, filename) => {
-                // Create a hidden iframe
-                const printFrame = document.createElement('iframe');
-                printFrame.style.position = 'fixed';
-                printFrame.style.right = '0';
-                printFrame.style.bottom = '0';
-                printFrame.style.width = '0';
-                printFrame.style.height = '0';
-                printFrame.style.border = '0';
+                // Open a standard print window to avoid 0x0 iframe viewport layout bugs
+                const printWindow = window.open("", "_blank", "width=800,height=600");
+                if (!printWindow) {
+                    alert("Please allow pop-ups to enable printing");
+                    return;
+                }
 
-                document.body.appendChild(printFrame);
+                printWindow.document.open();
+                printWindow.document.write(htmlContent);
+                printWindow.document.close();
 
-                // Once the iframe is loaded, write content and print
-                printFrame.onload = () => {
-                    const frameDoc = printFrame.contentDocument || printFrame.contentWindow.document;
-                    frameDoc.open();
-                    frameDoc.write(htmlContent);
-                    frameDoc.close();
+                // Focus and print
+                printWindow.focus();
+                printWindow.print();
 
-                    // Add a small delay to ensure content is fully rendered
-                    setTimeout(() => {
-                        try {
-                            printFrame.contentWindow.focus();
-                            printFrame.contentWindow.print();
-
-                            // Show confirmation message to user
-                            // alert(`File "${filename}" has been downloaded and sent to printer.`);
-
-                            // Remove the iframe after a delay
-                            setTimeout(() => {
-                                document.body.removeChild(printFrame);
-                            }, 1000);
-                        } catch (err) {
-                            console.error('Print failed:', err);
-                            alert('Printing failed. The file has been downloaded successfully, but you will need to open and print it manually.');
-                            document.body.removeChild(printFrame);
-                        }
-                    }, 500);
+                // Close the window after print dialog is closed
+                printWindow.onafterprint = function () {
+                    printWindow.close();
                 };
-
-                // Set src to trigger onload
-                printFrame.src = 'about:blank';
             };
 
             // Call the function to download and print
