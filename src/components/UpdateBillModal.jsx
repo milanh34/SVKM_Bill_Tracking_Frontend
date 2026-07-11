@@ -59,7 +59,7 @@ export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, f
 
     try {
       const endpoint = patch ? `${patchBills}/?team=${userRole}` : importReport;
-      
+
       const response = await axios.post(
         endpoint,
         formData,
@@ -76,11 +76,11 @@ export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, f
       } else {
         toast.success(patch ? "Bills updated successfully" : "Bills imported successfully");
       }
-      
+
       if (patch) {
         await fetchAllData();
       }
-      
+
       setOpenUpdateBillModal(false);
     } catch (error) {
       console.error(patch ? "Error updating bills:" : "Error importing bills:", error);
@@ -134,11 +134,10 @@ export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, f
           <button
             onClick={handleSubmit}
             disabled={!selectedFile || loading}
-            className={`px-4 py-2 rounded-md text-white ${
-              !selectedFile || loading
+            className={`px-4 py-2 rounded-md text-white ${!selectedFile || loading
                 ? 'bg-blue-300 cursor-not-allowed'
                 : 'bg-blue-600 hover:bg-blue-700 hover:cursor-pointer'
-            }`}
+              }`}
           >
             {loading ? (patch ? "Updating..." : "Importing...") : (patch ? "Update" : "Import")}
           </button>

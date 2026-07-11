@@ -63,107 +63,98 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
             throw new Error("Please select at least one row to download");
         }
 
-        const essentialFields = [
-            // "copAmt",
-            "srNo",
-            "region",
-            "vendorNo",
-            "vendorName",
-            "taxInvNo",
-            "taxInvDate",
-            "taxInvAmt",
-            "copAmt",
-            "dateRecdInAcctsDept"
-        ];
-
-        const essentialColumns = essentialFields
-            .map((field) => columns.find((col) => col.field === field))
-            .filter((col) => col !== undefined);
-
-        // const additionalColumns = columns.filter(
-        //     (col) =>
-        //         visibleColumnFields.includes(col.field) &&
-        //         col.field !== "srNoOld" &&
-        //         !essentialFields.includes(col.field)
-        // );
-
-        // const allColumnsToExport = [...essentialColumns, ...additionalColumns];
-        const allColumnsToExport = [...essentialColumns];
+        const allColumnsToExport = columns.filter((col) => visibleColumnFields.includes(col.field));
         const workbook = XLSX.utils.book_new();
 
         // Create timestamp row
         const now = new Date();
         const timestamp = [
-            [`Report generated on: ${now.toLocaleDateString('en-IN')} ${now.toLocaleTimeString('en-IN')}`]
+            [`Report generated on: ${now.toLocaleDateString('en-IN')}`]
         ];
 
         // Create worksheet with data
         const excelData = [];
 
-        // Column indices for date and number fields (0-indexed within the data columns)
-        // Columns: Sr.No(0), Region(1), VendorNo(2), VendorName(3), TaxInvNo(4), TaxInvDate(5), TaxInvAmt(6), CopAmt(7), DateRecd(8)
-        const dateColumnIndices = [5, 8]; // "Tax Invoice Date", "Date Received in Accts Dept"
-        const numberColumnIndices = [6, 7]; // "Tax Invoice Amount", "Cop Amount"
+        // Dynamically determine date and number column indices based on selected columns
+        const dateColumnIndices = [];
+        const numberColumnIndices = [];
+        allColumnsToExport.forEach((col, idx) => {
+            const isDateField = /date|Date|Dt|dt|Booking|booking|RecdAtSite|receivedBack|invReturnedToSite|returnedToPimo/i.test(col.field);
+            const isNumberField = col.field.includes("amount") || col.field.includes("Amount") || col.field.endsWith("Amt") || col.field.endsWith("amt");
+            if (isDateField) dateColumnIndices.push(idx);
+            if (isNumberField) numberColumnIndices.push(idx);
+        });
         const numberFormat = '#,##0.00';
         const dateFormat = 'DD-MM-YYYY';
 
         dataToExport.forEach((item) => {
             if (!item.isSubtotal && !item.isGrandTotal) {
-                // Convert date values with new Date() so Excel recognizes Date type
-                const taxInvDate = parseDateValue(item.taxInvDate);
-                const dateRecd = parseDateValue(item.dateRecdInAcctsDept);
+                const row = {};
+                allColumnsToExport.forEach((col) => {
+                    let value;
+                    if (col.field.includes(".")) {
+                        const [parentField, childField] = col.field.split(".");
+                        value = item[parentField] ? item[parentField][childField] : "";
+                    } else {
+                        value = item[col.field];
+                    }
 
-                // Convert amount values with Number() so Excel recognizes Number type
-                const taxInvAmt = (item.taxInvAmt !== null && item.taxInvAmt !== undefined && item.taxInvAmt !== "") 
-                    ? Number(String(item.taxInvAmt).replace(/[^\d.-]/g, "")) : 0;
-                const copAmt = (item.copAmt !== null && item.copAmt !== undefined && item.copAmt !== "") 
-                    ? Number(String(item.copAmt).replace(/[^\d.-]/g, "")) : 0;
+                    const isDateField = /date|Date|Dt|dt|Booking|booking|RecdAtSite|receivedBack|invReturnedToSite|returnedToPimo/i.test(col.field);
+                    const isNumberField = col.field.includes("amount") || col.field.includes("Amount") || col.field.endsWith("Amt") || col.field.endsWith("amt");
 
-                excelData.push({
-                    "Sr. No": item.srNo,
-                    "Region": item.region,
-                    "Vendor No.": item.vendorNo,
-                    "Vendor Name": item.vendorName,
-                    "Tax Invoice No.": item.taxInvNo,
-                    "Tax Invoice Date": (taxInvDate instanceof Date && !isNaN(taxInvDate.getTime())) ? taxInvDate : "",
-                    "Tax Invoice Amount": !isNaN(taxInvAmt) ? taxInvAmt : 0,
-                    "Cop Amount": !isNaN(copAmt) ? copAmt : 0,
-                    "Date Received in Accts Dept": (dateRecd instanceof Date && !isNaN(dateRecd.getTime())) ? dateRecd : ""
+                    if (isDateField) {
+                        const d = parseDateValue(value);
+                        row[col.headerName] = (d instanceof Date && !isNaN(d.getTime())) ? d : "";
+                    } else if (isNumberField) {
+                        const num = (value !== null && value !== undefined && value !== "") 
+                            ? Number(String(value).replace(/[^\d.-]/g, "")) : 0;
+                        row[col.headerName] = !isNaN(num) ? num : 0;
+                    } else {
+                        row[col.headerName] = (value !== undefined && value !== null && value !== 'N/A') ? value : "";
+                    }
                 });
+                excelData.push(row);
             } else if (item.isSubtotal) {
-                const subtotalAmt = (item.subtotalAmount !== null && item.subtotalAmount !== undefined && item.subtotalAmount !== "") 
-                    ? Number(String(item.subtotalAmount).replace(/[^\d.-]/g, "")) : 0;
-                const subtotalCopAmt = (item.subtotalCopAmt !== null && item.subtotalCopAmt !== undefined && item.subtotalCopAmt !== "") 
-                    ? Number(String(item.subtotalCopAmt).replace(/[^\d.-]/g, "")) : 0;
-
-                excelData.push({
-                    "Sr. No": "",
-                    "Region": "",
-                    "Vendor No.": `Count: ${item.count}`,
-                    "Vendor Name": item.vendorName,
-                    "Tax Invoice No.": "",
-                    "Tax Invoice Date": "",
-                    "Tax Invoice Amount": !isNaN(subtotalAmt) ? subtotalAmt : 0,
-                    "Cop Amount": !isNaN(subtotalCopAmt) ? subtotalCopAmt : 0,
-                    "Date Received in Accts Dept": ""
+                const row = {};
+                allColumnsToExport.forEach((col) => {
+                    const isNumberField = col.field.includes("amount") || col.field.includes("Amount") || col.field.endsWith("Amt") || col.field.endsWith("amt");
+                    if (col.field === "vendorNo") {
+                        row[col.headerName] = `Count: ${item.count}`;
+                    } else if (col.field === "vendorName") {
+                        row[col.headerName] = item.vendorName;
+                    } else if (isNumberField) {
+                        // Try to get subtotal values
+                        let val = 0;
+                        if (col.field === "taxInvAmt" || col.field === "invoiceAmount") val = item.subtotalAmount || 0;
+                        else if (col.field === "copAmt") val = item.subtotalCopAmt || 0;
+                        else if (col.field === "paymentAmt") val = item.subtotalPaymentAmount || 0;
+                        const num = (val !== null && val !== undefined && val !== "") 
+                            ? Number(String(val).replace(/[^\d.-]/g, "")) : 0;
+                        row[col.headerName] = !isNaN(num) ? num : 0;
+                    } else {
+                        row[col.headerName] = "";
+                    }
                 });
+                excelData.push(row);
             } else if (item.isGrandTotal) {
-                const grandTotalAmt = (item.grandTotalAmount !== null && item.grandTotalAmount !== undefined && item.grandTotalAmount !== "") 
-                    ? Number(String(item.grandTotalAmount).replace(/[^\d.-]/g, "")) : 0;
-                const grandTotalCopAmt = (item.grandTotalCopAmt !== null && item.grandTotalCopAmt !== undefined && item.grandTotalCopAmt !== "") 
-                    ? Number(String(item.grandTotalCopAmt).replace(/[^\d.-]/g, "")) : 0;
-
-                excelData.push({
-                    "Sr. No": "",
-                    "Region": "",
-                    "Vendor No.": `Total Count: ${item.totalCount}`,
-                    "Vendor Name": "",
-                    "Tax Invoice No.": "",
-                    "Tax Invoice Date": "",
-                    "Tax Invoice Amount": !isNaN(grandTotalAmt) ? grandTotalAmt : 0,
-                    "Cop Amount": !isNaN(grandTotalCopAmt) ? grandTotalCopAmt : 0,
-                    "Date Received in Accts Dept": ""
+                const row = {};
+                allColumnsToExport.forEach((col) => {
+                    const isNumberField = col.field.includes("amount") || col.field.includes("Amount") || col.field.endsWith("Amt") || col.field.endsWith("amt");
+                    if (col.field === "vendorNo") {
+                        row[col.headerName] = `Total Count: ${item.totalCount}`;
+                    } else if (isNumberField) {
+                        let val = 0;
+                        if (col.field === "taxInvAmt" || col.field === "invoiceAmount") val = item.grandTotalAmount || 0;
+                        else if (col.field === "copAmt") val = item.grandTotalCopAmt || 0;
+                        else if (col.field === "paymentAmt") val = item.grandTotalPaymentAmount || 0;
+                        const num = (val !== null && val !== undefined && val !== "") 
+                            ? Number(String(val).replace(/[^\d.-]/g, "")) : 0;
+                        row[col.headerName] = !isNaN(num) ? num : 0;
+                    } else {
+                        row[col.headerName] = "";
+                    }
                 });
+                excelData.push(row);
             }
         });
 
@@ -230,10 +221,13 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                 };
             }
 
+            const vendorNoCol = allColumnsToExport.find(c => c.field === "vendorNo");
+            const vendorNoHeader = vendorNoCol ? vendorNoCol.headerName : null;
             excelData.forEach((row, idx) => {
                 if (
-                    typeof row["Vendor No."] === 'string' &&
-                    (row["Vendor No."]?.startsWith("Count:") || row["Vendor No."]?.startsWith("Total Count:"))
+                    vendorNoHeader &&
+                    typeof row[vendorNoHeader] === 'string' &&
+                    (row[vendorNoHeader]?.startsWith("Count:") || row[vendorNoHeader]?.startsWith("Total Count:"))
                 ) {
                     const rowIndex = idx + 2;
                     for (let col = 0; col < Object.keys(row).length; col++) {
@@ -242,7 +236,7 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                         worksheet[cellRef].s = {
                             font: { bold: true },
                             fill: {
-                                fgColor: { rgb: row["Vendor No."].startsWith("Total Count:") ? "E9ECEF" : "F8F9FA" }
+                                fgColor: { rgb: row[vendorNoHeader].startsWith("Total Count:") ? "E9ECEF" : "F8F9FA" }
                             }
                         };
                     }
@@ -374,11 +368,14 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                 };
             }
 
+            const vendorNoCol2 = allColumnsToExport.find(c => c.field === "vendorNo");
+            const vendorNoHeader2 = vendorNoCol2 ? vendorNoCol2.headerName : null;
             excelData.forEach((row, idx) => {
                 console.log(row);
                 if (
-                    typeof row["Vendor No."] === 'string' &&
-                    (row["Vendor No."]?.startsWith("Count:") || row["Vendor No."]?.startsWith("Total Count:"))
+                    vendorNoHeader2 &&
+                    typeof row[vendorNoHeader2] === 'string' &&
+                    (row[vendorNoHeader2]?.startsWith("Count:") || row[vendorNoHeader2]?.startsWith("Total Count:"))
                 ) {
                     const rowIndex = idx + 2;
                     for (let col = 0; col < Object.keys(row).length; col++) {
@@ -387,7 +384,7 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                         worksheet[cellRef].s = {
                             font: { bold: true },
                             fill: {
-                                fgColor: { rgb: row["Vendor No."].startsWith("Total Count:") ? "E9ECEF" : "F8F9FA" }
+                                fgColor: { rgb: row[vendorNoHeader2].startsWith("Total Count:") ? "E9ECEF" : "F8F9FA" }
                             }
                         };
                     }
@@ -508,7 +505,7 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                     // html += `<tr><td colspan="${range.e.c + 1}" class="timestamp">Outstanding Bills Report Subtotal as on\t\t${timestampValue}</td></tr>`;
                     html += `<div class="report-header">
                       <div class="report-title">Outstanding Bills Report Subtotal as on</div>
-                        <div class="timestamp">Report generated on: ${new Date().toLocaleDateString('en-IN')} ${new Date().toLocaleTimeString('en-IN', { hour12: false })}</div>
+                        <div class="timestamp">Report generated on: ${new Date().toLocaleDateString('en-IN')}</div>
                     </div>
                     <table>
                       <thead>
@@ -525,20 +522,21 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                 html += "</tr></thead><tbody>";
 
                 // Add data rows
+                const vendorNoColIdx = allColumnsToExport.findIndex(c => c.field === "vendorNo");
                 for (let row = 2; row <= range.e.r; row++) {
                     // Check if this is a count or total row
                     let rowClass = '';
-                    const firstCellAddress = XLSX.utils.encode_cell({ r: row, c: 2 });
-                    console.log("outside first cel add --> " + ws[firstCellAddress].v)
-                    if (ws[firstCellAddress] &&
-                        typeof ws[firstCellAddress].v === 'string' &&
-                        ws[firstCellAddress].v.startsWith('Count:')) {
-                        rowClass = 'count-row';
-                        console.log("first cel add --> " + ws[firstCellAddress].v)
-                    } else if (ws[firstCellAddress] &&
-                        typeof ws[firstCellAddress].v === 'string' &&
-                        ws[firstCellAddress].v.startsWith('Total Count:')) {
-                        rowClass = 'total-row';
+                    if (vendorNoColIdx >= 0) {
+                        const firstCellAddress = XLSX.utils.encode_cell({ r: row, c: vendorNoColIdx });
+                        if (ws[firstCellAddress] &&
+                            typeof ws[firstCellAddress].v === 'string' &&
+                            ws[firstCellAddress].v.startsWith('Count:')) {
+                            rowClass = 'count-row';
+                        } else if (ws[firstCellAddress] &&
+                            typeof ws[firstCellAddress].v === 'string' &&
+                            ws[firstCellAddress].v.startsWith('Total Count:')) {
+                            rowClass = 'total-row';
+                        }
                     }
 
                     html += `<tr class="${rowClass}">`;

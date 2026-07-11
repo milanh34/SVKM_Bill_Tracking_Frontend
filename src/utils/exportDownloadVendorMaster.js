@@ -28,13 +28,7 @@ export const handleExportVendorMaster = async (
             return { success: false, message: "Select atleast one row to download" };
         }
 
-        const essentialFields = [...visibleColumnFields];
-
-        const essentialColumns = essentialFields
-            .map((field) => columns.find((col) => col.field === field))
-            .filter((col) => col !== undefined);
-
-        const allColumnsToExport = [...essentialColumns];
+        const allColumnsToExport = columns.filter((col) => visibleColumnFields.includes(col.field));
 
         if (!toPrint) {
 
@@ -58,7 +52,7 @@ export const handleExportVendorMaster = async (
             };
 
             const now = new Date();
-            const timestampText = `Report generated on: ${now.toLocaleDateString('en-IN')} ${now.toLocaleTimeString('en-IN', { hour12: false })}`;
+            const timestampText = `Report generated on: ${now.toLocaleDateString('en-IN')}`;
 
             // Add an empty row of correct length
             const rowValues = Array(columnCount).fill("");
@@ -388,7 +382,7 @@ export const handleExportVendorMaster = async (
                   <body>
                     <div class="report-header">
                       <div class="report-title">${titleName}</div>
-                        <div class="timestamp">Report generated on: ${new Date().toLocaleDateString('en-IN')} ${new Date().toLocaleTimeString('en-IN', { hour12: false })}</div>
+                        <div class="timestamp">Report generated on: ${new Date().toLocaleDateString('en-IN')}</div>
                     </div>
                     <table>
                       <thead>

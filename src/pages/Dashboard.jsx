@@ -1117,7 +1117,7 @@ const Dashboard = () => {
                   )}
                 </div>
 
-                {!showIncomingBills && isTrusteeAdvisorDirectorLogin && (
+                {!showIncomingBills && (
                   <button
                     className={`inline-flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors ${showDownloadValidation
                       ? "animate-shake border-2 border-red-500"

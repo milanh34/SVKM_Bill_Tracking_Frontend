@@ -30,39 +30,7 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
       throw new Error("Please select at least one row to download");
     }
 
-    const essentialFields = [
-      "srNo",
-      "natureOfWork",
-      "region",
-      "projectDescription",
-      "vendorNo",
-      "vendorName",
-      "gstNumber",
-      "compliance206AB",
-      "panStatus",
-      "poNo",
-      "poDt",
-      "poAmt",
-      "taxInvNo",
-      "taxInvDt",
-      "currency",
-      "taxInvAmt",
-      "remarksBySiteTeam",
-      "status",
-    ];
-
-    const essentialColumns = essentialFields
-      .map((field) => columns.find((col) => col.field === field))
-      .filter((col) => col !== undefined);
-
-    const additionalColumns = columns.filter(
-      (col) =>
-        visibleColumnFields.includes(col.field) &&
-        col.field !== "srNoOld" &&
-        !essentialFields.includes(col.field)
-    );
-
-    const allColumnsToExport = [...essentialColumns, ...additionalColumns];
+    const allColumnsToExport = columns.filter((col) => visibleColumnFields.includes(col.field));
     const workbook = XLSX.utils.book_new();
 
     // Define which fields should be treated as numbers
@@ -71,7 +39,7 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
     // Create timestamp row
     const now = new Date();
     const timestamp = [
-      [`Report generated on: ${now.toLocaleDateString('en-IN')} ${now.toLocaleTimeString('en-IN')}`]
+      [`Report generated on: ${now.toLocaleDateString('en-IN')}`]
     ];
 
     // Create worksheet with data
