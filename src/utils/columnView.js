@@ -114,6 +114,7 @@ export const getColumnsForRole = (role) => {
   const roleSpecificFields = {
     SITE_OFFICER: [
       "srNo",
+      "createdBy",
       "natureOfWork",
       "region",
       "projectDescription",
@@ -183,6 +184,7 @@ export const getColumnsForRole = (role) => {
 
     QS_TEAM: [
       "srNo",
+      "createdBy",
       "natureOfWork",
       "region",
       "projectDescription",
@@ -230,6 +232,7 @@ export const getColumnsForRole = (role) => {
 
     PIMO_MUMBAI_MIGO_SES: [
       "srNo",
+      "createdBy",
       "natureOfWork",
       "region",
       "projectDescription",
@@ -330,6 +333,7 @@ export const getColumnsForRole = (role) => {
 
     ACCOUNTS_TEAM: [
       "srNo",
+      "createdBy",
       "natureOfWork",
       "region",
       "projectDescription",
@@ -389,6 +393,7 @@ export const getColumnsForRole = (role) => {
 
     DIRECTOR_TRUSTEE_ADVISOR: [
       "srNo",
+      "createdBy",
       "natureOfWork",
       "region",
       "projectDescription",

@@ -52,10 +52,10 @@ const FullBillDetails = () => {
     vendor: null,
     billDate: "",
     amount: "",
-    advDate: "",
-    advAmt: "",
-    advPercent: "",
-    advReqEnteredBy: "",
+    advanceDate: "",
+    advanceAmt: "",
+    advancePercentage: "",
+    advRequestEnteredBy: "",
   });
   const [vendorsData, setVendorsData] = useState([]);
   const [natureOfWorkOptions, setNatureOfWorkOptions] = useState([]);
@@ -137,7 +137,7 @@ const FullBillDetails = () => {
         ]);
 
         const sortedNatureRes = naturesRes.data.sort((a, b) => {
-          return String(a.natureOfWork).localeCompare(String(b.natureOfWork), undefined, {sensitivity: 'base'});
+          return String(a.natureOfWork).localeCompare(String(b.natureOfWork), undefined, { sensitivity: 'base' });
         })
 
         console.log("nature of work: ", naturesRes.data);
@@ -1209,8 +1209,8 @@ const FullBillDetails = () => {
               <input
                 type="date"
                 className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                id="advDate"
-                value={billFormData.advDate}
+                id="advanceDate"
+                value={billFormData.advanceDate}
                 onChange={handleChange}
                 required
               />
@@ -1228,8 +1228,8 @@ const FullBillDetails = () => {
                 inputMode="numeric"
                 pattern="[0-9.]*"
                 className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="advAmt"
-                value={billFormData.advAmt}
+                id="advanceAmt"
+                value={billFormData.advanceAmt}
                 onChange={handleChange}
                 required
               />
@@ -1245,8 +1245,8 @@ const FullBillDetails = () => {
               <input
                 type="text"
                 className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="advPercent"
-                value={billFormData.advPercent}
+                id="advancePercentage"
+                value={billFormData.advancePercentage}
                 onChange={handleChange}
                 required
               />
@@ -1262,8 +1262,8 @@ const FullBillDetails = () => {
               <input
                 type="text"
                 className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="advReqEnteredBy"
-                value={billFormData.advReqEnteredBy}
+                id="advRequestEnteredBy"
+                value={billFormData.advRequestEnteredBy}
                 onChange={handleChange}
                 required
               />
@@ -1302,7 +1302,7 @@ const FullBillDetails = () => {
                 required
               />
             </div>
-            
+
           </div>
         </div>
         <div className="bg-card rounded-lg px-6 py-2 space-y-4 ont-semibold text-[#01073F]">

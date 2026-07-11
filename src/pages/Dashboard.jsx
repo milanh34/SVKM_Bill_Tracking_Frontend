@@ -1414,7 +1414,7 @@ const Dashboard = () => {
         handleSendToRole={handleSendToRole}
         role={currentUserRole}
         handleNotReceiveBills={handleNotReceiveBills}
-        countOfSelectedBills={countOfSelectedBills}
+        countOfSelectedBills={selectedRows.length}
       />
 
       <RemoveDateModal

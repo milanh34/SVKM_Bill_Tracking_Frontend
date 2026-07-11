@@ -125,7 +125,7 @@ const AdvancedChecklist = (props) => {
               <tr>
                 <td>1</td>
                 <td>SAP Code & Vendor Name</td>
-                <td>${item?.vendorNo} ${item?.vendorName}</td>
+                <td>${item?.vendorNo || item?.vendor?.vendorNo || ""} ${item?.vendorName || item?.vendor?.vendorName || ""}</td>
               </tr>
               <tr>
                 <td>2</td>
@@ -168,7 +168,7 @@ const AdvancedChecklist = (props) => {
               <tr>
                 <td>7</td>
                 <td>GST No of Vendor</td>
-                <td>${item?.gstNumber || ""}</td>
+                <td>${item?.gstNumber || item?.vendor?.GSTNumber || ""}</td>
               </tr>
               <tr>
                 <td>8</td>
@@ -178,12 +178,12 @@ const AdvancedChecklist = (props) => {
               <tr>
                 <td>9</td>
                 <td>PAN Status</td>
-                <td>${item?.panStatus || ""}</td>
+                <td>${item?.panStatus || item?.vendor?.PANStatus?.name || item?.vendor?.PANStatus || ""}</td>
               </tr>
               <tr>
                 <td>10</td>
                 <td>Compliance u/s 206 AB</td>
-                <td>${item?.compliance206AB || ""}</td>
+                <td>${item?.compliance206AB || item?.vendor?.complianceStatus?.compliance206AB || item?.vendor?.complianceStatus || ""}</td>
               </tr>
               <tr>
                 <td>11</td>
@@ -348,7 +348,7 @@ const AdvancedChecklist = (props) => {
                         SAP Code & Vendor Name
                       </td>
                       <td className="border border-black p-2">
-                        {item?.vendorNo} &nbsp; {item?.vendorName}
+                        {item?.vendorNo || item?.vendor?.vendorNo} &nbsp; {item?.vendorName || item?.vendor?.vendorName}
                       </td>
                     </tr>
                     <tr>
@@ -418,7 +418,7 @@ const AdvancedChecklist = (props) => {
                         GST No of Vendor
                       </td>
                       <td className="border border-black p-2">
-                        {item?.gstNumber}
+                        {item?.gstNumber || item?.vendor?.GSTNumber}
                       </td>
                     </tr>
                     <tr>
@@ -435,7 +435,7 @@ const AdvancedChecklist = (props) => {
                       <td className="border border-black p-2">9</td>
                       <td className="border border-black p-2">PAN Status</td>
                       <td className="border border-black p-2">
-                        {item?.panStatus}
+                        {item?.panStatus || item?.vendor?.PANStatus?.name || item?.vendor?.PANStatus}
                       </td>
                     </tr>
                     <tr>
@@ -444,7 +444,7 @@ const AdvancedChecklist = (props) => {
                         Compliance u/s 206 AB
                       </td>
                       <td className="border border-black p-2">
-                        {item?.compliance206AB}
+                        {item?.compliance206AB || item?.vendor?.complianceStatus?.compliance206AB || item?.vendor?.complianceStatus}
                       </td>
                     </tr>
                     <tr>

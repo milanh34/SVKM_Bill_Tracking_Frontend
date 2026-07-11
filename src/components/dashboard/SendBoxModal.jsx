@@ -12,11 +12,11 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
 
     const selectedBillDetails = selectedBills.map(billId => {
         const bill = billsData.find(b => b._id === billId);
-        return bill 
-            ? `${bill.srNo} - ${bill.vendorName} (₹${bill.taxInvAmt?.toLocaleString('en-IN', { 
-                minimumFractionDigits: 2, 
-                maximumFractionDigits: 2 
-              })})`
+        return bill
+            ? `${bill.srNo} - ${bill.vendorName} (₹${bill.taxInvAmt?.toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })})`
             : billId;
     });
 
@@ -43,15 +43,15 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
         setLoading(true);
         let toRoleVariable;
         const currentUserRole = Cookies.get("userRole");
-        if(currentUserRole === "site_officer") {
+        if (currentUserRole === "site_officer") {
             toRoleVariable = "site_team";
-        }else if(currentUserRole === "qs_site") {
+        } else if (currentUserRole === "qs_site") {
             toRoleVariable = "qs_team";
-        }else if(currentUserRole === "director") {
+        } else if (currentUserRole === "director") {
             toRoleVariable = "trustee";
-        }else if(currentUserRole === "site_pimo") {
+        } else if (currentUserRole === "site_pimo") {
             toRoleVariable = "pimo_mumbai";
-        } else{
+        } else {
             toRoleVariable = currentUserRole;
         }
         try {
@@ -81,20 +81,20 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
                 const today = new Date().toISOString();
                 const supplementaryFieldsMap = {
                     // ── Site Team ──
-                    migo_entry:         { "migoDetails.name": recipientName },
-                    migo_entry_return:  { "invReturnedToSiteName": recipientName },
+                    migo_entry: { "migoDetails.name": recipientName },
+                    migo_entry_return: { "invReturnedToSiteName": recipientName },
                     // ── QS Team ──
-                    measure:            { "vendorFinalInv.name": recipientName },        // col 39
-                    site_cop:           { "copDetails.nameReturned": recipientName },    // col 44B
-                    pimo_cop:           { "pimoMumbai.nameReturnedFromQs": recipientName }, // col 67
+                    measure: { "vendorFinalInv.name": recipientName },        // col 39
+                    site_cop: { "copDetails.nameReturned": recipientName },    // col 44B
+                    pimo_cop: { "pimoMumbai.nameReturnedFromQs": recipientName }, // col 67
                     // ── PIMO Team ──
-                    qs_mumbai:          { "qsMumbai.name": recipientName },              // col 65
-                    it_team:            { "itDept.name": recipientName },                // col 69
-                    ses_team:           { "sesDetails.name": recipientName },            // col 71
-                    it_return_team:     { "pimoMumbai.nameReceivedFromIT": recipientName },  // col 75A
-                    ses_return_team:    { "pimoMumbai.nameReturnedFromSES": recipientName }, // col 76A
-                    trustee:            { "approvalDetails.directorApproval.dateGiven": today }, // col 77
-                    accounts_department:{ "accountsDept.dateGiven": today, "accountsDept.givenBy": recipientName }, // col 80
+                    qs_mumbai: { "qsMumbai.name": recipientName },              // col 65
+                    it_team: { "itDept.name": recipientName },                // col 69
+                    ses_team: { "sesDetails.name": recipientName },            // col 71
+                    it_return_team: { "pimoMumbai.nameReceivedFromIT": recipientName },  // col 75A
+                    ses_return_team: { "pimoMumbai.nameReturnedFromSES": recipientName }, // col 76A
+                    trustee: { "approvalDetails.directorApproval.dateGiven": today }, // col 77
+                    accounts_department: { "accountsDept.dateGiven": today, "accountsDept.givenBy": recipientName }, // col 80
                 };
 
                 const extraFields = supplementaryFieldsMap[singleRole.value];
@@ -114,7 +114,7 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
             console.error("Error sending bills:", error);
             const errorMessage = error.response?.data?.message || "Failed to send bills. Please try again.";
             toast.error(errorMessage);
-            
+
             if (error.response?.data?.data?.failed?.length > 0) {
                 error.response.data.data.failed.forEach(failure => {
                     toast.error(`Bill ${failure.billId}: ${failure.message}`);
@@ -132,7 +132,7 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
     return (
         <>
             <div className="relative bg-white p-6 rounded-lg w-full max-w-[500px] z-[1001] shadow-xl max-h-[90vh] overflow-y-auto">
-                <button className="absolute top-2 right-2 bg-transparent border-none cursor-pointer p-1 hover:bg-gray-100 rounded-full" 
+                <button className="absolute top-2 right-2 bg-transparent border-none cursor-pointer p-1 hover:bg-gray-100 rounded-full"
                     onClick={closeWindow}
                     disabled={loading}
                 >
@@ -140,7 +140,7 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
                 </button>
 
                 <form className="flex flex-col gap-4 mt-2.5" onSubmit={handleSubmit}>
-                    <p className="flex gap-[10px]"> Sending To: <p style={{fontWeight: '600'}}> {singleRole.label} </p> </p>
+                    <p className="flex gap-[10px]"> Sending To: <p style={{ fontWeight: '600' }}> {singleRole.label} </p> </p>
                     <div className="flex flex-col gap-2">
                         <label className="text-base font-medium text-gray-700">Send To:</label>
                         <input
@@ -154,7 +154,7 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
                     </div>
 
                     <div className="flex flex-col gap-2">
-                        <label className="text-base font-medium text-gray-700">Selected {countOfSelectedBills} Bills:</label>
+                        <label className="text-base font-medium text-gray-700">Selected {selectedBills.length} Bills:</label>
                         <div className="max-h-[200px] overflow-y-auto bg-white border border-gray-300 rounded p-2">
                             {selectedBillDetails.map((bill, index) => (
                                 <div key={index} className="p-2 border-b border-gray-200 text-sm last:border-b-0 text-gray-700 flex justify-between items-center">
@@ -165,12 +165,12 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
                     </div>
 
                     <div className="flex gap-4 justify-end">
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             disabled={loading}
                             className={`px-8 py-2.5 rounded text-base cursor-pointer text-white transition-all duration-200 
-                                ${loading 
-                                    ? 'bg-gray-400 cursor-not-allowed' 
+                                ${loading
+                                    ? 'bg-gray-400 cursor-not-allowed'
                                     : 'bg-[#1a8d1a] hover:bg-[#158515] focus:ring-2 focus:ring-offset-2 focus:ring-[#1a8d1a]'
                                 }`}
                         >
