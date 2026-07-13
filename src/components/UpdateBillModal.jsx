@@ -3,23 +3,29 @@ import { X } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { patchBills, importReport } from "../apis/excel.api";
-import updateBillTemplate from '../assets/updateBill.xlsx?url';
-import importBillTemplate from '../assets/importBill.xlsx?url';
-import Cookies from 'js-cookie';
+import updateBillTemplate from "../assets/updateBill.xlsx?url";
+import importBillTemplate from "../assets/importBill.xlsx?url";
+import Cookies from "js-cookie";
 
-export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, fetchAllData, patch }) => {
+export const UpdateBillModal = ({
+  setOpenUpdateBillModal,
+  loading,
+  setLoading,
+  fetchAllData,
+  patch,
+}) => {
   const [selectedFile, setSelectedFile] = useState(null);
 
   const handleDownloadTemplate = () => {
     const today = new Date();
-    const day = String(today.getDate()).padStart(2, '0');
-    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, "0");
+    const month = String(today.getMonth() + 1).padStart(2, "0");
     const year = today.getFullYear();
     const dateString = `${day}${month}${year}`;
 
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = patch ? updateBillTemplate : importBillTemplate;
-    link.download = patch ? `UpdateBill${dateString}.xlsx` : `ImportBill.xlsx`;
+    link.download = `UpdateBill${dateString}.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -36,7 +42,10 @@ export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, f
     ];
     const allowedExtensions = /\.(xlsx|xls|csv)$/i;
 
-    if (!allowedTypes.includes(file.type) && !allowedExtensions.test(file.name)) {
+    if (
+      !allowedTypes.includes(file.type) &&
+      !allowedExtensions.test(file.name)
+    ) {
       toast.error("Only .xlsx, .xls, .csv files are allowed");
       event.target.value = "";
       return;
@@ -54,27 +63,25 @@ export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, f
     const formData = new FormData();
     formData.append("file", selectedFile);
 
-    const userRole = Cookies.get('userRole');
+    const userRole = Cookies.get("userRole");
     setLoading(true);
 
     try {
       const endpoint = patch ? `${patchBills}/?team=${userRole}` : importReport;
 
-      const response = await axios.post(
-        endpoint,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${Cookies.get('token')}`
-          },
-        }
-      );
+      const response = await axios.post(endpoint, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${Cookies.get("token")}`,
+        },
+      });
 
       if (!patch && response?.status === 202) {
         toast.error("res.message");
       } else {
-        toast.success(patch ? "Bills updated successfully" : "Bills imported successfully");
+        toast.success(
+          patch ? "Bills updated successfully" : "Bills imported successfully",
+        );
       }
 
       if (patch) {
@@ -83,8 +90,14 @@ export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, f
 
       setOpenUpdateBillModal(false);
     } catch (error) {
-      console.error(patch ? "Error updating bills:" : "Error importing bills:", error);
-      toast.error(error.response?.data?.message || (patch ? "Error updating bills" : "Error importing bills"));
+      console.error(
+        patch ? "Error updating bills:" : "Error importing bills:",
+        error,
+      );
+      toast.error(
+        error.response?.data?.message ||
+          (patch ? "Error updating bills" : "Error importing bills"),
+      );
     } finally {
       setLoading(false);
     }
@@ -100,8 +113,12 @@ export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, f
       </button>
 
       <div className="mt-5 text-center">
-        <p className="mb-2 font-semibold">{patch ? "Update Bills" : "Import Bills"}</p>
-        <p className="mb-2">Download the template and fill in the bill details:</p>
+        <p className="mb-2 font-semibold">
+          {patch ? "Update Bills" : "Import Bills"}
+        </p>
+        <p className="mb-2">
+          Download the template and fill in the bill details:
+        </p>
         <button
           onClick={handleDownloadTemplate}
           className="text-blue-600 hover:text-blue-800 underline mb-4 hover:cursor-pointer"
@@ -134,12 +151,19 @@ export const UpdateBillModal = ({ setOpenUpdateBillModal, loading, setLoading, f
           <button
             onClick={handleSubmit}
             disabled={!selectedFile || loading}
-            className={`px-4 py-2 rounded-md text-white ${!selectedFile || loading
-                ? 'bg-blue-300 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700 hover:cursor-pointer'
-              }`}
+            className={`px-4 py-2 rounded-md text-white ${
+              !selectedFile || loading
+                ? "bg-blue-300 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 hover:cursor-pointer"
+            }`}
           >
-            {loading ? (patch ? "Updating..." : "Importing...") : (patch ? "Update" : "Import")}
+            {loading
+              ? patch
+                ? "Updating..."
+                : "Importing..."
+              : patch
+                ? "Update"
+                : "Import"}
           </button>
         </div>
       </div>
