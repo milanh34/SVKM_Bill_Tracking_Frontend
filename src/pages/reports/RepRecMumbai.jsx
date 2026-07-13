@@ -23,8 +23,8 @@ const RepRecMumbai = () => {
     const [bills, setBills] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [fromDate, setFromDate] = useState(getFormattedDate());
-    const [toDate, setToDate] = useState(getFormattedDate());
+    const [fromDate, setFromDate] = useState("");
+    const [toDate, setToDate] = useState("");
 
     useEffect(() => {
         console.log("useEffect in report recd at mumbai");

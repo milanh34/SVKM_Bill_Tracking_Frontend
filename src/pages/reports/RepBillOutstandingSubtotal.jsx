@@ -29,7 +29,7 @@ const RepBillOutstandingSubtotal = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [fromDate, setFromDate] = useState("2025-04-01");
-    const [toDate, setToDate] = useState(getFormattedDate());
+    const [toDate, setToDate] = useState("");
     const [regionOptions, setRegionOptions] = useState([]);
     const [region, setRegion] = useState("all");
     const [selectedRows, setSelectedRows] = useState([]);

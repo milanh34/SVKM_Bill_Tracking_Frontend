@@ -28,7 +28,7 @@ const RepBillOutstanding = () => {
     const [selectAll, setSelectAll] = useState(false);
     const [selectedRows, setSelectedRows] = useState([]);
     const [fromDate, setFromDate] = useState("2025-04-01");
-    const [toDate, setToDate] = useState(getFormattedDate());
+    const [toDate, setToDate] = useState("");
     const [regionOptions] = useState(() => JSON.parse(Cookies.get('availableRegions') || '[]'));
     const [region, setRegion] = useState("all");
     const [isModalOpen, setIsModalOpen] = useState(false);

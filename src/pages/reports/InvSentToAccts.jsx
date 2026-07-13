@@ -23,8 +23,8 @@ const InvSentToAccts = () => {
 
     const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
 
-    const [fromDate, setFromDate] = useState(getFormattedDate());
-    const [toDate, setToDate] = useState(getFormattedDate());
+    const [fromDate, setFromDate] = useState("");
+    const [toDate, setToDate] = useState("");
     const [bills, setBills] = useState([]);
     const [loading, setLoading] = useState(false);
     const [regionOptions, setRegionOptions] = useState([]);

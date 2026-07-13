@@ -20,8 +20,8 @@ const BillJourney = () => {
         return `${year}-${month}-${day}`;
     };
 
-    const [fromDate, setFromDate] = useState(getFormattedDate());
-    const [toDate, setToDate] = useState(getFormattedDate());
+    const [fromDate, setFromDate] = useState("");
+    const [toDate, setToDate] = useState("");
     const [bills, setBills] = useState([]);
     const [loading, setLoading] = useState(false);
 

@@ -24,8 +24,8 @@ const InvSentToPIMO = () => {
     const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
 
     const [loading, setLoading] = useState(true);
-    const [fromDate, setFromDate] = useState(getFormattedDate());
-    const [toDate, setToDate] = useState(getFormattedDate());
+    const [fromDate, setFromDate] = useState("");
+    const [toDate, setToDate] = useState("");
     const [bills, setBills] = useState([]);
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);

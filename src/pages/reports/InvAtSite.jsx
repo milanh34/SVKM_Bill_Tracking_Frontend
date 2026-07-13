@@ -28,8 +28,8 @@ const InvAtSite = () => {
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [sortBy, setSortBy] = useState("");
-    const [fromDate, setFromDate] = useState(getFormattedDate());
-    const [toDate, setToDate] = useState(getFormattedDate());
+    const [fromDate, setFromDate] = useState("");
+    const [toDate, setToDate] = useState("");
     const [regionOptions, setRegionOptions] = useState([]);
     const [region, setRegion] = useState("all");
 
