@@ -94,7 +94,7 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
                     it_return_team: { "pimoMumbai.nameReceivedFromIT": recipientName },  // col 75A
                     ses_return_team: { "pimoMumbai.nameReturnedFromSES": recipientName }, // col 76A
                     trustee: { "approvalDetails.directorApproval.dateGiven": today }, // col 77
-                    accounts_department: { "accountsDept.dateGiven": today, "accountsDept.givenBy": recipientName }, // col 80
+                    accounts_department: { "accountsDept.dateGiven": today }, // col 80
                 };
 
                 const extraFields = supplementaryFieldsMap[singleRole.value];
