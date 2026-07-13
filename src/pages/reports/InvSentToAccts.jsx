@@ -164,8 +164,8 @@ const InvSentToAccts = () => {
                                     ))}
                             {bills
                                 .filter(bill => bill.isGrandTotal)
-                                .map((bill) => (
-                                    <tr key={bill.totalCount} className='bg-[#f5f5f5] font-semibold'>
+                                .map((bill, index) => (
+                                    <tr key={index} className='bg-[#f5f5f5] font-semibold'>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                             <strong>Count: {bill.count.toLocaleString('en-IN')}</strong>
                                         </td>

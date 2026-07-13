@@ -40,6 +40,14 @@ const InvReturnQsAfterProvCOP = () => {
 
     const fetchBills = async () => {
         try {
+            const params = {
+                startDate: fromDate,
+                endDate: toDate,
+            };
+
+            if (region !== "all" && region != "ALL") {
+                params.region = region;
+            }
             const response = await axios.get(invReturnQsMeasurement, { params });
             console.log(response.data.report);
             setBills(response.data.report.data);
@@ -47,7 +55,7 @@ const InvReturnQsAfterProvCOP = () => {
         }
         catch (err) {
             setError("Failed to load data");
-            console.error("Error = " + error);
+            console.error("Error fetching bills:", err);
         } finally {
             setLoading(false);
         }
@@ -168,8 +176,8 @@ const InvReturnQsAfterProvCOP = () => {
                                     ))}
                             {bills
                                 .filter(bill => bill.isGrandTotal)
-                                .map((bill) => (
-                                    <tr key={bill.totalCount} className='bg-[#f5f5f5] font-semibold'>
+                                .map((bill, index) => (
+                                    <tr key={index} className='bg-[#f5f5f5] font-semibold'>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>
                                             <strong>Total Count: {bill.count.toLocaleString('en-IN')}</strong>
                                         </td>
