@@ -73,6 +73,17 @@ const CurrencyTable = () => {
     // CRUD Operations
     const handleAddSubmit = async (e) => {
         e.preventDefault();
+        
+        const newCurrName = newCurrency.currency.toUpperCase();
+        const isDuplicate = currencyData.some(
+            (item) => item.currency && item.currency.toUpperCase() === newCurrName
+        );
+
+        if (isDuplicate) {
+            toast.error(`${newCurrName} already exist`);
+            return;
+        }
+
         setIsLoading(true);
         try {
             const token = Cookies.get("token");
@@ -85,10 +96,16 @@ const CurrencyTable = () => {
             fetchCurrencies();
             setShowAddModal(false);
             setNewCurrency({ currency: '' });
-            toast.success(`Currency "${newCurrency.currency.toUpperCase()}" added successfully!`);
+            toast.success(`Currency "${newCurrName}" added successfully!`);
         } catch (err) {
             console.error("Add error:", err);
-            toast.error(err.response?.data?.error || 'Failed to add currency');
+            // Fallback for backend duplicate error, though local check handles most cases
+            const errorMsg = err.response?.data?.error?.toLowerCase() || '';
+            if (errorMsg.includes('duplicate') || errorMsg.includes('exist')) {
+                toast.error(`${newCurrName} already exist`);
+            } else {
+                toast.error(err.response?.data?.error || 'Failed to add currency');
+            }
         } finally {
             setIsLoading(false);
         }
