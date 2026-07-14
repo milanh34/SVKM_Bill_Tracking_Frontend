@@ -82,10 +82,11 @@ const InvPaid = () => {
         { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
         { field: "copAmount", headerName: "COP Amount" },
         { field: "payentAmt", headerName: "Payment Amount" },
+        {field: "f110Identification",headerName:"F110"},
     ]
 
     const visibleColumnFields = [
-        "srNo", "dateReceivedAtAccts", "dateOfPayment", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "copAmount", "payentAmt"
+        "srNo", "dateReceivedAtAccts", "dateOfPayment", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "copAmount", "payentAmt","f110Identification"
     ]
 
     return (
@@ -136,12 +137,13 @@ const InvPaid = () => {
                                 <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Tax Inv Amt</th>
                                 <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>COP Amt</th>
                                 <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Payment Amt</th>
+                                <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>F110 Identification</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan="9" className="text-center py-4">Loading...</td>
+                                    <td colSpan="10" className="text-center py-4">Loading...</td>
                                 </tr>
                             )
                                 // : bills.length === 0 ? (
