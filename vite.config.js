@@ -7,6 +7,6 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
-    strictPort: true, // This will prevent it from automatically switching to 5174
+    strictPort: true, // Allows Vite to pick 5174, 5175 etc. if 5173 is in use
   },
 });

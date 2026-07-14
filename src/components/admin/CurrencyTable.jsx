@@ -173,13 +173,14 @@ const CurrencyTable = () => {
                 <input
                     type="text"
                     value={editedValue !== undefined ? editedValue : (value || '')}
-                    onChange={(e) => handleCellEdit(column.field, e.target.value, currency._id)}
+                    onChange={(e) => handleCellEdit(column.field, e.target.value.toUpperCase(), currency._id)}
                     className="w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none"
                 />
             );
         }
 
-        return value || '-';
+        const displayValue = (typeof value === 'string' && column.field === 'currency') ? value.toUpperCase() : value;
+        return displayValue || '-';
     };
 
     const columns = [
@@ -194,7 +195,7 @@ const CurrencyTable = () => {
                     type="text"
                     value={newCurrency.currency}
                     onChange={(e) => setNewCurrency({
-                        currency: e.target.value
+                        currency: e.target.value.toUpperCase()
                     })}
                     className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     required
