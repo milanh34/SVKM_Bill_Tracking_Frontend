@@ -165,6 +165,7 @@ const InvPaid = () => {
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.copAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.payentAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                            <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.f110Identification}</td>
                                         </tr>
                                     ))
                             }
@@ -175,7 +176,7 @@ const InvPaid = () => {
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>
                                             <strong>Total Count: {bill.count.toLocaleString('en-IN')}</strong>
                                         </td>
-                                        <td colSpan={6} className='border border-black'></td>
+                                        <td colSpan={4} className='border border-black'></td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                             <strong>Grand Total: {bill.grandTotalTaxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                         </td>
