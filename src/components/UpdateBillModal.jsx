@@ -16,19 +16,39 @@ export const UpdateBillModal = ({
 }) => {
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const handleDownloadTemplate = () => {
+  const handleDownloadTemplate = async () => {
     const today = new Date();
     const day = String(today.getDate()).padStart(2, "0");
     const month = String(today.getMonth() + 1).padStart(2, "0");
     const year = today.getFullYear();
     const dateString = `${day}${month}${year}`;
 
-    const link = document.createElement("a");
-    link.href = patch ? updateBillTemplate : importBillTemplate;
-    link.download = `UpdateBill${dateString}.xlsx`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const fileUrl = patch ? updateBillTemplate : importBillTemplate;
+    const fileName = `UpdateBill${dateString}.xlsx`;
+
+    try {
+      // 1. Fetch the file data as a Blob
+      const response = await fetch(fileUrl);
+      if (!response.ok) throw new Error("Network response was not ok");
+      const blob = await response.blob();
+
+      // 2. Create a temporary local URL for the Blob
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      // 3. Trigger the download using the local URL
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName; // The browser will now strictly respect this
+      document.body.appendChild(link);
+      link.click();
+
+      // 4. Clean up the DOM and release the memory
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Error downloading template:", error);
+      toast.error("Failed to download template. Please try again.");
+    }
   };
 
   const handleFileSelect = (event) => {
