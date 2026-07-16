@@ -209,35 +209,78 @@ const VendorTable = () => {
         setShowAddModal(true);
     };
 
-    const handleDownloadImportTemplate = () => {
-        const today = new Date();
-        const day = String(today.getDate()).padStart(2, '0');
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const year = today.getFullYear();
-        const dateString = `${day}${month}${year}`;
+const handleDownloadImportTemplate = async () => {
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const year = today.getFullYear();
+    const dateString = `${day}${month}${year}`;
 
+    const fileName = `ImportVendor${dateString}.xlsx`;
+
+    try {
+        const response = await fetch(importVendorTemplate);
+        if (!response.ok) throw new Error("Network response was not ok");
+        const blob = await response.blob();
+
+        const blobUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = importVendorTemplate;
-        link.download = `ImportVendor${dateString}.xlsx`;
+        link.href = blobUrl;
+        link.download = fileName;
         document.body.appendChild(link);
         link.click();
+        
         document.body.removeChild(link);
-    };
+        window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+        console.error("Error downloading template:", error);
+        toast.error("Failed to download template. Please try again.");
+    }
+};
 
-    const handleDownloadUpdateTemplate = () => {
-        const today = new Date();
-        const day = String(today.getDate()).padStart(2, '0');
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const year = today.getFullYear();
-        const dateString = `${day}${month}${year}`;
+    // const handleDownloadUpdateTemplate = () => {
+    //     const today = new Date();
+    //     const day = String(today.getDate()).padStart(2, '0');
+    //     const month = String(today.getMonth() + 1).padStart(2, '0');
+    //     const year = today.getFullYear();
+    //     const dateString = `${day}${month}${year}`;
 
-        const link = document.createElement('a');
-        link.href = updateVendorTemplate;
-        link.download = `UpdateVendor${dateString}.xlsx`;
+    //     const link = document.createElement('a');
+    //     link.href = updateVendorTemplate;
+    //     link.download = `UpdateVendor${dateString}.xlsx`;
+    //     document.body.appendChild(link);
+    //     link.click();
+    //     document.body.removeChild(link);
+    // };
+
+const handleDownloadUpdateTemplate = async () => {
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, "0");
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const year = today.getFullYear();
+    const dateString = `${day}${month}${year}`;
+
+    const fileName = `UpdateVendor${dateString}.xlsx`;
+
+    try {
+        const response = await fetch(updateVendorTemplate);
+        if (!response.ok) throw new Error("Network response was not ok");
+        const blob = await response.blob();
+
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = fileName;
         document.body.appendChild(link);
         link.click();
+
         document.body.removeChild(link);
-    };
+        window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+        console.error("Error downloading template:", error);
+        toast.error("Failed to download template. Please try again.");
+    }
+};
 
     const handleImportFileSelect = (event) => {
         const file = event.target.files[0];
