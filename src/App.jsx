@@ -48,6 +48,9 @@ import RepBillOutstandingSubtotal from "./pages/reports/RepBillOutstandingSubtot
 import InvPaid from "./pages/reports/InvPaid";
 import VendorTable from "./components/admin/VendorTable";
 import VendorTablePage from "./pages/VendorTablePage";
+import BillKidhar from "./pages/reports/BillKidhar";
+import BillJourney from "./pages/reports/BillJourney";
+
 
 function App() {
   return (
@@ -249,11 +252,28 @@ function App() {
           element={
             <ProtectedRoute
               element={ChecklistBillJourney}
-              allowedRoles={["site_officer"]}
+              allowedRoles={["site_officer", "site_pimo", "director", "admin", "accounts"]}
             />
           }
         />
-
+        <Route
+          path="/billkidhar"
+          element={
+            <ProtectedRoute
+              element={BillKidhar}
+              allowedRoles={["site_pimo", "director", "admin", "accounts"]}
+            />
+          }
+        />
+        <Route
+          path="/billjourney"
+          element={
+            <ProtectedRoute
+              element={BillJourney}
+              allowedRoles={["site_pimo", "director", "admin", "accounts"]}
+            />
+          }
+        />
         <Route path="/vendor-master" element={<VendorTablePage />} />
 
         {/* Not being used */}

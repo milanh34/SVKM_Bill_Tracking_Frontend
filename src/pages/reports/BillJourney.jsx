@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import Filters from "../../components/Filters";
 import ReportBtns from '../../components/ReportBtns';
@@ -9,8 +10,12 @@ import axios from 'axios';
 import { billJourney } from '../../apis/report.api';
 // import { handleExportRepBillJourney } from '../../utils/archive/exportExcelReportBillJourney';
 import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
+import ChecklistBillJourney from '../checklists/ChecklistBillJourney';
+import Cookies from "js-cookie";
 
 const BillJourney = () => {
+
+    const navigate = useNavigate();
 
     const getFormattedDate = () => {
         const today = new Date();
@@ -19,28 +24,65 @@ const BillJourney = () => {
         const year = today.getFullYear();
         return `${year}-${month}-${day}`;
     };
-
-    const [fromDate, setFromDate] = useState("");
-    const [toDate, setToDate] = useState("");
+    const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
+    const [fromDate, setFromDate] = useState("2020-01-01");
+    const [toDate, setToDate] = useState(getFormattedDate());
     const [bills, setBills] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [selectedInvoices, setSelectedInvoices] = useState([]);
+    const [vendorName, setVendorName] = useState("");
+    const [taxInvNo, setTaxInvNo] = useState("");
+    const [region, setRegion] = useState("");
+    const [regionOptions, setRegionOptions] = useState([]);
 
-    const fetchBills = async () => {
-        try {
-            setLoading(true);
-            const response = await axios.get(`${billJourney}?startDate=${fromDate}&endDate=${toDate}`);
-            console.log(response);
-            setBills(response.data.report?.data);
-        } catch (error) {
-            console.error('Error fetching bills:', error);
-        } finally {
-            setLoading(false);
+    useEffect(() => {
+        setRegionOptions(availableRegions);
+        setRegion(availableRegions);
+    }, [])
+    useEffect(() => {
+        const fetchBills = async () => {
+            try {
+                const params = {
+                    startDate: fromDate,
+                    endDate: toDate,
+                    vendorName: vendorName,
+                    taxInvNo: taxInvNo
+                };
+                if (region != "all" && region != "ALL") {
+                    params.region = region;
+                }
+                const res = await axios.get(billJourney, { params });
+                console.log(res.data.report);
+                setBills(res.data.report.data);
+            } catch (err) {
+                setError("Failed to load data");
+            } finally {
+                setLoading(false);
+                setSelectedInvoices([]);
+            }
+        };
+        fetchBills();
+    }, [fromDate, toDate, region, vendorName, taxInvNo]);
+
+    const handleSelectAll = (e) => {
+        if (e.target.checked) {
+            setSelectedInvoices(bills.map(b => b.srNo));
+        } else {
+            setSelectedInvoices([]);
         }
     };
 
-    useEffect(() => {
-        fetchBills();
-    }, [fromDate, toDate]);
+    const handleSelectInvoice = (srNo) => {
+        setSelectedInvoices(prev =>
+            prev.includes(srNo) ? prev.filter(id => id !== srNo) : [...prev, srNo]
+        );
+    };
+
+    const handlePrintChecklist = () => {
+        if (selectedInvoices.length === 0) return alert("Please select at least one invoice.");
+        const selectedBillsData = bills.filter(b => selectedInvoices.includes(b.srNo));
+        navigate("/checklist-bill-journey", { state: { selectedRows: selectedInvoices, bills: selectedBillsData } });
+    };
 
     const handleTopDownload = async () => {
         console.log("Rep given to acc dept download clicked");
@@ -65,9 +107,32 @@ const BillJourney = () => {
         { field: "region", headerName: "Region" },
         { field: "projectDescription", headerName: "Project Description" },
         { field: "vendorName", headerName: "Vendor Name" },
-        // { field: "vendorNo", headerName: "Vendor No." },
         { field: "invoiceDate", headerName: "Invoice Date" },
         { field: "invoiceAmount", headerName: "Invoice Amount" },
+        { field: "billReceivedAtSite", headerName: "Bill Received at Site" },
+        { field: "receiptByProjectTeam", headerName: "Receipt By Project Team" },
+        { field: "receivedForPO", headerName: "Received for PO" },
+        { field: "receiptOfPO", headerName: "Receipt of PO" },
+        { field: "billSendForQualityCertification", headerName: "Bill send for Quality Certification" },
+        { field: "billSendToQS", headerName: "Bill send to QS" },
+        { field: "certifiedByQS", headerName: "Certified by QS" },
+        { field: "certifiedByArch", headerName: "Certified by Arch/PMC/SVKM" },
+        { field: "billSendToSiteEngineer", headerName: "Bill send to Site Engineer/ Site Incharge" },
+        { field: "receiptBySiteProjectDirector", headerName: "Receipt By Site Project Director" },
+        { field: "receiptAtMPTP", headerName: "Receipt at MPTP" },
+        { field: "certifiedByLPC", headerName: "Certified by LPC Members" },
+        { field: "migoDateNo", headerName: "MIGO Date / MIGO No." },
+        { field: "billSendToPIMOMumbai", headerName: "Bill Send to PIMO Mumbai" },
+        { field: "billReceivedAtPIMOMumbai", headerName: "Bill Received at PIMO Mumbai" },
+        { field: "billSendToQSCertification", headerName: "Bill Send to QS Certification" },
+        { field: "receivedFromQSWithCOP", headerName: "Received from QS With COP" },
+        { field: "givenToITDept", headerName: "Given to I.T. Dept." },
+        { field: "receivedBackFromITDept", headerName: "Received Back from I.T.Dept." },
+        { field: "sesDateNo", headerName: "SES Date / SES No." },
+        { field: "certifiedByProjectDirector", headerName: "Certified by Project DIRECTOR" },
+        { field: "certifiedByProjectAdvisor", headerName: "Certified by Project ADVISOR" },
+        { field: "certifiedByMCMembers", headerName: "Certified by MC Members" },
+        { field: "submittedToAccountsDepartment", headerName: "Submitted to Accounts Department" },
         { field: "delay_for_receiving_invoice", headerName: "Delay for Receiving Invoice" },
         { field: "no_of_Days_Site", headerName: "No. of Days Site" },
         { field: "no_of_Days_at_Mumbai", headerName: "No. of Days at Mumbai" },
@@ -75,20 +140,20 @@ const BillJourney = () => {
         { field: "days_for_payment", headerName: "Days for Payment" }
     ]
 
-    const visibleColumnFields = [
-        "srNo", "region", "projectDescription", "vendorName", "invoiceDate", "invoiceAmount", "delay_for_receiving_invoice", "no_of_Days_Site", "no_of_Days_at_Mumbai", "no_of_Days_at_AC", "days_for_payment"
-    ]
-
+    const visibleColumnFields = columns.map(col => col.field);
 
     return (
         <div className='mb-[12vh]'>
             <Header />
             <ReportBtns />
-
             <div className="p-[2vh_2vw] mx-auto font-sans h-[100vh] bg-white text-black">
                 <div className="flex justify-between items-center mb-[2vh]">
                     <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Bill Journey Report</h2>
                     <div className="flex gap-[1vw] w-[50%]">
+                        <button className="w-[300px] bg-[#34915C] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#45a049]" onClick={handlePrintChecklist}>
+                            Print Checklist
+                            <img src={print} />
+                        </button>
                         <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]" onClick={handleTopPrint}>
                             Print
                             <img src={print} />
@@ -97,10 +162,6 @@ const BillJourney = () => {
                             Download
                             <img src={download} />
                         </button>
-                        {/* <button className="w-[300px] bg-[#34915C] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#45a049]">
-                            Send to
-                            <img src={send} />
-                        </button> */}
                     </div>
                 </div>
 
@@ -109,47 +170,68 @@ const BillJourney = () => {
                     setFromDate={setFromDate}
                     toDate={toDate}
                     setToDate={setToDate}
+                    vendorName={vendorName}
+                    setVendorName={setVendorName}
+                    taxInvNo={taxInvNo}
+                    setTaxInvNo={setTaxInvNo}
+                    region={region}
+                    setRegion={setRegion}
+                    regionOptions={regionOptions}
+                    setRegionOptions={setRegionOptions}
                 />
 
                 <div className="overflow-x-auto shadow-md max-h-[85vh] relative border border-black">
-                    <table className='w-full border-collapse bg-white'>
+                    <table className='w-full border-collapse bg-white whitespace'>
                         <thead>
                             <tr>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Sr No</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Region</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Project Description</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Vendor Name</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Invoice Date</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Invoice Amount</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Delay for Receiving Invoice</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>No. of Days at Site</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>No. of Days at Mumbai</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>No. of Days at A/c</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Days for Payment</th>
+                                <th className='sticky left-0 top-0 z-[50] w-12 bg-[#f8f9fa] px-1.5 py-2.5 border border-black'>
+                                    <div className="relative z-10 flex flex-col items-center">
+                                        <input
+                                            type="checkbox"
+                                            onChange={handleSelectAll}
+                                            checked={selectedInvoices.length === bills.length && bills.length > 0}
+                                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                        />
+                                        {selectedInvoices.length > 0 && (
+                                            <span className="text-xs text-gray-500 mt-1">
+                                                {selectedInvoices.length}/{bills.length}
+                                            </span>
+                                        )}
+                                    </div>
+                                </th>
+                                {columns.map((col, idx) => (
+                                    <th key={idx} className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>
+                                        {col.headerName}
+                                    </th>
+                                ))}
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan="10" className="text-center py-4">Loading...</td>
+                                    <td colSpan={columns.length} className="text-center py-4">Loading...</td>
                                 </tr>
                             ) : bills.length === 0 ? (
                                 <tr>
-                                    <td colSpan="10" className="text-center py-4">No bills found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
+                                    <td colSpan={columns.length} className="text-center py-4">No bills found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
                                 </tr>
                             ) : bills.map((bill, index) => (
                                 <tr key={index} className="hover:bg-[#f5f5f5]">
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.srNo}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.region}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.projectDescription}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.vendorName}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-left'>{bill.invoiceDate}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.invoiceAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.delay_for_receiving_invoice}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.no_of_Days_Site}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.no_of_Days_at_Mumbai}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.no_of_Days_at_AC}</td>
-                                    <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.days_for_payment}</td>
+                                    <td className={`sticky left-0 z-[20] whitespace-nowrap px-3 py-3 text-center border border-black ${selectedInvoices.includes(bill.srNo) ? 'bg-blue-50' : 'bg-white'}`}>
+                                        <div className="relative z-10">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedInvoices.includes(bill.srNo)}
+                                                onChange={() => handleSelectInvoice(bill.srNo)}
+                                                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                            />
+                                        </div>
+                                    </td>
+                                    {visibleColumnFields.map((field, idx) => (
+                                        <td key={idx} className={`border border-black text-[14px] py-[0.75vh] px-[0.65vw] ${['invoiceAmount', 'delay_for_receiving_invoice', 'no_of_Days_Site', 'no_of_Days_at_Mumbai', 'no_of_Days_at_AC', 'days_for_payment'].includes(field) ? 'text-right' : 'text-left'}`}>
+                                            {field === 'invoiceAmount' ? bill[field]?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : bill[field]}
+                                        </td>
+                                    ))}
                                 </tr>
                             ))}
                         </tbody>

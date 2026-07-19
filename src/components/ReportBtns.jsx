@@ -41,10 +41,10 @@ const ReportBtns = () => {
     const roleAccess = {
         "site_officer": ["invatsite", "invqsmeasurement", "invqsprovcop", "invsentpimo"],
         "qs_site": ["invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invreturnqsmeasurement", "invreturnqsprovcop", "invreturnqsmumbaicop"],
-        "site_pimo": ["invatsite", "invatpimo", "invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invsentpimo", "invsentaccts"],
-        "accounts": ["reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invpaid"],
-        "director": ["invatsite", "invatpimo", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invpaid"],
-        "admin": ["invatsite", "invatpimo", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invsentpimo", "invreturnqsmeasurement", "invreturnqsprovcop", "invreturnqsmumbaicop", "invsentaccts", "invpaid"]
+        "site_pimo": ["invatsite", "invatpimo", "invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invsentpimo", "invsentaccts", "billkidhar", "billjourney"],
+        "accounts": ["reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invpaid", "billkidhar", "billjourney"],
+        "director": ["invatsite", "invatpimo", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invpaid", "billkidhar", "billjourney"],
+        "admin": ["invatsite", "invatpimo", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invsentpimo", "invreturnqsmeasurement", "invreturnqsprovcop", "invreturnqsmumbaicop", "invsentaccts", "invpaid", "billkidhar", "billjourney"]
     };
 
 
@@ -68,6 +68,9 @@ const ReportBtns = () => {
         { id: 'invsentaccts', label: 'Invoices sent to Accounts Team' },
 
         { id: 'invpaid', label: 'Invoices Paid' },
+
+        { id: 'billkidhar', label: 'Bill Kidhar' },
+        { id: 'billjourney', label: 'Bill Journey' }
     ];
 
     // Get allowed buttons for the user role

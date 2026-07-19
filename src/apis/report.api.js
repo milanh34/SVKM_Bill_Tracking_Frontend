@@ -26,3 +26,5 @@ export const invReturnQsProvCop = `${SERVER_API}/api/reports/invoices-returned-b
 export const invReturnQsCop = `${SERVER_API}/api/reports/invoices-returned-by-qsmumbai`
 export const invSentToAccts = `${SERVER_API}/api/reports/invoices-given-to-accounts`
 export const invPaid = `${SERVER_API}/api/reports/invoices-Paid`
+
+export const billKidhar = `${SERVER_API}/api/reports/bill-kidhar`

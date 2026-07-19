@@ -144,9 +144,8 @@ const ChecklistBillJourney = () => {
           <div class="content-row">
             <img src="${logo}" alt="" class="logo-img" style="height: 40px; vertical-align: middle;" />
             &nbsp;&nbsp;&nbsp;
-            Region-Project Name: ${item?.region || ""} - ${
-        item?.projectDescription || ""
-      }
+            Region-Project Name: ${item?.region || ""} - ${item?.projectDescription || ""
+        }
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             ${item?.srNo || ""}
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -162,9 +161,8 @@ const ChecklistBillJourney = () => {
           <div class="grid-row grid-3">
             <div>Invoice No: ${item?.taxInvNo || ""}</div>
             <div>Dt: ${formatDate(item?.taxInvDate)}</div>
-            <div>Invoice Amt: ${item?.currency || ""} ${
-        item?.taxInvAmt || ""
-      }</div>
+            <div>Invoice Amt: ${item?.currency || ""} ${item?.taxInvAmt || ""
+        }</div>
           </div>
 
           <div class="vend-desc">
@@ -174,14 +172,13 @@ const ChecklistBillJourney = () => {
           </div>
 
           <div class="grid-row grid-3">
-            <div class="grid-span-2">PO Number and Date: ${
-              item?.poNo || ""
-            } &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${formatDate(item?.poDate)}</div>
+            <div class="grid-span-2">PO Number and Date: ${item?.poNo || ""
+        } &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${formatDate(item?.poDate)}</div>
             <div>PO Amt: ${item?.currency || ""} ${item?.poAmt || ""}</div>
           </div>
 
           <div class="content-row">
-            Department: C${item?.department || ""}
+            Department: ${item?.department || ""}
           </div>
 
           <table>
@@ -195,25 +192,23 @@ const ChecklistBillJourney = () => {
             </thead>
             <tbody>
               ${rows
-                .map(
-                  (description) => `
-                <tr class="${
-                  rows.indexOf(description) % 2 === 0
-                    ? "bg-gray-50"
-                    : "bg-white"
-                }">
-                  <td>${
-                    description === "Bill Received at Site"
-                      ? formatDate(item?.taxInvRecdAtSite)
-                      : ""
-                  }</td>
+          .map(
+            (description) => `
+                <tr class="${rows.indexOf(description) % 2 === 0
+                ? "bg-gray-50"
+                : "bg-white"
+              }">
+                  <td>${description === "Bill Received at Site"
+                ? formatDate(item?.taxInvRecdAtSite)
+                : ""
+              }</td>
                   <td>${description}</td>
                   <td></td>
                   <td></td>
                 </tr>
               `
-                )
-                .join("")}
+          )
+          .join("")}
             </tbody>
           </table>
         </div>
