@@ -70,7 +70,8 @@ export const handleExportOutstandingBillReports = async (
     columns,
     visibleColumnFields,
     titleName,
-    toPrint
+    toPrint,
+    filters = null
 ) => {
     try {
         var selectedDataRows = filteredData.filter((item) => selectedRows.includes(item.srNo) && !item.isGrandTotal && !item.isSubtotal);
@@ -582,6 +583,26 @@ export const handleExportOutstandingBillReports = async (
                 return formattedRow;
             }).filter(row => row !== null); // Filter out null values (subtotal rows)
 
+            // Build filter details line (Region, From, To) to show below the title
+            const formatFilterDate = (d) => {
+                if (!d) return "";
+                const parts = d.split("-");
+                if (parts.length === 3) {
+                    return `${parts[2]}-${parts[1]}-${parts[0]}`; // YYYY-MM-DD -> DD-MM-YYYY
+                }
+                return d;
+            };
+            let filterDetailsHtml = "";
+            if (filters) {
+                const regionLabel = (!filters.region || Array.isArray(filters.region) || String(filters.region).toLowerCase() === "all")
+                    ? "All"
+                    : filters.region;
+                const dateParts = [];
+                if (filters.fromDate) dateParts.push(`From: <strong>${formatFilterDate(filters.fromDate)}</strong>`);
+                if (filters.toDate) dateParts.push(`To: <strong>${formatFilterDate(filters.toDate)}</strong>`);
+                filterDetailsHtml = `<div class="report-filters"><div>Region: <strong>${regionLabel}</strong></div>${dateParts.length ? `<div>${dateParts.join(", ")}</div>` : ""}</div>`;
+            }
+
             // Print the report (create a printable HTML version)
             const printWindow = window.open("", "_blank", "width=800,height=600");
 
@@ -644,6 +665,13 @@ export const handleExportOutstandingBillReports = async (
                         padding: 15px;
                         padding-right: 4px;
                     }
+                    .report-filters {
+                        font-size: 14px;
+                        font-weight: normal;
+                        text-align: left;
+                        padding: 6px 15px 12px 15px;
+                        line-height: 1.5;
+                    }
                     .currency {
                         text-align: right;
                     }
@@ -668,6 +696,7 @@ export const handleExportOutstandingBillReports = async (
                     <div class="report-title">${titleName}</div>
                     <div class="timestamp">Report generated on: ${new Date().toLocaleDateString('en-IN')}</div>
                     </div>
+                    ${filterDetailsHtml}
                     <table>
                     <thead>
                         <tr>

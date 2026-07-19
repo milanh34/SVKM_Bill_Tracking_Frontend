@@ -95,6 +95,9 @@ const PaymentModal = ({ closeWindow, selectedBills, billsData, fetchBills }) => 
                             onChange={e => setRemark(e.target.value)}
                             required
                         ></textarea>
+                        <span className="text-sm font-medium text-gray-600 text-left">
+                            {selectedBills.length} bill{selectedBills.length !== 1 ? "s" : ""} selected
+                        </span>
                     </div>
 
                     <div className="flex gap-4 justify-end">

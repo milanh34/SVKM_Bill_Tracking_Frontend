@@ -24,8 +24,8 @@ const InvAtPIMO = () => {
     const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
 
     const [bills, setBills] = useState([]);
-    const [fromDate, setFromDate] = useState("");
-    const [toDate, setToDate] = useState("");
+    const [fromDate, setFromDate] = useState("2020-01-01");
+    const [toDate, setToDate] = useState(getFormattedDate());
     const [regionOptions, setRegionOptions] = useState([]);
     const [region, setRegion] = useState("all");
     const [loading, setLoading] = useState(false);
@@ -73,7 +73,7 @@ const InvAtPIMO = () => {
         // if(selectedRows.length === 0){
         //     setSelectedRows(bills.map(bill => bill.srNo));
         // }
-        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, true);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, true, { region, fromDate, toDate });
         console.log("Result = " + result.message);
     }
 

@@ -24,8 +24,8 @@ const InvReturnQsAfterMeasurement = () => {
     const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
 
     const [loading, setLoading] = useState(true);
-    const [fromDate, setFromDate] = useState("");
-    const [toDate, setToDate] = useState("");
+    const [fromDate, setFromDate] = useState(getFormattedDate());
+    const [toDate, setToDate] = useState(getFormattedDate());
     const [bills, setBills] = useState([]);
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -77,7 +77,7 @@ const InvReturnQsAfterMeasurement = () => {
         // if(selectedRows.length === 0){
         //     setSelectedRows(bills.map(bill => bill.srNo));
         // }
-        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, true);
+        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, true, { region, fromDate, toDate });
         console.log("Result = " + result.message);
     }
 

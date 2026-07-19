@@ -51,7 +51,7 @@ const parseDateValue = (value) => {
     return new Date(Date.UTC(year, month - 1, day));
 };
 
-export const handleExportOutstandingSubtotalReport = async (selectedRows, filteredData, columns, visibleColumnFields, toPrint) => {
+export const handleExportOutstandingSubtotalReport = async (selectedRows, filteredData, columns, visibleColumnFields, toPrint, filters = null) => {
     const titleName = 'Report Outstanding Subtotal';
     try {
 
@@ -304,6 +304,26 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
         // }
 
         if (toPrint) {
+            // Build filter details line (Region, From, To) to show below the title
+            const formatFilterDate = (d) => {
+                if (!d) return "";
+                const parts = d.split("-");
+                if (parts.length === 3) {
+                    return `${parts[2]}-${parts[1]}-${parts[0]}`; // YYYY-MM-DD -> DD-MM-YYYY
+                }
+                return d;
+            };
+            let filterDetailsHtml = "";
+            if (filters) {
+                const regionLabel = (!filters.region || Array.isArray(filters.region) || String(filters.region).toLowerCase() === "all")
+                    ? "All"
+                    : filters.region;
+                const dateParts = [];
+                if (filters.fromDate) dateParts.push(`From: <strong>${formatFilterDate(filters.fromDate)}</strong>`);
+                if (filters.toDate) dateParts.push(`To: <strong>${formatFilterDate(filters.toDate)}</strong>`);
+                filterDetailsHtml = `<div class="report-filters"><div>Region: <strong>${regionLabel}</strong></div>${dateParts.length ? `<div>${dateParts.join(", ")}</div>` : ""}</div>`;
+            }
+
             // Original excel generation and download code
             const worksheet = XLSX.utils.aoa_to_sheet(timestamp);
             // const worksheet = XLSX.utils.aoa_to_sheet(`Outstanding Bills Report Subtotal as on\t\t${timestamp}`);
@@ -469,11 +489,18 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                         display: flex; 
                         justify-content: space-between; 
                       } 
-                      .report-title {  
-                        font-size: 24px;  
-                        font-weight: bold; 
-                        text-align: left; 
-                        padding: 15px; 
+                      .report-title {
+                        font-size: 24px;
+                        font-weight: bold;
+                        text-align: left;
+                        padding: 15px;
+                      }
+                      .report-filters {
+                        font-size: 14px;
+                        font-weight: normal;
+                        text-align: left;
+                        padding: 6px 15px 12px 15px;
+                        line-height: 1.5;
                       }
                       /* Add page break control for printing */
                       @media print {
@@ -507,6 +534,7 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                       <div class="report-title">Outstanding Bills Report Subtotal as on</div>
                         <div class="timestamp">Report generated on: ${new Date().toLocaleDateString('en-IN')}</div>
                     </div>
+                    ${filterDetailsHtml}
                     <table>
                       <thead>
                         <tr>`

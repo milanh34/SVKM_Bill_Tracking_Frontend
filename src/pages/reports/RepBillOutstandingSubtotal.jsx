@@ -28,8 +28,8 @@ const RepBillOutstandingSubtotal = () => {
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [fromDate, setFromDate] = useState("2025-04-01");
-    const [toDate, setToDate] = useState("");
+    const [fromDate, setFromDate] = useState("2020-01-01");
+    const [toDate, setToDate] = useState(getFormattedDate());
     const [regionOptions, setRegionOptions] = useState([]);
     const [region, setRegion] = useState("all");
     const [selectedRows, setSelectedRows] = useState([]);
@@ -157,7 +157,7 @@ const RepBillOutstandingSubtotal = () => {
 
     const handleTopPrint = async () => {
         console.log("Subtotal print clicked");
-        const result = await handleExportOutstandingSubtotalReport(visibleBills.map(bill => bill.srNo), visibleBills, columns, visibleColumnFields, true);
+        const result = await handleExportOutstandingSubtotalReport(visibleBills.map(bill => bill.srNo), visibleBills, columns, visibleColumnFields, true, { region, fromDate, toDate });
         console.log(result);
     }
 
