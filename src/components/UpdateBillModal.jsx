@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { patchBills, importReport } from "../apis/excel.api";
+import { parseBillImportFile, openBillImportResults, hasBillResultData } from "../utils/importBillResults";
 import updateBillTemplate from "../assets/updateBill.xlsx?url";
 import importBillTemplate from "../assets/importBill.xlsx?url";
 import Cookies from "js-cookie";
@@ -86,6 +87,16 @@ export const UpdateBillModal = ({
     const userRole = Cookies.get("userRole");
     setLoading(true);
 
+    // For import, parse the file first so we can build a per-row results table
+    let fileRows = [];
+    if (!patch) {
+      try {
+        fileRows = await parseBillImportFile(selectedFile);
+      } catch (parseErr) {
+        console.error("Error parsing import file:", parseErr);
+      }
+    }
+
     try {
       const endpoint = patch ? `${patchBills}/?team=${userRole}` : importReport;
 
@@ -96,28 +107,61 @@ export const UpdateBillModal = ({
         },
       });
 
-      if (!patch && response?.status === 202) {
-        toast.error("res.message");
-      } else {
-        toast.success(
-          patch ? "Bills updated successfully" : "Bills imported successfully",
-        );
-      }
-
       if (patch) {
-        await fetchAllData();
-      }
+        toast.success("Bills updated successfully");
+        await fetchAllData?.();
+        setOpenUpdateBillModal(false);
+      } else {
+        // Import: partial success (vendors not found / bills already exist)
+        // comes back as HTTP 202 with success:true, full success as 200.
+        const payload = response.data;
+        const summary = payload?.data?.summary || {};
+        const hasIssues =
+          payload?.errors?.length > 0 ||
+          summary.skipped > 0 ||
+          summary.alreadyExisting > 0;
 
-      setOpenUpdateBillModal(false);
+        if (payload?.toastMessage) {
+          hasIssues
+            ? toast.warning(payload.toastMessage)
+            : toast.success(payload.toastMessage);
+        } else {
+          toast.success("Bills imported successfully");
+        }
+
+        if (hasBillResultData(payload)) {
+          const opened = openBillImportResults(fileRows, payload);
+          if (!opened) {
+            toast.info("Please allow pop-ups to view the import results");
+          }
+        }
+
+        await fetchAllData?.();
+        setOpenUpdateBillModal(false);
+      }
     } catch (error) {
       console.error(
         patch ? "Error updating bills:" : "Error importing bills:",
         error,
       );
-      toast.error(
-        error.response?.data?.message ||
-          (patch ? "Error updating bills" : "Error importing bills"),
-      );
+      const payload = error.response?.data;
+      // Import partial success is a 202 (handled above); a thrown error here is
+      // a genuine failure, unless the body still carries result data.
+      if (!patch && payload && hasBillResultData(payload)) {
+        if (payload.toastMessage) {
+          toast.warning(payload.toastMessage);
+        }
+        const opened = openBillImportResults(fileRows, payload);
+        if (!opened) {
+          toast.info("Please allow pop-ups to view the import results");
+        }
+        setOpenUpdateBillModal(false);
+      } else {
+        toast.error(
+          payload?.message ||
+            (patch ? "Error updating bills" : "Error importing bills"),
+        );
+      }
     } finally {
       setLoading(false);
     }

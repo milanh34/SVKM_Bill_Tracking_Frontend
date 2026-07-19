@@ -3,6 +3,7 @@ import { EditIcon, CheckIcon } from '../Icons';
 import { vendors, compliances, panstatus } from '../../apis/master.api';
 import { importVendors, updateVendors } from '../../apis/excel.api';
 import { handleExportVendorMaster } from '../../utils/exportDownloadVendorMaster';
+import { parseVendorUpdateFile, openVendorUpdateResults, parseVendorImportFile, openVendorImportResults, hasVendorResultData } from '../../utils/vendorUpdateResults';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import Cookies from 'js-cookie';
@@ -319,18 +320,67 @@ const handleDownloadUpdateTemplate = async () => {
         formData.append('file', selectedImportFile);
 
         setIsLoading(true);
+
+        // Parse the uploaded file so we can build a per-row results table
+        let fileRows = [];
+        try {
+            fileRows = await parseVendorImportFile(selectedImportFile);
+        } catch (parseErr) {
+            console.error('Error parsing import file:', parseErr);
+        }
+
+        // Renders the toast + results tab from a backend payload
+        // (works for both a 2xx response and a 400 partial-success body)
+        const handleResultPayload = (payload) => {
+            const info = payload?.data || payload?.details || {};
+
+            // Whole-file rejection (e.g. missing required columns): no rows were
+            // processed, so show the error and keep the modal open to retry.
+            if (!hasVendorResultData(info)) {
+                if (payload?.success) {
+                    toast.success(payload.toastMessage || payload.message || 'Vendors imported successfully');
+                    setShowImportModal(false);
+                    setSelectedImportFile(null);
+                    fetchVendors();
+                } else {
+                    toast.error(payload?.message || payload?.toastMessage || 'Error importing vendors');
+                }
+                return;
+            }
+
+            const hasErrors = info.errors?.length > 0;
+            if (payload?.toastMessage) {
+                hasErrors ? toast.warning(payload.toastMessage) : toast.success(payload.toastMessage);
+            } else if (payload?.success) {
+                toast.success('Vendors imported successfully');
+            } else {
+                toast.warning(payload?.message || 'Vendor import completed');
+            }
+
+            const opened = openVendorImportResults(fileRows, info);
+            if (!opened) {
+                toast.info('Please allow pop-ups to view the import results');
+            }
+
+            setShowImportModal(false);
+            setSelectedImportFile(null);
+            fetchVendors();
+        };
+
         try {
             const response = await axios.post(importVendors, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            console.log(response);
-            toast.success('Vendors imported successfully');
-            setShowImportModal(false);
-            setSelectedImportFile(null);
-            fetchVendors();
+            console.log("Import Vendors: ", response.data);
+            handleResultPayload(response.data);
         } catch (error) {
             console.error('Error importing vendors:', error);
-            toast.error(error.response?.data?.message || 'Error importing vendors');
+            const payload = error.response?.data;
+            if (payload) {
+                handleResultPayload(payload);
+            } else {
+                toast.error('Error importing vendors');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -346,6 +396,53 @@ const handleDownloadUpdateTemplate = async () => {
         formData.append('files', selectedUpdateFile);
 
         setIsLoading(true);
+
+        // Parse the uploaded file so we can build a per-row results table
+        let fileRows = [];
+        try {
+            fileRows = await parseVendorUpdateFile(selectedUpdateFile);
+        } catch (parseErr) {
+            console.error('Error parsing update file:', parseErr);
+        }
+
+        // Renders the toast + results tab from a backend payload
+        // (works for both a 2xx response and a 400 partial-success body)
+        const handleResultPayload = (payload) => {
+            const info = payload?.data || payload?.details || {};
+
+            // Whole-file rejection (e.g. missing required columns): no rows were
+            // processed, so show the error and keep the modal open to retry.
+            if (!hasVendorResultData(info)) {
+                if (payload?.success) {
+                    toast.success(payload.toastMessage || payload.message || 'Vendors updated successfully');
+                    setShowUpdateModal(false);
+                    setSelectedUpdateFile(null);
+                    fetchVendors();
+                } else {
+                    toast.error(payload?.message || payload?.toastMessage || 'Error updating vendors');
+                }
+                return;
+            }
+
+            const hasErrors = info.errors?.length > 0;
+            if (payload?.toastMessage) {
+                hasErrors ? toast.warning(payload.toastMessage) : toast.success(payload.toastMessage);
+            } else if (payload?.success) {
+                toast.success('Vendors updated successfully');
+            } else {
+                toast.warning(payload?.message || 'Vendor update completed');
+            }
+
+            const opened = openVendorUpdateResults(fileRows, info);
+            if (!opened) {
+                toast.info('Please allow pop-ups to view the update results');
+            }
+
+            setShowUpdateModal(false);
+            setSelectedUpdateFile(null);
+            fetchVendors();
+        };
+
         try {
             const token = Cookies.get("token");
             const response = await axios.post(updateVendors, formData, {
@@ -355,36 +452,16 @@ const handleDownloadUpdateTemplate = async () => {
                 }
             });
 
-            console.log(response.status);
-
-            if (response.data.success) {
-                toast.success('Vendors updated successfully');
-                fetchVendors(); // Refresh the table data
-            } else if (response.data.details) {
-                // Handle partial success/errors
-                const details = response.data.details;
-                if (details.updated > 0) {
-                    toast.success(`Updated ${details.updated} vendors`);
-                }
-                if (details.skipped > 0) {
-                    toast.warning(`Skipped ${details.skipped} rows`);
-                }
-                if (details.errors?.length > 0) {
-                    toast.error(`Errors: ${details.errors.join(', ')}`);
-                }
-                fetchVendors(); // Refresh even with partial success
-            } else {
-                toast.error(response.data.message || 'Error updating vendors');
-            }
-
-
-            toast.success('Vendors updated successfully');
-            setShowUpdateModal(false);
-            setSelectedUpdateFile(null);
-            fetchVendors();
+            console.log("Mass Update Vendors: ", response.data);
+            handleResultPayload(response.data);
         } catch (error) {
             console.error('Error updating vendors:', error);
-            toast.error(error.response?.data?.message || 'Error updating vendors');
+            const payload = error.response?.data;
+            if (payload) {
+                handleResultPayload(payload);
+            } else {
+                toast.error('Error updating vendors');
+            }
         } finally {
             setIsLoading(false);
         }
