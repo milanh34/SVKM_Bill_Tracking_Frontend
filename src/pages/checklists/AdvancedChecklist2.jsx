@@ -6,6 +6,31 @@ import logo from "../../assets/logo.png";
 
 const ITEMS_PER_PAGE = 1;
 
+const formatAmount = (amount) => {
+  if (amount === null || amount === undefined || isNaN(amount) || amount === "") return amount || "";
+  return Number(amount).toLocaleString('en-IN');
+};
+
+const numberToWords = (num) => {
+  if (num === null || num === undefined || isNaN(num) || num === "") return "";
+  num = Math.floor(Number(num));
+  if (num === 0) return "Zero";
+  
+  const a = ["", "One ", "Two ", "Three ", "Four ", "Five ", "Six ", "Seven ", "Eight ", "Nine ", "Ten ", "Eleven ", "Twelve ", "Thirteen ", "Fourteen ", "Fifteen ", "Sixteen ", "Seventeen ", "Eighteen ", "Nineteen "];
+  const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+
+  if ((num = num.toString()).length > 9) return "overflow";
+  const n = ("000000000" + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+  if (!n) return ""; 
+  let str = "";
+  str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + " " + a[n[1][1]]) + "Crore " : "";
+  str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + " " + a[n[2][1]]) + "Lakh " : "";
+  str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + " " + a[n[3][1]]) + "Thousand " : "";
+  str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + " " + a[n[4][1]]) + "Hundred " : "";
+  str += (n[5] != 0) ? ((str != "") ? "and " : "") + (a[Number(n[5])] || b[n[5][0]] + " " + a[n[5][1]]) : "";
+  return str.trim() + " Only";
+};
+
 const AdvancedChecklist = (props) => {
   const location = useLocation();
   const billList = location.state?.selectedRows || [];
@@ -125,7 +150,7 @@ const AdvancedChecklist = (props) => {
               <tr>
                 <td>1</td>
                 <td>SAP Code & Vendor Name</td>
-                <td>${item?.vendorNo || item?.vendor?.vendorNo || ""} ${item?.vendorName || item?.vendor?.vendorName || ""}</td>
+                <td class="bold">${item?.vendorNo || item?.vendor?.vendorNo || ""} ${item?.vendorName || item?.vendor?.vendorName || ""}</td>
               </tr>
               <tr>
                 <td>2</td>
@@ -147,16 +172,16 @@ const AdvancedChecklist = (props) => {
               <tr>
                 <td>4</td>
                 <td>Project Name & Region</td>
-                <td>${item?.projectDescription}, ${item?.region}</td>
+                <td class="bold">${item?.projectDescription ? item.projectDescription + ", " : ""}${item?.region || ""}</td>
               </tr>
               <tr>
                 <td>5</td>
                 <td>PO No and Date and Amount</td>
                 <td>${
                   item?.poNo
-                    ? `PO No: ${item?.poNo}, Date: ${formatDate(
+                    ? `PO No: <span class="bold">${item?.poNo}</span>, Date: <span class="bold">${formatDate(
                         item?.poDate
-                      )}, Amount: ${item?.poAmt}`
+                      )}</span>, Amount: <span class="bold">${formatAmount(item?.poAmt)}</span>`
                     : ""
                 }</td>
               </tr>
@@ -168,7 +193,7 @@ const AdvancedChecklist = (props) => {
               <tr>
                 <td>7</td>
                 <td>GST No of Vendor</td>
-                <td>${item?.gstNumber || item?.vendor?.GSTNumber || ""}</td>
+                <td class="bold">${item?.gstNumber || item?.vendor?.GSTNumber || ""}</td>
               </tr>
               <tr>
                 <td>8</td>
@@ -178,36 +203,36 @@ const AdvancedChecklist = (props) => {
               <tr>
                 <td>9</td>
                 <td>PAN Status</td>
-                <td>${item?.panStatus || item?.vendor?.PANStatus?.name || item?.vendor?.PANStatus || ""}</td>
+                <td class="bold">${item?.panStatus || item?.vendor?.PANStatus?.name || item?.vendor?.PANStatus || ""}</td>
               </tr>
               <tr>
                 <td>10</td>
                 <td>Compliance u/s 206 AB</td>
-                <td>${item?.compliance206AB || item?.vendor?.complianceStatus?.compliance206AB || item?.vendor?.complianceStatus || ""}</td>
+                <td class="bold">${item?.compliance206AB || item?.vendor?.complianceStatus?.compliance206AB || item?.vendor?.complianceStatus || ""}</td>
               </tr>
               <tr>
                 <td>11</td>
-                <td>Remarks</td>
-                <td>${item?.advancePercentage || ""} - ${
-        item?.approvalDetails?.remarksPimoMumbai || ""
-      }</td>
+                <td>Advance Percentage (%) and Remark</td>
+                <td><span class="bold">${item?.advancePercentage ? item.advancePercentage + '%' : ""}</span> - <span class="bold">${
+        item?.remarksBySiteTeam || ""
+      }</span></td>
               </tr>
               <tr>
                 <td>12</td>
                 <td>Amount INR</td>
-                <td>${item?.currency || ""} ${
-        item?.advanceAmt || ""
-      } (In words___________________________________)</td>
+                <td><span class="bold">${item?.currency || ""}</span> <span class="bold">${
+        formatAmount(item?.advanceAmt) || ""
+      }</span> (In words: <span class="bold">${numberToWords(item?.advanceAmt)}</span>)</td>
               </tr>
               <tr>
                 <td>13</td>
                 <td>Advance request entered by</td>
-                <td>${item?.advRequestEnteredBy || ""}</td>
+                <td class="bold">${item?.advRequestEnteredBy || ""}</td>
               </tr>
               <tr>
                 <td>14</td>
                 <td>Addl.Remarks/Queries</td>
-                <td></td>
+                <td class="bold">${item?.department || ""}</td>
               </tr>
               <tr>
                 <td>15</td>
@@ -347,7 +372,7 @@ const AdvancedChecklist = (props) => {
                       <td className="border border-black p-2">
                         SAP Code & Vendor Name
                       </td>
-                      <td className="border border-black p-2">
+                      <td className="border border-black p-2 font-bold">
                         {item?.vendorNo || item?.vendor?.vendorNo} &nbsp; {item?.vendorName || item?.vendor?.vendorName}
                       </td>
                     </tr>
@@ -389,8 +414,8 @@ const AdvancedChecklist = (props) => {
                       <td className="border border-black p-2">
                         Project Name & Region
                       </td>
-                      <td className="border border-black p-2">
-                        {item?.projectDescription}, {item?.region}
+                      <td className="border border-black p-2 font-bold">
+                        {item?.projectDescription ? item.projectDescription + ", " : ""}{item?.region}
                       </td>
                     </tr>
                     <tr>
@@ -400,9 +425,7 @@ const AdvancedChecklist = (props) => {
                       </td>
                       <td className="border border-black p-2">
                         {item?.poNo &&
-                          `PO No: ${item?.poNo}, Date: ${formatDate(
-                            item?.poDate
-                          )}, Amount: ${item?.poAmt}`}
+                          <>PO No: <span className="font-bold">{item?.poNo}</span>, Date: <span className="font-bold">{formatDate(item?.poDate)}</span>, Amount: <span className="font-bold">{formatAmount(item?.poAmt)}</span></>}
                       </td>
                     </tr>
                     <tr>
@@ -417,7 +440,7 @@ const AdvancedChecklist = (props) => {
                       <td className="border border-black p-2">
                         GST No of Vendor
                       </td>
-                      <td className="border border-black p-2">
+                      <td className="border border-black p-2 font-bold">
                         {item?.gstNumber || item?.vendor?.GSTNumber}
                       </td>
                     </tr>
@@ -434,7 +457,7 @@ const AdvancedChecklist = (props) => {
                     <tr>
                       <td className="border border-black p-2">9</td>
                       <td className="border border-black p-2">PAN Status</td>
-                      <td className="border border-black p-2">
+                      <td className="border border-black p-2 font-bold">
                         {item?.panStatus || item?.vendor?.PANStatus?.name || item?.vendor?.PANStatus}
                       </td>
                     </tr>
@@ -443,24 +466,24 @@ const AdvancedChecklist = (props) => {
                       <td className="border border-black p-2">
                         Compliance u/s 206 AB
                       </td>
-                      <td className="border border-black p-2">
+                      <td className="border border-black p-2 font-bold">
                         {item?.compliance206AB || item?.vendor?.complianceStatus?.compliance206AB || item?.vendor?.complianceStatus}
                       </td>
                     </tr>
                     <tr>
                       <td className="border border-black p-2">11</td>
-                      <td className="border border-black p-2">Remarks</td>
-                      <td className="border border-black p-2">
-                        {item?.advancePercentage} -{" "}
-                        {item?.approvalDetails?.remarksPimoMumbai}
+                      <td className="border border-black p-2">Advance Percentage (%) and Remark</td>
+                      <td className="border border-black p-2 font-bold">
+                        {item?.advancePercentage ? item.advancePercentage + '%' : ""} -{" "}
+                        {item?.remarksBySiteTeam}
                       </td>
                     </tr>
                     <tr>
                       <td className="border border-black p-2">12</td>
                       <td className="border border-black p-2">Amount INR</td>
                       <td className="border border-black p-2">
-                        {item?.currency} {item?.advanceAmt} (In
-                        words___________________________________)
+                        <span className="font-bold">{item?.currency}</span> <span className="font-bold">{formatAmount(item?.advanceAmt)}</span> (In
+                        words: <span className="font-bold">{numberToWords(item?.advanceAmt)}</span>)
                       </td>
                     </tr>
                     <tr>
@@ -468,7 +491,7 @@ const AdvancedChecklist = (props) => {
                       <td className="border border-black p-2">
                         Advance request entered by
                       </td>
-                      <td className="border border-black p-2">
+                      <td className="border border-black p-2 font-bold">
                         {item?.advRequestEnteredBy}
                       </td>
                     </tr>
@@ -477,7 +500,9 @@ const AdvancedChecklist = (props) => {
                       <td className="border border-black p-2">
                         Addl.Remarks/Queries
                       </td>
-                      <td className="border border-black p-2"></td>
+                      <td className="border border-black p-2 font-bold">
+                        {item?.department}
+                      </td>
                     </tr>
                     <tr>
                       <td className="border border-black p-2">15</td>
