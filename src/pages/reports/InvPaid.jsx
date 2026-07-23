@@ -9,19 +9,12 @@ import axios from 'axios';
 import { invPaid } from '../../apis/report.api';
 // import { handleExportRepPaid } from '../../utils/archive/exportExcelReportPaid';
 import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
+import { getTodayDateString, getDefaultFromDateString } from '../../utils/dateHelpers';
 
 const InvPaid = () => {
 
-    const getFormattedDate = () => {
-        const today = new Date();
-        const day = String(today.getDate()).padStart(2, "0");
-        const month = String(today.getMonth() + 1).padStart(2, "0");
-        const year = today.getFullYear();
-        return `${year}-${month}-${day}`;
-    };
-
-    const [fromDate, setFromDate] = useState(getFormattedDate());
-    const [toDate, setToDate] = useState(getFormattedDate());
+    const [fromDate, setFromDate] = useState(getDefaultFromDateString());
+    const [toDate, setToDate] = useState(getTodayDateString());
     const [bills, setBills] = useState([]);
     const [loading, setLoading] = useState(false);
     const [regionOptions] = useState(() => JSON.parse(Cookies.get('availableRegions') || '[]'));
