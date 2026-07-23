@@ -559,7 +559,7 @@ const FullBillDetails = () => {
             });
           }
 
-          else if (currentUserRole === "site_officer") {
+          else if (currentUserRole === "site_officer" || currentUserRole === "site_pimo") {
             navigate("/checklist-bill-journey", {
               state: {
                 selectedRows: [normalizedBill],

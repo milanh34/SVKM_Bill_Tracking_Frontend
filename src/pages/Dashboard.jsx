@@ -78,62 +78,41 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const handleChecklist = () => {
-    if (currentUserRole === "site_officer") {
-      if (selectedRows.length === 0) {
-        toast.error("Please select bills to proceed");
-        return;
-      }
-      navigate("/checklist-bill-journey", {
-        state: {
-          selectedRows,
-          bills: billsData.filter((bill) => selectedRows?.includes(bill._id)),
-        },
-      });
-    } else if (currentUserRole === "site_pimo") {
-      if (selectedRows.length === 0) {
-        toast.error("Please select bills to proceed");
-        return;
-      }
-
-      const selectedBills = billsData.filter((bill) => selectedRows.includes(bill._id));
-      const natureOfWorkSet = new Set(selectedBills.map(bill => bill.natureOfWork));
-
-      if (natureOfWorkSet.size !== 1) {
-        toast.error("Selected bills must have the same nature of work");
-        return;
-      }
-
-      const natureOfWork = Array.from(natureOfWorkSet)[0];
-
-      if (natureOfWork === "Direct FI Entry") {
-        navigate("/checklist-directFI2", {
-          state: {
-            selectedRows,
-            bills: selectedBills,
-          },
-        });
-      } else if (natureOfWork === "Advance/LC/BG") {
-        navigate("/checklist-advance2", {
-          state: {
-            selectedRows,
-            bills: selectedBills,
-          },
-        });
-      } else {
-        toast.error("Invalid nature of work. Bills must be either 'Direct FI Entry' or 'Advance/LC/BG'");
-      }
-    } else if (currentUserRole === "accounts") {
-      if (selectedRows.length === 0) {
-        toast.error("Please select bills to proceed");
-        return;
-      }
-      navigate("/checklist-account2", {
-        state: {
-          selectedRows,
-          bills: billsData.filter((bill) => selectedRows?.includes(bill._id)),
-        },
-      });
+    if (selectedRows.length === 0) {
+      toast.error("Please select bills to proceed");
+      return;
     }
+
+    const selectedBills = billsData.filter((bill) => selectedRows.includes(bill._id));
+
+    const getRoute = (bill) => {
+      if (bill.natureOfWork === "Direct FI Entry") return "/checklist-directFI2";
+      if (bill.natureOfWork === "Advance/LC/BG") return "/checklist-advance2";
+      if (currentUserRole === "site_officer" || currentUserRole === "site_pimo") return "/checklist-bill-journey";
+      if (currentUserRole === "accounts") return "/checklist-account2";
+      return null;
+    };
+
+    const routesSet = new Set(selectedBills.map(getRoute));
+
+    if (routesSet.has(null)) {
+      toast.error("You don't have access to checklists for some of the selected bills.");
+      return;
+    }
+
+    if (routesSet.size > 1) {
+      toast.error("Selected bills belong to different checklist types. Please select bills of the same checklist type.");
+      return;
+    }
+
+    const targetRoute = Array.from(routesSet)[0];
+
+    navigate(targetRoute, {
+      state: {
+        selectedRows,
+        bills: selectedBills,
+      },
+    });
   };
 
   const roleWorkflow = {
