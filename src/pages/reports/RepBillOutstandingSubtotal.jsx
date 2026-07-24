@@ -203,10 +203,6 @@ const RepBillOutstandingSubtotal = () => {
                 </div>
 
                 <Filters
-                    searchQuery={null}
-                    setSearchQuery={null}
-                    sortBy={null}
-                    setSortBy={null}
                     fromDate={fromDate}
                     setFromDate={setFromDate}
                     toDate={toDate}

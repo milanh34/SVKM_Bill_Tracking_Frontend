@@ -677,11 +677,18 @@ const DataTable = ({
   const handleAttachments = (value) => {
     if (Array.isArray(value) && value.length > 0) {
       const files = value
-        .map(obj =>
-          obj && typeof obj === "object" && obj.fileUrl
-            ? { url: obj.fileUrl, name: obj.fileName || "" }
-            : null
-        )
+        .map(obj => {
+          if (typeof obj === "string") {
+            return { url: obj, name: obj.split("/").pop() || "Attachment" };
+          }
+          if (obj && typeof obj === "object") {
+            const url = obj.fileUrl || obj.url;
+            if (url) {
+              return { url, name: obj.fileName || obj.name || url.split("/").pop() || "Attachment" };
+            }
+          }
+          return null;
+        })
         .filter(obj => obj && typeof obj.url === "string" && obj.url.length > 0);
       console.log(files);
       setAllAttachments(files);
