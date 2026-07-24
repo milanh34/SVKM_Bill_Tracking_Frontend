@@ -6,6 +6,11 @@ import logo from "../../assets/logo.png";
 
 const ITEMS_PER_PAGE = 1;
 
+const formatAmount = (amount) => {
+  if (amount === null || amount === undefined || isNaN(amount) || amount === "") return amount || "";
+  return Number(amount).toLocaleString('en-IN');
+};
+
 const ChecklistBillJourney = () => {
   const location = useLocation();
   const billList = location.state?.selectedRows || [];
@@ -144,41 +149,38 @@ const ChecklistBillJourney = () => {
           <div class="content-row">
             <img src="${logo}" alt="" class="logo-img" style="height: 40px; vertical-align: middle;" />
             &nbsp;&nbsp;&nbsp;
-            Region-Project Name: ${item?.region || ""} - ${item?.projectDescription || ""
-        }
+            Region-Project Name: <b>${item?.region || ""} - ${item?.projectDescription || ""}</b>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            ${item?.srNo || ""}
+            <b>${item?.srNo || ""}</b>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            Nature of Work: ${item?.natureOfWork || item?.typeOfInv || ""}
+            Nature of Work: <b>${item?.natureOfWork || item?.typeOfInv || ""}</b>
           </div>
 
           <div class="grid-row grid-3">
-            <div>Proforma Invoice No: ${item?.proformaInvNo || ""}</div>
-            <div>Dt: ${formatDate(item?.proformaInvDate)}</div>
-            <div>Proforma Invoice Amt: ${item?.proformaInvAmt || ""}</div>
+            <div>Proforma Invoice No: <b>${item?.proformaInvNo || ""}</b></div>
+            <div>Dt: <b>${formatDate(item?.proformaInvDate)}</b></div>
+            <div>Proforma Invoice Amt: <b>${formatAmount(item?.proformaInvAmt) || ""}</b></div>
           </div>
 
           <div class="grid-row grid-3">
-            <div>Invoice No: ${item?.taxInvNo || ""}</div>
-            <div>Dt: ${formatDate(item?.taxInvDate)}</div>
-            <div>Invoice Amt: ${item?.currency || ""} ${item?.taxInvAmt || ""
-        }</div>
+            <div>Invoice No: <b>${item?.taxInvNo || ""}</b></div>
+            <div>Dt: <b>${formatDate(item?.taxInvDate)}</b></div>
+            <div>Invoice Amt: <b>${item?.currency || ""} ${formatAmount(item?.taxInvAmt) || ""}</b></div>
           </div>
 
           <div class="vend-desc">
-            <div>Vendor Description: ${item?.vendorName || ""}</div>
+            <div>Vendor Description: <b>${item?.vendorName || ""}</b></div>
             
-            <div>Vendor code: ${item?.vendorNo || ""}</div>
+            <div>Vendor code: <b>${item?.vendorNo || ""}</b></div>
           </div>
 
           <div class="grid-row grid-3">
-            <div class="grid-span-2">PO Number and Date: ${item?.poNo || ""
-        } &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${formatDate(item?.poDate)}</div>
-            <div>PO Amt: ${item?.currency || ""} ${item?.poAmt || ""}</div>
+            <div class="grid-span-2">PO Number and Date: <b>${item?.poNo || ""}</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>${formatDate(item?.poDate)}</b></div>
+            <div>PO Amt: <b>${item?.currency || ""} ${formatAmount(item?.poAmt) || ""}</b></div>
           </div>
 
           <div class="content-row">
-            Department: ${item?.department || ""}
+            Department: <b>${item?.department || ""}</b>
           </div>
 
           <table>
@@ -278,61 +280,61 @@ const ChecklistBillJourney = () => {
                       </div>
                       &nbsp; &nbsp;
                       <div className="text-sm">
-                        Region-Project Name: {item?.region} -{" "}
-                        {item?.projectDescription}
+                        Region-Project Name: <span className="font-bold">{item?.region} -{" "}
+                        {item?.projectDescription}</span>
                       </div>
                     </div>
                     <div className="border-gray-300">
-                      <div className="text-sm text-center">{item?.srNo}</div>
+                      <div className="text-sm text-center font-bold">{item?.srNo}</div>
                     </div>
                     <div className="border-gray-300">
                       <div className="text-sm text-center">
-                        Nature of Work: {item?.natureOfWork || item?.typeOfInv}
+                        Nature of Work: <span className="font-bold">{item?.natureOfWork || item?.typeOfInv}</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="p-2 border-b border-gray-300">
                     <div className="grid grid-cols-3 gap-4 text-sm">
-                      <div>Proforma Invoice No: {item?.proformaInvNo}</div>
-                      <div className="text-center">Dt: {formatDate(item?.proformaInvDate)}</div>
-                      <div>Proforma Invoice Amt: {item?.proformaInvAmt}</div>
+                      <div>Proforma Invoice No: <span className="font-bold">{item?.proformaInvNo}</span></div>
+                      <div className="text-center">Dt: <span className="font-bold">{formatDate(item?.proformaInvDate)}</span></div>
+                      <div>Proforma Invoice Amt: <span className="font-bold">{formatAmount(item?.proformaInvAmt)}</span></div>
                     </div>
                   </div>
 
                   <div className="p-2 border-b border-gray-300">
                     <div className="grid grid-cols-3 gap-4 text-sm">
-                      <div>Invoice No: {item?.taxInvNo}</div>
-                      <div className="text-center">Dt: {formatDate(item?.taxInvDate)}</div>
+                      <div>Invoice No: <span className="font-bold">{item?.taxInvNo}</span></div>
+                      <div className="text-center">Dt: <span className="font-bold">{formatDate(item?.taxInvDate)}</span></div>
                       <div>
-                        Invoice Amt: {item?.currency} {item?.taxInvAmt}
+                        Invoice Amt: <span className="font-bold">{item?.currency} {formatAmount(item?.taxInvAmt)}</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="p-2 border-b border-gray-300">
                     <div className="grid grid-cols-4 text-sm">
-                      <div className="col-span-3">Vendor Description: {item?.vendorName}</div>
-                      <div>Vendor code: {item?.vendorNo}</div>
+                      <div className="col-span-3">Vendor Description: <span className="font-bold">{item?.vendorName}</span></div>
+                      <div>Vendor code: <span className="font-bold">{item?.vendorNo}</span></div>
                     </div>
                   </div>
 
                   <div className="p-2 border-b border-gray-300">
                     <div className="grid grid-cols-4 text-sm">
                       <div className="col-span-3">
-                        PO Number and Date: {item?.poNo}{" "}
+                        PO Number and Date: <span className="font-bold">{item?.poNo}</span>{" "}
                         &nbsp; &nbsp;
-                        {formatDate(item?.poDate)}
+                        <span className="font-bold">{formatDate(item?.poDate)}</span>
                       </div>
                       <div>
-                        PO Amt: {item?.currency} {item?.poAmt}
+                        PO Amt: <span className="font-bold">{item?.currency} {formatAmount(item?.poAmt)}</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="p-2">
                     <div className="text-sm">
-                      Department: C{item?.department}
+                      Department: C<span className="font-bold">{item?.department}</span>
                     </div>
                   </div>
                 </div>

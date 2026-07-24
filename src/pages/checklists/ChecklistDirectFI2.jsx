@@ -6,6 +6,11 @@ import logo from "../../assets/logo.png";
 
 const ITEMS_PER_PAGE = 1;
 
+const formatAmount = (amount) => {
+  if (amount === null || amount === undefined || isNaN(amount) || amount === "") return amount || "";
+  return Number(amount).toLocaleString('en-IN');
+};
+
 const ChecklistDirectFI = () => {
   const location = useLocation();
   const billList = location.state?.selectedRows || [];
@@ -109,14 +114,14 @@ const ChecklistDirectFI = () => {
           <div class="content-row">
             <img src="${logo}" alt="" class="logo-img" style="height: 40px; vertical-align: middle;" />
             &nbsp;&nbsp;&nbsp;
-            ${item?.srNo || ""}
+            <b>${item?.srNo || ""}</b>
           </div>
 
           <div class="grid-row">Check List - Direct FI entry</div>
-          <div class="grid-row">Project Name: ${
+          <div class="grid-row">Project Name: <b>${
             item?.projectDescription || ""
-          }</div>
-          <div class="grid-row">Campus: ${item?.region || ""}</div>
+          }</b></div>
+          <div class="grid-row">Campus: <b>${item?.region || ""}</b></div>
           <div class="grid-row">Project ID in SAP:</div>
 
           <table>
@@ -138,7 +143,7 @@ const ChecklistDirectFI = () => {
               <tr>
                 <td>1</td>
                 <td>SAP Code & Vendor Name</td>
-                <td>${item?.vendorNo || ""} ${item?.vendorName || ""}</td>
+                <td><b>${item?.vendorNo || ""} ${item?.vendorName || ""}</b></td>
                 <td></td>
               </tr>
               <tr>
@@ -150,7 +155,7 @@ const ChecklistDirectFI = () => {
               <tr>
                 <td>3</td>
                 <td>Amount</td>
-                <td>${item?.taxInvAmt || ""}</td>
+                <td><b>${formatAmount(item?.taxInvAmt) || ""}</b></td>
                 <td></td>
               </tr>
               <tr>
@@ -204,8 +209,8 @@ const ChecklistDirectFI = () => {
               <tr>
                 <td>12</td>
                 <td>Compliances</td>
-                <td>${item?.compliance206AB || ""}</td>
-                <td>${item?.panStatus || ""}</td>
+                <td><b>${item?.compliance206AB || ""}</b></td>
+                <td><b>${item?.panStatus || ""}</b></td>
               </tr>
               <tr>
                 <td></td>
@@ -312,7 +317,7 @@ const ChecklistDirectFI = () => {
                     </div>
                   </div>
                   <div className="border-gray-300">
-                    <div className="text-sm">{item?.srNo}</div>
+                    <div className="text-sm font-bold">{item?.srNo}</div>
                   </div>
                 </div>
 
@@ -321,11 +326,11 @@ const ChecklistDirectFI = () => {
                 </div>
 
                 <div className="p-2 border-b border-gray-300">
-                  Project Name: {item?.projectDescription}
+                  Project Name: <span className="font-bold">{item?.projectDescription}</span>
                 </div>
 
                 <div className="p-2 border-b border-gray-300">
-                  Campus: {item?.region}
+                  Campus: <span className="font-bold">{item?.region}</span>
                 </div>
 
                 <div className="p-2 border-b border-gray-300">
@@ -370,7 +375,7 @@ const ChecklistDirectFI = () => {
                       <td className="border border-gray-300 p-2">
                         SAP Code & Vendor Name
                       </td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border border-gray-300 p-2 font-bold">
                         {item?.vendorNo} &nbsp; &nbsp; {item?.vendorName}
                       </td>
                       <td className="border border-gray-300 p-2"></td>
@@ -386,8 +391,8 @@ const ChecklistDirectFI = () => {
                     <tr>
                       <td className="border border-gray-300 p-2">3</td>
                       <td className="border border-gray-300 p-2">Amount</td>
-                      <td className="border border-gray-300 p-2">
-                        {item?.taxInvAmt}
+                      <td className="border border-gray-300 p-2 font-bold">
+                        {formatAmount(item?.taxInvAmt)}
                       </td>
                       <td className="border border-gray-300 p-2"></td>
                     </tr>
@@ -464,10 +469,10 @@ const ChecklistDirectFI = () => {
                       <td className="border border-gray-300 p-2">
                         Compliances
                       </td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border border-gray-300 p-2 font-bold">
                         {item?.compliance206AB}
                       </td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border border-gray-300 p-2 font-bold">
                         {item?.panStatus}
                       </td>
                     </tr>
