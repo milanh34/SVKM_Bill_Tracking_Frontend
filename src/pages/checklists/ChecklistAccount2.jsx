@@ -9,6 +9,11 @@ import Cookies from "js-cookie";
 
 const ITEMS_PER_PAGE = 1;
 
+const formatAmount = (amount) => {
+  if (amount === null || amount === undefined || isNaN(amount) || amount === "") return amount || "";
+  return Number(amount).toLocaleString('en-IN');
+};
+
 const ChecklistAccount = () => {
   const location = useLocation();
   const billList = location.state?.selectedRows || [];
@@ -217,41 +222,41 @@ const ChecklistAccount = () => {
               <div class="header-row logo-section">
                 <div class="header-cell-1 wide">
                   <strong>SVKM</strong> &nbsp;&nbsp;&nbsp;
-                  Project name: ${item?.region || ""}- ${item?.projectDescription || ""}
+                  Project name: <b>${item?.region || ""}- ${item?.projectDescription || ""}</b>
                 </div>
-                <div class="narrow">${item?.srNo || ""}</div>
+                <div class="narrow"><b>${item?.srNo || ""}</b></div>
                 <div class="duedate">Due Date:__/__/____</div>
               </div>
               
               <!-- Invoice Details Row -->
               <div class="header-row-2">
-                <div class="header-cell-2">Invoice no and Date: ${item?.taxInvNo || ""}</div>
-                <div class="header-cell-2">Dt: ${formatDate(item?.taxInvDate)}</div>
-                <div class="header-cell-2">Nature of Work: ${item?.natureOfWork || item?.typeOfInv || ""}</div>
+                <div class="header-cell-2">Invoice no and Date: <b>${item?.taxInvNo || ""}</b></div>
+                <div class="header-cell-2">Dt: <b>${formatDate(item?.taxInvDate)}</b></div>
+                <div class="header-cell-2">Nature of Work: <b>${item?.natureOfWork || item?.typeOfInv || ""}</b></div>
               </div>
               
               <!-- Vendor Info Row -->
               <div class="header-row">
-                <div class="header-cell wide">Vendor Description: ${item?.vendorName || ""}</div>
-                <div class="header-cell">Vendor Code: ${item?.vendorNo || ""}</div>
+                <div class="header-cell wide">Vendor Description: <b>${item?.vendorName || ""}</b></div>
+                <div class="header-cell">Vendor Code: <b>${item?.vendorNo || ""}</b></div>
               </div>
               
               <!-- PO Info Row -->
               <div class="header-row">
-                <div class="header-cell wide">PO No and Date: ${item?.poNo || ""} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${formatDate(item?.poDate)}</div>
-                <div class="header-cell">PO Amt: ${item?.currency || ""} ${item?.poAmt || ""}</div>
+                <div class="header-cell wide">PO No and Date: <b>${item?.poNo || ""}</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>${formatDate(item?.poDate)}</b></div>
+                <div class="header-cell">PO Amt: <b>${item?.currency || ""} ${formatAmount(item?.poAmt) || ""}</b></div>
               </div>
               
               <!-- GST and PAN Row -->
               <div class="header-row">
-                <div class="header-cell wide">Vendor GST No as per SAP: ${item?.gstNumber || ""}</div>
+                <div class="header-cell wide">Vendor GST No as per SAP: <b>${item?.gstNumber || ""}</b></div>
                 <div class="header-cell">LC exist in vendor A/c: Yes / No</div>
               </div>
               
               <!-- Compliance Row -->
               <div class="header-row">
-                <div class="header-cell wide">Compliance u/s 206AB: ${item?.compliance206AB || ""}</div>
-                <div class="header-cell">PAN Status: ${item?.panStatus || ""}</div>
+                <div class="header-cell wide">Compliance u/s 206AB: <b>${item?.compliance206AB || ""}</b></div>
+                <div class="header-cell">PAN Status: <b>${item?.panStatus || ""}</b></div>
               </div>
             </div>
 
@@ -285,7 +290,7 @@ const ChecklistAccount = () => {
                 
                 <tr>
                   <td class="row-data">Invoice Amount</td>
-                  <td class="row-data amt">${item?.currency || "INR"} ${item?.taxInvAmt || ""}</td>
+                  <td class="row-data amt"><b>${item?.currency || "INR"} ${formatAmount(item?.taxInvAmt) || ""}</b></td>
                   <td class="row-data">Bill for Material / services / material + services<br/>Total Material Purchases - < 50 lacs / > 50 lacs</td>
                 </tr>
                 
@@ -333,7 +338,7 @@ const ChecklistAccount = () => {
                 
                 <tr>
                   <td class="row-data">Gleed's Certification Amount</td>
-                  <td class="amt">INR ${item?.copDetails?.amount || "18,644.00"}
+                  <td class="amt"><b>INR ${formatAmount(item?.copDetails?.amount) || ""}</b>
                   <p class="na-mum">N.A. for Mumbai; amt < 50,000 </p>
                   </td>
                   <td class="row-data">Is certificate signed & stamped? Yes / No<br/>Is PO no correct? Yes / No</td>
@@ -463,12 +468,12 @@ const ChecklistAccount = () => {
                     </div>
                     &nbsp; &nbsp;
                     <div className="text-sm">
-                      Region-Project Name: {item?.region} -{" "}
-                      {item?.projectDescription}
+                      Region-Project Name: <span className="font-bold">{item?.region} -{" "}
+                      {item?.projectDescription}</span>
                     </div>
                   </div>
                   <div className="border-gray-300">
-                    <div className="text-sm text-center">{item?.srNo}</div>
+                    <div className="text-sm text-center font-bold">{item?.srNo}</div>
                   </div>
                   <div className="border-gray-300">
                     <div className="text-sm text-center">Due Date:</div>
@@ -477,10 +482,10 @@ const ChecklistAccount = () => {
 
                 <div className="p-2 border-b border-gray-300">
                   <div className="grid grid-cols-3 gap-4 text-sm">
-                    <div>Invoice No: {item?.taxInvNo}</div>
-                    <div>Dt: {formatDate(item?.taxInvDate)}</div>
+                    <div>Invoice No: <span className="font-bold">{item?.taxInvNo}</span></div>
+                    <div>Dt: <span className="font-bold">{formatDate(item?.taxInvDate)}</span></div>
                     <div>
-                      Nature of Work: {item?.natureOfWork || item?.typeOfInv}
+                      Nature of Work: <span className="font-bold">{item?.natureOfWork || item?.typeOfInv}</span>
                     </div>
                   </div>
                 </div>
@@ -488,20 +493,20 @@ const ChecklistAccount = () => {
                 <div className="p-2 border-b border-gray-300">
                   <div className="grid grid-cols-4 text-sm">
                     <div className="col-span-3">
-                      Vendor Description: {item?.vendorName}
+                      Vendor Description: <span className="font-bold">{item?.vendorName}</span>
                     </div>
-                    <div>Vendor code: {item?.vendorNo}</div>
+                    <div>Vendor code: <span className="font-bold">{item?.vendorNo}</span></div>
                   </div>
                 </div>
 
                 <div className="p-2 border-b border-gray-300">
                   <div className="grid grid-cols-4 text-sm">
                     <div className="col-span-3">
-                      PO Number and Date: {item?.poNo} &nbsp; &nbsp;
-                      {formatDate(item?.poDate)}
+                      PO Number and Date: <span className="font-bold">{item?.poNo}</span> &nbsp; &nbsp;
+                      <span className="font-bold">{formatDate(item?.poDate)}</span>
                     </div>
                     <div>
-                      PO Amt: {item?.currency} {item?.poAmt}
+                      PO Amt: <span className="font-bold">{item?.currency} {formatAmount(item?.poAmt)}</span>
                     </div>
                   </div>
                 </div>
@@ -509,8 +514,8 @@ const ChecklistAccount = () => {
                 <div className="p-2 border-b border-gray-300">
                   <div className="grid grid-cols-4 text-sm">
                     <div className="col-span-3">
-                      Vendor GST No & PAN as per SAP: {item?.gstNumber || ""} /{" "}
-                      {vendorPANMap[item?.vendorNo] || ""}
+                      Vendor GST No & PAN as per SAP: <span className="font-bold">{item?.gstNumber || ""} /{" "}
+                      {vendorPANMap[item?.vendorNo] || ""}</span>
                     </div>
                     <div>LC exists in vendor A/c: &nbsp; Yes / No</div>
                   </div>
@@ -519,9 +524,9 @@ const ChecklistAccount = () => {
                 <div className="p-2 border-b border-gray-300">
                   <div className="grid grid-cols-4 text-sm">
                     <div className="col-span-3">
-                      Compliance u/s 206AB: {item?.compliance206AB}
+                      Compliance u/s 206AB: <span className="font-bold">{item?.compliance206AB}</span>
                     </div>
-                    <div>Pan Status: {item?.panStatus}</div>
+                    <div>Pan Status: <span className="font-bold">{item?.panStatus}</span></div>
                   </div>
                 </div>
               </div>
@@ -618,8 +623,8 @@ const ChecklistAccount = () => {
                             Invoice Amount
                           </td>
                           <td className="border border-gray-300 p-2">
-                            <div>
-                              {item?.currency} {item?.taxInvAmt}
+                            <div className="font-bold">
+                              {item?.currency} {formatAmount(item?.taxInvAmt)}
                             </div>
                           </td>
                           <td className="border border-gray-300 p-2">
@@ -768,7 +773,7 @@ const ChecklistAccount = () => {
                             Gleed's Certification Amount
                           </td>
                           <td className="border border-gray-300 p-2">
-                            <div>INR {item?.copDetails?.amount}</div>
+                            <div className="font-bold">INR {formatAmount(item?.copDetails?.amount)}</div>
                             <div>N.A. for Mumbai; amt &lt; 50,000</div>
                           </td>
                           <td className="border border-gray-300 p-2">
