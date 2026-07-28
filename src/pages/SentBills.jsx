@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
 import DataTable from "../components/DataTable";
 // import DataTable from "../components/dashboard/DataTable";
-import { Funnel, Grid3x3, Download, X, AlertTriangle } from "lucide-react";
+import { Funnel, Grid3x3, Download, X, AlertTriangle, ArrowLeftFromLine, ArrowRightFromLine, RotateCcw } from "lucide-react";
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnView";
 import { FilterModal } from "../components/dashboard/FilterModal";
@@ -20,6 +20,7 @@ const SentBills = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
   const [selectedRegion, setSelectedRegion] = useState([]);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -337,8 +338,8 @@ const SentBills = () => {
     totalItems: totalFilteredItems,
     selectAll: selectAll,
     onSelectAll: handleSelectAll,
-    sortConfig: { key: null, direction: null },
-    setSortConfig: () => {},
+    sortConfig: sortConfig,
+    setSortConfig: setSortConfig,
     onSort: () => {},
     currentPage: currentPage,
     itemsPerPage: itemsPerPage,
@@ -521,6 +522,13 @@ const SentBills = () => {
                   title="Filter Options"
                 >
                   <Funnel className="w-4 h-4" />
+                </button>
+                <button
+                  className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-md transition-colors border border-gray-400 hover:cursor-pointer flex items-center justify-center"
+                  onClick={() => setSortConfig({ key: null, direction: null })}
+                  title="Reset Sorting (Use Default Order)"
+                >
+                  <RotateCcw className="w-4 h-4" />
                 </button>
               </div>
               {/* Actions */}

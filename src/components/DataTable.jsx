@@ -113,7 +113,11 @@ const DataTable = ({
   };
 
   const requestSort = (key) => {
-    onSort(key);
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
   };
 
   const formatDate = (dateString) => {
@@ -324,11 +328,11 @@ const DataTable = ({
 
   const displayData = useMemo(() => {
     const page = Number(currentPage) || 1;
-    const perPage = Number(itemsPerPage) || filteredData.length || 1;
+    const perPage = Number(itemsPerPage) || sortedData.length || 1;
     const indexOfLastItem = page * perPage;
     const indexOfFirstItem = indexOfLastItem - perPage;
-    return filteredData.slice(indexOfFirstItem, indexOfLastItem);
-  }, [filteredData, currentPage, itemsPerPage]);
+    return sortedData.slice(indexOfFirstItem, indexOfLastItem);
+  }, [sortedData, currentPage, itemsPerPage]);
 
   const getRoleSortColumn = (role) => {
     const roleColumnMap = {
@@ -1565,7 +1569,7 @@ const DataTable = ({
                               } selected`}
                           </div>
                         )}
-                      <span className="invisible group-hover:visible ml-1">
+                      <span className={`${sortConfig.key === column.field ? "visible" : "invisible group-hover:visible"} ml-1`}>
                         {sortConfig.key === column.field &&
                           sortConfig.direction ? (
                           sortConfig.direction === "asc" ? (
