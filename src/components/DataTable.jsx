@@ -325,36 +325,6 @@ const DataTable = ({
       });
     });
   }, [data, searchQuery, columnFilters, visibleColumns]);
-
-  const displayData = useMemo(() => {
-    const page = Number(currentPage) || 1;
-    const perPage = Number(itemsPerPage) || sortedData.length || 1;
-    const indexOfLastItem = page * perPage;
-    const indexOfFirstItem = indexOfLastItem - perPage;
-    return sortedData.slice(indexOfFirstItem, indexOfLastItem);
-  }, [sortedData, currentPage, itemsPerPage]);
-
-  const getRoleSortColumn = (role) => {
-    const roleColumnMap = {
-      site_officer: "pimoMumbai.dateGiven",
-      qs_site: "pimoMumbai.dateReturnedFromQs",
-      site_pimo: "accountsDept.dateGiven",
-      director: "accountsDept.paymentDate",
-      accounts: "accountsDept.paymentDate",
-    };
-    return roleColumnMap[role] || null;
-  };
-
-  useEffect(() => {
-    const roleSortColumn = getRoleSortColumn(currentUserRole);
-    if (roleSortColumn) {
-      setSortConfig({
-        key: roleSortColumn,
-        direction: "desc",
-      });
-    }
-  }, [currentUserRole]);
-
   const sortedData = useMemo(() => {
     if (!sortConfig.key || !sortConfig.direction) return filteredData;
 
@@ -426,6 +396,36 @@ const DataTable = ({
       return comparison;
     });
   }, [filteredData, sortConfig, currentUserRole]);
+  const displayData = useMemo(() => {
+    const page = Number(currentPage) || 1;
+    const perPage = Number(itemsPerPage) || sortedData.length || 1;
+    const indexOfLastItem = page * perPage;
+    const indexOfFirstItem = indexOfLastItem - perPage;
+    return sortedData.slice(indexOfFirstItem, indexOfLastItem);
+  }, [sortedData, currentPage, itemsPerPage]);
+
+  const getRoleSortColumn = (role) => {
+    const roleColumnMap = {
+      site_officer: "pimoMumbai.dateGiven",
+      qs_site: "pimoMumbai.dateReturnedFromQs",
+      site_pimo: "accountsDept.dateGiven",
+      director: "accountsDept.paymentDate",
+      accounts: "accountsDept.paymentDate",
+    };
+    return roleColumnMap[role] || null;
+  };
+
+  useEffect(() => {
+    const roleSortColumn = getRoleSortColumn(currentUserRole);
+    if (roleSortColumn) {
+      setSortConfig({
+        key: roleSortColumn,
+        direction: "desc",
+      });
+    }
+  }, [currentUserRole]);
+
+
 
 
   // const displayData = useMemo(() => {
