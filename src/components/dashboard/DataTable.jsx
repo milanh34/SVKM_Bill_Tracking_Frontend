@@ -287,10 +287,8 @@ const DataTable = ({
   const displayData = useMemo(() => {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    console.log("DataTable - sorted data: ", sortedData);
-    // return sortedData.slice(indexOfFirstItem, indexOfLastItem);
-    return filteredData.slice(indexOfFirstItem, indexOfLastItem);
-  }, [filteredData, currentPage, itemsPerPage]);
+    return sortedData.slice(indexOfFirstItem, indexOfLastItem);
+  }, [sortedData, currentPage, itemsPerPage]);
 
   useEffect(() => {
     if (onPaginatedDataChange) {
@@ -856,7 +854,7 @@ const DataTable = ({
               {visibleColumns.map((column) => (
                 <th
                   key={column.field}
-                  onClick={() => requestSort(column.field, onSort)}
+                  onClick={() => requestSort(column.field, sortConfig, setSortConfig)}
                   className={`
                     ${column.field === "srNo" ? "sticky left-10 z-100" : ""}
                     sticky top-0 px-1.5 py-2.5 text-left text-sm font-semibold text-gray-900
@@ -888,7 +886,7 @@ const DataTable = ({
                               } selected`}
                           </div>
                         )}
-                      <span className="invisible group-hover:visible ml-1">
+                      <span className={`${sortConfig.key === column.field ? "visible" : "invisible group-hover:visible"} ml-1`}>
                         {sortConfig.key === column.field &&
                           sortConfig.direction ? (
                           sortConfig.direction === "asc" ? (

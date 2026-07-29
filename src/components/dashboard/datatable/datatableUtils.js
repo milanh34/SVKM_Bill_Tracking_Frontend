@@ -210,8 +210,12 @@ export const applyFilter = (
   }
 };
 
-export const requestSort = (key, onSort) => {
-  onSort(key);
+export const requestSort = (key, sortConfig, setSortConfig) => {
+  let direction = "asc";
+  if (sortConfig.key === key && sortConfig.direction === "asc") {
+    direction = "desc";
+  }
+  setSortConfig({ key, direction });
 };
 
 export const formatCellValue = (value, field) => {

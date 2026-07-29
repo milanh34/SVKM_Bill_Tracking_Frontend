@@ -23,7 +23,8 @@ import {
   Printer,
   EditIcon,
   X,
-  Trash2
+  Trash2,
+  RotateCcw
 } from "lucide-react";
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnView";
@@ -944,6 +945,13 @@ const Dashboard = () => {
                   title="Filter Options"
                 >
                   <Funnel className="w-4 h-4" />
+                </button>
+                <button
+                  className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-md transition-colors border border-gray-400 hover:cursor-pointer"
+                  onClick={() => setSortConfig({ key: null, direction: null })}
+                  title="Reset Sorting (Use Default Order)"
+                >
+                  <RotateCcw className="w-4 h-4" />
                 </button>
               </div>
 

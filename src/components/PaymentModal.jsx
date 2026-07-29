@@ -12,11 +12,11 @@ const PaymentModal = ({ closeWindow, selectedBills, billsData, fetchBills }) => 
 
     const selectedBillDetails = selectedBills.map(billId => {
         const bill = billsData.find(b => b._id === billId);
-        return bill 
-            ? `${bill.srNo} - ${bill.vendorName} (₹${bill.taxInvAmt?.toLocaleString('en-IN', { 
-                minimumFractionDigits: 2, 
-                maximumFractionDigits: 2 
-              })})`
+        return bill
+            ? `${bill.srNo} - ${bill.vendorName} (₹${bill.taxInvAmt?.toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })})`
             : billId;
     });
 
@@ -32,7 +32,7 @@ const PaymentModal = ({ closeWindow, selectedBills, billsData, fetchBills }) => 
         try {
             const token = Cookies.get("token");
             const headers = { Authorization: `Bearer ${token}` };
-            
+
             // Fetch all bills to get the true database IDs, since the report API doesn't provide them
             const allBillsRes = await axios.get(getFilteredBills, { headers });
             const allDbBills = allBillsRes.data;
@@ -40,15 +40,15 @@ const PaymentModal = ({ closeWindow, selectedBills, billsData, fetchBills }) => 
             // Route the update through the generic bills endpoint instead of the broken payment endpoint
             await Promise.all(selectedBills.map(async (srNo) => {
                 const dbBill = allDbBills.find(b => String(b.srNo) === String(srNo));
-                
+
                 if (!dbBill || !dbBill._id) {
                     throw new Error(`Cannot find ID for bill ${srNo}`);
                 }
 
                 return axios.patch(`${bills}/${dbBill._id}`, {
                     "accountsDept.paymentInstructions": remark,
-                    "accountsDept.remarksForPayInstructions": remark,
-                    paymentInstructions: remark // Adding flat just in case
+                    // "accountsDept.remarksForPayInstructions": remark,
+                    // paymentInstructions: remark // Adding flat just in case
                 }, { headers });
             }));
 

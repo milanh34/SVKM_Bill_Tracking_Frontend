@@ -32,7 +32,7 @@ const RepBillOutstanding = () => {
     const [regionOptions] = useState(() => JSON.parse(Cookies.get('availableRegions') || '[]'));
     const [region, setRegion] = useState("all");
     const [isModalOpen, setIsModalOpen] = useState(false);
-    
+
     const fetchBills = useCallback(async () => {
         try {
             const response = await axios.get(`${outstanding}?startDate=${fromDate}&endDate=${toDate}`);
@@ -229,27 +229,27 @@ const RepBillOutstanding = () => {
                             </thead>
                             <tbody>
                                 {visibleBills.map((bill) => (
-                                        <tr key={bill.srNo} className="hover:bg-[#f5f5f5]">
-                                            <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedRows.includes(bill.srNo)}
-                                                    onChange={() => handleSelectRow(bill.srNo)}
-                                                />
-                                            </td>
-                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.srNo}</td>
-                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.region}</td>
-                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorNo}</td>
-                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorName}</td>
-                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvNo}</td>
-                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvDate}</td>
-                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.dateRecdInAcctsDept}</td>
-                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.copAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.paymentInstructions}</td>
-                                            <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.remarksForPaymentInstructions}</td>
-                                        </tr>
-                                    ))
+                                    <tr key={bill.srNo} className="hover:bg-[#f5f5f5]">
+                                        <td className='border border-black font-light text-[14px] py-[1.5vh] px-[1vw] text-left'>
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedRows.includes(bill.srNo)}
+                                                onChange={() => handleSelectRow(bill.srNo)}
+                                            />
+                                        </td>
+                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.srNo}</td>
+                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.region}</td>
+                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorNo}</td>
+                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.vendorName}</td>
+                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvNo}</td>
+                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.taxInvDate}</td>
+                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.taxInvAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.dateRecdInAcctsDept}</td>
+                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.copAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.paymentInstructions}</td>
+                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.remarksForPaymentInstructions}</td>
+                                    </tr>
+                                ))
                                 }
                                 {billsData
                                     .filter(bill => bill.isGrandTotal)
