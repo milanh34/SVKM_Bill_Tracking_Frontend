@@ -10,14 +10,14 @@ import axios from 'axios';
 import { courieredMumbai, invReturnQsProvCop } from '../../apis/report.api';
 // import { handleExportRepCourierToMumbai } from '../../utils/archive/exportExcelReportCourierMumbai';
 import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
-import { getTodayDateString, getDefaultFromDateString } from '../../utils/dateHelpers';
+import { getTodayDateString } from '../../utils/dateHelpers';
 
 const InvReturnQsAfterMeasurement = () => {
 
     const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
 
     const [loading, setLoading] = useState(true);
-    const [fromDate, setFromDate] = useState(getDefaultFromDateString());
+    const [fromDate, setFromDate] = useState(getTodayDateString());
     const [toDate, setToDate] = useState(getTodayDateString());
     const [bills, setBills] = useState([]);
     const [error, setError] = useState(null);

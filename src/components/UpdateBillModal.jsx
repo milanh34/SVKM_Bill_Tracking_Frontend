@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { patchBills, importReport } from "../apis/excel.api";
 import { parseBillImportFile, openBillImportResults, hasBillResultData } from "../utils/importBillResults";
+import { parseBillUpdateFile, openBillUpdateResults, hasVendorResultData } from "../utils/vendorUpdateResults";
 import updateBillTemplate from "../assets/updateBill.xlsx?url";
 import importBillTemplate from "../assets/importBill.xlsx?url";
 import Cookies from "js-cookie";
@@ -87,14 +88,14 @@ export const UpdateBillModal = ({
     const userRole = Cookies.get("userRole");
     setLoading(true);
 
-    // For import, parse the file first so we can build a per-row results table
+    // Parse the file first so we can build a per-row results table
     let fileRows = [];
-    if (!patch) {
-      try {
-        fileRows = await parseBillImportFile(selectedFile);
-      } catch (parseErr) {
-        console.error("Error parsing import file:", parseErr);
-      }
+    try {
+      fileRows = patch
+        ? await parseBillUpdateFile(selectedFile)
+        : await parseBillImportFile(selectedFile);
+    } catch (parseErr) {
+      console.error("Error parsing file:", parseErr);
     }
 
     try {
@@ -108,7 +109,28 @@ export const UpdateBillModal = ({
       });
 
       if (patch) {
-        toast.success("Bills updated successfully");
+        // Update: failures come back in data.errors[] as { row, error };
+        // partial success returns 400 (handled in catch).
+        const payload = response.data;
+        console.log("Mass Update Bills response:", payload);
+        const info = payload?.data || payload?.details || {};
+        const hasErrors = info.errors?.length > 0;
+
+        if (payload?.toastMessage) {
+          hasErrors
+            ? toast.warning(payload.toastMessage)
+            : toast.success(payload.toastMessage);
+        } else {
+          toast.success("Bills updated successfully");
+        }
+
+        if (hasVendorResultData(info)) {
+          const opened = openBillUpdateResults(fileRows, info);
+          if (!opened) {
+            toast.info("Please allow pop-ups to view the update results");
+          }
+        }
+
         await fetchAllData?.();
         setOpenUpdateBillModal(false);
       } else {
@@ -145,9 +167,23 @@ export const UpdateBillModal = ({
         error,
       );
       const payload = error.response?.data;
-      // Import partial success is a 202 (handled above); a thrown error here is
-      // a genuine failure, unless the body still carries result data.
-      if (!patch && payload && hasBillResultData(payload)) {
+      console.log("Mass Update/Import Bills error payload:", payload);
+      const info = payload?.data || payload?.details || {};
+
+      if (patch && payload && hasVendorResultData(info)) {
+        // Update: partial success is returned as HTTP 400 -> lands here.
+        if (payload.toastMessage) {
+          toast.warning(payload.toastMessage);
+        }
+        const opened = openBillUpdateResults(fileRows, info);
+        if (!opened) {
+          toast.info("Please allow pop-ups to view the update results");
+        }
+        await fetchAllData?.();
+        setOpenUpdateBillModal(false);
+      } else if (!patch && payload && hasBillResultData(payload)) {
+        // Import partial success is a 202 (handled above); a thrown error here is
+        // a genuine failure, unless the body still carries result data.
         if (payload.toastMessage) {
           toast.warning(payload.toastMessage);
         }

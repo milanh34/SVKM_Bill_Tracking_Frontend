@@ -10,13 +10,13 @@ import axios from 'axios';
 import { givenToAccounts, invSentToAccts } from '../../apis/report.api';
 // import { handleExportRepGivenToAccounts } from '../../utils/archive/exportExcelReportGivenToAccounts';
 import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
-import { getTodayDateString, getDefaultFromDateString } from '../../utils/dateHelpers';
+import { getTodayDateString } from '../../utils/dateHelpers';
 
 const InvSentToAccts = () => {
 
     const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
 
-    const [fromDate, setFromDate] = useState(getDefaultFromDateString());
+    const [fromDate, setFromDate] = useState(getTodayDateString());
     const [toDate, setToDate] = useState(getTodayDateString());
     const [bills, setBills] = useState([]);
     const [loading, setLoading] = useState(false);

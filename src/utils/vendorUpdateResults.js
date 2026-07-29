@@ -1,7 +1,6 @@
 import * as XLSX from 'xlsx';
 
-// Column configs (order = display order). `header` is the Excel column header
-// (also used as the results-table header). Data starts at Excel row 2.
+
 const UPDATE_COLUMNS = [
     { header: 'Vendor No' },
     { header: '206AB Compliance' },
@@ -21,6 +20,30 @@ const IMPORT_COLUMNS = [
     { header: 'Phone No' },
     { header: 'Addl 1' },
     { header: 'Addl 2' },
+];
+
+const BILL_UPDATE_COLUMNS = [
+    { header: 'Sr no' },
+    { header: 'COP Dt' },
+    { header: 'COP Amt' },
+    { header: 'MIGO no' },
+    { header: 'MIGO Dt' },
+    { header: 'MIGO Amt' },
+    { header: 'MIGO done by' },
+    { header: 'SES no' },
+    { header: 'SES Amt' },
+    { header: 'SES Dt' },
+    { header: 'SES done by' },
+    { header: 'Dt ret-PIMO aft approval' },
+    { header: 'Payment Instructions' },
+    { header: 'F110' },
+    { header: 'Dt of Payment' },
+    { header: 'Hard Copy' },
+    { header: 'Accts Identification' },
+    { header: 'Payment Amt' },
+    { header: 'MIRO no' },
+    { header: 'MIRO Dt' },
+    { header: 'MIRO Amt' },
 ];
 
 // Parse an uploaded vendor file into data rows keyed by column header.
@@ -195,4 +218,15 @@ export const openVendorImportResults = (dataRows, info = {}) => openVendorResult
     columns: IMPORT_COLUMNS,
     successKeys: ['imported', 'created', 'inserted', 'added', 'updated'],
     failedKeys: ['skipped', 'failed'],
+});
+
+// Update-bill (Mass Update) results — same pattern as vendor update:
+// failures in data.errors[] as { row, error }, 400 for partial success.
+export const parseBillUpdateFile = (file) => parseVendorFile(file);
+
+export const openBillUpdateResults = (dataRows, info = {}) => openVendorResults(dataRows, info, {
+    title: 'Bill Mass Update Results',
+    columns: BILL_UPDATE_COLUMNS,
+    successKeys: ['updated'],
+    failedKeys: ['skipped'],
 });

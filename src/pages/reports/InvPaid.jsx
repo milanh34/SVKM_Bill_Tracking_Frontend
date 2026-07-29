@@ -9,11 +9,11 @@ import axios from 'axios';
 import { invPaid } from '../../apis/report.api';
 // import { handleExportRepPaid } from '../../utils/archive/exportExcelReportPaid';
 import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
-import { getTodayDateString, getDefaultFromDateString } from '../../utils/dateHelpers';
+import { getTodayDateString } from '../../utils/dateHelpers';
 
 const InvPaid = () => {
 
-    const [fromDate, setFromDate] = useState(getDefaultFromDateString());
+    const [fromDate, setFromDate] = useState(getTodayDateString());
     const [toDate, setToDate] = useState(getTodayDateString());
     const [bills, setBills] = useState([]);
     const [loading, setLoading] = useState(false);
