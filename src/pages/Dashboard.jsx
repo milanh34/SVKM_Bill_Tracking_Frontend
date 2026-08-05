@@ -233,7 +233,7 @@ const Dashboard = () => {
         const shouldSkipChecklist = selectedBills.some(
           (bill) => bill.natureOfWork === "Advance/LC/BG" || bill.natureOfWork === "Direct FI Entry"
         );
-        
+
         if (!shouldSkipChecklist) {
           navigate("/checklist-account2", {
             state: {
@@ -1437,6 +1437,8 @@ const Dashboard = () => {
             closeWindow={() => {
               setIsWindowOpen(false);
               setSelectedRole(null);
+              setSelectedRows([]);
+              setSelectAll(false);
             }}
             selectedBills={selectedRows}
             billsData={filteredData.filter((bill) =>
