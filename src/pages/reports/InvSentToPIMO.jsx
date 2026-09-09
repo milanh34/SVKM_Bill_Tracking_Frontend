@@ -78,7 +78,9 @@ const InvSentToPIMO = () => {
     const titleName = "Invoices sent to PIMO Mumbai";
 
     const columns = [
+        { field: "count", headerName: "Count" },
         { field: "srNo", headerName: "Sr. No" },
+        { field: "vendorNo", headerName: "Vendor No" },
         { field: "vendorName", headerName: "Vendor Name" },
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
@@ -87,7 +89,7 @@ const InvSentToPIMO = () => {
     ]
 
     const visibleColumnFields = [
-        "srNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dateDispatchedForPimo"
+        "count", "srNo", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dateDispatchedForPimo"
     ]
 
 

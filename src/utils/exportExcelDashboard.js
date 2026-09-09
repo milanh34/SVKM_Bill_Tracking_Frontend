@@ -33,8 +33,18 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
     const allColumnsToExport = columns.filter((col) => visibleColumnFields.includes(col.field));
     const workbook = XLSX.utils.book_new();
 
-    // Define which fields should be treated as numbers
+    // Which fields are numbers.
+    //
+    // Two tests used to decide this and they disagreed. The VALUE was
+    // converted to a number by the regex below, which matches any field whose
+    // name contains amount/amt; the number FORMAT was applied only to this
+    // hard-coded list. MIGO Amt (col 48) is caught by the regex but was absent
+    // from the list, so it went into the sheet as a bare number with no
+    // thousands separator (observations, General R1). SES Amt (col 73) had the
+    // same gap. One test now decides both.
     const numberFields = ["taxInvAmt", "poAmt", "copDetails.amount", "accountsDept.paymentAmt", "proformaInvAmt", "advanceAmt"];
+    const isNumberColumn = (field) =>
+      numberFields.includes(field) || /amount|amt/i.test(field);
 
     // Create timestamp row
     const now = new Date();
@@ -57,8 +67,7 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
 
         // detect by name
         const isDateField = /date|Date|Dt|dt|Booking|booking|RecdAtSite|receivedBack|invReturnedToSite|returnedToPimo/i.test(column.field);
-        const isNumberField = numberFields.includes(column.field) ||
-          /amount|Amount|Amt|amt|Amt$|amt$/.test(column.field);
+        const isNumberField = isNumberColumn(column.field);
 
         // Normalize values: keep raw types for sheetjs
         if (isDateField) {
@@ -167,7 +176,7 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
         grandTotalRow[column.headerName] = "Grand Total";
       } else if (grandTotals.hasOwnProperty(column.field)) {
         // Keep grand total as number for number fields
-        if (numberFields.includes(column.field)) {
+        if (isNumberColumn(column.field)) {
           grandTotalRow[column.headerName] = grandTotals[column.field];
         } else {
           grandTotalRow[column.headerName] = formatCurrency(grandTotals[column.field]);
@@ -201,7 +210,7 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
     // Get column indices for number fields
     const numberColumnIndices = [];
     allColumnsToExport.forEach((column, index) => {
-      if (numberFields.includes(column.field)) {
+      if (isNumberColumn(column.field)) {
         numberColumnIndices.push(index);
       }
     });

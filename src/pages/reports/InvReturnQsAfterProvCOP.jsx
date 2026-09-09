@@ -77,7 +77,9 @@ const InvReturnQsAfterMeasurement = () => {
     const titleName = "Invoices Returned by QS Site after Prov COP";
 
     const columns = [
+        { field: "count", headerName: "Count" },
         { field: "srNo", headerName: "Sr. No" },
+        { field: "vendorNo", headerName: "Vendor No" },
         { field: "vendorName", headerName: "Vendor Name" },
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
@@ -86,7 +88,7 @@ const InvReturnQsAfterMeasurement = () => {
     ]
 
     const visibleColumnFields = [
-        "srNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "pimoMumbai.dateGiven", "dateDispatchedForPimo"
+        "count", "srNo", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "pimoMumbai.dateGiven", "dateDispatchedForPimo"
     ]
 
 

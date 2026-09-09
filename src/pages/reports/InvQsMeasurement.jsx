@@ -86,7 +86,7 @@ const InvQsMeasurement = () => {
         { field: "vendorName", headerName: "Vendor Name" },
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
-        { field: "taxInvAmt", headerName: "Tax Invoice Amount (Rs.)" },
+        { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
         { field: "dateGivenToQSMeasurement", headerName: "Dt given-QS for measure" }, // column no 35
         { field: "poNo", headerName: "PO No" },
     ]

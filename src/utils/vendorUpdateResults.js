@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { registerResultsDownload, DOWNLOAD_BUTTON_CSS } from './resultsDownload';
 
 
 const UPDATE_COLUMNS = [
@@ -49,7 +50,8 @@ const BILL_UPDATE_COLUMNS = [
 // Parse an uploaded vendor file into data rows keyed by column header.
 const parseVendorFile = async (file) => {
     const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, { type: 'array' });
+    // cellDates keeps dates as Date objects rather than Excel serial numbers.
+    const wb = XLSX.read(buf, { type: 'array', cellDates: true });
     const ws = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
@@ -137,6 +139,18 @@ const openVendorResults = (dataRows, info = {}, options = {}) => {
     const successCount = firstDefined(successKeys) ?? results.filter((r) => r.status === 'Success').length;
     const failedCount = firstDefined(failedKeys) ?? (info.errors?.length ?? results.filter((r) => r.status === 'Failed').length);
 
+    // Column headings the server did not recognise. Previously dropped in
+    // silence, which is how two columns in the client's own template went
+    // unnoticed. Shown here so a drifting template is obvious on upload.
+    const unknown = Array.isArray(info.unknownHeaders) ? info.unknownHeaders : [];
+    const unknownHtml = unknown.length
+        ? `<div class="warn"><b>Columns not recognised and therefore ignored:</b> ${
+              unknown.map(escapeHtml).join(', ')
+          }</div>`
+        : '';
+
+    const downloadBtn = registerResultsDownload(title, columns, results);
+
     const headHtml = columns.map((c) => `<th>${escapeHtml(c.header)}</th>`).join('');
 
     const rowsHtml = results.map((r) => {
@@ -172,15 +186,20 @@ const openVendorResults = (dataRows, info = {}, options = {}) => {
               .status-failed { color: #c5221f; }
               .failed-row td { background-color: #fdeceb; }
               .error-cell { color: #c5221f; }
+              .warn { background:#fdf3dd; border:1px solid #e0c169; color:#7a5a10;
+                      padding:10px 14px; border-radius:6px; margin-bottom:16px; font-size:13px; }
+              ${DOWNLOAD_BUTTON_CSS}
             </style>
           </head>
           <body>
             <h1>${escapeHtml(title)}</h1>
             <div class="generated">Generated on: ${new Date().toLocaleString('en-IN')}</div>
+            ${unknownHtml}
             <div class="summary">
               <div class="summary-card summary-success">Successful: ${successCount}</div>
               <div class="summary-card summary-failed">Failed: ${failedCount}</div>
             </div>
+            ${downloadBtn}
             <table>
               <thead>
                 <tr>

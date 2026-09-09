@@ -163,18 +163,25 @@ const FullBillDetails = () => {
   const validatePoNo = (x) => /^[0-9]{10}$/.test(x);
   const validateTaxInvNo = (x) => /^[a-zA-Z0-9\-\/\.\\\_]{0,16}$/.test(x);
 
-  const handleVendorLookup = async (e) => {
-    if (e.key === "Enter" && billFormData.vendorNo) {
-      e.preventDefault();
+  /**
+   * Fetch the vendor's details for the number that has been typed.
+   *
+   * This used to run only on Enter, so anyone who typed the number and then
+   * tabbed or clicked to the next field saw nothing happen at all
+   * (observations, General R13). It now also runs on blur. `quiet` suppresses
+   * the "Vendor not found" toast while the user is still mid-number.
+   */
+  const lookupVendor = async ({ quiet = false } = {}) => {
+    if (billFormData.vendorNo) {
       setIsLoading(true);
 
       try {
         if (!validateVendorNo(billFormData.vendorNo)) {
-          toast.error('Vendor Number should be 6 Numbers');
+          if (!quiet) toast.error('Vendor Number should be 6 Numbers');
           return;
         }
         else if (!validateTaxInvNo(billFormData.taxInvNo)) {
-          toast.error('Tax Invoice Number can be max 16 characters');
+          if (!quiet) toast.error('Tax Invoice Number can be max 16 characters');
           return;
         }
         else {
@@ -229,7 +236,7 @@ const FullBillDetails = () => {
               ...updates,
             }));
             console.log("Vendor not found");
-            toast.error("Vendor not found");
+            if (!quiet) toast.error("Vendor not found");
           }
         }
       } catch (error) {
@@ -241,6 +248,16 @@ const FullBillDetails = () => {
       }
     }
   };
+
+  const handleVendorLookup = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      lookupVendor();
+    }
+  };
+
+  // Tabbing or clicking away is the common case, and it used to do nothing.
+  const handleVendorBlur = () => lookupVendor({ quiet: true });
 
   const handleVendorNameChange = (e) => {
     const value = e.target.value;
@@ -800,6 +817,7 @@ const FullBillDetails = () => {
                 value={billFormData.vendorNo}
                 onChange={handleChange}
                 onKeyDown={handleVendorLookup}
+                onBlur={handleVendorBlur}
                 pattern="\d{6}"
                 maxLength={6}
                 title="Vendor No must be exactly 6 digits"

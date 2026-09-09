@@ -2,6 +2,15 @@ import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { toast } from 'react-toastify';
 
+/**
+ * Email IDs and Phone No are arrays on the vendor. Handed to the sheet writer
+ * as-is they were rendered as a JS array literal, so the cell read
+ * ["a@b.com"] complete with brackets and quotes (observations, Masters R55).
+ * The on-screen table already joins them with a comma; the download now does
+ * the same.
+ */
+const cellValue = (value) => (Array.isArray(value) ? value.join(", ") : value);
+
 const formatCurrency = (value) => {
     if (value === undefined || value === null) return "";
     return new Intl.NumberFormat("en-IN", {
@@ -165,7 +174,7 @@ export const handleExportVendorMaster = async (
                             return "";
                         }
 
-                        return value;
+                        return cellValue(value);
                     });
                 }
 
@@ -288,7 +297,8 @@ export const handleExportVendorMaster = async (
                             }
                         }
 
-                        formattedRow[column.headerName] = (value !== undefined && value !== null && value !== 'N/A') ? value : "";
+                        formattedRow[column.headerName] =
+                            (value !== undefined && value !== null && value !== 'N/A') ? cellValue(value) : "";
                     });
                 }
 

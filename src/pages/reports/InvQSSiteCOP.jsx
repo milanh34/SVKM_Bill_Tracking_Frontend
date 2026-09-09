@@ -86,7 +86,7 @@ const InvQSSiteCOP = () => {
         { field: "vendorName", headerName: "Vendor Name" },
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
-        { field: "taxInvAmt", headerName: "Tax Invoice Amount (Rs.)" },
+        { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
         { field: "dateGivenToQsMumbai", headerName: "Dt given-QS Mumbai for COP" }, // column no 64
         { field: "poNo", headerName: "PO No" },
     ]

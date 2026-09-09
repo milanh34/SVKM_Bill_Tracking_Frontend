@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import cross from "../../assets/cross.svg";
 import { workflowUpdate } from "../../apis/workflow.api";
-import { bills } from "../../apis/bills.api";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from 'react-toastify';
@@ -77,34 +76,21 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
             });
 
             if (res.data.success) {
-                // Supplementary direct DB update for fields the backend workflow doesn't save automatically
-                const today = new Date().toISOString();
-                const supplementaryFieldsMap = {
-                    // ── Site Team ──
-                    migo_entry: { "migoDetails.name": recipientName },
-                    migo_entry_return: { "invReturnedToSiteName": recipientName },
-                    // ── QS Team ──
-                    measure: { "vendorFinalInv.name": recipientName },        // col 39
-                    site_cop: { "copDetails.nameReturned": recipientName },    // col 44B
-                    pimo_cop: { "pimoMumbai.nameReturnedFromQs": recipientName }, // col 67
-                    // ── PIMO Team ──
-                    qs_mumbai: { "qsMumbai.name": recipientName },              // col 65
-                    it_team: { "itDept.name": recipientName },                // col 69
-                    ses_team: { "sesDetails.name": recipientName },            // col 71
-                    it_return_team: { "pimoMumbai.nameReceivedFromIT": recipientName },  // col 75A
-                    ses_return_team: { "pimoMumbai.nameReturnedFromSES": recipientName }, // col 76A
-                    trustee: { "approvalDetails.directorApproval.dateGiven": today }, // col 77
-                    accounts_department: { "accountsDept.dateGiven": today }, // col 80
-                };
-
-                const extraFields = supplementaryFieldsMap[singleRole.value];
-                if (extraFields) {
-                    const token = Cookies.get("token");
-                    const headers = { Authorization: `Bearer ${token}` };
-                    await Promise.all(selectedBills.map(async (billId) => {
-                        return axios.patch(`${bills}/${billId}`, extraFields, { headers });
-                    }));
-                }
+                // The name and date columns are written by POST /workflow/changeState.
+                //
+                // A second PATCH used to run here and overwrite them all with
+                // `recipientName` - the free text typed into the send-to box -
+                // whatever the column actually means. Columns that record who
+                // RETURNED a bill (39 Name ret-QS aft measure, 44B, 67 Name
+                // ret-PIMO by QS Mumbai, 75A, 76A Name ret-PIMO aft SES) were
+                // therefore filled with the recipient, or with a remark, or
+                // with a login ID, depending on what the sender had typed.
+                // That is observations D-05 and D-07, and it also silently
+                // undid the server's own, correct value.
+                //
+                // The register marks columns 32, 49, 63, 67, 74A, 78, 81 and
+                // 82A "Auto - User name", so the server takes them from the
+                // signed token. The client must not supply them at all.
                 toast.success(res.data.message);
             } else {
                 toast.warning(res.data.message);

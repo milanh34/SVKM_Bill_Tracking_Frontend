@@ -8,6 +8,17 @@ import {
 } from "./Icons";
 import { X, FileImage, FileText, File, FileVideo, FileAudio, Plus, Trash2 } from "lucide-react";
 import { getColumnsForRole } from "../utils/columnEdit";
+import {
+  rowMatchesSearch,
+  compareValues,
+  compareBySrNo,
+  defaultSortField,
+  // Shared with the Home grid so a cell reads the same on both tabs. The
+  // local copy this replaces had no percentage branch, so Advance
+  // Percentage showed as "10.00" on Forwarded and "10%" on Home
+  // (observations, General R7).
+  formatCellValue,
+} from "./dashboard/datatable/datatableUtils";
 import { bills, deleteAttachments } from "../apis/bills.api";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -28,9 +39,11 @@ const DataTable = ({
   selectedRows,
   currentPage,
   itemsPerPage,
+  onPageChange,
   onPaginatedDataChange,
   searchQuery,
   currentUserRole,
+  activeTab = "forwarded",
   regionOptions,
   showActions = false,
 }) => {
@@ -46,8 +59,31 @@ const DataTable = ({
   const [editedValues, setEditedValues] = useState({});
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [pendingAmountFilters, setPendingAmountFilters] = useState({});
+  // uploadModal.rowId is the bill the staged files belong to. It deliberately
+  // survives "Done" - the files are not sent until the pencil edit is saved,
+  // so something has to remember whose they are. It used to be reset to null
+  // on Done while uploadFiles was left populated, so the next row's upload
+  // dialog opened with the previous row's file still listed, and saving that
+  // row filed it against the wrong bill (observations, Teamwise Ac-3).
   const [uploadModal, setUploadModal] = useState({ open: false, rowId: null });
   const [uploadFiles, setUploadFiles] = useState([]);
+
+  /** Open the dialog for a row, discarding anything staged for a different one. */
+  const openUploadModal = (rowId) => {
+    setUploadModal((prev) => {
+      if (prev.rowId && prev.rowId !== rowId) setUploadFiles([]);
+      return { open: true, rowId };
+    });
+  };
+
+  const closeUploadModal = ({ keepFiles }) => {
+    if (keepFiles) {
+      setUploadModal((prev) => ({ ...prev, open: false }));
+    } else {
+      setUploadModal({ open: false, rowId: null });
+      setUploadFiles([]);
+    }
+  };
   const [viewAttachments, setViewAttachments] = useState(false);
   const [allAttachments, setAllAttachments] = useState([
     "https://demolink1.com",
@@ -282,17 +318,13 @@ const DataTable = ({
 
   const filteredData = useMemo(() => {
     return data.filter((row) => {
-      if (searchQuery) {
-        const searchLower = searchQuery.toLowerCase();
-        const isMatchingSearch = visibleColumns.some((column) => {
-          // const value = getNestedValue(row, column.field);
-          // return value && value.toString().toLowerCase().includes(searchLower);
-          const value = getNestedValue(row, column.field);
-          const norm = normalizeValueForDisplay(value, column.field).toLowerCase();
-          return norm.includes(searchLower);
-        });
-        if (!isMatchingSearch) return false;
-      }
+      // Shared with the Home grid so the same search term behaves the
+      // same way on both tabs. The page used to filter by search itself as
+      // well, with a different rule (raw values only), so the two filters
+      // intersected and any term that matched one but not the other -
+      // every formatted date, every grouped amount - produced an empty
+      // grid (observations, Sorting R10).
+      if (!rowMatchesSearch(row, visibleColumns, searchQuery)) return false;
 
       return Object.entries(columnFilters).every(([field, filter]) => {
         const value = getNestedValue(row, field);
@@ -325,77 +357,20 @@ const DataTable = ({
       });
     });
   }, [data, searchQuery, columnFilters, visibleColumns]);
+  const roleSortColumn = defaultSortField(currentUserRole, activeTab);
+
   const sortedData = useMemo(() => {
     if (!sortConfig.key || !sortConfig.direction) return filteredData;
 
     return [...filteredData].sort((a, b) => {
-      const aValue = getNestedValue(a, sortConfig.key);
-      const bValue = getNestedValue(b, sortConfig.key);
-
-      if (aValue === undefined && bValue === undefined) return 0;
-      if (aValue === undefined) return 1;
-      if (bValue === undefined) return -1;
-
-      let comparison = 0;
-
-      if (typeof aValue === "number" && typeof bValue === "number") {
-        comparison =
-          sortConfig.direction === "asc"
-            ? aValue - bValue
-            : bValue - aValue;
-      } else if (aValue instanceof Date && bValue instanceof Date) {
-        comparison =
-          sortConfig.direction === "asc"
-            ? aValue.getTime() - bValue.getTime()
-            : bValue.getTime() - aValue.getTime();
-      } else if (typeof aValue === "string" && typeof bValue === "string") {
-        const aDate = new Date(aValue);
-        const bDate = new Date(bValue);
-        if (!isNaN(aDate) && !isNaN(bDate)) {
-          comparison =
-            sortConfig.direction === "asc"
-              ? aDate.getTime() - bDate.getTime()
-              : bDate.getTime() - aDate.getTime();
-        } else {
-          const aString = aValue.toLowerCase();
-          const bString = bValue.toLowerCase();
-          if (aString < bString)
-            comparison = sortConfig.direction === "asc" ? -1 : 1;
-          else if (aString > bString)
-            comparison = sortConfig.direction === "asc" ? 1 : -1;
-        }
-      } else {
-        const aString = String(aValue).toLowerCase();
-        const bString = String(bValue).toLowerCase();
-        if (aString < bString)
-          comparison = sortConfig.direction === "asc" ? -1 : 1;
-        else if (aString > bString)
-          comparison = sortConfig.direction === "asc" ? 1 : -1;
+      const comparison = compareValues(a, b, sortConfig.key, sortConfig.direction);
+      if (comparison === 0 && sortConfig.key === roleSortColumn) {
+        return compareBySrNo(a, b);
       }
-
-      // Tiebreaker with srNo
-      if (
-        comparison === 0 &&
-        sortConfig.key === getRoleSortColumn(currentUserRole)
-      ) {
-        const aSrNo = getNestedValue(a, "srNo");
-        const bSrNo = getNestedValue(b, "srNo");
-
-        if (aSrNo !== undefined && bSrNo !== undefined) {
-          const aSrNoNum =
-            typeof aSrNo === "number" ? aSrNo : parseFloat(aSrNo);
-          const bSrNoNum =
-            typeof bSrNo === "number" ? bSrNo : parseFloat(bSrNo);
-
-          if (!isNaN(aSrNoNum) && !isNaN(bSrNoNum)) {
-            comparison = aSrNoNum - bSrNoNum;
-          }
-        }
-      }
-
       return comparison;
     });
-  }, [filteredData, sortConfig, currentUserRole]);
+  }, [filteredData, sortConfig, roleSortColumn]);
+
   const displayData = useMemo(() => {
     const page = Number(currentPage) || 1;
     const perPage = Number(itemsPerPage) || sortedData.length || 1;
@@ -403,30 +378,6 @@ const DataTable = ({
     const indexOfFirstItem = indexOfLastItem - perPage;
     return sortedData.slice(indexOfFirstItem, indexOfLastItem);
   }, [sortedData, currentPage, itemsPerPage]);
-
-  const getRoleSortColumn = (role) => {
-    const roleColumnMap = {
-      site_officer: "pimoMumbai.dateGiven",
-      qs_site: "pimoMumbai.dateReturnedFromQs",
-      site_pimo: "accountsDept.dateGiven",
-      director: "accountsDept.paymentDate",
-      accounts: "accountsDept.paymentDate",
-    };
-    return roleColumnMap[role] || null;
-  };
-
-  useEffect(() => {
-    const roleSortColumn = getRoleSortColumn(currentUserRole);
-    if (roleSortColumn) {
-      setSortConfig({
-        key: roleSortColumn,
-        direction: "desc",
-      });
-    }
-  }, [currentUserRole]);
-
-
-
 
   // const displayData = useMemo(() => {
   //   const indexOfLastItem = currentPage * itemsPerPage;
@@ -440,51 +391,18 @@ const DataTable = ({
     }
   }, [sortedData, onPaginatedDataChange]);
 
-  const formatCurrency = (value) => {
-    if (value === null || value === undefined || isNaN(value)) return "-";
-    try {
-      return new Intl.NumberFormat("en-IN", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-        useGrouping: true,
-      }).format(value);
-    } catch (e) {
-      return value.toString();
+  // Column filters live in this component but the page owns the pagination
+  // footer, so applying a filter used to shrink the grid without the page
+  // knowing: the footer still offered nine pages, and page two of a
+  // three-row result was blank. This is what "filters cannot be applied on
+  // the Forwarded tab" looked like (observations, Sorting R36).
+  useEffect(() => {
+    if (!onPageChange) return;
+    const totalPages = Math.ceil(sortedData.length / (Number(itemsPerPage) || 1));
+    if (currentPage > Math.max(totalPages, 1)) {
+      onPageChange(Math.max(totalPages, 1));
     }
-  };
-
-  const formatCellValue = (value, field) => {
-    if (value === undefined || value === null || value === "") return "-";
-
-    if (isNumericField(field)) {
-      const numValue = parseFloat(value);
-      if (!isNaN(numValue)) {
-        return formatCurrency(numValue);
-      }
-    }
-
-    if (isDateField(field)) {
-      if (typeof value === "number") {
-        const date = new Date(value);
-        if (date.getFullYear() > 1971) {
-          return formatDate(date);
-        }
-      }
-      if (typeof value === "string" && value.includes("T")) {
-        const date = new Date(value);
-        if (!isNaN(date.getTime())) {
-          return formatDate(date);
-        }
-      }
-      return value.toString();
-    }
-
-    if (field.includes("status")) {
-      return value.toString();
-    }
-
-    return value.toString();
-  };
+  }, [sortedData, currentPage, itemsPerPage, onPageChange]);
 
   const grandTotals = useMemo(() => {
     const sum = (field) =>
@@ -1155,11 +1073,15 @@ const DataTable = ({
         );
       }
 
-      const inputType = isNumericField(column.field) ? "number" : "text";
+      // Text, not number: type="number" draws spinner arrows, which the
+      // Advance Percentage column was asked to lose (observations, General R8).
+      const inputType = "text";
+      const inputMode = isNumericField(column.field) ? "numeric" : undefined;
       return (
         <div className="relative w-full">
           <input
             type={inputType}
+            inputMode={inputMode}
             value={editedValue !== undefined ? editedValue : value || ""}
             onChange={(e) =>
               handleCellEdit(column.field, e.target.value, row._id)
@@ -1197,40 +1119,34 @@ const DataTable = ({
       }
 
       let response;
-      if (uploadFiles.length > 0) {
+      // Only files staged against THIS row, never whatever is left over.
+      const filesForThisRow =
+        uploadModal.rowId === row._id ? uploadFiles : [];
+
+      if (filesForThisRow.length > 0) {
         const formData = new FormData();
-        const accountsDeptToAppend = editedFieldsForRow['accountsDept.paymentDate']
-          ? {
-            ...(row.accountsDept || {}),
-            paymentDate: editedFieldsForRow['accountsDept.paymentDate'],
-            status: 'Paid',
-          }
-          : null;
+
+        // Same rule as the JSON branch: send each changed field as
+        // "parent.child" and never a whole nested object rebuilt from the row
+        // as it was fetched, which would write stale siblings back.
+        Object.entries(editedFieldsForRow).forEach(([key, value]) => {
+          formData.append(key, value);
+        });
+
+        if (editedFieldsForRow['accountsDept.paymentDate']) {
+          formData.append('accountsDept.status', 'Paid');
+        }
 
         if (
           editedFieldsForRow.siteStatus &&
           ["reject", "proforma"].includes(editedFieldsForRow.siteStatus)
         ) {
-          formData.append(
-            "pimoMumbai",
-            JSON.stringify({
-              ...row.pimoMumbai,
-              dateReceived: new Date().toISOString(),
-            })
-          );
+          formData.append("pimoMumbai.dateReceived", new Date().toISOString());
+          formData.append("accountsDept.paymentDate", new Date().toISOString());
+          formData.append("accountsDept.status", "Paid");
         }
 
-        if (accountsDeptToAppend) {
-          formData.append('accountsDept.paymentDate', accountsDeptToAppend.paymentDate);
-          formData.append('accountsDept.status', accountsDeptToAppend.status);
-        }
-
-        Object.entries(editedFieldsForRow).forEach(([key, value]) => {
-          if (key === 'accountsDept.paymentDate') return;
-          formData.append(key, value);
-        });
-
-        uploadFiles.forEach((file) => formData.append("files", file));
+        filesForThisRow.forEach((file) => formData.append("files", file));
         try {
           setEditSubmitting(true);
           response = await axios.patch(`${bills}/${row._id}`, formData);
@@ -1249,29 +1165,27 @@ const DataTable = ({
         delete payload._id;
         delete payload.srNo;
 
-        if (editedFieldsForRow['accountsDept.paymentDate']) {
-          payload.accountsDept = {
-            ...(row.accountsDept || {}),
-            ...(payload.accountsDept || {}),
-            paymentDate: editedFieldsForRow['accountsDept.paymentDate'],
-            status: 'Paid',
-          };
-          delete payload['accountsDept.paymentDate'];
+        // Send only what changed, always as "parent.child".
+        //
+        // This used to rebuild a whole `accountsDept` object out of the row as
+        // it was FETCHED whenever a payment date was among the edits. The
+        // server applied that object after the individual cells, so every
+        // other Accounts field edited in the same pencil session - Remarks for
+        // payments, F110, Hard Copy, Accts Identification, Remarks Accts - was
+        // written back at its old value (observations, Pencil Edit R8-R12).
+        if (payload['accountsDept.paymentDate']) {
+          payload['accountsDept.status'] = 'Paid';
         }
 
         if (
           payload.siteStatus &&
           ["reject", "proforma"].includes(payload.siteStatus)
         ) {
-          payload.pimoMumbai = {
-            ...row.pimoMumbai,
-            dateReceived: new Date().toISOString(),
-          };
-          payload.accountsDept = {
-            ...row.accountsDept,
-            paymentDate: new Date().toISOString(),
-            status: 'Paid',
-          };
+          // Reject / Proforma stamps col 62 and col 89 so the bill leaves the
+          // Site home tab, per the Send-to sheet.
+          payload['pimoMumbai.dateReceived'] = new Date().toISOString();
+          payload['accountsDept.paymentDate'] = new Date().toISOString();
+          payload['accountsDept.status'] = 'Paid';
         }
 
         if (Object.keys(payload).length > 0) {
@@ -1332,8 +1246,7 @@ const DataTable = ({
             <button
               className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-2xl font-bold cursor-pointer"
               onClick={() => {
-                setUploadModal({ open: false, rowId: null });
-                setUploadFiles([]);
+                closeUploadModal({ keepFiles: false });
               }}
               aria-label="Close"
             >
@@ -1394,7 +1307,7 @@ const DataTable = ({
             <div className="flex justify-end gap-2 mt-4">
               <button
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 cursor-pointer"
-                onClick={() => setUploadModal({ open: false, rowId: null })}
+                onClick={() => closeUploadModal({ keepFiles: true })}
                 disabled={uploadFiles.length === 0}
               >
                 Done
@@ -1402,8 +1315,7 @@ const DataTable = ({
               <button
                 className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition cursor-pointer"
                 onClick={() => {
-                  setUploadModal({ open: false, rowId: null });
-                  setUploadFiles([]);
+                  closeUploadModal({ keepFiles: false });
                 }}
               >
                 Cancel
@@ -1680,7 +1592,7 @@ const DataTable = ({
                                 className="ml-1 p-1 border border-blue-600 bg-blue-50 rounded-full hover:bg-blue-100 cursor-pointer"
                                 title="Add attachments"
                                 onClick={() =>
-                                  setUploadModal({ open: true, rowId: row._id })
+                                  openUploadModal(row._id)
                                 }
                               >
                                 <Plus className="w-5 h-5 text-blue-600" />

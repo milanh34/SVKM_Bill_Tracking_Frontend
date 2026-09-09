@@ -66,13 +66,13 @@ export const getColumnsForRole = (role) => {
     { field: "siteOfficeDispatch.name", headerName: "Name-Site Office" }, // column no 59
     { field: "siteStatus", headerName: "Status at Site" }, // column no 60
     { field: "pimoMumbai.dateGiven", headerName: "Dt dispatched-PIMO" }, // column no 61
+    { field: "pimoMumbai.namePIMO", headerName: "Name given-Site to PIMO" }, // column no 61A
     { field: "pimoMumbai.dateReceived", headerName: "Dt recd-PIMO from Site" }, // column no 62
     { field: "pimoMumbai.receivedBy", headerName: "Name recd-PIMO from Site" }, // column no 63
     { field: "qsMumbai.dateGiven", headerName: "Dt given-QS Mumbai for COP" }, // column no 64
     { field: "qsMumbai.name", headerName: "Name-QS Mumbai for COP" }, // column no 65
     { field: "pimoMumbai.dateReturnedFromQs", headerName: "Dt ret-PIMO by QS Mumbai" }, // column no 66
     { field: "pimoMumbai.nameReturnedFromQs", headerName: "Name ret-PIMO by QS Mumbai" }, // column no 67
-    // { field: "pimoMumbai.namePIMO", headerName: "Name given by Site to PIMO" },
     { field: "itDept.dateGiven", headerName: "Date given-IT Dept for SES" }, // column no 68
     { field: "itDept.name", headerName: "Name-IT Dept for SES" }, // column no 69
     { field: "sesDetails.dateGiven", headerName: "Dt given-PIMO for SES" }, // column no 70
@@ -178,6 +178,7 @@ export const getColumnsForRole = (role) => {
       "siteOfficeDispatch.name",
       "siteStatus",
       "pimoMumbai.dateGiven",
+      "pimoMumbai.namePIMO",
       "pimoMumbai.dateReceived",
       "pimoMumbai.receivedBy",
     ],
@@ -296,6 +297,7 @@ export const getColumnsForRole = (role) => {
       "siteOfficeDispatch.name",
       "siteStatus",
       "pimoMumbai.dateGiven",
+      "pimoMumbai.namePIMO",
       "pimoMumbai.dateReceived",
       "pimoMumbai.receivedBy",
       "qsMumbai.dateGiven",
@@ -367,6 +369,7 @@ export const getColumnsForRole = (role) => {
       "remarks",
       "siteStatus",
       "pimoMumbai.dateGiven",
+      "pimoMumbai.namePIMO",
       "pimoMumbai.dateReceived",
       "pimoMumbai.receivedBy",
       "approvalDetails.remarksPimoMumbai",
@@ -411,6 +414,7 @@ export const getColumnsForRole = (role) => {
       "copDetails.amount",
       "siteStatus",
       "pimoMumbai.dateGiven",
+      "pimoMumbai.namePIMO",
       "pimoMumbai.dateReceived",
       "qsMumbai.dateGiven",
       "pimoMumbai.dateReturnedFromQs",

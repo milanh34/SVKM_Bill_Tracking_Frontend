@@ -78,6 +78,14 @@ const SentBills = () => {
       case "director":
         roleForColumns = "DIRECTOR_TRUSTEE_ADVISOR";
         break;
+      // QS had no case here, so it fell through to the PIMO list and the
+      // forwarded tab showed 98 columns against a 45-column requirement.
+      // (observations, Teamwise QS-1)
+      case "qs_site":
+        roleForColumns = "QS_TEAM";
+        break;
+      case "site_pimo":
+      case "pimo_mumbai":
       default:
         roleForColumns = "PIMO_MUMBAI_MIGO_SES";
     }
@@ -91,33 +99,16 @@ const SentBills = () => {
   }, [columns]);
 
   // Filtering
+  //
+  // The free-text search deliberately does NOT happen here. DataTable
+  // applies it too, over the value as it is DISPLAYED, and running both
+  // meant a term had to satisfy two different rules at once: typing a date
+  // the way the grid prints it ("12-07-2026") passed the grid's filter and
+  // failed this one, and typing it the way it is stored did the reverse.
+  // Either way the tab came back empty, which is what "column search not
+  // working on Forwarded" was (observations, Sorting R10).
   const getFilteredData = () => {
     return billsData.filter((bill) => {
-      // const matchesSearch =
-      //   searchQuery === "" ||
-      //   Object.values(bill).some((value) =>
-      //     value
-      //       ?.toString()
-      //       ?.toLowerCase()
-      //       .includes(searchQuery.toLowerCase())
-      //   );
-      const query = (searchQuery || "").trim().toLowerCase();
-      const matchesSearch =
-        query === "" ||
-        // match across columns (handles nested fields like a.b.c)
-        columns.some((col) => {
-          const value = getNestedValue(bill, col.field);
-          if (value === undefined || value === null) return false;
-          const str = typeof value === "object" ? JSON.stringify(value) : String(value);
-          return str.toLowerCase().includes(query);
-        }) ||
-        // fallback: check top-level values
-        Object.values(bill).some((value) =>
-          value
-            ?.toString()
-            ?.toLowerCase()
-            .includes(query)
-        );
       const matchesRegion =
         selectedRegion.length === 0 || selectedRegion.includes(bill.region);
 
@@ -135,7 +126,7 @@ const SentBills = () => {
         }
       }
 
-      return matchesSearch && matchesRegion && matchesDateRange;
+      return matchesRegion && matchesDateRange;
     });
   };
 
@@ -160,17 +151,12 @@ const SentBills = () => {
     return data;
   }, [
     billsData,
-    searchQuery,
     selectedRegion,
     fromDate,
     toDate,
     selectedDateField,
     // sortConfig, // removed since backend handles it
   ]);
-  // Update totalFilteredItems when filteredUnpaginatedData changes
-  useEffect(() => {
-    setTotalFilteredItems(filteredUnpaginatedData.length);
-  }, [filteredUnpaginatedData]);
 
   // Memoized paginated data
   const paginatedData = useMemo(() => {
@@ -230,7 +216,11 @@ const SentBills = () => {
   // Select
   const handleSelectAll = (e) => {
     setSelectAll(e.target.checked);
-    setSelectedRows(e.target.checked ? paginatedData.map((row) => row._id) : []);
+    // The grid, not this page, holds the column filters, so select-all
+    // follows the whole filtered set rather than this page's own slice.
+    setSelectedRows(
+      e.target.checked ? filteredUnpaginatedData.map((row) => row._id) : []
+    );
   };
 
   // Export Excel
@@ -342,8 +332,14 @@ const SentBills = () => {
     setSortConfig: setSortConfig,
     onSort: () => {},
     currentPage: currentPage,
+    onPageChange: setCurrentPage,
     itemsPerPage: itemsPerPage,
-    onPaginatedDataChange: undefined,
+    // The grid applies the column filters, so it is the only thing that
+    // knows how many rows survived. Without this the footer kept offering
+    // pages that no longer existed and the grid went blank on them.
+    onPaginatedDataChange: setTotalFilteredItems,
+    currentUserRole: currentUserRole,
+    activeTab: "forwarded",
     onEdit: undefined,
     showActions: false,
   };
@@ -418,14 +414,14 @@ const SentBills = () => {
       <div className="flex items-center text-sm text-gray-600">
         <div>
           Showing{" "}
-          {paginatedData.length ? (currentPage - 1) * itemsPerPage + 1 : 0} to{" "}
+          {totalFilteredItems ? (currentPage - 1) * itemsPerPage + 1 : 0} to{" "}
           {Math.min(currentPage * itemsPerPage, totalFilteredItems)} entries
           <span className="ml-2">
             <span className="text-gray-400">|</span>
             <span className="ml-2">
               Total: <span className="font-medium">{billsData.length}</span>
             </span>
-            {filteredUnpaginatedData.length !== billsData.length && (
+            {totalFilteredItems !== billsData.length && (
               <>
                 <span className="text-gray-400 mx-2">|</span>
                 <span className="text-blue-600">
@@ -601,7 +597,11 @@ const SentBills = () => {
         onClose={() => setIsFilterPopupOpen(false)}
         selectedRegion={selectedRegion}
         uniqueRegions={[...new Set(billsData.map((bill) => bill.region))]}
-        handleRegionChange={(e) => setSelectedRegion([e.target.value])}
+        // "All Regions" has an empty value: [""] is not the same as [], and
+        // it matched no bill at all, blanking the whole tab.
+        handleRegionChange={(e) =>
+          setSelectedRegion(e.target.value ? [e.target.value] : [])
+        }
         selectedDateField={selectedDateField}
         setSelectedDateField={setSelectedDateField}
         dateFieldOptions={[

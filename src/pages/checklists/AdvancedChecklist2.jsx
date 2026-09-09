@@ -60,12 +60,19 @@ const AdvancedChecklist = (props) => {
       <style>
         @media print {
           @page {
-            margin: 10mm;
-            size: A4;
+            /* Tightened so the Advance checklist fits a single sheet
+               (observations, General #2.ii). */
+            margin: 8mm;
+            size: A4 portrait;
           }
+          /* Keep one checklist on one page rather than letting a stray row
+             spill onto a second sheet. */
+          .checklist-page, table, tr, td, th { page-break-inside: avoid; }
           body { 
-            padding: 5px;
-            margin: 10px;
+            padding: 0;
+            margin: 0;
+            font-size: 11px;
+            line-height: 1.25;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
           }
           .checklist-page {
@@ -181,7 +188,7 @@ const AdvancedChecklist = (props) => {
                   item?.poNo
                     ? `PO No: <span class="bold">${item?.poNo}</span>, Date: <span class="bold">${formatDate(
                         item?.poDate
-                      )}</span>, Amount: <span class="bold">${formatAmount(item?.poAmt)}</span>`
+                      )}</span>, Amount: <span class="bold">INR ${formatAmount(item?.poAmt)}</span>`
                     : ""
                 }</td>
               </tr>
@@ -425,7 +432,7 @@ const AdvancedChecklist = (props) => {
                       </td>
                       <td className="border border-black p-2">
                         {item?.poNo &&
-                          <>PO No: <span className="font-bold">{item?.poNo}</span>, Date: <span className="font-bold">{formatDate(item?.poDate)}</span>, Amount: <span className="font-bold">{formatAmount(item?.poAmt)}</span></>}
+                          <>PO No: <span className="font-bold">{item?.poNo}</span>, Date: <span className="font-bold">{formatDate(item?.poDate)}</span>, Amount: <span className="font-bold">INR {formatAmount(item?.poAmt)}</span></>}
                       </td>
                     </tr>
                     <tr>

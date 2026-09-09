@@ -143,7 +143,9 @@ const UserTable = () => {
             delete payload._id;
 
             if (Object.keys(payload).length > 0) {
-                axios.put(`${users}/${user._id}`, payload)
+                axios.put(`${users}/${user._id}`, payload, {
+                    headers: { Authorization: `Bearer ${Cookies.get("token")}` },
+                })
                     .then(response => {
                         fetchData();
                         toast.success('User updated successfully!');

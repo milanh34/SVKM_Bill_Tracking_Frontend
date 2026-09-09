@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import Filters from "../../components/Filters";
@@ -29,18 +29,44 @@ const BillJourney = () => {
     const [toDate, setToDate] = useState(getFormattedDate());
     const [bills, setBills] = useState([]);
     const [loading, setLoading] = useState(false);
+    // Declared because the fetch below calls setError. It never was, so a
+    // failed request threw a ReferenceError inside its own catch and the page
+    // silently kept the previous results.
+    const [error, setError] = useState(null);
     const [selectedInvoices, setSelectedInvoices] = useState([]);
     const [vendorName, setVendorName] = useState("");
     const [taxInvNo, setTaxInvNo] = useState("");
-    const [region, setRegion] = useState("");
+    const [region, setRegion] = useState("all");
     const [regionOptions, setRegionOptions] = useState([]);
 
     useEffect(() => {
         setRegionOptions(availableRegions);
-        setRegion(availableRegions);
     }, [])
+
+    /**
+     * Refetch when a filter changes.
+     *
+     * Two things were wrong here.
+     *
+     * The vendor name and tax invoice number are typed, so every keystroke
+     * fired its own request. Responses came back in whatever order the
+     * network delivered them, and the last one to arrive won - so clearing
+     * the vendor name could leave the screen showing the result of an
+     * earlier, narrower query. That is what "clearing the vendor filter
+     * does not restore all bills" was (observations, Reports R98). Each
+     * request now carries a sequence number and only the newest is allowed
+     * to set state, and typing is debounced so most of them are never sent.
+     *
+     * Separately, `region` was initialised to the user's whole region ARRAY
+     * while the dropdown still read "All Regions". The server kept only the
+     * first entry, so a user with more than one region silently saw one.
+     * The dropdown's own "all" value is the initial state instead.
+     */
+    const requestSeq = useRef(0);
+
     useEffect(() => {
-        const fetchBills = async () => {
+        const seq = ++requestSeq.current;
+        const timer = setTimeout(async () => {
             try {
                 const params = {
                     startDate: fromDate,
@@ -48,20 +74,24 @@ const BillJourney = () => {
                     vendorName: vendorName,
                     taxInvNo: taxInvNo
                 };
-                if (region != "all" && region != "ALL") {
+                if (region && region !== "all" && region !== "ALL") {
                     params.region = region;
                 }
                 const res = await axios.get(billJourney, { params });
-                console.log(res.data.report);
+                if (seq !== requestSeq.current) return; // a newer request is in flight
                 setBills(res.data.report.data);
+                setError(null);
             } catch (err) {
+                if (seq !== requestSeq.current) return;
                 setError("Failed to load data");
             } finally {
-                setLoading(false);
-                setSelectedInvoices([]);
+                if (seq === requestSeq.current) {
+                    setLoading(false);
+                    setSelectedInvoices([]);
+                }
             }
-        };
-        fetchBills();
+        }, 300);
+        return () => clearTimeout(timer);
     }, [fromDate, toDate, region, vendorName, taxInvNo]);
 
     const handleSelectAll = (e) => {
@@ -87,7 +117,12 @@ const BillJourney = () => {
     const handleTopDownload = async () => {
         console.log("Rep given to acc dept download clicked");
         // setSelectedRows(bills.map(bill => bill.srNo));
-        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, false);
+        // Honour the tick boxes. Previously every bill was exported however few
+        // were selected (observations, Report logics: Bill Journey).
+        const chosen = selectedInvoices.length
+            ? bills.filter(b => selectedInvoices.includes(b.srNo))
+            : bills;
+        const result = await handleExportAllReports(chosen.map(bill => bill.srNo), chosen, columns, visibleColumnFields, titleName, false);
         console.log("Result = " + result.message);
     };
 
@@ -96,7 +131,10 @@ const BillJourney = () => {
         // if(selectedRows.length === 0){
         //     setSelectedRows(bills.map(bill => bill.srNo));
         // }
-        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, true);
+        const chosen = selectedInvoices.length
+            ? bills.filter(b => selectedInvoices.includes(b.srNo))
+            : bills;
+        const result = await handleExportAllReports(chosen.map(bill => bill.srNo), chosen, columns, visibleColumnFields, titleName, true);
         console.log("Result = " + result.message);
     }
 
@@ -210,6 +248,10 @@ const BillJourney = () => {
                             {loading ? (
                                 <tr>
                                     <td colSpan={columns.length} className="text-center py-4">Loading...</td>
+                                </tr>
+                            ) : error ? (
+                                <tr>
+                                    <td colSpan={columns.length} className="text-center py-4 text-red-600">{error}</td>
                                 </tr>
                             ) : bills.length === 0 ? (
                                 <tr>

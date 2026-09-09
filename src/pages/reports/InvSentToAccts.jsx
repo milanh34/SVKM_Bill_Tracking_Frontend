@@ -72,7 +72,9 @@ const InvSentToAccts = () => {
     const titleName = "Invoices sent to Accounts Team";
 
     const columns = [
+        { field: "count", headerName: "Count" },
         { field: "srNo", headerName: "Sr. No" },
+        { field: "vendorNo", headerName: "Vendor No" },
         { field: "vendorName", headerName: "Vendor Name" },
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
@@ -81,7 +83,7 @@ const InvSentToAccts = () => {
     ]
 
     const visibleColumnFields = [
-        "srNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dateGivenToAccounts"
+        "count", "srNo", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dateGivenToAccounts"
     ]
 
     return (

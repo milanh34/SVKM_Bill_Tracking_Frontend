@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from '../../components/Header';
 import Filters from '../../components/Filters';
 import ReportBtns from '../../components/ReportBtns';
@@ -8,6 +8,9 @@ import print from '../../assets/print.svg';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import { billKidhar } from '../../apis/report.api';
+// Used below but never imported - download and print both threw a
+// ReferenceError (observations, Report logics: Bill Kidhar).
+import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
 const BillKidhar = () => {
     const getFormattedDate = () => {
         const today = new Date();
@@ -30,10 +33,32 @@ const BillKidhar = () => {
     const [taxInvNo, setTaxInvNo] = useState("");
     useEffect(() => {
         setRegionOptions(availableRegions);
-        setRegion(availableRegions);
     }, [])
+
+    /**
+     * Refetch when a filter changes.
+     *
+     * Two things were wrong here.
+     *
+     * The vendor name and tax invoice number are typed, so every keystroke
+     * fired its own request. Responses came back in whatever order the
+     * network delivered them, and the last one to arrive won - so clearing
+     * the vendor name could leave the screen showing the result of an
+     * earlier, narrower query. That is what "clearing the vendor filter
+     * does not restore all bills" was (observations, Reports R98). Each
+     * request now carries a sequence number and only the newest is allowed
+     * to set state, and typing is debounced so most of them are never sent.
+     *
+     * Separately, `region` was initialised to the user's whole region ARRAY
+     * while the dropdown still read "All Regions". The server kept only the
+     * first entry, so a user with more than one region silently saw one.
+     * The dropdown's own "all" value is the initial state instead.
+     */
+    const requestSeq = useRef(0);
+
     useEffect(() => {
-        const fetchBills = async () => {
+        const seq = ++requestSeq.current;
+        const timer = setTimeout(async () => {
             try {
                 const params = {
                     startDate: fromDate,
@@ -41,19 +66,24 @@ const BillKidhar = () => {
                     vendorName: vendorName,
                     taxInvNo: taxInvNo
                 };
-                if (region != "all" && region != "ALL") {
+                if (region && region !== "all" && region !== "ALL") {
                     params.region = region;
                 }
                 const res = await axios.get(billKidhar, { params });
-                console.log(res.data.report);
+                if (seq !== requestSeq.current) return; // a newer request is in flight
                 setBills(res.data.report.data);
+                setError(null);
             } catch (err) {
+                if (seq !== requestSeq.current) return;
                 setError("Failed to load data");
             } finally {
-                setLoading(false);
+                if (seq === requestSeq.current) {
+                    setLoading(false);
+                    
+                }
             }
-        };
-        fetchBills();
+        }, 300);
+        return () => clearTimeout(timer);
     }, [fromDate, toDate, region, vendorName, taxInvNo]);
 
     const handleTopDownload = async () => {
@@ -81,7 +111,7 @@ const BillKidhar = () => {
         { field: "vendorName", headerName: "Vendor Name" },
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
-        { field: "taxInvAmt", headerName: "Tax Invoice Amount (Rs.)" },
+        { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
         { field: "copAmt", headerName: "COP Amt" },
         { field: "paymentAmt", headerName: "Payment Amt" },
         { field: "paymentDate", headerName: "Date of Payment" },
@@ -157,14 +187,17 @@ const BillKidhar = () => {
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan="9" className="text-center py-4">Loading...</td>
+                                    <td colSpan={columns.length} className="text-center py-4">Loading...</td>
+                                </tr>
+                            ) : error ? (
+                                <tr>
+                                    <td colSpan={columns.length} className="text-center py-4 text-red-600">{error}</td>
+                                </tr>
+                            ) : bills.filter(bill => !bill.isSubtotal && bill.srNo).length === 0 ? (
+                                <tr>
+                                    <td colSpan={columns.length} className="text-center py-4">No invoices found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
                                 </tr>
                             )
-                                // : bills.length === 0 ? (
-                                //     <tr>
-                                //         <td colSpan="9" className="text-center py-4">No invoices found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
-                                //     </tr>
-                                // ) 
                                 : bills
                                     .filter(bill => !bill.isSubtotal && bill.srNo)
                                     .map((bill, index) => (

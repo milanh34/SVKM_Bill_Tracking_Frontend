@@ -180,7 +180,7 @@ const ChecklistBillJourney = () => {
           </div>
 
           <div class="content-row">
-            Department: <b>${item?.department || ""}</b>
+            Additional Info: <b>${item?.department || ""}</b>
           </div>
 
           <table>
@@ -334,7 +334,7 @@ const ChecklistBillJourney = () => {
 
                   <div className="p-2">
                     <div className="text-sm">
-                      Department: C<span className="font-bold">{item?.department}</span>
+                      Additional Info: <span className="font-bold">{item?.department}</span>
                     </div>
                   </div>
                 </div>

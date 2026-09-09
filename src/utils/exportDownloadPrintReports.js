@@ -123,7 +123,8 @@ export const handleExportAllReports = async (
             };
 
             const now = new Date();
-            const timestampText = `Report generated on: ${now.toLocaleDateString('en-IN')}`;
+            // Spec asks for date and time at the top right of every report.
+            const timestampText = `Report generated on: ${now.toLocaleString('en-IN')}`;
 
             // Add an empty row of correct length
             const rowValues = Array(columnCount).fill("");
@@ -218,6 +219,11 @@ export const handleExportAllReports = async (
                         }
 
                         else {
+                            // The five "sent/returned" reports carry Count as a
+                            // real column (Report logics, General #2).
+                            if (field === "count") {
+                                return `Total: ${rowData.count ?? ""}`;
+                            }
                             if (field === "srNo") {
                                 return `Total Count: ${rowData.count}`
                             }
@@ -240,6 +246,8 @@ export const handleExportAllReports = async (
                     // Normal data row
                     rowValues = allColumnsToExport.map((column) => {
                         let value;
+                        // A running 1-based row number, not a field on the bill.
+                        if (column.field === "count") return rowIndex + 1;
                         if (column.field.includes(".")) {
                             const [parentField, childField] = column.field.split(".");
                             value = rowData[parentField]?.[childField] ?? "";
@@ -536,7 +544,7 @@ export const handleExportAllReports = async (
                   <body>
                     <div class="report-header">
                       <div class="report-title">${titleName}</div>
-                        <div class="timestamp">Report generated on: ${new Date().toLocaleDateString('en-IN')}</div>
+                        <div class="timestamp">Report generated on: ${new Date().toLocaleString('en-IN')}</div>
                     </div>
                     ${filterDetailsHtml}
                     <table>

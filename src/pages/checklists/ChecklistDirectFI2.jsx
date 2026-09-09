@@ -120,8 +120,7 @@ const ChecklistDirectFI = () => {
           <div class="grid-row">Check List - Direct FI entry</div>
           <div class="grid-row">Project Name: <b>${
             item?.projectDescription || ""
-          }</b></div>
-          <div class="grid-row">Campus: <b>${item?.region || ""}</b></div>
+          }</b> &nbsp;&nbsp; Campus: <b>${item?.region || ""}</b></div>
           <div class="grid-row">Project ID in SAP:</div>
 
           <table>

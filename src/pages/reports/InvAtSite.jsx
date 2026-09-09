@@ -93,7 +93,7 @@ const InvAtSite = () => {
         { field: "vendorName", headerName: "Vendor Name" },
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
-        { field: "taxInvAmt", headerName: "Tax Invoice Amount (Rs.)" },
+        { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
         { field: "taxInvRecdAtSite", headerName: "Dt Recd at site" }, // column no 24
         { field: "poNo", headerName: "PO No" },
     ]

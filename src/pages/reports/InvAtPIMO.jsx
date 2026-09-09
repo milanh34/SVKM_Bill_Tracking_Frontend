@@ -87,7 +87,7 @@ const InvAtPIMO = () => {
         { field: "vendorName", headerName: "Vendor Name" },
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
-        { field: "taxInvAmt", headerName: "Tax Invoice Amount (Rs.)" },
+        { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
         { field: "pimoDateReceived", headerName: "Dt recd-PIMO from Site" },
         { field: "poNo", headerName: "PO No" },
     ]

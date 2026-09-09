@@ -76,11 +76,15 @@ const ChecklistAccount = () => {
           }
           body { 
             font-family: Arial, sans-serif;
-            font-size: 14px;
+            /* Raised from 14px, with more leading - the client asked for a
+               larger face and more gap between lines (observations, C-04). */
+            font-size: 16px;
+            line-height: 1.55;
             margin: 0;
             padding: 10px;
             color: #000;
           }
+          td, th { padding: 7px 8px; }
           .print-page {
             width: 100%;
             margin: 0 auto;

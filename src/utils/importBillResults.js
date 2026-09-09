@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { registerResultsDownload, DOWNLOAD_BUTTON_CSS } from './resultsDownload';
 
 // Columns shown in the results table (the bill template has ~99 columns, so we
 // only surface the key identifying ones). `header` must match the Excel header.
@@ -14,7 +15,9 @@ const BILL_COLUMNS = [
 // Parse the uploaded import-bill file into data rows keyed by column header.
 export const parseBillImportFile = async (file) => {
     const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, { type: 'array' });
+    // cellDates keeps dates as Date objects; without it they arrive as Excel
+    // serial numbers and the results table shows 45870 instead of 01-08-2026.
+    const wb = XLSX.read(buf, { type: 'array', cellDates: true });
     const ws = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
@@ -104,6 +107,8 @@ export const openBillImportResults = (dataRows, payload = {}) => {
         ? (summary.skipped || 0) + (summary.alreadyExisting || 0) + (summary.errors || 0)
         : results.filter((r) => r.status === 'Failed').length;
 
+    const downloadBtn = registerResultsDownload('Bill Import Results', BILL_COLUMNS, results);
+
     const headHtml = BILL_COLUMNS.map((c) => `<th>${escapeHtml(c.header)}</th>`).join('');
 
     const rowsHtml = results.map((r) => {
@@ -139,6 +144,7 @@ export const openBillImportResults = (dataRows, payload = {}) => {
               .status-failed { color: #c5221f; }
               .failed-row td { background-color: #fdeceb; }
               .error-cell { color: #c5221f; }
+              ${DOWNLOAD_BUTTON_CSS}
             </style>
           </head>
           <body>
@@ -148,6 +154,7 @@ export const openBillImportResults = (dataRows, payload = {}) => {
               <div class="summary-card summary-success">Successful: ${successCount}</div>
               <div class="summary-card summary-failed">Failed: ${failedCount}</div>
             </div>
+            ${downloadBtn}
             <table>
               <thead>
                 <tr>

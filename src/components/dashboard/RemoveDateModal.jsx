@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from "react-toastify";
-import { deleteDate, bills } from "../../apis/bills.api.js";
+import { deleteDate } from "../../apis/bills.api.js";
 import { Trash2 } from "lucide-react";
 
 export const RemoveDateModal = ({
@@ -29,6 +29,10 @@ export const RemoveDateModal = ({
   };
 
   // Map role values to their display labels in the dateFieldMappings
+  // Keys are the send-to role values; values are the labels deleteDate keys on.
+  // The three QS entries are the ones the observations turned on: `site_cop`
+  // is the return to Site after Prov COP (col 44A) and `pimo_cop` the return
+  // to PIMO after COP (col 66).
   const roleLabelMap = {
     quality_engineer: "Quality Engineer",
     qs_measurement: "QS Measure",
@@ -55,19 +59,14 @@ export const RemoveDateModal = ({
 
   const teamName = teamNameMap[role] || "Site Team";
 
-  // Direct field map: for roles where backend deleteDate may not clear the field,
-  // we send a supplementary PATCH directly to the bills endpoint.
-  const directClearFieldsMap = {
-    // ── Site Team ──
-    qs_measurement:     { "qsInspection.dateGiven": null, "qsInspection.name": null }, // col 35
-    pimo_mumbai:        { "pimoMumbai.dateGiven": null },                               // col 61
-    // ── QS Team ──
-    measure:            { "vendorFinalInv.dateGiven": null, "vendorFinalInv.name": null }, // col 38
-    // ── PIMO Team ──
-    qs_mumbai:          { "qsMumbai.dateGiven": null, "qsMumbai.name": null },          // col 64
-    trustee:            { "approvalDetails.directorApproval.dateGiven": null },          // col 77
-    accounts_department:{ "accountsDept.dateGiven": null, "accountsDept.givenBy": null }, // col 80
-  };
+  // A supplementary PATCH used to bypass deleteDate for six of these roles,
+  // "for roles where backend deleteDate may not clear the field". It papered
+  // over three wrong column mappings on the server rather than fixing them,
+  // and it hid them: the roles it covered worked, the ones it did not
+  // (site_cop, pimo_cop) cleared the wrong column entirely, which is what
+  // "remove date not implemented for 44A / 66" was (observations D-02, D-03).
+  // deleteDate is now the mirror image of what each send-to writes - date and
+  // name together - so this map is gone and the two cannot disagree again.
 
   const handleRemoveDateClick = async (selectedRole) => {
     if (!selectedRows || selectedRows.length === 0) {
@@ -80,21 +79,6 @@ export const RemoveDateModal = ({
       const token = Cookies.get("token");
       const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 
-      // Check if this role needs a direct supplementary DB patch
-      const directClearFields = directClearFieldsMap[selectedRole.value];
-
-      if (directClearFields) {
-        // Directly patch the bills using the reliable /bill/:id endpoint
-        await Promise.all(selectedRows.map(async (billId) => {
-          return axios.patch(`${bills}/${billId}`, directClearFields, { headers });
-        }));
-        toast.success("Date removed successfully");
-        await fetchAllData();
-        onClose();
-        return;
-      }
-
-      // For all other roles, use the standard deleteDate endpoint
       const sendToLabel = roleLabelMap[selectedRole.value] || selectedRole.label;
       const payload = {
         teamName,

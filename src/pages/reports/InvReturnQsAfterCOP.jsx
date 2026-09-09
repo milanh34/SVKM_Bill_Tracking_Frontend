@@ -79,7 +79,9 @@ const InvReturnQsAfterCOP = () => {
     const titleName = "Invoices Returned by QS Mumbai after COP";
 
     const columns = [
+        { field: "count", headerName: "Count" },
         { field: "srNo", headerName: "Sr. No" },
+        { field: "vendorNo", headerName: "Vendor No" },
         { field: "vendorName", headerName: "Vendor Name" },
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
@@ -88,7 +90,7 @@ const InvReturnQsAfterCOP = () => {
     ]
 
     const visibleColumnFields = [
-        "srNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "pimoMumbai.dateGiven", "dateReturnedByQS"
+        "count", "srNo", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "pimoMumbai.dateGiven", "dateReturnedByQS"
     ]
 
 

@@ -37,6 +37,9 @@ import Cookies from "js-cookie";
 import { handleExportReport } from "../utils/exportExcelDashboard";
 import { RemoveDateModal } from "../components/dashboard/RemoveDateModal";
 
+/** Teams that have an Incoming tab. Mirrors ROLES_WITH_INCOMING on the server. */
+const ROLES_WITH_INCOMING = ["site_pimo", "pimo_mumbai", "accounts"];
+
 const Dashboard = () => {
   const currentUserRole = Cookies.get("userRole");
 
@@ -230,15 +233,23 @@ const Dashboard = () => {
       // Account dept: open checklist when bill marked as recieved
       if (currentUserRole === 'accounts' && showIncomingBills) {
         const selectedBills = billsData.filter((bill) => selectedRows?.includes(bill._id));
-        const shouldSkipChecklist = selectedBills.some(
-          (bill) => bill.natureOfWork === "Advance/LC/BG" || bill.natureOfWork === "Direct FI Entry"
+
+        // Advance and Direct FI entries have their own checklists, so they are
+        // not part of the Accounts checklist. Previously a single such bill
+        // anywhere in the selection suppressed the checklist for ALL of them -
+        // "when we accept bills along with Advances and Direct FI entry,
+        // checklist not opened for printing" (observations, C-05).
+        // Now they are set aside and the checklist opens for the rest.
+        const NO_ACCOUNTS_CHECKLIST = ["Advance/LC/BG", "Direct FI Entry"];
+        const forChecklist = selectedBills.filter(
+          (bill) => !NO_ACCOUNTS_CHECKLIST.includes(bill.natureOfWork)
         );
 
-        if (!shouldSkipChecklist) {
+        if (forChecklist.length > 0) {
           navigate("/checklist-account2", {
             state: {
-              selectedRows,
-              bills: selectedBills,
+              selectedRows: forChecklist.map((bill) => bill._id),
+              bills: forChecklist,
             },
           });
           return;
@@ -443,74 +454,55 @@ const Dashboard = () => {
   };
 
 
+  /**
+   * Split the response into Home and Incoming.
+   *
+   * The server answers /bill/get-filtered-bills with Home UNION Incoming so
+   * the two tabs can be switched without a round trip. The split has to use
+   * the same test the server does (utils/tab-predicates.js), or a bill lands
+   * on both tabs or neither:
+   *
+   *   PIMO      Incoming = col 61 filled AND col 62 blank
+   *   Accounts  Incoming = col 80 filled AND col 82 blank
+   *
+   * The old test for PIMO Home was
+   *   (markReceived === true && dateReceived) || siteStatus === "accept"
+   * which put every accepted bill on Home even while it was still sitting on
+   * Incoming, and dropped a received bill whose markReceived flag was never
+   * written - which is every bill created at PIMO, where col 62 is stamped
+   * at creation (observations G-07).
+   */
+  const isIncomingFor = (bill, role) => {
+    if (role === "site_pimo" || role === "pimo_mumbai") {
+      return Boolean(bill.pimoMumbai?.dateGiven) && !bill.pimoMumbai?.dateReceived;
+    }
+    if (role === "accounts") {
+      return Boolean(bill.accountsDept?.dateGiven) && !bill.accountsDept?.dateReceived;
+    }
+    return false;
+  };
+
   const filteredData = useMemo(() => {
     let result = billsData;
 
-    // First filter based on role and received status
-    if (["site_pimo", "accounts"].includes(currentUserRole)) {
-      if (showIncomingBills) {
-        // Show only bills that haven't been received
-        if (currentUserRole === "accounts") {
-          result = result.filter(
-            (bill) =>
-              bill.accountsDept?.dateReceived == null
-          );
-        } else if (currentUserRole === "site_pimo") {
-          result = result.filter(
-            (bill) =>
-              bill.pimoMumbai?.dateGiven && !bill.pimoMumbai?.dateReceived
-          );
-        }
-      } else {
-        // Show only bills that have been received
-        if (currentUserRole === "accounts") {
-          result = result.filter((bill) => bill.accountsDept?.dateReceived);
-        } else if (currentUserRole === "site_pimo") {
-          result = result.filter((bill) => (bill.pimoMumbai?.markReceived === true && bill.pimoMumbai?.dateReceived) || bill.siteStatus === "accept");
-        }
-      }
+    if (ROLES_WITH_INCOMING.includes(currentUserRole)) {
+      result = result.filter((bill) =>
+        showIncomingBills
+          ? isIncomingFor(bill, currentUserRole)
+          : !isIncomingFor(bill, currentUserRole)
+      );
     }
 
-    // Apply other existing filters
     if (selectedRegion.length > 0) {
       result = result.filter((row) => selectedRegion.includes(row.region));
     }
     result = result.filter(isWithinDateRange);
 
-    // Sort incoming bills by dispatch/given date descending, then srNo descending
-    if (showIncomingBills) {
-      if (currentUserRole === "site_pimo") {
-        result.sort((a, b) => {
-          // Primary: Dt dispatched-PIMO descending (truncated to day)
-          const dateA = a.pimoMumbai?.dateGiven
-            ? new Date(new Date(a.pimoMumbai.dateGiven).setHours(0, 0, 0, 0)).getTime()
-            : 0;
-          const dateB = b.pimoMumbai?.dateGiven
-            ? new Date(new Date(b.pimoMumbai.dateGiven).setHours(0, 0, 0, 0)).getTime()
-            : 0;
-          if (dateB !== dateA) return dateB - dateA;
-          // Secondary: Sr no descending (string compare)
-          const aSrNo = a.srNo ? String(a.srNo) : "";
-          const bSrNo = b.srNo ? String(b.srNo) : "";
-          return bSrNo.localeCompare(aSrNo);
-        });
-      } else if (currentUserRole === "accounts") {
-        result.sort((a, b) => {
-          // Primary: Dt given-Accts descending (truncated to day)
-          const dateA = a.accountsDept?.dateGiven
-            ? new Date(new Date(a.accountsDept.dateGiven).setHours(0, 0, 0, 0)).getTime()
-            : 0;
-          const dateB = b.accountsDept?.dateGiven
-            ? new Date(new Date(b.accountsDept.dateGiven).setHours(0, 0, 0, 0)).getTime()
-            : 0;
-          if (dateB !== dateA) return dateB - dateA;
-          // Secondary: Sr no descending (string compare)
-          const aSrNo = a.srNo ? String(a.srNo) : "";
-          const bSrNo = b.srNo ? String(b.srNo) : "";
-          return bSrNo.localeCompare(aSrNo);
-        });
-      }
-    }
+    // Ordering is DataTable's job: it applies the tab's default sort column
+    // (col 61 for PIMO Incoming, col 80 for Accounts Incoming) with Sr no as
+    // the tiebreaker, and the user's own column sort on top. Sorting here as
+    // well mutated billsData in place, because `result` is still the same
+    // array whenever no filter has narrowed it.
 
     return result;
   }, [
@@ -1251,19 +1243,9 @@ const Dashboard = () => {
                     currentPage={currentPage}
                     onPageChange={setCurrentPage}
                     itemsPerPage={itemsPerPage}
-                    onFilteredDataChange={(filteredData) => {
-                      setTotalItems(filteredData.length);
-                      const maxPage = Math.ceil(
-                        filteredData.length / itemsPerPage
-                      );
-                      if (currentPage > maxPage) {
-                        setCurrentPage(1);
-                      }
-                    }}
-                    onPaginatedDataChange={(totalItems) => {
-                      setTotalFilteredItems(totalItems);
-                    }}
+                    onPaginatedDataChange={setTotalFilteredItems}
                     currentUserRole={currentUserRole}
+                    activeTab={showIncomingBills ? "incoming" : "home"}
                     regionOptions={regionOptions}
                     natureOfWorkOptions={natureOfWorkOptions}
                     currencyOptions={currencyOptions}

@@ -10,6 +10,14 @@ const neverEditableFields = [
   "compliance206AB",
   "panStatus",
   "srNo",
+  // Col 59. The Field entry sheet sources this from the "Send to Site Dispatch
+  // Team" action, so it must not be typed here. (observations, Pencil Edit R15)
+  // Note: 42 columns are Send-to sourced in total; only this one was reported,
+  // so the rest are left alone pending confirmation.
+  "siteOfficeDispatch.name",
+  // Col 61A, added at the same time. Written by "send to PIMO Team", so it is
+  // shown but never typed. (observations G-05, D-06)
+  "pimoMumbai.namePIMO",
 ];
 
 export function RenderCell({
@@ -42,7 +50,12 @@ export function RenderCell({
 
   const prevEditingRef = React.useRef(false);
   const [initialVendorValue, setInitialVendorValue] = useState("");
-  const isAmountField = /amt|amount/i.test(column.field);
+  // isNumericField() also matches "percentage", so Advance Percentage was
+  // rendered as <input type="number"> and the browser drew spinner arrows on
+  // it (observations, General R8). Percentage joins amounts as a numeric field
+  // that is still typed as text: inputMode keeps the numeric keypad, without
+  // the arrows.
+  const isAmountField = /amt|amount|percentage/i.test(column.field);
   const baseIsNumeric = isNumericField(column.field);
   const computedInputType = baseIsNumeric && !isAmountField ? "number" : "text";
   const computedInputMode = baseIsNumeric ? "numeric" : undefined;

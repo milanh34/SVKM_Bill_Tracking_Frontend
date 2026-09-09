@@ -18,6 +18,11 @@ import {
   requestSort,
   getStatusStyle,
   formatCellValue,
+  rowMatchesSearch,
+  compareValues,
+  compareBySrNo,
+  defaultSortField,
+  rowsForFilterOptions,
 } from "./datatable/datatableUtils";
 import { renderFilterPopup } from "./datatable/FilterPopup";
 import { RenderCell } from "./datatable/RenderCell";
@@ -43,6 +48,7 @@ const DataTable = ({
   onPaginatedDataChange,
   searchQuery,
   currentUserRole,
+  activeTab = "home",
   regionOptions,
   natureOfWorkOptions,
   currencyOptions,
@@ -61,8 +67,31 @@ const DataTable = ({
   const [editedValues, setEditedValues] = useState({});
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [pendingAmountFilters, setPendingAmountFilters] = useState({});
+  // uploadModal.rowId is the bill the staged files belong to. It deliberately
+  // survives "Done" - the files are not sent until the pencil edit is saved,
+  // so something has to remember whose they are. It used to be reset to null
+  // on Done while uploadFiles was left populated, so the next row's upload
+  // dialog opened with the previous row's file still listed, and saving that
+  // row filed it against the wrong bill (observations, Teamwise Ac-3).
   const [uploadModal, setUploadModal] = useState({ open: false, rowId: null });
   const [uploadFiles, setUploadFiles] = useState([]);
+
+  /** Open the dialog for a row, discarding anything staged for a different one. */
+  const openUploadModal = (rowId) => {
+    setUploadModal((prev) => {
+      if (prev.rowId && prev.rowId !== rowId) setUploadFiles([]);
+      return { open: true, rowId };
+    });
+  };
+
+  const closeUploadModal = ({ keepFiles }) => {
+    if (keepFiles) {
+      setUploadModal((prev) => ({ ...prev, open: false }));
+    } else {
+      setUploadModal({ open: false, rowId: null });
+      setUploadFiles([]);
+    }
+  };
   const [viewAttachments, setViewAttachments] = useState(false);
   const [allAttachments, setAllAttachments] = useState([
     "https://demolink1.com",
@@ -175,114 +204,51 @@ const DataTable = ({
         return applyFilter(value, filter.value, filter.operator, field, filterType, columnFilters, dateRanges);
       });
 
-      const passesSearch = !searchQuery || visibleColumns.some(column => {
-        const value = getNestedValue(row, column.field);
-        return value?.toString().toLowerCase().includes(searchQuery.toLowerCase());
-      });
+      // Search the value as it is DISPLAYED as well as as it is stored, so
+      // "12-07-2026" and "2026-07-12" find the same bill and "1,00,000"
+      // finds an amount held as 100000. Searching only the raw value was
+      // why the column search appeared dead on every date and amount
+      // column (observations, Sorting R10).
+      const passesSearch = rowMatchesSearch(row, visibleColumns, searchQuery);
 
       return passesColumnFilters && passesSearch;
     });
   }, [data, columnFilters, searchQuery, visibleColumns, filterType, dateRanges]);
 
   useEffect(() => {
+    if (!onPageChange) return;
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    if (currentPage > totalPages && totalPages > 0) {
-      onPageChange(totalPages);
+    // totalPages is 0 when a filter excludes every row. Staying on page 5
+    // of nothing left the grid blank with no way back except reloading.
+    if (currentPage > Math.max(totalPages, 1)) {
+      onPageChange(Math.max(totalPages, 1));
     }
   }, [filteredData, currentPage, itemsPerPage, onPageChange]);
 
-  const getRoleSortColumn = (role) => {
-    const roleColumnMap = {
-      site_officer: "taxInvRecdAtSite",
-      qs_site: "qsInspection.dateGiven",
-      site_pimo: "pimoMumbai.dateReceived",
-      director: "taxInvRecdAtSite",
-      accounts: "accountsDept.dateReceived",
-    };
-    return roleColumnMap[role] || null;
-  };
+  // The Incoming tab used to inherit the Home tab's sort column - col 62
+  // for PIMO, col 82 for Accounts - which is blank on every incoming bill
+  // by definition, so the tab came out in arbitrary order.
+  const roleSortColumn = defaultSortField(currentUserRole, activeTab);
 
   useEffect(() => {
-    const roleSortColumn = getRoleSortColumn(currentUserRole);
     if (roleSortColumn) {
-      setSortConfig({
-        key: roleSortColumn,
-        direction: "desc",
-      });
+      setSortConfig({ key: roleSortColumn, direction: "desc" });
     }
-  }, [currentUserRole]);
+  }, [roleSortColumn]);
 
   const sortedData = useMemo(() => {
     if (!sortConfig.key || !sortConfig.direction) return filteredData;
 
     return [...filteredData].sort((a, b) => {
-      const aValue = getNestedValue(a, sortConfig.key);
-      const bValue = getNestedValue(b, sortConfig.key);
-
-      if (aValue === undefined && bValue === undefined) return 0;
-      if (aValue === undefined) return 1;
-      if (bValue === undefined) return -1;
-
-      let comparison = 0;
-
-      if (typeof aValue === "number" && typeof bValue === "number") {
-        comparison =
-          sortConfig.direction === "asc"
-            ? aValue - bValue
-            : bValue - aValue;
-      } else if (aValue instanceof Date && bValue instanceof Date) {
-        comparison =
-          sortConfig.direction === "asc"
-            ? aValue.getTime() - bValue.getTime()
-            : bValue.getTime() - aValue.getTime();
-      } else if (typeof aValue === "string" && typeof bValue === "string") {
-        const aDate = new Date(aValue);
-        const bDate = new Date(bValue);
-        if (!isNaN(aDate) && !isNaN(bDate)) {
-          comparison =
-            sortConfig.direction === "asc"
-              ? aDate.getTime() - bDate.getTime()
-              : bDate.getTime() - aDate.getTime();
-        } else {
-          const aString = aValue.toLowerCase();
-          const bString = bValue.toLowerCase();
-          if (aString < bString)
-            comparison = sortConfig.direction === "asc" ? -1 : 1;
-          else if (aString > bString)
-            comparison = sortConfig.direction === "asc" ? 1 : -1;
-        }
-      } else {
-        const aString = String(aValue).toLowerCase();
-        const bString = String(bValue).toLowerCase();
-        if (aString < bString)
-          comparison = sortConfig.direction === "asc" ? -1 : 1;
-        else if (aString > bString)
-          comparison = sortConfig.direction === "asc" ? 1 : -1;
+      const comparison = compareValues(a, b, sortConfig.key, sortConfig.direction);
+      // Sr no breaks ties on the tab's own sort column, matching the order
+      // the server sends.
+      if (comparison === 0 && sortConfig.key === roleSortColumn) {
+        return compareBySrNo(a, b);
       }
-
-      // Tiebreaker with srNo
-      if (
-        comparison === 0 &&
-        sortConfig.key === getRoleSortColumn(currentUserRole)
-      ) {
-        const aSrNo = getNestedValue(a, "srNo");
-        const bSrNo = getNestedValue(b, "srNo");
-
-        if (aSrNo !== undefined && bSrNo !== undefined) {
-          const aSrNoNum =
-            typeof aSrNo === "number" ? aSrNo : parseFloat(aSrNo);
-          const bSrNoNum =
-            typeof bSrNo === "number" ? bSrNo : parseFloat(bSrNo);
-
-          if (!isNaN(aSrNoNum) && !isNaN(bSrNoNum)) {
-            comparison = aSrNoNum - bSrNoNum;
-          }
-        }
-      }
-
       return comparison;
     });
-  }, [filteredData, sortConfig, currentUserRole]);
+  }, [filteredData, sortConfig, roleSortColumn]);
 
   const displayData = useMemo(() => {
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -405,40 +371,36 @@ const DataTable = ({
       }
 
       let response;
-      if (uploadFiles.length > 0) {
+      // Only files staged against THIS row, never whatever is left over.
+      const filesForThisRow =
+        uploadModal.rowId === row._id ? uploadFiles : [];
+
+      if (filesForThisRow.length > 0) {
         const formData = new FormData();
-        const accountsDeptToAppend = editedFieldsForRow['accountsDept.paymentDate']
-          ? {
-            ...(row.accountsDept || {}),
-            paymentDate: editedFieldsForRow['accountsDept.paymentDate'],
-            status: 'Paid',
-          }
-          : null;
+
+        // Send each changed field as "parent.child" and never a whole nested
+        // object rebuilt from the row as it was fetched: the server applies a
+        // nested object after the individual cells, so doing that wrote the
+        // stale siblings back over the edits made in the same pencil session
+        // (observations, Pencil Edit R8-R12).
+        Object.entries(editedFieldsForRow).forEach(([key, value]) => {
+          formData.append(key, value);
+        });
+
+        if (editedFieldsForRow['accountsDept.paymentDate']) {
+          formData.append('accountsDept.status', 'Paid');
+        }
 
         if (
           editedFieldsForRow.siteStatus &&
           ["reject", "proforma"].includes(editedFieldsForRow.siteStatus)
         ) {
-          formData.append(
-            "pimoMumbai",
-            JSON.stringify({
-              ...row.pimoMumbai,
-              dateReceived: new Date().toISOString(),
-            })
-          );
+          formData.append("pimoMumbai.dateReceived", new Date().toISOString());
+          formData.append("accountsDept.paymentDate", new Date().toISOString());
+          formData.append("accountsDept.status", "Paid");
         }
 
-        if (accountsDeptToAppend) {
-          formData.append('accountsDept.paymentDate', accountsDeptToAppend.paymentDate);
-          formData.append('accountsDept.status', accountsDeptToAppend.status);
-        }
-
-        Object.entries(editedFieldsForRow).forEach(([key, value]) => {
-          if (key === 'accountsDept.paymentDate') return;
-          formData.append(key, value);
-        });
-
-        uploadFiles.forEach((file) => formData.append("files", file));
+        filesForThisRow.forEach((file) => formData.append("files", file));
         try {
           setEditSubmitting(true);
           response = await axios.patch(`${bills}/${row._id}`, formData);
@@ -457,29 +419,21 @@ const DataTable = ({
         delete payload._id;
         delete payload.srNo;
 
-        if (editedFieldsForRow['accountsDept.paymentDate']) {
-          payload.accountsDept = {
-            ...(row.accountsDept || {}),
-            ...(payload.accountsDept || {}),
-            paymentDate: editedFieldsForRow['accountsDept.paymentDate'],
-            status: 'Paid',
-          };
-          delete payload['accountsDept.paymentDate'];
+        // See the FormData branch above: dot-notation only, so a nested
+        // object built from the fetched row cannot overwrite the edits.
+        if (payload['accountsDept.paymentDate']) {
+          payload['accountsDept.status'] = 'Paid';
         }
 
         if (
           payload.siteStatus &&
           ["reject", "proforma"].includes(payload.siteStatus)
         ) {
-          payload.pimoMumbai = {
-            ...row.pimoMumbai,
-            dateReceived: new Date().toISOString(),
-          };
-          payload.accountsDept = {
-            ...row.accountsDept,
-            paymentDate: new Date().toISOString(),
-            status: 'Paid',
-          };
+          // Reject / Proforma stamps col 62 and col 89 so the bill leaves the
+          // Site home tab, per the Send-to sheet.
+          payload['pimoMumbai.dateReceived'] = new Date().toISOString();
+          payload['accountsDept.paymentDate'] = new Date().toISOString();
+          payload['accountsDept.status'] = 'Paid';
         }
 
         if (Object.keys(payload).length > 0) {
@@ -660,8 +614,7 @@ const DataTable = ({
               <button
                 className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-2xl font-bold cursor-pointer"
                 onClick={() => {
-                  setUploadModal({ open: false, rowId: null });
-                  setUploadFiles([]);
+                  closeUploadModal({ keepFiles: false });
                 }}
                 aria-label="Close"
               >
@@ -722,7 +675,7 @@ const DataTable = ({
               <div className="flex justify-end gap-2 mt-4">
                 <button
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 cursor-pointer"
-                  onClick={() => setUploadModal({ open: false, rowId: null })}
+                  onClick={() => closeUploadModal({ keepFiles: true })}
                   disabled={uploadFiles.length === 0}
                 >
                   Done
@@ -730,8 +683,7 @@ const DataTable = ({
                 <button
                   className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition cursor-pointer"
                   onClick={() => {
-                    setUploadModal({ open: false, rowId: null });
-                    setUploadFiles([]);
+                    closeUploadModal({ keepFiles: false });
                   }}
                 >
                   Cancel
@@ -925,7 +877,15 @@ const DataTable = ({
                     {activeFilter === column.field &&
                       renderFilterPopup(
                         column,
-                        data,
+                        // Only the values still reachable under the other
+                        // filters, not every value the column ever held.
+                        rowsForFilterOptions(data, column.field, {
+                          columnFilters,
+                          filterType,
+                          dateRanges,
+                          searchQuery,
+                          searchColumns: visibleColumns,
+                        }),
                         columnFilters,
                         filterRef,
                         filterType,
@@ -1027,7 +987,7 @@ const DataTable = ({
                                   className="ml-1 p-1 border border-blue-600 bg-blue-50 rounded-full hover:bg-blue-100 cursor-pointer"
                                   title="Add attachments"
                                   onClick={() =>
-                                    setUploadModal({ open: true, rowId: row._id })
+                                    openUploadModal(row._id)
                                   }
                                 >
                                   <Plus className="w-5 h-5 text-blue-600" />

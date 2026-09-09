@@ -369,7 +369,10 @@ const handleDownloadUpdateTemplate = async () => {
 
         try {
             const response = await axios.post(importVendors, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${Cookies.get("token")}`
+                }
             });
             console.log("Import Vendors: ", response.data);
             handleResultPayload(response.data);
