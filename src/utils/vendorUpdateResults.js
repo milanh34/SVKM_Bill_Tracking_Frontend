@@ -48,6 +48,59 @@ const BILL_UPDATE_COLUMNS = [
 ];
 
 // Parse an uploaded vendor file into data rows keyed by column header.
+/**
+ * Can this file actually be read right now?
+ *
+ * "When excel file for mass upload is open, upload should not happen and
+ *  message should appear to close excel file" (observation N-16).
+ *
+ * A browser cannot see Excel's lock directly, and on Windows Excel usually
+ * leaves the file readable, so there is no way to detect "open in Excel" as
+ * such. What IS detectable is the case that actually breaks the upload: the
+ * browser holds a File reference that it can no longer read, because the file
+ * has been rewritten, moved or locked since it was chosen. The browser raises
+ * NotReadableError or NotFoundError for that, and reading zero bytes means the
+ * same thing in practice.
+ *
+ * Previously the read was attempted, the error was swallowed by a bare catch,
+ * and the file was uploaded anyway - so the user saw an unexplained failure
+ * from the server instead of being told to close the workbook.
+ *
+ * @returns {Promise<{ok: true} | {ok: false, reason: string}>}
+ */
+export const checkFileReadable = async (file) => {
+    if (!file) return { ok: false, reason: "No file selected." };
+
+    try {
+        // Reading one byte is enough to provoke the lock error without
+        // pulling a large workbook into memory twice.
+        const probe = await file.slice(0, 1).arrayBuffer();
+        if (file.size === 0 || probe.byteLength === 0) {
+            return {
+                ok: false,
+                reason:
+                    "The file appears to be empty. If it is open in Excel, close it and try again.",
+            };
+        }
+        return { ok: true };
+    } catch (err) {
+        const name = err?.name || "";
+        if (name === "NotReadableError" || name === "NotFoundError" || name === "SecurityError") {
+            return {
+                ok: false,
+                reason:
+                    "The file could not be read. It is most likely still open in Excel - " +
+                    "close the workbook, then select it again and upload.",
+            };
+        }
+        return {
+            ok: false,
+            reason: `The file could not be read (${name || "unknown error"}). ` +
+                "If it is open in Excel, close it and try again.",
+        };
+    }
+};
+
 const parseVendorFile = async (file) => {
     const buf = await file.arrayBuffer();
     // cellDates keeps dates as Date objects rather than Excel serial numbers.

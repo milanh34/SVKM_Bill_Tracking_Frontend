@@ -11,7 +11,7 @@ const Header = () => {
   const availableRoles = JSON.parse(Cookies.get("availableRoles") || "[]");
 
   const roleDisplayMap = {
-    site_officer: "Site Team",
+    site_officer: "IMD Site Team",
     qs_site: "QS Team",
     site_pimo: "PIMO Mumbai Team",
     // 'pimo_mumbai': 'Advance & Direct FI Entry',
@@ -77,8 +77,20 @@ const Header = () => {
     <div className="relative z-20">
       <div className="w-full bg-transparent flex flex-row items-center relative">
         <img src={image} alt="Header" className="w-full" />
-        <div className="mb-10 cursor-pointer absolute right-5">
-          <img src={profile} onClick={() => navigate("/profile")} />
+        {/*
+          The logged-in user's name, beside the profile icon (observation
+          N-12). Nothing on screen said who you were signed in as, which
+          matters on shared machines and when switching roles.
+        */}
+        <div
+          className="mb-10 cursor-pointer absolute right-5 flex items-center gap-2"
+          onClick={() => navigate("/profile")}
+          title="Profile"
+        >
+          <span className="text-[#011a99] font-semibold text-sm md:text-base max-sm:hidden">
+            {Cookies.get("userName") || ""}
+          </span>
+          <img src={profile} alt="Profile" />
         </div>
       </div>
       <div className="absolute w-full top-[63%] max-xl:h-1/3 max-lg:h-1/4 flex justify-end">

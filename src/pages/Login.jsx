@@ -21,7 +21,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   const roles = [
-    { value: "Site_Officer", label: "Site Team" },
+    { value: "Site_Officer", label: "IMD Site Team" },
     { value: "QS_Team", label: "QS Team" },
     {
       value: "PIMO_Mumbai_&_SES_Team",

@@ -20,6 +20,21 @@ const formatDate = (dateString) => {
   }
 };
 
+export const isDateColumn = (field) =>
+  /date|Date|Dt|dt|Booking|booking|RecdAtSite|receivedBack|invReturnedToSite|returnedToPimo/i.test(field);
+
+/**
+ * The calendar day the screen shows, as a whole Excel serial number - no
+ * time part, so the cell reads the same in the grid and the formula bar.
+ * "" for a blank or unparseable value.
+ */
+export const excelDaySerial = (value) => {
+  if (!value) return "";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "";
+  return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000 + 25569;
+};
+
 export const handleExportReport = async (selectedRows, filteredData, columns, visibleColumnFields) => {
   try {
     const dataToExport = selectedRows.length > 0
@@ -66,18 +81,19 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
         console.log(column.field);
 
         // detect by name
-        const isDateField = /date|Date|Dt|dt|Booking|booking|RecdAtSite|receivedBack|invReturnedToSite|returnedToPimo/i.test(column.field);
+        const isDateField = isDateColumn(column.field);
         const isNumberField = isNumberColumn(column.field);
 
         // Normalize values: keep raw types for sheetjs
         if (isDateField) {
-          // convert to JS Date if possible, else empty string
-          if (value) {
-            const d = new Date(value);
-            value = !isNaN(d.getTime()) ? d : "";
-          } else {
-            value = "";
-          }
+          /*
+           * Write the day as a whole Excel serial number (29.09, item 22).
+           *
+           * Dates are stored as midnight UTC, which is 05:30 in India. Handed
+           * to SheetJS as a Date, every cell carried a hidden "05:30:10" -
+           * the time she asked about. It was never the download time.
+           */
+          value = excelDaySerial(value);
         } else if (isNumberField) {
           if (value === null || value === undefined || value === "") {
             value = "";
@@ -215,12 +231,25 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
       }
     });
 
+    const dateColumnIndices = [];
+    allColumnsToExport.forEach((column, index) => {
+      if (isDateColumn(column.field)) {
+        dateColumnIndices.push(index);
+      }
+    });
+
     // Apply number formatting to data rows (excluding header and timestamp)
     for (let row = 2; row <= range.e.r; row++) { // Start from row 2 (after timestamp and header)
       numberColumnIndices.forEach((colIndex) => {
         const cellAddress = XLSX.utils.encode_cell({ r: row, c: colIndex });
         if (worksheet[cellAddress] && typeof worksheet[cellAddress].v === 'number') {
           worksheet[cellAddress].z = numberFormat;
+        }
+      });
+      dateColumnIndices.forEach((colIndex) => {
+        const cellAddress = XLSX.utils.encode_cell({ r: row, c: colIndex });
+        if (worksheet[cellAddress] && typeof worksheet[cellAddress].v === 'number') {
+          worksheet[cellAddress].z = "dd-mm-yyyy";
         }
       });
     }

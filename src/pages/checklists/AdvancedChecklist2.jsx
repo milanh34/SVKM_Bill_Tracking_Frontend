@@ -151,7 +151,8 @@ const AdvancedChecklist = (props) => {
               Check List For - Advance/LC/BG
             </div>
           </div>
-          <div class="bold lg">Project Incharge -</div>
+          <!-- Heading carries column 32 (29.09, item 10). -->
+          <div class="bold lg">Advance requested by - ${item?.advRequestEnteredBy || ""}</div>
           <table>
             <tbody>
               <tr>
@@ -234,7 +235,7 @@ const AdvancedChecklist = (props) => {
               <tr>
                 <td>13</td>
                 <td>Advance request entered by</td>
-                <td class="bold">${item?.advRequestEnteredBy || ""}</td>
+                <td class="bold">${item?.createdBy || ""}</td> <!-- col 2 -->
               </tr>
               <tr>
                 <td>14</td>
@@ -367,7 +368,8 @@ const AdvancedChecklist = (props) => {
                   </div>
                 </div>
                 <div className="p-2 border-b border-gray-300 bg-gray-200 text-xl font-medium">
-                  Project Incharge -
+                  {/* Heading carries column 32 (29.09, item 10). */}
+                  Advance requested by - {item?.advRequestEnteredBy || ""}
                 </div>
               </div>
 
@@ -499,7 +501,7 @@ const AdvancedChecklist = (props) => {
                         Advance request entered by
                       </td>
                       <td className="border border-black p-2 font-bold">
-                        {item?.advRequestEnteredBy}
+                        {item?.createdBy}{/* col 2 */}
                       </td>
                     </tr>
                     <tr>

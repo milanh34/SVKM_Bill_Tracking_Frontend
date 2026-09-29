@@ -286,7 +286,7 @@ const ComplianceTable = () => {
                             ))}
                             <th className="sticky right-0 top-0 z-50 w-20 px-4 py-3 text-center text-sm font-semibold text-gray-900 bg-gray-50 border-b border-gray-200">
                                 <div className="absolute inset-0 bg-gray-50 border-b border-l-2 border-gray-200"></div>
-                                <div className="relative z-[51]">Actions</div>
+                                <div className="relative z-[51]">Edit</div>
                             </th>
                         </tr>
                     </thead>

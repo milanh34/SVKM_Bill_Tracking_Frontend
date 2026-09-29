@@ -2,15 +2,64 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { outstanding } from '../../apis/report.api';
+import { paymentInstructions } from '../../apis/bills.api';
+import { toast } from 'react-toastify';
 import Header from "../../components/Header";
 import Filters from '../../components/Filters';
 import ReportBtns from '../../components/ReportBtns';
 import PaymentModal from "../../components/PaymentModal";
+import ReportGlobalFilter from "../../components/reports/ReportGlobalFilter";
+import { useReportGlobalFilter, pickDateFields, pickAmountFields, COUNT } from "../../components/reports/useReportGlobalFilter";
 import download from "../../assets/download.svg";
 import send from "../../assets/send.svg";
 import print from "../../assets/print.svg";
 import { handleExportOutstandingBillReports } from "../../utils/exportExcelReportOutstanding";
 // import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
+
+/**
+ * Remarks for Payment Instructions, editable in place (23.09, item 13).
+ * Saves on Enter or when the cell loses focus, and only if the text changed.
+ * Escape puts the saved text back.
+ */
+const RemarkCell = ({ bill, onSaved }) => {
+    const saved = bill.remarksForPaymentInstructions || "";
+    const [value, setValue] = useState(saved);
+    const [state, setState] = useState("idle"); // idle | saving | error
+
+    useEffect(() => setValue(saved), [saved]);
+
+    const save = async () => {
+        if (value === saved || !bill._id) return;
+        setState("saving");
+        try {
+            await axios.patch(`${paymentInstructions}/${bill._id}`, {
+                remarksForPayInstructions: value,
+            });
+            onSaved(bill._id, value);
+            setState("idle");
+        } catch (error) {
+            setState("error");
+            toast.error(error.response?.data?.message || `Could not save the remark for Sr No ${bill.srNo}`);
+        }
+    };
+
+    return (
+        <input
+            type="text"
+            value={value}
+            onChange={(e) => { setValue(e.target.value); setState("idle"); }}
+            onBlur={save}
+            onKeyDown={(e) => {
+                if (e.key === "Enter") e.currentTarget.blur();
+                if (e.key === "Escape") { setValue(saved); setState("idle"); }
+            }}
+            disabled={state === "saving"}
+            title="Type a remark; it saves when you press Enter or leave the cell"
+            className={`w-full min-w-[14vw] px-2 py-1 text-[14px] rounded border outline-none focus:border-[#011a99] ${state === "error" ? "border-red-500 bg-red-50" : "border-gray-300"
+                } ${state === "saving" ? "opacity-60" : ""}`}
+        />
+    );
+};
 
 const RepBillOutstanding = () => {
 
@@ -32,6 +81,14 @@ const RepBillOutstanding = () => {
     const [regionOptions] = useState(() => JSON.parse(Cookies.get('availableRegions') || '[]'));
     const [region, setRegion] = useState("all");
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // Keep the row in step with what was saved, so print and download pick
+    // up the new remark without a reload.
+    const handleRemarkSaved = (id, remark) => {
+        setBillsData((rows) =>
+            rows.map((r) => (r._id === id ? { ...r, remarksForPaymentInstructions: remark } : r))
+        );
+    };
 
     const fetchBills = useCallback(async () => {
         try {
@@ -64,21 +121,46 @@ const RepBillOutstanding = () => {
         fetchBills();
     }, [fetchBills]);
 
-    const visibleBills = billsData.filter((bill) => {
-        if (bill.isSubtotal || bill.isGrandTotal || !bill.srNo) {
-            return false;
-        }
+    const titleName = "Outstanding Bills Report as on";
 
-        if (region !== "all" && region !== "ALL" && bill.region !== region) {
-            return false;
-        }
+    const columns = [
+        // { field: "copAmt", headerName: "COP Amount" },
+        { field: "srNo", headerName: "Sr. No" },
+        { field: "region", headerName: "Region" },
+        { field: "vendorNo", headerName: "Vendor No." },
+        { field: "vendorName", headerName: "Vendor Name" },
+        { field: "taxInvNo", headerName: "Tax Invoice No." },
+        { field: "taxInvDate", headerName: "Tax Invoice Date" },
+        { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
+        { field: "dateRecdInAcctsDept", headerName: "Dt Recd in Accts Dept" },
+        { field: "copAmt", headerName: "COP Amt" },
+        { field: "paymentInstructions", headerName: "Payment Instructions" },
+        { field: "remarksForPaymentInstructions", headerName: "Remarks For Payment Instructions" }
+    ]
 
-        return true;
+    const visibleColumnFields = [
+        "srNo", "region", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dateRecdInAcctsDept", "copAmt", "paymentInstructions", "remarksForPaymentInstructions"
+    ]
+
+    // Home-tab search and filter over the rows already fetched (29.09, item 12).
+    // The region dropdown above already filtered on the client; it now runs
+    // through the same pass, so the grand total follows it too.
+    const globalFilter = useReportGlobalFilter(billsData, {
+        dateFields: pickDateFields(columns, ["taxInvDate", "dateRecdInAcctsDept"]),
+        amountFields: pickAmountFields(columns, ["taxInvAmt", "copAmt"]), // 29.09, item 14
+        searchFields: visibleColumnFields,
+        totals: { totalCount: COUNT, grandTotalAmount: "taxInvAmt", grandTotalCopAmt: "copAmt" },
+        subtotals: { count: COUNT, subtotalAmount: "taxInvAmt", subtotalCopAmt: "copAmt" },
+        extraFilter: (bill) => bill.region === region,
+        extraFilterActive: region !== "all" && region !== "ALL",
+        extraFilterKey: region,
     });
+
+    const visibleBills = globalFilter.dataRows.filter((bill) => bill.srNo);
 
     useEffect(() => {
         setSelectedRows([]);
-    }, [region]);
+    }, [region, globalFilter.filterKey]);
 
     const handleSelectAll = () => {
         const newSelectAll = !selectAll;
@@ -113,9 +195,9 @@ const RepBillOutstanding = () => {
         //     toast.error("Select atleast one row to download");
         //     return;
         // }
-        // const result = await handleExportAllReports(selectedRows, billsData.filter(bill => bill.srNo || bill.isGrandTotal), columns, visibleColumnFields, titleName, false);
+        // const result = await handleExportAllReports(selectedRows, billsData.filter(bill => bill.srNo || bill.isGrandTotal), columns, visibleColumnFields, titleName, false, { region, fromDate, toDate });
         const rowsToExport = selectedRows.length > 0 ? selectedRows : visibleBills.map((bill) => bill.srNo);
-        const result = await handleExportOutstandingBillReports(rowsToExport, visibleBills, columns, visibleColumnFields, titleName, false);
+        const result = await handleExportOutstandingBillReports(rowsToExport, visibleBills, columns, visibleColumnFields, titleName, false, { region, fromDate, toDate });
         console.log(result.message);
     }
 
@@ -129,27 +211,6 @@ const RepBillOutstanding = () => {
         const result = await handleExportOutstandingBillReports(rowsToExport, visibleBills, columns, visibleColumnFields, titleName, true, { region, fromDate, toDate });
         console.log(result.message);
     }
-
-    const titleName = "Outstanding Bills Report as on";
-
-    const columns = [
-        // { field: "copAmt", headerName: "COP Amount" },
-        { field: "srNo", headerName: "Sr. No" },
-        { field: "region", headerName: "Region" },
-        { field: "vendorNo", headerName: "Vendor No." },
-        { field: "vendorName", headerName: "Vendor Name" },
-        { field: "taxInvNo", headerName: "Tax Invoice No." },
-        { field: "taxInvDate", headerName: "Tax Invoice Date" },
-        { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
-        { field: "dateRecdInAcctsDept", headerName: "Dt Recd in Accts Dept" },
-        { field: "copAmt", headerName: "COP Amt" },
-        { field: "paymentInstructions", headerName: "Payment Instructions" },
-        { field: "remarksForPaymentInstructions", headerName: "Remarks For Payment Instructions" }
-    ]
-
-    const visibleColumnFields = [
-        "srNo", "region", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "dateRecdInAcctsDept", "copAmt", "paymentInstructions", "remarksForPaymentInstructions"
-    ]
 
     const handleSendClick = () => {
         setIsModalOpen(true);
@@ -191,6 +252,8 @@ const RepBillOutstanding = () => {
                     setRegion={setRegion}
                     regionOptions={regionOptions}
                 />
+
+                <ReportGlobalFilter {...globalFilter.props} />
 
                 {selectedRows.length > 0 && (
                     <div className="text-[16px] font-medium text-[#333] mb-[1vh] ml-[0.5vw]">
@@ -247,11 +310,13 @@ const RepBillOutstanding = () => {
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.dateRecdInAcctsDept}</td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>{bill.copAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.paymentInstructions}</td>
-                                        <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>{bill.remarksForPaymentInstructions}</td>
+                                        <td className='border border-black text-[14px] py-[1vh] px-[0.5vw] text-left'>
+                                            <RemarkCell bill={bill} onSaved={handleRemarkSaved} />
+                                        </td>
                                     </tr>
                                 ))
                                 }
-                                {billsData
+                                {globalFilter.filteredRows
                                     .filter(bill => bill.isGrandTotal)
                                     .map((bill, index) => (
                                         <tr key={index} className='bg-[#f5f5f5] font-semibold'>

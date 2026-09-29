@@ -4,17 +4,75 @@ import Header from "../components/Header";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 import axios from "axios";
-import { user } from "../apis/user.apis";
+import { user, updatePassword } from "../apis/user.apis";
 import { User, Mail, Building2, MapPin, Clock, Calendar } from "lucide-react";
 import Loader from "../components/Loader";
 
 const Profile = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [passwords, setPasswords] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
   const navigate = useNavigate();
 
+  /**
+   * Change the signed-in user's own password (observation N-12).
+   *
+   * PUT /auth/update-password already existed and verifies the current
+   * password server-side; it simply had no way in from the interface. It
+   * answers with a fresh token, which replaces the one in the cookie so the
+   * session survives the change.
+   */
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      toast.error("The new passwords do not match");
+      return;
+    }
+    if (passwords.newPassword.length < 6) {
+      toast.error("The new password must be at least 6 characters");
+      return;
+    }
+    if (passwords.newPassword === passwords.currentPassword) {
+      toast.error("The new password must be different from the current one");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const response = await axios.put(
+        updatePassword,
+        {
+          currentPassword: passwords.currentPassword,
+          newPassword: passwords.newPassword,
+        },
+        { headers: { Authorization: `Bearer ${Cookies.get("token")}` } }
+      );
+
+      if (response.data?.token) {
+        Cookies.set("token", response.data.token, { expires: 0.333 });
+      }
+
+      toast.success("Password updated");
+      setShowPasswordForm(false);
+      setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Could not update the password"
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const roleDisplayMap = {
-    site_officer: "Site Team",
+    site_officer: "IMD Site Team",
     qs_site: "QS Team",
     site_pimo: "PIMO Mumbai Team", //changed from PIMO Mumbai & SES Team
     // 'pimo_mumbai': 'Advance & Direct FI Entry',
@@ -153,6 +211,100 @@ const Profile = () => {
                       )
                   )}
                 </div>
+              </div>
+
+              {/*
+                Change password (observation N-12). The endpoint already
+                existed and checks the current password; there was simply no
+                way to reach it from the interface.
+              */}
+              <div className="pt-6 border-t border-gray-200">
+                {!showPasswordForm ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordForm(true)}
+                    className="px-4 py-2 bg-[#011a99] text-white rounded-md text-sm font-medium hover:bg-[#01147a] transition-colors"
+                  >
+                    Change password
+                  </button>
+                ) : (
+                  <form onSubmit={handlePasswordChange} className="max-w-md space-y-3">
+                    <h2 className="text-lg font-semibold text-gray-800">Change password</h2>
+
+                    <div>
+                      <label htmlFor="currentPassword" className="block text-sm text-gray-600 mb-1">
+                        Current password
+                      </label>
+                      <input
+                        id="currentPassword"
+                        type="password"
+                        autoComplete="current-password"
+                        value={passwords.currentPassword}
+                        onChange={(e) =>
+                          setPasswords((p) => ({ ...p, currentPassword: e.target.value }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#011a99]"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="newPassword" className="block text-sm text-gray-600 mb-1">
+                        New password
+                      </label>
+                      <input
+                        id="newPassword"
+                        type="password"
+                        autoComplete="new-password"
+                        minLength={6}
+                        value={passwords.newPassword}
+                        onChange={(e) =>
+                          setPasswords((p) => ({ ...p, newPassword: e.target.value }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#011a99]"
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">At least 6 characters.</p>
+                    </div>
+
+                    <div>
+                      <label htmlFor="confirmPassword" className="block text-sm text-gray-600 mb-1">
+                        Confirm new password
+                      </label>
+                      <input
+                        id="confirmPassword"
+                        type="password"
+                        autoComplete="new-password"
+                        value={passwords.confirmPassword}
+                        onChange={(e) =>
+                          setPasswords((p) => ({ ...p, confirmPassword: e.target.value }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#011a99]"
+                        required
+                      />
+                    </div>
+
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        type="submit"
+                        disabled={saving}
+                        className="px-4 py-2 bg-[#011a99] text-white rounded-md text-sm font-medium hover:bg-[#01147a] disabled:bg-gray-400 transition-colors"
+                      >
+                        {saving ? "Saving…" : "Update password"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowPasswordForm(false);
+                          setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" });
+                        }}
+                        className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
             </div>
           </div>

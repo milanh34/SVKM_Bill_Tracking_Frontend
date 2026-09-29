@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import Filters from "../../components/Filters";
 import ReportBtns from '../../components/ReportBtns';
+import ReportGlobalFilter from "../../components/reports/ReportGlobalFilter";
+import { useReportGlobalFilter, pickDateFields, pickAmountFields } from "../../components/reports/useReportGlobalFilter";
 import download from "../../assets/download.svg";
 import send from "../../assets/send.svg";
 import print from "../../assets/print.svg";
@@ -96,7 +98,7 @@ const BillJourney = () => {
 
     const handleSelectAll = (e) => {
         if (e.target.checked) {
-            setSelectedInvoices(bills.map(b => b.srNo));
+            setSelectedInvoices(filteredBills.map(b => b.srNo));
         } else {
             setSelectedInvoices([]);
         }
@@ -120,9 +122,9 @@ const BillJourney = () => {
         // Honour the tick boxes. Previously every bill was exported however few
         // were selected (observations, Report logics: Bill Journey).
         const chosen = selectedInvoices.length
-            ? bills.filter(b => selectedInvoices.includes(b.srNo))
-            : bills;
-        const result = await handleExportAllReports(chosen.map(bill => bill.srNo), chosen, columns, visibleColumnFields, titleName, false);
+            ? filteredBills.filter(b => selectedInvoices.includes(b.srNo))
+            : filteredBills;
+        const result = await handleExportAllReports(chosen.map(bill => bill.srNo), chosen, columns, visibleColumnFields, titleName, false, { region, fromDate, toDate });
         console.log("Result = " + result.message);
     };
 
@@ -132,45 +134,79 @@ const BillJourney = () => {
         //     setSelectedRows(bills.map(bill => bill.srNo));
         // }
         const chosen = selectedInvoices.length
-            ? bills.filter(b => selectedInvoices.includes(b.srNo))
-            : bills;
+            ? filteredBills.filter(b => selectedInvoices.includes(b.srNo))
+            : filteredBills;
         const result = await handleExportAllReports(chosen.map(bill => bill.srNo), chosen, columns, visibleColumnFields, titleName, true);
         console.log("Result = " + result.message);
     }
 
     const titleName = "Bill Journey";
 
+    /*
+     * Ordered as the client's own "Bill Journey report.xlsx" lays the sheet
+     * out: the header block, then each journey step with the Name and Amount
+     * her layout puts beside it. Those Name and Amount columns were missing
+     * altogether, which is most of what "columns filled are not fetched"
+     * meant (observation N-10).
+     */
     const columns = [
         { field: "srNo", headerName: "Sr. No" },
         { field: "region", headerName: "Region" },
         { field: "projectDescription", headerName: "Project Description" },
+        { field: "natureOfWork", headerName: "Nature of Work" },
+        { field: "vendorNo", headerName: "Vendor Code" },
         { field: "vendorName", headerName: "Vendor Name" },
+        { field: "taxInvNo", headerName: "Invoice No" },
         { field: "invoiceDate", headerName: "Invoice Date" },
         { field: "invoiceAmount", headerName: "Invoice Amount" },
+        { field: "proformaInvNo", headerName: "Proforma Invoice No" },
+        { field: "proformaInvDate", headerName: "Proforma Invoice Dt" },
+        { field: "proformaInvAmt", headerName: "Proforma Invoice Amt" },
+        { field: "poNo", headerName: "PO No" },
+        { field: "poDate", headerName: "PO Dt" },
+        { field: "poAmt", headerName: "PO Amt" },
+        { field: "copAmt", headerName: "COP Amt" },
+        { field: "paymentAmt", headerName: "Payment Amt" },
+        { field: "paymentDate", headerName: "Date of Payment" },
+        { field: "status", headerName: "Payment Status" },
+
+        { field: "siteApprovalDate", headerName: "Dt given-Site Approval" },
         { field: "billReceivedAtSite", headerName: "Bill Received at Site" },
-        { field: "receiptByProjectTeam", headerName: "Receipt By Project Team" },
-        { field: "receivedForPO", headerName: "Received for PO" },
-        { field: "receiptOfPO", headerName: "Receipt of PO" },
+        { field: "billReceivedAtSiteName", headerName: "Bill Received at Site - Name" },
         { field: "billSendForQualityCertification", headerName: "Bill send for Quality Certification" },
+        { field: "billSendForQualityCertificationName", headerName: "Quality Certification - Name" },
         { field: "billSendToQS", headerName: "Bill send to QS" },
+        { field: "billSendToQSName", headerName: "Bill send to QS - Name" },
         { field: "certifiedByQS", headerName: "Certified by QS" },
+        { field: "certifiedByQSAmount", headerName: "Certified by QS - Amount" },
         { field: "certifiedByArch", headerName: "Certified by Arch/PMC/SVKM" },
+        { field: "certifiedByArchName", headerName: "Certified by Arch/PMC/SVKM - Name" },
         { field: "billSendToSiteEngineer", headerName: "Bill send to Site Engineer/ Site Incharge" },
-        { field: "receiptBySiteProjectDirector", headerName: "Receipt By Site Project Director" },
-        { field: "receiptAtMPTP", headerName: "Receipt at MPTP" },
-        { field: "certifiedByLPC", headerName: "Certified by LPC Members" },
-        { field: "migoDateNo", headerName: "MIGO Date / MIGO No." },
+        { field: "billSendToSiteEngineerName", headerName: "Site Engineer/ Site Incharge - Name" },
+        { field: "migoDate", headerName: "MIGO Date" },
+        { field: "migoDoneBy", headerName: "MIGO done by" },
+        { field: "migoAmount", headerName: "MIGO Amt" },
         { field: "billSendToPIMOMumbai", headerName: "Bill Send to PIMO Mumbai" },
         { field: "billReceivedAtPIMOMumbai", headerName: "Bill Received at PIMO Mumbai" },
+        { field: "billReceivedAtPIMOMumbaiName", headerName: "Received at PIMO Mumbai - Name" },
         { field: "billSendToQSCertification", headerName: "Bill Send to QS Certification" },
+        { field: "billSendToQSCertificationName", headerName: "QS Certification - Name" },
         { field: "receivedFromQSWithCOP", headerName: "Received from QS With COP" },
+        { field: "receivedFromQSWithCOPName", headerName: "Received from QS With COP - Name" },
+        { field: "receivedFromQSWithCOPAmount", headerName: "Received from QS With COP - Amount" },
         { field: "givenToITDept", headerName: "Given to I.T. Dept." },
+        { field: "givenToITDeptName", headerName: "Given to I.T. Dept. - Name" },
         { field: "receivedBackFromITDept", headerName: "Received Back from I.T.Dept." },
-        { field: "sesDateNo", headerName: "SES Date / SES No." },
-        { field: "certifiedByProjectDirector", headerName: "Certified by Project DIRECTOR" },
-        { field: "certifiedByProjectAdvisor", headerName: "Certified by Project ADVISOR" },
-        { field: "certifiedByMCMembers", headerName: "Certified by MC Members" },
+        { field: "receivedBackFromITDeptName", headerName: "Received Back from I.T.Dept. - Name" },
+        { field: "sesDate", headerName: "SES Date" },
+        { field: "sesDoneBy", headerName: "SES done by" },
+        { field: "sesAmount", headerName: "SES Amt" },
+        { field: "certifiedByProjectDirector", headerName: "Certified by Trustee, Adviser & Director" },
         { field: "submittedToAccountsDepartment", headerName: "Submitted to Accounts Department" },
+        { field: "submittedToAccountsDepartmentName", headerName: "Submitted to Accounts - Name" },
+        { field: "receivedInAccountsDepartment", headerName: "Received in Accounts Department" },
+        { field: "receivedInAccountsDepartmentName", headerName: "Received in Accounts - Name" },
+
         { field: "delay_for_receiving_invoice", headerName: "Delay for Receiving Invoice" },
         { field: "no_of_Days_Site", headerName: "No. of Days Site" },
         { field: "no_of_Days_at_Mumbai", headerName: "No. of Days at Mumbai" },
@@ -179,6 +215,26 @@ const BillJourney = () => {
     ]
 
     const visibleColumnFields = columns.map(col => col.field);
+
+    // Home-tab search and filter over the rows already fetched (29.09, item 12).
+    const globalFilter = useReportGlobalFilter(bills, {
+        dateFields: pickDateFields(columns, [
+            "invoiceDate", "proformaInvDate", "poDate", "paymentDate", "siteApprovalDate",
+            "billReceivedAtSite", "billSendForQualityCertification", "billSendToQS", "certifiedByQS",
+            "certifiedByArch", "billSendToSiteEngineer", "migoDate", "billSendToPIMOMumbai",
+            "billReceivedAtPIMOMumbai", "billSendToQSCertification", "receivedFromQSWithCOP",
+            "givenToITDept", "receivedBackFromITDept", "sesDate", "certifiedByProjectDirector",
+            "submittedToAccountsDepartment", "receivedInAccountsDepartment",
+        ]),
+        amountFields: pickAmountFields(columns, ["invoiceAmount", "proformaInvAmt", "poAmt", "copAmt", "paymentAmt", "certifiedByQSAmount", "migoAmount", "receivedFromQSWithCOPAmount", "sesAmount"]), // 29.09, item 14
+        searchFields: visibleColumnFields,
+    });
+    const filteredBills = globalFilter.filteredRows;
+
+    // Ticks on rows the filter hides would still be printed; start afresh.
+    useEffect(() => {
+        setSelectedInvoices([]);
+    }, [globalFilter.filterKey]);
 
     return (
         <div className='mb-[12vh]'>
@@ -218,6 +274,8 @@ const BillJourney = () => {
                     setRegionOptions={setRegionOptions}
                 />
 
+                <ReportGlobalFilter {...globalFilter.props} />
+
                 <div className="overflow-x-auto shadow-md max-h-[85vh] relative border border-black">
                     <table className='w-full border-collapse bg-white whitespace'>
                         <thead>
@@ -227,12 +285,12 @@ const BillJourney = () => {
                                         <input
                                             type="checkbox"
                                             onChange={handleSelectAll}
-                                            checked={selectedInvoices.length === bills.length && bills.length > 0}
+                                            checked={selectedInvoices.length === filteredBills.length && filteredBills.length > 0}
                                             className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                                         />
                                         {selectedInvoices.length > 0 && (
                                             <span className="text-xs text-gray-500 mt-1">
-                                                {selectedInvoices.length}/{bills.length}
+                                                {selectedInvoices.length}/{filteredBills.length}
                                             </span>
                                         )}
                                     </div>
@@ -253,11 +311,11 @@ const BillJourney = () => {
                                 <tr>
                                     <td colSpan={columns.length} className="text-center py-4 text-red-600">{error}</td>
                                 </tr>
-                            ) : bills.length === 0 ? (
+                            ) : filteredBills.length === 0 ? (
                                 <tr>
                                     <td colSpan={columns.length} className="text-center py-4">No bills found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
                                 </tr>
-                            ) : bills.map((bill, index) => (
+                            ) : filteredBills.map((bill, index) => (
                                 <tr key={index} className="hover:bg-[#f5f5f5]">
                                     <td className={`sticky left-0 z-[20] whitespace-nowrap px-3 py-3 text-center border border-black ${selectedInvoices.includes(bill.srNo) ? 'bg-blue-50' : 'bg-white'}`}>
                                         <div className="relative z-10">

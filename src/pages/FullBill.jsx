@@ -9,10 +9,32 @@ import {
 } from "../apis/master.api";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { user } from "../apis/user.apis";
 import { toast } from 'react-toastify';
 import { useNavigate } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import { Paperclip, X } from "lucide-react";
+
+/**
+ * One numbered block of the Create Bill form (29.09, item 7). A locked
+ * section stays visible but reads as greyed out; its fields are disabled
+ * individually, because Invoice received at Site/PIMO must stay open inside
+ * a locked Invoice section.
+ */
+const FormSection = ({ n, title, locked = false, note, children }) => (
+  <section
+    className={`mb-[4vh] rounded-xl border p-[3vh_2vw] transition-colors ${locked ? "border-dashed border-gray-300" : "border-[#4E4E4E25]"
+      }`}
+  >
+    <div className="mb-[4vh] flex items-baseline gap-3">
+      <h2 className={`text-[24px] font-bold ${locked ? "text-gray-400" : "text-[#000B3E]"}`}>
+        {n}. {title}
+      </h2>
+      {locked && note && <span className="text-sm text-gray-500">{note}</span>}
+    </div>
+    {children}
+  </section>
+);
 
 const FullBillDetails = () => {
   const currentUserRole = Cookies.get("userRole");
@@ -130,25 +152,37 @@ const FullBillDetails = () => {
       try {
         const headers = { Authorization: `Bearer ${Cookies.get("token")}` };
 
-        const [naturesRes, currenciesRes, availableRegions] = await Promise.all([
+        const [naturesRes, currenciesRes, availableRegions, userRes] = await Promise.all([
           axios.get(natureOfWorks, { headers }),
           axios.get(currencies, { headers }),
-          axios.get(regions, { headers })
+          axios.get(regions, { headers }),
+          axios.get(user, { headers })
         ]);
 
         const sortedNatureRes = naturesRes.data.sort((a, b) => {
           return String(a.natureOfWork).localeCompare(String(b.natureOfWork), undefined, { sensitivity: 'base' });
         })
 
-        console.log("nature of work: ", naturesRes.data);
-        console.log("available regions: ", availableRegions.data);
-        // const sortedAvailableRegions = availableRegions.sort((a, b) => {
-        //   return String(a).localeCompare(String(b), undefined, {sensitivity: 'base'});
-        // })
+        /*
+         * Offer only the regions this user is assigned to, in alphabetical
+         * order.
+         *
+         * The whole region master was offered (observations N-13 and N-06), so
+         * a Mumbai user could raise an Indore bill - and then not see it
+         * again, because every list endpoint scopes to their own regions.
+         * "ALL" means unrestricted, as it does on the server.
+         */
+        const mine = userRes.data?.data?.region || [];
+        const unrestricted = mine.includes("ALL");
+
+        const allowed = (availableRegions.data || [])
+          .filter((r) => unrestricted || mine.includes(r.name))
+          .sort((a, b) =>
+            String(a.name).localeCompare(String(b.name), undefined, { sensitivity: "base" })
+          );
 
         setNatureOfWorkOptions(sortedNatureRes || []);
-        // setRegionOptions(sortedAvailableRegions);
-        setRegionOptions(availableRegions.data || []);
+        setRegionOptions(allowed);
         setCurrencyOptions(currenciesRes.data || []);
       } catch (error) {
         console.error("Error fetching dropdown data:", error);
@@ -397,6 +431,16 @@ const FullBillDetails = () => {
   const [billImage, setBillImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
+  /*
+   * Which sections the nature of work leaves open (29.09, item 8):
+   * Advance/LC/BG opens Advance Details and closes Proforma and Invoice;
+   * every other nature does the opposite. Particulars and Additional
+   * Details are always open.
+   */
+  const isAdvance = billFormData.natureOfWork === "Advance/LC/BG";
+  const invoiceLocked = !!billFormData.natureOfWork && isAdvance;
+  const advanceLocked = !isAdvance;
+
   const handleChange = (e) => {
     const { id, type, files, value } = e.target;
 
@@ -431,10 +475,24 @@ const FullBillDetails = () => {
         return;
       }
       if (id === "natureOfWork") {
+        // Clear whatever the new nature locks, so a greyed-out field cannot
+        // carry a value typed before the switch into the bill.
+        const advance = value === "Advance/LC/BG";
         setBillFormData((prevData) => ({
           ...prevData,
           natureOfWork: value,
+          ...(advance
+            ? {
+              proformaInvNo: "", proformaInvDate: "", proformaInvAmt: "",
+              proformaInvRecdAtSite: "", proformaInvRecdBy: "",
+              taxInvNo: "", taxInvDate: "", taxInvAmt: "", taxInvRecdBy: "",
+            }
+            : {
+              advanceDate: "", advanceAmt: "", advancePercentage: "",
+              advRequestEnteredBy: "",
+            }),
         }));
+        return;
       }
 
       const amountFieldRegex = /(Amt|amt|Amount|amount)/;
@@ -680,649 +738,600 @@ const FullBillDetails = () => {
         <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">
           Bill Details
         </h1>
-        {/* First Section: Invoice and Region */}
-        <div>
-          <div className="grid grid-cols-2 gap-[2vw]">
-            <div className="relative mb-[4vh]">
-              <label
-                htmlFor="natureOfWork"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                Nature Of Work *
-              </label>
-              <select
-                id="natureOfWork"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                value={billFormData.natureOfWork}
-                onChange={handleChange}
-                required
-              >
-                <option value="" disabled hidden>
-                  Select Nature of Work
-                </option>
-                {natureOfWorkOptions.map((nature) => (
-                  <option key={nature._id} value={nature.natureOfWork}>
-                    {nature.natureOfWork}
+          <FormSection n={1} title="Particulars">
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="natureOfWork"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Nature Of Work *
+                </label>
+                <select
+                  id="natureOfWork"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  value={billFormData.natureOfWork}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="" disabled hidden>
+                    Select Nature of Work
                   </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="relative mb-[2.5vh]">
-              <label
-                htmlFor="region"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                Region *
-              </label>
-              <select
-                id="region"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                value={billFormData.region}
-                onChange={handleChange}
-                required
-              >
-                <option value="" disabled hidden>
-                  Select Region
-                </option>
-                {regionOptions.map((region) => (
-                  <option key={region._id} value={region.name}>
-                    {region.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Project and GST Details */}
-          <div className="grid grid-cols-2 gap-[2vw]">
-            <div className="relative mb-[4vh]">
-              <label
-                htmlFor="projectDescription"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                Project Description *
-              </label>
-              <input
-                type="text"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="projectDescription"
-                value={billFormData.projectDescription}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="relative mb-[2.5vh]">
-              <label
-                htmlFor="gstNumber"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                GST Number
-              </label>
-              <input
-                type="text"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-gray-50 cursor-not-allowed shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="gstNumber"
-                value={billFormData.gstNumber}
-                readOnly
-              />
-            </div>
-          </div>
-
-          {/* Vendor and Compliance Details */}
-          <div className="grid grid-cols-2 gap-[2vw]">
-            <div className="relative mb-[4vh]">
-              <label
-                htmlFor="vendorName"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                Vendor Name *
-              </label>
-              <input
-                type="text"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="vendorName"
-                value={billFormData.vendorName}
-                onChange={handleVendorNameChange}
-                autoComplete="off"
-                required
-              />
-              {showSuggestions && vendorSuggestions.length > 0 && (
-                <div className="absolute w-5/6 max-h-[200px] overflow-y-auto bg-white border border-gray-300 rounded-md shadow-lg z-10">
-                  {vendorSuggestions.map((vendor, index) => (
-                    <div
-                      key={index}
-                      className="p-2 hover:bg-gray-100 cursor-pointer text-sm transition-colors duration-200"
-                      onClick={() => handleSuggestionClick(vendor)}
-                    >
-                      {vendor.vendorNo} - {vendor.vendorName} - {vendor.GSTNumber}
-                    </div>
+                  {natureOfWorkOptions.map((nature) => (
+                    <option key={nature._id} value={nature.natureOfWork}>
+                      {nature.natureOfWork}
+                    </option>
                   ))}
-                </div>
-              )}
+                </select>
+              </div>
+              <div className="relative mb-[2.5vh]">
+                <label
+                  htmlFor="region"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Region *
+                </label>
+                <select
+                  id="region"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  value={billFormData.region}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="" disabled hidden>
+                    Select Region
+                  </option>
+                  {regionOptions.map((region) => (
+                    <option key={region._id} value={region.name}>
+                      {region.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-
-            <div className="relative mb-[2.5vh]">
-              <label
-                htmlFor="vendorNo"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                Vendor No *
-              </label>
-              <input
-                type="text"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="vendorNo"
-                value={billFormData.vendorNo}
-                onChange={handleChange}
-                onKeyDown={handleVendorLookup}
-                onBlur={handleVendorBlur}
-                pattern="\d{6}"
-                maxLength={6}
-                title="Vendor No must be exactly 6 digits"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Compliance and PAN Status */}
-          <div className="grid grid-cols-2 gap-[2vw]">
-            <div className="relative mb-[4vh]">
-              <label
-                htmlFor="compliance206AB"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                206AB Compliance
-              </label>
-              <input
-                type="text"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-gray-50 cursor-not-allowed shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="compliance206AB"
-                value={billFormData.compliance206AB}
-                readOnly
-              />
-            </div>
-
-            <div className="relative mb-[2.5vh]">
-              <label
-                htmlFor="panStatus"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                PAN Status
-              </label>
-              <input
-                type="text"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-gray-50 cursor-not-allowed shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="panStatus"
-                value={billFormData.panStatus}
-                readOnly
-              />
-            </div>
-          </div>
-        </div>
-        {/* PO Details Section */}
-        <div>
-          <div className="grid grid-cols-2 gap-[2vw]">
-            <div className="relative mb-[4vh]">
-              <label
-                htmlFor="poCreated"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                Is PO already Created? *
-              </label>
-              <select
-                id="poCreated"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                value={billFormData.poCreated}
-                onChange={handleChange}
-                required
-              >
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-[2vw]">
-            <div className="relative mb-[4vh]">
-              <label
-                htmlFor="poNo"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                PO No.
-              </label>
-              <input
-                type="text"
-                className={`w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] 
-                  ${billFormData.poCreated === "No"
-                    ? "bg-gray-100 cursor-not-allowed"
-                    : "bg-white"
-                  }`}
-                id="poNo"
-                value={billFormData.poNo}
-                onChange={handleChange}
-                onKeyDown={handlePoNoLookup}
-                pattern="\d{10}"
-                maxLength={10}
-                title="PO No must be exactly 10 digits"
-                disabled={billFormData.poCreated === "No"}
-                required={billFormData.poCreated === "Yes"}
-              />
-            </div>
-
-            <div className="relative mb-[2.5vh]">
-              <label
-                htmlFor="poDate"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                PO Date
-              </label>
-              <input
-                type="date"
-                className={`w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]
-                  ${billFormData.poCreated === "No"
-                    ? "bg-gray-100 cursor-not-allowed"
-                    : "bg-white"
-                  }`}
-                id="poDate"
-                value={billFormData.poDate}
-                onChange={handleChange}
-                disabled={billFormData.poCreated === "No"}
-                required={billFormData.poCreated === "Yes"}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-[2vw]">
-            <div className="relative mb-[4vh]">
-              <label
-                htmlFor="poAmt"
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-              >
-                PO Amount
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9.]*"
-                className={`w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]
-                  ${billFormData.poCreated === "No"
-                    ? "bg-gray-100 cursor-not-allowed"
-                    : "bg-white"
-                  }`}
-                id="poAmt"
-                value={billFormData.poAmt}
-                onChange={handleChange}
-                disabled={billFormData.poCreated === "No"}
-                required={billFormData.poCreated === "Yes"}
-              />
-            </div>
-          </div>
-        </div>
-        {/* Proforma Invoice Details */}
-        <div className="grid grid-cols-2 gap-[2vw]">
-          <div className="relative mb-[4vh]">
-            <label
-              htmlFor="proformaInvNo"
-              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-            >
-              Proforma Invoice No
-            </label>
-            <input
-              type="text"
-              className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-              id="proformaInvNo"
-              value={billFormData.proformaInvNo}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="relative mb-[2.5vh]">
-            <label
-              htmlFor="proformaInvDate"
-              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-            >
-              Proforma Inv Date
-            </label>
-            <input
-              type="date"
-              className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-              id="proformaInvDate"
-              value={billFormData.proformaInvDate}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-[2vw]">
-          <div className="relative mb-[4vh]">
-            <label
-              htmlFor="proformaInvAmt"
-              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-            >
-              Proforma Invoice Amount
-            </label>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9.]*"
-              className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-              id="proformaInvAmt"
-              value={billFormData.proformaInvAmt}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="relative mb-[4vh]">
-            <label
-              htmlFor="proformaInvRecdAtSite"
-              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-            >
-              Proforma Inv Recd at Site
-            </label>
-            <input
-              type="date"
-              className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-              id="proformaInvRecdAtSite"
-              value={billFormData.proformaInvRecdAtSite}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-[2vw]">
-          <div className="relative mb-[4vh]">
-            <label
-              htmlFor="proformaInvRecdBy"
-              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-            >
-              Proforma Invoice Received By
-            </label>
-            <input
-              type="text"
-              className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-              id="proformaInvRecdBy"
-              value={billFormData.proformaInvRecdBy}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div></div>
-        </div>
-        {/* Tax Invoice and Final Details */}
-        <div className="grid grid-cols-2 gap-[2vw]">
-          <div className="relative mb-[4vh]">
-            <label
-              htmlFor="taxInvNo"
-              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-            >
-              Tax Invoice No.
-            </label>
-            <input
-              type="text"
-              className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-              id="taxInvNo"
-              value={billFormData.taxInvNo}
-              onChange={handleChange}
-              pattern="[A-Za-z0-9]{16}"
-              maxLength={16}
-              title="Tax Invoice No must be exactly 16 alphanumeric characters"
-              required
-            />
-          </div>
-
-          <div className="relative mb-[2.5vh]">
-            <label
-              htmlFor="taxInvDate"
-              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-            >
-              Tax Inv Date
-            </label>
-            <input
-              type="date"
-              className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-              id="taxInvDate"
-              value={billFormData.taxInvDate}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-[2vw]">
-          <div className="relative mb-[4vh]">
-            <label
-              htmlFor="currency"
-              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-            >
-              Currency
-            </label>
-            <select
-              id="currency"
-              className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-              value={billFormData.currency}
-              onChange={handleChange}
-              required
-            >
-              <option value="" disabled hidden>
-                Select Currency
-              </option>
-              {currencyOptions.map((currency) => (
-                <option key={currency._id} value={currency.currency}>
-                  {currency.currency}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-[2vw]">
-          <div className="relative mb-[4vh]">
-            <label
-              htmlFor="taxInvAmt"
-              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-            >
-              Tax Invoice Amount
-            </label>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9.]*"
-              className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-              id="taxInvAmt"
-              value={billFormData.taxInvAmt}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="relative mb-[4vh]">
-            <label
-              htmlFor="taxInvRecdAtSite"
-              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-            >
-              Invoice Received At Site *
-            </label>
-            <input
-              type="date"
-              className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-              id="taxInvRecdAtSite"
-              value={billFormData.taxInvRecdAtSite}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-[2vw]">
-          <div className="relative mb-[4vh]">
-            <label
-              htmlFor="taxInvRecdBy"
-              className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-            >
-              Tax Inv Received By
-            </label>
-            <input
-              type="text"
-              className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-              id="taxInvRecdBy"
-              value={billFormData.taxInvRecdBy}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        </div>
-
-        {/* File Upload Section */}
-        {/* <div className="border border-dashed border-[#ccc] p-[2vh_2vw] text-center rounded-[0.5vw] mt-[2vh] w-[57vw] h-[45vh] relative">
-          <label
-            htmlFor="attachment"
-            className="absolute inset-0 w-full h-full cursor-pointer flex flex-col items-center justify-center"
-          >
-            {imagePreview ? (
-              <div className="mb-4">
-                <img
-                  src={imagePreview}
-                  alt="Bill preview"
-                  className="max-w-[250px] max-h-[250px] object-contain mx-auto"
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="projectDescription"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Project Description *
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="projectDescription"
+                  value={billFormData.projectDescription}
+                  onChange={handleChange}
+                  required
                 />
               </div>
-            ) : (
-              <>
-                <p className="text-[#666] text-[1vw]">
-                  Upload image of the bill
-                </p>
-                <img
-                  src={imageBox}
-                  alt="Upload placeholder"
-                  className="w-[6vw] h-[6vw] mb-[1vh]"
+              <div className="relative mb-[2.5vh]">
+                <label
+                  htmlFor="gstNumber"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  GST Number
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-gray-50 cursor-not-allowed shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="gstNumber"
+                  value={billFormData.gstNumber}
+                  readOnly
                 />
-              </>
-            )}
-            {billImage && (
-              <p className="text-[#666] text-[0.8vw] mt-2">{billImage.name}</p>
-            )}
-          </label>
-          <input
-            type="file"
-            id="attachment"
-            onChange={handleChange}
-            accept="image/*"
-            className="hidden"
-            required
-          />
-        </div> */}
-        <div className="w-1/2">
-          <h1 className="text-[#000B3E] mb-[4.7vh] text-[35px] font-bold">
-            Advance Details
-          </h1>
-
-          <div>
-            <div className="relative mb-[4vh]">
-              <label
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                htmlFor="advDate"
-              >
-                Advance Date
-              </label>
-              <input
-                type="date"
-                className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
-                id="advanceDate"
-                value={billFormData.advanceDate}
-                onChange={handleChange}
-                required
-              />
+              </div>
             </div>
-
-            <div className="relative mb-[4vh]">
-              <label
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                htmlFor="advAmt"
-              >
-                Advance Amount
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9.]*"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="advanceAmt"
-                value={billFormData.advanceAmt}
-                onChange={handleChange}
-                required
-              />
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="vendorName"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Vendor Name *
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="vendorName"
+                  value={billFormData.vendorName}
+                  onChange={handleVendorNameChange}
+                  autoComplete="off"
+                  required
+                />
+                {showSuggestions && vendorSuggestions.length > 0 && (
+                  <div className="absolute w-5/6 max-h-[200px] overflow-y-auto bg-white border border-gray-300 rounded-md shadow-lg z-10">
+                    {vendorSuggestions.map((vendor, index) => (
+                      <div
+                        key={index}
+                        className="p-2 hover:bg-gray-100 cursor-pointer text-sm transition-colors duration-200"
+                        onClick={() => handleSuggestionClick(vendor)}
+                      >
+                        {vendor.vendorNo} - {vendor.vendorName} - {vendor.GSTNumber}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="relative mb-[2.5vh]">
+                <label
+                  htmlFor="vendorNo"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Vendor No *
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="vendorNo"
+                  value={billFormData.vendorNo}
+                  onChange={handleChange}
+                  onKeyDown={handleVendorLookup}
+                  onBlur={handleVendorBlur}
+                  pattern="\d{6}"
+                  maxLength={6}
+                  title="Vendor No must be exactly 6 digits"
+                  required
+                />
+              </div>
             </div>
-
-            <div className="relative mb-[4vh]">
-              <label
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                htmlFor="advPercent"
-              >
-                Advance Percentage
-              </label>
-              <input
-                type="text"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="advancePercentage"
-                value={billFormData.advancePercentage}
-                onChange={handleChange}
-                required
-              />
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="compliance206AB"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  206AB Compliance
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-gray-50 cursor-not-allowed shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="compliance206AB"
+                  value={billFormData.compliance206AB}
+                  readOnly
+                />
+              </div>
+              <div className="relative mb-[2.5vh]">
+                <label
+                  htmlFor="panStatus"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  PAN Status
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-gray-50 cursor-not-allowed shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="panStatus"
+                  value={billFormData.panStatus}
+                  readOnly
+                />
+              </div>
             </div>
-
-            <div className="relative mb-[4vh]">
-              <label
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                htmlFor="advReqEnteredBy"
-              >
-                Advance Request Entered By{" "}
-              </label>
-              <input
-                type="text"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="advRequestEnteredBy"
-                value={billFormData.advRequestEnteredBy}
-                onChange={handleChange}
-                required
-              />
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="poCreated"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Is PO already Created? *
+                </label>
+                <select
+                  id="poCreated"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  value={billFormData.poCreated}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="No">No</option>
+                  <option value="Yes">Yes</option>
+                </select>
+              </div>
+              <div></div>
             </div>
-
-            <div className="relative mb-[4vh]">
-              <label
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                htmlFor="remarksBySiteTeam"
-              >
-                Remarks
-              </label>
-              <input
-                type="text"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="remarksBySiteTeam"
-                value={billFormData.remarksBySiteTeam}
-                onChange={handleChange}
-                required
-              />
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="poNo"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  PO No.
+                </label>
+                <input
+                  type="text"
+                  className={`w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] 
+                    ${billFormData.poCreated === "No"
+                      ? "bg-gray-100 cursor-not-allowed"
+                      : "bg-white"
+                    }`}
+                  id="poNo"
+                  value={billFormData.poNo}
+                  onChange={handleChange}
+                  onKeyDown={handlePoNoLookup}
+                  pattern="\d{10}"
+                  maxLength={10}
+                  title="PO No must be exactly 10 digits"
+                  disabled={billFormData.poCreated === "No"}
+                  required={billFormData.poCreated === "Yes"}
+                />
+              </div>
+              <div className="relative mb-[2.5vh]">
+                <label
+                  htmlFor="poDate"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  PO Date
+                </label>
+                <input
+                  type="date"
+                  className={`w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]
+                    ${billFormData.poCreated === "No"
+                      ? "bg-gray-100 cursor-not-allowed"
+                      : "bg-white"
+                    }`}
+                  id="poDate"
+                  value={billFormData.poDate}
+                  onChange={handleChange}
+                  disabled={billFormData.poCreated === "No"}
+                  required={billFormData.poCreated === "Yes"}
+                />
+              </div>
             </div>
-
-            <div className="relative mb-[4vh]">
-              <label
-                className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                htmlFor="department"
-              >
-                Additional Info
-              </label>
-              <input
-                type="text"
-                className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                id="department"
-                value={billFormData.department}
-                onChange={handleChange}
-                required
-              />
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="poAmt"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  PO Amount
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9.]*"
+                  className={`w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]
+                    ${billFormData.poCreated === "No"
+                      ? "bg-gray-100 cursor-not-allowed"
+                      : "bg-white"
+                    }`}
+                  id="poAmt"
+                  value={billFormData.poAmt}
+                  onChange={handleChange}
+                  disabled={billFormData.poCreated === "No"}
+                  required={billFormData.poCreated === "Yes"}
+                />
+              </div>
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="currency"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Currency
+                </label>
+                <select
+                  id="currency"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  value={billFormData.currency}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="" disabled hidden>
+                    Select Currency
+                  </option>
+                  {currencyOptions.map((currency) => (
+                    <option key={currency._id} value={currency.currency}>
+                      {currency.currency}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-
-          </div>
-        </div>
+          </FormSection>
+          <FormSection n={2} title="Proforma Invoice Details" locked={invoiceLocked} note="Not used when Nature of Work is Advance/LC/BG">
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="proformaInvNo"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Proforma Invoice No
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="proformaInvNo"
+                  value={billFormData.proformaInvNo}
+                  onChange={handleChange}
+                  required={!invoiceLocked}
+                  disabled={invoiceLocked}
+                />
+              </div>
+              <div className="relative mb-[2.5vh]">
+                <label
+                  htmlFor="proformaInvDate"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Proforma Inv Date
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="proformaInvDate"
+                  value={billFormData.proformaInvDate}
+                  onChange={handleChange}
+                  required={!invoiceLocked}
+                  disabled={invoiceLocked}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="proformaInvAmt"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Proforma Invoice Amount
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9.]*"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="proformaInvAmt"
+                  value={billFormData.proformaInvAmt}
+                  onChange={handleChange}
+                  required={!invoiceLocked}
+                  disabled={invoiceLocked}
+                />
+              </div>
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="proformaInvRecdAtSite"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Proforma Inv Recd at Site
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="proformaInvRecdAtSite"
+                  value={billFormData.proformaInvRecdAtSite}
+                  onChange={handleChange}
+                  required={!invoiceLocked}
+                  disabled={invoiceLocked}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="proformaInvRecdBy"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Proforma Invoice Received By
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="proformaInvRecdBy"
+                  value={billFormData.proformaInvRecdBy}
+                  onChange={handleChange}
+                  required={!invoiceLocked}
+                  disabled={invoiceLocked}
+                />
+              </div>
+              <div></div>
+            </div>
+          </FormSection>
+          <FormSection n={3} title="Invoice Details" locked={invoiceLocked} note="Not used when Nature of Work is Advance/LC/BG. Invoice received at Site/PIMO stays open - every bill needs it.">
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="taxInvNo"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Tax Invoice No.
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="taxInvNo"
+                  value={billFormData.taxInvNo}
+                  onChange={handleChange}
+                  pattern="[A-Za-z0-9]{16}"
+                  maxLength={16}
+                  title="Tax Invoice No must be exactly 16 alphanumeric characters"
+                  required={!invoiceLocked}
+                  disabled={invoiceLocked}
+                />
+              </div>
+              <div className="relative mb-[2.5vh]">
+                <label
+                  htmlFor="taxInvDate"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Tax Inv Date
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="taxInvDate"
+                  value={billFormData.taxInvDate}
+                  onChange={handleChange}
+                  required={!invoiceLocked}
+                  disabled={invoiceLocked}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="taxInvAmt"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Tax Invoice Amount
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9.]*"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="taxInvAmt"
+                  value={billFormData.taxInvAmt}
+                  onChange={handleChange}
+                  required={!invoiceLocked}
+                  disabled={invoiceLocked}
+                />
+              </div>
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="taxInvRecdAtSite"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Invoice received at Site/PIMO *
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="taxInvRecdAtSite"
+                  value={billFormData.taxInvRecdAtSite}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="taxInvRecdBy"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Tax Inv Received By
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="taxInvRecdBy"
+                  value={billFormData.taxInvRecdBy}
+                  onChange={handleChange}
+                  required={!invoiceLocked}
+                  disabled={invoiceLocked}
+                />
+              </div>
+              <div></div>
+            </div>
+          </FormSection>
+          <FormSection n={4} title="Advance Details" locked={advanceLocked} note="Only used when Nature of Work is Advance/LC/BG">
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="advanceDate"
+                >
+                  Advance Date
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="advanceDate"
+                  value={billFormData.advanceDate}
+                  onChange={handleChange}
+                  required={!advanceLocked}
+                  disabled={advanceLocked}
+                />
+              </div>
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="advanceAmt"
+                >
+                  Advance Amount
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9.]*"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="advanceAmt"
+                  value={billFormData.advanceAmt}
+                  onChange={handleChange}
+                  required={!advanceLocked}
+                  disabled={advanceLocked}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="advancePercentage"
+                >
+                  Advance Percentage
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="advancePercentage"
+                  value={billFormData.advancePercentage}
+                  onChange={handleChange}
+                  required={!advanceLocked}
+                  disabled={advanceLocked}
+                />
+              </div>
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="advRequestEnteredBy"
+                >
+                  Advance requested by
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="advRequestEnteredBy"
+                  value={billFormData.advRequestEnteredBy}
+                  onChange={handleChange}
+                  required={!advanceLocked}
+                  disabled={advanceLocked}
+                />
+              </div>
+            </div>
+          </FormSection>
+          <FormSection n={5} title="Additional Details">
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="remarksBySiteTeam"
+                >
+                  Remarks
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="remarksBySiteTeam"
+                  value={billFormData.remarksBySiteTeam}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="relative mb-[4vh]">
+                <label
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                  htmlFor="department"
+                >
+                  Additional Info
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="department"
+                  value={billFormData.department}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+          </FormSection>
         <div className="bg-card rounded-lg px-6 py-2 space-y-4 ont-semibold text-[#01073F]">
           <div>
             <h2 className="text-lg font-semibold">Attachments</h2>

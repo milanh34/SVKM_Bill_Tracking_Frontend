@@ -28,3 +28,5 @@ export const invSentToAccts = `${SERVER_API}/api/reports/invoices-given-to-accou
 export const invPaid = `${SERVER_API}/api/reports/invoices-Paid`
 
 export const billKidhar = `${SERVER_API}/api/reports/bill-kidhar`
+
+export const vendorDetails = `${SERVER_API}/api/reports/vendor-details`

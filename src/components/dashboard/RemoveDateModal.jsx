@@ -24,7 +24,7 @@ export const RemoveDateModal = ({
     qs_site: "QS Team",
     site_pimo: "PIMO Team",
     accounts: "Accounts Team",
-    director: "PIMO Team",
+    director: "Trustee Team", // 29.09 item 11 - was "PIMO Team"
     admin: "Site Team"
   };
 
@@ -42,7 +42,7 @@ export const RemoveDateModal = ({
     site_incharge: "Site Incharge",
     migo_entry: "MIGO Team",
     migo_entry_return: "Ret Site aft MIGO",
-    site_dispatch_team: "Site Dispatch",
+    site_dispatch_team: "Site Trustee/LPC", // 29.09 item 17
     pimo_mumbai: "PIMO Team",
     measure: "QS Measure",
     site_cop: "QS for Prov COP",
@@ -55,6 +55,7 @@ export const RemoveDateModal = ({
     trustee: "Director/Advisor/Trustee",
     accounts_department: "Accounts Team",
     booking_checking: "Booking & Checking",
+    qs_not_received: "Mark as not received", // N-18
   };
 
   const teamName = teamNameMap[role] || "Site Team";
@@ -125,11 +126,28 @@ export const RemoveDateModal = ({
         </div>
 
         <div className="space-y-2">
-          {availableRoles.length === 0 && (
+          {availableRoles.length === 0 && role !== "qs_site" && (
             <div className="text-gray-500 text-sm text-center py-4">
               No roles available
             </div>
           )}
+          {/*
+            "Mark as not received" for QS (observation N-18). It steps back
+            through whichever receipt actually happened - columns 64 and 65,
+            or 40 and 41 when those are already blank - which the server
+            decides per bill.
+          */}
+          {role === "qs_site" && (
+            <button
+              className="w-full flex items-center space-x-2 px-4 py-2 bg-red-700 text-white rounded-md hover:bg-red-800 transition-colors hover:cursor-pointer disabled:opacity-50 border-2 border-red-900"
+              onClick={() => handleRemoveDateClick({ value: "qs_not_received", label: "Mark as not received" })}
+              disabled={loading}
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Mark as not received</span>
+            </button>
+          )}
+
           {availableRoles.map((r) => (
             <button
               key={r.value}

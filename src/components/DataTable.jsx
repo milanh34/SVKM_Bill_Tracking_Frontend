@@ -4,7 +4,7 @@ import {
   SortAscIcon,
   SortDescIcon,
   Filter,
-  CheckIcon,
+  SaveIcon,
 } from "./Icons";
 import { X, FileImage, FileText, File, FileVideo, FileAudio, Plus, Trash2 } from "lucide-react";
 import { getColumnsForRole } from "../utils/columnEdit";
@@ -18,6 +18,7 @@ import {
   // Percentage showed as "10.00" on Forwarded and "10%" on Home
   // (observations, General R7).
   formatCellValue,
+  rowsForFilterOptions,
 } from "./dashboard/datatable/datatableUtils";
 import { bills, deleteAttachments } from "../apis/bills.api";
 import axios from "axios";
@@ -46,6 +47,8 @@ const DataTable = ({
   activeTab = "forwarded",
   regionOptions,
   showActions = false,
+  resetKey = 0,
+  onColumnFiltersActiveChange,
 }) => {
   const [columnFilters, setColumnFilters] = useState({});
   const [activeFilter, setActiveFilter] = useState(null);
@@ -59,6 +62,37 @@ const DataTable = ({
   const [editedValues, setEditedValues] = useState({});
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [pendingAmountFilters, setPendingAmountFilters] = useState({});
+
+  /*
+   * The page's Reset button bumps resetKey to clear the column filters as
+   * well as the sort and search (29.09, item 21). Zero is the initial value,
+   * so nothing is cleared on first render.
+   */
+  useEffect(() => {
+    if (!resetKey) return;
+    setColumnFilters({});
+    setDateRanges({});
+    setFilterType({});
+    setPendingAmountFilters({});
+    setActiveFilter(null);
+    setFilterSearchQuery("");
+  }, [resetKey]);
+
+  /*
+   * Tell the page whether any column filter is on, so its filter icon can
+   * show it (29.09, item 13).
+   */
+  useEffect(() => {
+    if (!onColumnFiltersActiveChange) return;
+    const isOn = (f) => {
+      if (!f) return false;
+      if (Array.isArray(f.value)) return f.value.length > 0;
+      if (f.range) return f.range.min !== "" || f.range.max !== "";
+      return true;
+    };
+    const active = Object.values(columnFilters).some(isOn);
+    onColumnFiltersActiveChange(active);
+  }, [columnFilters, onColumnFiltersActiveChange]);
   // uploadModal.rowId is the bill the staged files belong to. It deliberately
   // survives "Done" - the files are not sent until the pencil edit is saved,
   // so something has to remember whose they are. It used to be reset to null
@@ -621,7 +655,25 @@ const DataTable = ({
   };
 
   const renderFilterPopup = (column) => {
-    const uniqueValues = getUniqueValues(data, column.field);
+    /*
+     * Offer only the values still reachable under the other filters.
+     *
+     * The Home grid got this in Round 2; the Forwarded tab uses this separate
+     * component and did not, so filtering one column still offered every
+     * value of the next - "in 2nd column it should show restricted values and
+     * not all values of that column. This is how it is happening in Home tab"
+     * (mail of 24 September, item 1).
+     */
+    const uniqueValues = getUniqueValues(
+      rowsForFilterOptions(data, column.field, {
+        columnFilters,
+        filterType,
+        dateRanges,
+        searchQuery,
+        searchColumns: visibleColumns,
+      }),
+      column.field
+    );
     const currentFilter = columnFilters[column.field] || {
       operator: "multiSelect",
       value: [],
@@ -1515,7 +1567,7 @@ const DataTable = ({
                     className="absolute inset-0 bg-blue-50 border-l border-blue-200"
                     style={{ bottom: "-1px", zIndex: -1 }}
                   ></div>
-                  <div className="relative z-10 text-center">Actions</div>
+                  <div className="relative z-10 text-center">Edit</div>
                 </th>
               )}
             </tr>
@@ -1666,7 +1718,7 @@ const DataTable = ({
                                 </svg>
                               </span>
                             ) : (
-                              <CheckIcon className="w-5 h-5 text-green-500" />
+                              <SaveIcon className="w-5 h-5 text-green-600" />
                             )
                           ) : (
                             <EditIcon className="w-5 h-5" />

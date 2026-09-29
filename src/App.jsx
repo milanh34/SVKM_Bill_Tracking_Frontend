@@ -50,6 +50,8 @@ import VendorTable from "./components/admin/VendorTable";
 import VendorTablePage from "./pages/VendorTablePage";
 import BillKidhar from "./pages/reports/BillKidhar";
 import BillJourney from "./pages/reports/BillJourney";
+import VendorDetails from "./pages/reports/VendorDetails";
+import Forms from "./pages/reports/Forms";
 
 
 function App() {
@@ -271,6 +273,26 @@ function App() {
             <ProtectedRoute
               element={BillJourney}
               allowedRoles={["site_pimo", "director", "admin", "accounts"]}
+            />
+          }
+        />
+        {/* Vendor Details report - open to every team (observation N-08). */}
+        <Route
+          path="/vendordetails"
+          element={
+            <ProtectedRoute
+              element={VendorDetails}
+              allowedRoles={["site_officer", "qs_site", "site_pimo", "pimo_mumbai", "accounts", "director", "admin"]}
+            />
+          }
+        />
+        {/* Forms repository - every team downloads, Admin uploads (29.09, reply Q2). */}
+        <Route
+          path="/forms"
+          element={
+            <ProtectedRoute
+              element={Forms}
+              allowedRoles={["site_officer", "qs_site", "site_pimo", "pimo_mumbai", "accounts", "director", "admin"]}
             />
           }
         />

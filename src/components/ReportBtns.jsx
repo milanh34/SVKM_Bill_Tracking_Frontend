@@ -39,12 +39,12 @@ const ReportBtns = () => {
     //     "admin": ["invAtSite", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "reportscouriermumbai", "reportsreceivedmumbai", "reportsinvoiceacctdept", "reportsinvoiceqssite", "reportsinvoicepaid", "invAtPIMO", "reportsbilljourney"]
     // };
     const roleAccess = {
-        "site_officer": ["invatsite", "invqsmeasurement", "invqsprovcop", "invsentpimo"],
-        "qs_site": ["invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invreturnqsmeasurement", "invreturnqsprovcop", "invreturnqsmumbaicop"],
-        "site_pimo": ["invatsite", "invatpimo", "invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invsentpimo", "invsentaccts", "billkidhar", "billjourney"],
-        "accounts": ["reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invpaid", "billkidhar", "billjourney"],
-        "director": ["invatsite", "invatpimo", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invpaid", "billkidhar", "billjourney"],
-        "admin": ["invatsite", "invatpimo", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invsentpimo", "invreturnqsmeasurement", "invreturnqsprovcop", "invreturnqsmumbaicop", "invsentaccts", "invpaid", "billkidhar", "billjourney"]
+        "site_officer": ["vendordetails", "invatsite", "invqsmeasurement", "invqsprovcop", "invsentpimo"],
+        "qs_site": ["vendordetails", "invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invreturnqsmeasurement", "invreturnqsprovcop", "invreturnqsmumbaicop"],
+        "site_pimo": ["vendordetails", "invatsite", "invatpimo", "invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invsentpimo", "invsentaccts", "billkidhar", "billjourney"],
+        "accounts": ["vendordetails", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invpaid", "billkidhar", "billjourney"],
+        "director": ["vendordetails", "invatsite", "invatpimo", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invpaid", "billkidhar", "billjourney"],
+        "admin": ["vendordetails", "invatsite", "invatpimo", "reportsbilloutstanding", "reportsbilloutstandingsubtotal", "invqsmeasurement", "invqsprovcop", "invqsmumbaicop", "invsentpimo", "invreturnqsmeasurement", "invreturnqsprovcop", "invreturnqsmumbaicop", "invsentaccts", "invpaid", "billkidhar", "billjourney"]
     };
 
 
@@ -56,25 +56,34 @@ const ReportBtns = () => {
         { id: 'reportsbilloutstandingsubtotal', label: 'Outstanding Bill Report Subtotal' },
 
         { id: 'invqsmeasurement', label: 'Invoices With QS site for Measurement' },
-        { id: 'invqsprovcop', label: 'Invoices With QS site for Prov Cop' },
-        { id: 'invqsmumbaicop', label: 'Invoices With QS Mumbai for Cop' },
+        { id: 'invqsprovcop', label: 'Invoices With QS site for Prov COP' },
+        { id: 'invqsmumbaicop', label: 'Invoices With QS Mumbai for COP' },
 
         { id: 'invsentpimo', label: 'Invoices Sent to PIMO Mumbai' },
 
-        { id: 'invreturnqsmeasurement', label: 'Invoices returned by QS site for Measurement' },
-        { id: 'invreturnqsprovcop', label: 'Invoices returned by QS site for Prov Cop' },
-        { id: 'invreturnqsmumbaicop', label: 'Invoices returned by QS Mumbai for Cop' },
+        { id: 'invreturnqsmeasurement', label: 'Invoices returned by QS site after Measurement' },
+        { id: 'invreturnqsprovcop', label: 'Invoices returned by QS site after Prov COP' },
+        { id: 'invreturnqsmumbaicop', label: 'Invoices returned by QS Mumbai after COP' },
 
         { id: 'invsentaccts', label: 'Invoices sent to Accounts Team' },
 
         { id: 'invpaid', label: 'Invoices Paid' },
 
         { id: 'billkidhar', label: 'Bill Kidhar' },
-        { id: 'billjourney', label: 'Bill Journey' }
+        { id: 'billjourney', label: 'Bill Journey' },
+        // Available to every team, per observation N-08.
+        { id: 'vendordetails', label: 'Vendor Details' },
+        // Forms repository - every team downloads, Admin uploads (29.09, reply Q2).
+        { id: 'forms', label: 'Forms' }
     ];
 
+    // Open to every signed-in role, whatever its per-role list above says.
+    const everyRole = ['forms'];
+
     // Get allowed buttons for the user role
-    const allowedButtons = roleAccess[selectedRole] ? allButtons.filter(btn => roleAccess[selectedRole].includes(btn.id)) : [];
+    const allowedButtons = allButtons.filter(btn =>
+        (selectedRole && everyRole.includes(btn.id)) || roleAccess[selectedRole]?.includes(btn.id)
+    );
 
     return (
         <div className='flex flex-wrap justify-start items-center gap-[1vw] mb-[1vh] px-[2vw] max-w-full'>

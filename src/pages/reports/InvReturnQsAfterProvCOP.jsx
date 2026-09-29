@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import Header from '../../components/Header';
 import Filters from "../../components/Filters";
 import ReportBtns from '../../components/ReportBtns';
+import ReportGlobalFilter from "../../components/reports/ReportGlobalFilter";
+import { useReportGlobalFilter, pickDateFields, pickAmountFields, COUNT } from "../../components/reports/useReportGlobalFilter";
 import download from "../../assets/download.svg";
 import send from "../../assets/send.svg";
 import print from "../../assets/print.svg";
@@ -61,7 +63,7 @@ const InvReturnQsAfterMeasurement = () => {
     const handleTopDownload = async () => {
         console.log("Rep recd at site download clicked");
         // setSelectedRows(bills.map(bill => bill.srNo));
-        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, false);
+        const result = await handleExportAllReports(filteredBills.map(bill => bill.srNo), filteredBills, columns, visibleColumnFields, titleName, false, { region, fromDate, toDate });
         console.log("Result = " + result.message);
     };
 
@@ -70,7 +72,7 @@ const InvReturnQsAfterMeasurement = () => {
         // if(selectedRows.length === 0){
         //     setSelectedRows(bills.map(bill => bill.srNo));
         // }
-        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, true, { region, fromDate, toDate });
+        const result = await handleExportAllReports(filteredBills.map(bill => bill.srNo), filteredBills, columns, visibleColumnFields, titleName, true, { region, fromDate, toDate });
         console.log("Result = " + result.message);
     }
 
@@ -90,6 +92,15 @@ const InvReturnQsAfterMeasurement = () => {
     const visibleColumnFields = [
         "count", "srNo", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "pimoMumbai.dateGiven", "dateDispatchedForPimo"
     ]
+
+    // Home-tab search and filter over the rows already fetched (29.09, item 12).
+    const globalFilter = useReportGlobalFilter(bills, {
+        dateFields: pickDateFields(columns, ["taxInvDate", "dateDispatchedForPimo"]),
+        amountFields: pickAmountFields(columns, ["taxInvAmt"]), // 29.09, item 14
+        searchFields: visibleColumnFields,
+        totals: { count: COUNT, grandTotalTaxAmount: "taxInvAmt" },
+    });
+    const filteredBills = globalFilter.filteredRows;
 
 
     const handleSendClick = () => {
@@ -131,6 +142,8 @@ const InvReturnQsAfterMeasurement = () => {
                     regionOptions={regionOptions}
                 />
 
+                <ReportGlobalFilter {...globalFilter.props} />
+
                 <div className="overflow-x-auto shadow-md max-h-[85vh] relative border border-black">
                     <table className='w-full border-collapse bg-white'>
                         <thead>
@@ -155,7 +168,7 @@ const InvReturnQsAfterMeasurement = () => {
                                 //         <td colSpan="9" className="text-center py-4">No invoices found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
                                 //     </tr>
                                 // ) 
-                                : bills
+                                : filteredBills
                                     .filter(bill => !bill.isSubtotal && bill.srNo)
                                     .map((bill, index) => (
                                         <tr key={index} className="hover:bg-[#f5f5f5]">
@@ -168,7 +181,7 @@ const InvReturnQsAfterMeasurement = () => {
                                             <td className='border border-black text-[14px] py-[0.75vh] px-[0.65vw] text-right'>{bill.dateDispatchedForPimo}</td>
                                         </tr>
                                     ))}
-                            {bills
+                            {filteredBills
                                 .filter(bill => bill.isGrandTotal)
                                 .map((bill, index) => (
                                     <tr key={index} className='bg-[#f5f5f5] font-semibold'>

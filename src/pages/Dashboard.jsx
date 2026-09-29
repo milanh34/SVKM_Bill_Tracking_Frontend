@@ -29,12 +29,21 @@ import {
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnView";
 import { FilterModal } from "../components/dashboard/FilterModal";
+import {
+  BILL_AMOUNT_FIELDS,
+  getFieldValue,
+  inAmountRange,
+  inDateRange,
+  pickFieldOptions,
+  sortedRegions,
+} from "../utils/rangeFilter";
 import { SendToModal } from "../components/dashboard/SendToModal";
 import { UpdateBillModal } from "../components/UpdateBillModal";
 import { SendBoxModal } from "../components/dashboard/SendBoxModal";
 import Loader from "../components/Loader";
 import Cookies from "js-cookie";
 import { handleExportReport } from "../utils/exportExcelDashboard";
+import { printBills } from "../utils/printBills";
 import { RemoveDateModal } from "../components/dashboard/RemoveDateModal";
 
 /** Teams that have an Incoming tab. Mirrors ROLES_WITH_INCOMING on the server. */
@@ -52,6 +61,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [gridResetKey, setGridResetKey] = useState(0);
+  const [columnFiltersActive, setColumnFiltersActive] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState([]);
   const [sortBy, setSortBy] = useState("");
   const [fromDate, setFromDate] = useState("");
@@ -61,6 +72,10 @@ const Dashboard = () => {
   const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false);
   const [isFilterPopupOpen, setIsFilterPopupOpen] = useState(false);
   const [selectedDateField, setSelectedDateField] = useState("taxInvDate");
+  // Amount column and min/max for the global filter (29.09, item 14).
+  const [selectedAmountField, setSelectedAmountField] = useState("");
+  const [minAmount, setMinAmount] = useState("");
+  const [maxAmount, setMaxAmount] = useState("");
   const [visibleColumnFields, setVisibleColumnFields] = useState([]);
   const columnSelectorRef = useRef(null);
   const [isSendBoxOpen, setIsSendBoxOpen] = useState(false);
@@ -129,7 +144,7 @@ const Dashboard = () => {
       { value: "site_incharge", label: "Site Incharge" },
       { value: "migo_entry", label: "MIGO Team" },
       { value: "migo_entry_return", label: "Ret to Site Team aft MIGO" },
-      { value: "site_dispatch_team", label: "Site Dispatch Team" },
+      { value: "site_dispatch_team", label: "Site Trustee/LPC" }, // 29.09 item 17 - label only
       { value: "pimo_mumbai", label: "PIMO Team" },
     ],
     qs_site: [
@@ -150,6 +165,43 @@ const Dashboard = () => {
     accounts: [{ value: "booking_checking", label: "Booking & Checking" }],
   };
 
+  /**
+   * Which Send-to options a QS user may pick, for one bill.
+   *
+   * Replaces a single test on column 64 (29.09, item 20):
+   *
+   *   col 35 filled, col 38 blank, Status Hold    -> Ret to Site Team aft measure
+   *   col 40 filled, col 44A blank, Status Hold   -> Ret to Site Team aft COP
+   *   col 64 filled, col 66 blank, Status Accept  -> Ret to PIMO Team aft COP
+   *
+   * The old rule offered both Site returns whenever column 64 was blank, even
+   * for a bill that had never been to QS for measurement.
+   */
+  const qsOptionsFor = (bill) => {
+    const allowed = [];
+    const hold = bill?.siteStatus === "hold";
+    const accepted = bill?.siteStatus === "accept";
+
+    if (hold && bill?.qsInspection?.dateGiven && !bill?.vendorFinalInv?.dateGiven) {
+      allowed.push("measure"); // 35 filled, 38 blank
+    }
+    if (hold && bill?.qsCOP?.dateGiven && !bill?.copDetails?.dateReturned) {
+      allowed.push("site_cop"); // 40 filled, 44A blank
+    }
+    if (accepted && bill?.qsMumbai?.dateGiven && !bill?.pimoMumbai?.dateReturnedFromQs) {
+      allowed.push("pimo_cop"); // 64 filled, 66 blank
+    }
+    return allowed;
+  };
+
+  /** The options common to every selected bill. */
+  const qsOptionsForSelection = (selectedBills) => {
+    if (selectedBills.length === 0) return [];
+    return selectedBills
+      .map(qsOptionsFor)
+      .reduce((shared, next) => shared.filter((v) => next.includes(v)));
+  };
+
   const handleSendTo = () => {
     if (selectedRows.length === 0) {
       toast.error("Please select bills to proceed");
@@ -163,21 +215,15 @@ const Dashboard = () => {
 
       setCountOfSelectedBills(selectedBills.length);
 
-      const hasMixedStatus = selectedBills.some(bill => bill.qsMumbai?.dateGiven) &&
-        selectedBills.some(bill => !bill.qsMumbai?.dateGiven);
-
-      if (hasMixedStatus) {
-        toast.error("Cannot process bills with mixed QS Mumbai date status. Please select bills with consistent status.");
+      const shared = qsOptionsForSelection(selectedBills);
+      if (shared.length === 0) {
+        toast.error(
+          "These bills are not at the same stage, so there is no send that applies to all of them. Select bills at one stage."
+        );
         return;
       }
 
-      const qsMumbaiDateFilled = selectedBills.some(bill => bill.qsMumbai?.dateGiven);
-
-      if (qsMumbaiDateFilled) {
-        availableRoles = availableRoles.filter(role => role.value === "pimo_cop");
-      } else {
-        availableRoles = availableRoles.filter(role => ["measure", "site_cop"].includes(role.value));
-      }
+      availableRoles = availableRoles.filter(role => shared.includes(role.value));
     }
 
     if (!availableRoles || availableRoles.length === 0) {
@@ -400,7 +446,36 @@ const Dashboard = () => {
     fetchAllData();
   }, []);
 
-  const uniqueRegions = [...new Set(billsData.map((bill) => bill.region))];
+  const columns = useMemo(() => {
+    let roleForColumns = currentUserRole;
+    if (currentUserRole === "site_officer") {
+      roleForColumns = "SITE_OFFICER";
+    } else if (currentUserRole === "qs_site") {
+      roleForColumns = "QS_TEAM";
+    } else if (currentUserRole === "site_pimo") {
+      roleForColumns = "PIMO_MUMBAI_MIGO_SES";
+      // } else if (currentUserRole === "pimo_mumbai") {
+      //   roleForColumns = "PIMO_MUMBAI_ADVANCE_FI";
+    } else if (currentUserRole === "accounts") {
+      roleForColumns = "ACCOUNTS_TEAM";
+    } else if (currentUserRole === "director") {
+      roleForColumns = "DIRECTOR_TRUSTEE_ADVISOR";
+    } else {
+      roleForColumns = "ADMIN";
+    }
+    return getColumnsForRole(roleForColumns);
+  }, [currentUserRole]);
+
+  // Amount columns the role's grid has, for the global filter (29.09, item 14).
+  const amountFieldOptions = useMemo(
+    () => pickFieldOptions(columns, BILL_AMOUNT_FIELDS),
+    [columns]
+  );
+  const activeAmountField = selectedAmountField || amountFieldOptions[0]?.value || "";
+  const amountActive = !!activeAmountField && (minAmount !== "" || maxAmount !== "");
+
+  // Sorted, blanks dropped, for the region checklist (29.09, item 14).
+  const uniqueRegions = useMemo(() => sortedRegions(billsData), [billsData]);
 
   const dateFieldOptions = [
     { value: "taxInvDate", label: "Tax Invoice Date" },
@@ -412,31 +487,10 @@ const Dashboard = () => {
     { value: "accountsDept.paymentDate", label: "Payment Date" },
   ];
 
-  const isWithinDateRange = (row) => {
-    if (!fromDate && !toDate) return true;
-    let dateString;
-    if (selectedDateField.includes(".")) {
-      const parts = selectedDateField.split(".");
-      const nestedObj = row[parts[0]];
-      dateString = nestedObj ? nestedObj[parts[1]] : null;
-    } else {
-      dateString = row[selectedDateField];
-    }
-    if (!dateString) return true;
-    const date = new Date(dateString.split("T")[0]);
-    const from = fromDate ? new Date(fromDate) : null;
-    const to = toDate ? new Date(toDate) : null;
-    if (from) from.setHours(0, 0, 0, 0);
-    if (to) to.setHours(23, 59, 59, 999);
-    if (from && to) {
-      return date >= from && date <= to;
-    } else if (from) {
-      return date >= from;
-    } else if (to) {
-      return date <= to;
-    }
-    return true;
-  };
+  // Either bound alone works and both cover the whole day; a bill with no
+  // date in the chosen column drops out once a bound is set (29.09, item 14).
+  const isWithinDateRange = (row) =>
+    inDateRange(getFieldValue(row, selectedDateField), fromDate, toDate);
 
   const getNestedValue = (obj, path) => {
     if (!obj || !path) return undefined;
@@ -497,6 +551,11 @@ const Dashboard = () => {
       result = result.filter((row) => selectedRegion.includes(row.region));
     }
     result = result.filter(isWithinDateRange);
+    if (amountActive) {
+      result = result.filter((row) =>
+        inAmountRange(getFieldValue(row, activeAmountField), minAmount, maxAmount)
+      );
+    }
 
     // Ordering is DataTable's job: it applies the tab's default sort column
     // (col 61 for PIMO Incoming, col 80 for Accounts Incoming) with Sr no as
@@ -509,6 +568,10 @@ const Dashboard = () => {
     billsData,
     selectedRegion,
     isWithinDateRange,
+    amountActive,
+    activeAmountField,
+    minAmount,
+    maxAmount,
     showIncomingBills,
     currentUserRole,
   ]);
@@ -557,6 +620,30 @@ const Dashboard = () => {
     }
   };
 
+  // Any filter on - the global one or a column's - turns the icon green
+  // (29.09, item 13), so a filtered screen cannot pass for the whole list.
+  const filtersActive =
+    selectedRegion.length > 0 ||
+    !!fromDate ||
+    !!toDate ||
+    amountActive ||
+    columnFiltersActive;
+
+  // Reset puts the screen back as it opens: sort, search, global filter and
+  // column filters all cleared (29.09, item 21).
+  const handleResetView = () => {
+    setSortConfig({ key: null, direction: null });
+    setSearchQuery("");
+    setSelectedRegion([]);
+    setFromDate("");
+    setToDate("");
+    setSelectedDateField("taxInvDate");
+    setSelectedAmountField("");
+    setMinAmount("");
+    setMaxAmount("");
+    setGridResetKey((k) => k + 1);
+  };
+
   const handleClearFilters = () => {
     setSearchQuery("");
     setSelectedRegion([]);
@@ -564,28 +651,11 @@ const Dashboard = () => {
     setFromDate("");
     setToDate("");
     setSelectedDateField("taxInvDate");
+    setSelectedAmountField("");
+    setMinAmount("");
+    setMaxAmount("");
     setIsFilterPopupOpen(false);
   };
-
-  const columns = useMemo(() => {
-    let roleForColumns = currentUserRole;
-    if (currentUserRole === "site_officer") {
-      roleForColumns = "SITE_OFFICER";
-    } else if (currentUserRole === "qs_site") {
-      roleForColumns = "QS_TEAM";
-    } else if (currentUserRole === "site_pimo") {
-      roleForColumns = "PIMO_MUMBAI_MIGO_SES";
-      // } else if (currentUserRole === "pimo_mumbai") {
-      //   roleForColumns = "PIMO_MUMBAI_ADVANCE_FI";
-    } else if (currentUserRole === "accounts") {
-      roleForColumns = "ACCOUNTS_TEAM";
-    } else if (currentUserRole === "director") {
-      roleForColumns = "DIRECTOR_TRUSTEE_ADVISOR";
-    } else {
-      roleForColumns = "ADMIN";
-    }
-    return getColumnsForRole(roleForColumns);
-  }, [currentUserRole]);
 
   useEffect(() => {
     if (columns.length > 0) {
@@ -683,11 +753,6 @@ const Dashboard = () => {
     setSelectAll(newSelectedRows.length === filteredData.length);
   };
 
-  const handleRegionChange = (e) => {
-    const region = e.target.value;
-    setSelectedRegion(region ? [region] : []);
-  };
-
   const showIncomingBillsButton = ["accounts", "site_pimo",].includes(
     currentUserRole
   );
@@ -705,209 +770,7 @@ const Dashboard = () => {
       visibleColumnFields.includes(col.field) && col.field !== "srNoOld"
     );
 
-    const grandTotals = {};
-
-    grandTotals.taxInvAmt = selectedData.reduce((total, row) => {
-      const taxInvAmt = row.taxInvAmt || 0;
-      return total + (typeof taxInvAmt === 'number' ? taxInvAmt : 0);
-    }, 0);
-
-    const copAmountColumn = visibleColumns.find(col => col.field === "copDetails.amount");
-    if (copAmountColumn) {
-      grandTotals["copDetails.amount"] = selectedData.reduce((total, row) => {
-        const copAmount = row.copDetails?.amount || 0;
-        return total + (typeof copAmount === 'number' ? copAmount : 0);
-      }, 0);
-    }
-
-    const paymentAmtColumn = visibleColumns.find(col => col.field === "accountsDept.paymentAmt");
-    if (paymentAmtColumn) {
-      grandTotals["accountsDept.paymentAmt"] = selectedData.reduce((total, row) => {
-        const paymentAmt = row.accountsDept?.paymentAmt || 0;
-        return total + (typeof paymentAmt === 'number' ? paymentAmt : 0);
-      }, 0);
-    }
-
-    const poAmtColumn = visibleColumns.find(col => col.field === "poAmt");
-    if (poAmtColumn) {
-      grandTotals["poAmt"] = selectedData.reduce((total, row) => {
-        const valuePoAmt = row.poAmt || 0;
-        return total + (typeof valuePoAmt === 'number' ? valuePoAmt : 0);
-      }, 0);
-    }
-
-    console.log(grandTotals);
-
-    const printWindow = window.open("", "_blank");
-
-    const tableHTML = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Bills Report</title>
-        <style>
-          @page {
-            size: landscape;
-            margin: 1cm;
-          }
-          body {
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            margin: 0;
-            padding: 20px;
-          }
-          .header {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 18px;
-            font-weight: bold;
-          }
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-          }
-          th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-            vertical-align: top;
-          }
-          th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-            font-size: 11px;
-          }
-          td {
-            font-size: 10px;
-          }
-          .amount {
-            text-align: right;
-          }
-          .status-approved {
-            color: #15803d;
-            font-weight: bold;
-          }
-          .status-rejected {
-            color: #b91c1c;
-            font-weight: bold;
-          }
-          .status-pending {
-            color: #ca8a04;
-            font-weight: bold;
-          }
-          .print-info {
-            margin-bottom: 10px;
-            font-size: 10px;
-            color: #666;
-          }
-          .grand-total-row {
-            background-color: #f8f9fa;
-            font-weight: bold;
-            border-top: 2px solid #333;
-          }
-          .grand-total-row td {
-            font-size: 11px;
-            font-weight: bold;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">Bills Report</div>
-        <div class="print-info">
-          <strong>Print Date:</strong> ${new Date().toLocaleDateString()}<br>
-          <strong>Total Records:</strong> ${selectedData.length}<br>
-          <strong>User Role:</strong> ${currentUserRole}
-        </div>
-        <table>
-          <thead>
-            <tr>
-              ${visibleColumns.map(col => `<th>${col.headerName}</th>`).join('')}
-            </tr>
-          </thead>
-          <tbody>
-            ${selectedData.map(row => `
-              <tr>
-                ${visibleColumns.map(col => {
-      const value = getNestedValue(row, col.field);
-      let displayValue = value || '-';
-
-      if (col.field.includes('amount') || col.field.includes('Amt')) {
-        if (value && !isNaN(value)) {
-          displayValue = new Intl.NumberFormat('en-IN', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-            useGrouping: true
-          }).format(value);
-        }
-      }
-
-      if (value && typeof value === 'string' && value.includes('T')) {
-        try {
-          const date = new Date(value);
-          if (!isNaN(date.getTime())) {
-            displayValue = date.toLocaleDateString('en-GB');
-          }
-        } catch (e) {
-          console.log(e);
-        }
-      }
-
-      let cellClass = '';
-      if (col.field.includes('status') && value) {
-        const statusLower = value.toLowerCase();
-        if (statusLower.includes('approve') || statusLower === 'paid' || statusLower === 'active') {
-          cellClass = 'status-approved';
-        } else if (statusLower.includes('reject') || statusLower === 'fail') {
-          cellClass = 'status-rejected';
-        } else if (statusLower.includes('pend') || statusLower === 'waiting' || statusLower === 'unpaid') {
-          cellClass = 'status-pending';
-        }
-      }
-
-      if (col.field.includes('amount') || col.field.includes('Amt')) {
-        cellClass += ' amount';
-      }
-
-      return `<td class="${cellClass}">${displayValue}</td>`;
-    }).join('')}
-              </tr>
-            `).join('')}
-            
-            <!-- Grand Total Row -->
-            <tr class="grand-total-row">
-              ${visibleColumns.map((col, index) => {
-      if (index === 0) {
-        return `<td><strong>Grand Total</strong></td>`;
-      } else if (grandTotals[col.field]) {
-        const total = grandTotals[col.field];
-        const formattedTotal = new Intl.NumberFormat('en-IN', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-          useGrouping: true
-        }).format(total);
-        return `<td class="amount"><strong>${formattedTotal}</strong></td>`;
-      } else {
-        return `<td></td>`;
-      }
-    }).join('')}
-            </tr>
-          </tbody>
-        </table>
-      </body>
-    </html>
-  `;
-
-    printWindow.document.write(tableHTML);
-    printWindow.document.close();
-
-    printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.focus();
-        printWindow.print();
-        printWindow.close();
-      }, 250);
-    };
+    printBills({ selectedData, visibleColumns, role: currentUserRole });
   };
 
 
@@ -932,16 +795,19 @@ const Dashboard = () => {
                   />
                 </div>
                 <button
-                  className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-md transition-colors border border-gray-400 hover:cursor-pointer"
+                  className={`p-1.5 rounded-md transition-colors border hover:cursor-pointer ${filtersActive
+                    ? "text-white bg-green-600 border-green-700 hover:bg-green-700"
+                    : "text-gray-600 border-gray-400 hover:bg-gray-100"
+                    }`}
                   onClick={() => setIsFilterPopupOpen(true)}
-                  title="Filter Options"
+                  title={filtersActive ? "Filter Options (a filter is applied)" : "Filter Options"}
                 >
                   <Funnel className="w-4 h-4" />
                 </button>
                 <button
                   className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-md transition-colors border border-gray-400 hover:cursor-pointer"
-                  onClick={() => setSortConfig({ key: null, direction: null })}
-                  title="Reset Sorting (Use Default Order)"
+                  onClick={handleResetView}
+                  title="Reset sorting, search and filters"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
@@ -990,7 +856,8 @@ const Dashboard = () => {
                   </button>
                 )}
 
-                {!showIncomingBills && currentUserRole !== "director" && (
+                {/* The Trustee gets Print too (29.09, item 4). */}
+                {!showIncomingBills && (
                   <button
                     className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-white text-sm bg-yellow-600 border border-gray-300 rounded-md hover:bg-yellow-700 transition-colors"
                     onClick={handlePrint}
@@ -1021,7 +888,8 @@ const Dashboard = () => {
                       setIsColumnDropdownOpen(!isColumnDropdownOpen)
                     }
                   >
-                    <Grid3x3 className="w-4 h-4" />
+                    {/* Yellow, at her request (29.09, item 6). */}
+                    <Grid3x3 className="w-4 h-4 text-[#F48D02]" />
                     <span>Column List</span>
                   </button>
 
@@ -1118,7 +986,7 @@ const Dashboard = () => {
                     }
                   >
                     <Download className="w-4 h-4" />
-                    <span>Export/Download</span>
+                    <span>Download</span>
                   </button>
                 )}
 
@@ -1153,7 +1021,8 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <>
-                    {!showIncomingBills && currentUserRole !== "director" && (
+                    {/* The Trustee gets Unsend, clearing column 78 (29.09, item 11). */}
+                    {!showIncomingBills && (
                       <button
                         className="flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
                         onClick={() => {
@@ -1163,49 +1032,37 @@ const Dashboard = () => {
                           }
 
                           if (currentUserRole === "qs_site") {
+                            // Unsend offers whatever Send offered, so the two
+                            // cannot disagree about what stage a bill is at.
                             const selectedBills = billsData.filter(bill => selectedRows.includes(bill._id));
+                            const shared = qsOptionsForSelection(selectedBills);
 
-                            const hasMixedStatus = selectedBills.some(bill => bill.qsMumbai?.dateGiven) &&
-                              selectedBills.some(bill => !bill.qsMumbai?.dateGiven);
-
-                            if (hasMixedStatus) {
-                              toast.error("Cannot process bills with mixed QS Mumbai date status. Please select bills with consistent status.");
-                              return;
-                            }
-
-                            const qsMumbaiDateFilled = selectedBills.some(bill => bill.qsMumbai?.dateGiven);
-
-                            let availableRoles = [...roleWorkflow[currentUserRole] || []];
-                            if (qsMumbaiDateFilled) {
-                              availableRoles = availableRoles.filter(role => role.value === "pimo_cop");
-                            } else {
-                              availableRoles = availableRoles.filter(role => ["measure", "site_cop"].includes(role.value));
-                            }
-
-                            if (!availableRoles || availableRoles.length === 0) {
-                              toast.error("You don't have permission to remove dates for selected bills");
+                            if (shared.length === 0) {
+                              toast.error(
+                                "These bills are not at the same stage, so there is nothing common to unsend."
+                              );
                               return;
                             }
                           }
 
                           setIsRemoveDateOpen(true);
                         }}
-                        title="Remove Date"
+                        title="Unsend"
                       >
                         <Trash2 className="w-4 h-4" />
-                        <span>Remove Date</span>
+                        <span>Unsend</span>
                       </button>
                     )}
                     <button
-                      className={`${(currentUserRole === "director") ? "hidden" : ""} flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors ${selectedRole
+                      className={`flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-[#011a99] text-white rounded-md hover:bg-[#015099] transition-colors ${selectedRole
                         ? "relative after:absolute after:top-0 after:right-0 after:w-2 after:h-2 after:bg-green-500 after:rounded-full"
                         : ""
                         }`}
                       onClick={handleSendTo}
-                      title="Send Bills"
+                      title="Send / Unreceive"
                     >
                       <Send className="w-4 h-4" />
-                      <span>Send To</span>
+                      <span>Send/Unreceive</span>
                     </button>
                   </>
                 )}
@@ -1226,6 +1083,8 @@ const Dashboard = () => {
                   <DataTable
                     data={filteredData}
                     searchQuery={searchQuery}
+                    resetKey={gridResetKey}
+                    onColumnFiltersActiveChange={setColumnFiltersActive}
                     availableColumns={columns.filter(
                       (col) => col.field !== "srNoOld"
                     )}
@@ -1364,7 +1223,7 @@ const Dashboard = () => {
         onClose={() => setIsFilterPopupOpen(false)}
         selectedRegion={selectedRegion}
         uniqueRegions={uniqueRegions}
-        handleRegionChange={handleRegionChange}
+        setSelectedRegion={setSelectedRegion}
         selectedDateField={selectedDateField}
         setSelectedDateField={setSelectedDateField}
         dateFieldOptions={dateFieldOptions}
@@ -1372,6 +1231,13 @@ const Dashboard = () => {
         setFromDate={setFromDate}
         toDate={toDate}
         setToDate={setToDate}
+        amountFieldOptions={amountFieldOptions}
+        selectedAmountField={activeAmountField}
+        setSelectedAmountField={setSelectedAmountField}
+        minAmount={minAmount}
+        setMinAmount={setMinAmount}
+        maxAmount={maxAmount}
+        setMaxAmount={setMaxAmount}
         handleClearFilters={handleClearFilters}
       />
 

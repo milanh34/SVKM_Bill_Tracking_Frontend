@@ -6,6 +6,8 @@ import { handleExportOutstandingSubtotalReport } from "../../utils/exportExcelRe
 import Header from '../../components/Header.jsx';
 import Filters from "../../components/Filters.jsx";
 import ReportBtns from '../../components/ReportBtns.jsx';
+import ReportGlobalFilter from "../../components/reports/ReportGlobalFilter.jsx";
+import { useReportGlobalFilter, pickDateFields, pickAmountFields, COUNT } from "../../components/reports/useReportGlobalFilter.js";
 import download from "../../assets/download.svg";
 import print from "../../assets/print.svg";
 // import { handleExportAllReports } from '../../utils/exportDownloadPrintReports.js';
@@ -70,18 +72,6 @@ const RepBillOutstandingSubtotal = () => {
         setRegionOptions(availableRegions);
         setRegion("all");
     }, []);
-
-    const visibleBills = billsData.filter((item) => {
-        if (item.isGrandTotal) {
-            return false;
-        }
-
-        if (region !== "all" && region !== "ALL" && item.region !== region) {
-            return false;
-        }
-
-        return true;
-    });
 
     // const handleSelectAll = (e) => {
     //     if (e.target.checked) {
@@ -149,15 +139,19 @@ const RepBillOutstandingSubtotal = () => {
     //     }
     // };
 
+    // An empty selection exports every row passed: what is on screen, with
+    // its subtotals and grand total (29.09, item 12).
+    // Passing the Sr Nos did not work: the exporter matches them against _id,
+    // which the data rows now carry, so only the subtotal rows got through.
     const handleTopDownload = async () => {
         console.log("Subtotal download clicked");
-        const result = await handleExportOutstandingSubtotalReport(visibleBills.map(bill => bill.srNo), visibleBills, columns, visibleColumnFields, false);
+        const result = await handleExportOutstandingSubtotalReport([], globalFilter.filteredRows, columns, visibleColumnFields, false);
         console.log(result);
     }
 
     const handleTopPrint = async () => {
         console.log("Subtotal print clicked");
-        const result = await handleExportOutstandingSubtotalReport(visibleBills.map(bill => bill.srNo), visibleBills, columns, visibleColumnFields, true, { region, fromDate, toDate });
+        const result = await handleExportOutstandingSubtotalReport([], globalFilter.filteredRows, columns, visibleColumnFields, true, { region, fromDate, toDate });
         console.log(result);
     }
 
@@ -171,13 +165,39 @@ const RepBillOutstandingSubtotal = () => {
         { field: "taxInvNo", headerName: "Tax Invoice No." },
         { field: "taxInvDate", headerName: "Tax Invoice Date" },
         { field: "taxInvAmt", headerName: "Tax Invoice Amount" },
-        { field: "copAmt", headerName: "Cop Amount" },
+        { field: "copAmt", headerName: "COP Amount" },
         { field: "dateRecdInAcctsDept", headerName: "Date Received in Accts Dept" }
     ]
 
     const visibleColumnFields = [
         "srNo", "region", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "copAmt", "dateRecdInAcctsDept"
     ]
+
+    // Home-tab search and filter over the rows already fetched (29.09, item 12).
+    // Vendor subtotals and the grand total are worked out again from the rows
+    // left showing. The region dropdown runs through the same pass - before,
+    // choosing a region also dropped every subtotal row, which carry none.
+    const globalFilter = useReportGlobalFilter(billsData, {
+        dateFields: pickDateFields(columns, ["taxInvDate", "dateRecdInAcctsDept"]),
+        amountFields: pickAmountFields(columns, ["taxInvAmt", "copAmt"]), // 29.09, item 14
+        searchFields: visibleColumnFields,
+        totals: { totalCount: COUNT, grandTotalAmount: "taxInvAmt", grandTotalCopAmt: "copAmt" },
+        subtotals: { count: COUNT, subtotalAmount: "taxInvAmt", subtotalCopAmt: "copAmt" },
+        extraFilter: (item) => item.region === region,
+        extraFilterActive: region !== "all" && region !== "ALL",
+        extraFilterKey: region,
+    });
+
+    const visibleBills = globalFilter.filteredRows.filter((item) => !item.isGrandTotal);
+
+    const grandTotalRow = globalFilter.grandTotalRow;
+    const shownTotals = grandTotalRow
+        ? {
+            totalSubtotal: grandTotalRow.grandTotalAmount || 0,
+            totalSubtotalCopAmt: grandTotalRow.grandTotalCopAmt || 0,
+            totalVendorCount: grandTotalRow.totalCount || 0,
+        }
+        : totals;
 
     return (
         <div className='mb-[12vh]'>
@@ -211,6 +231,8 @@ const RepBillOutstandingSubtotal = () => {
                     setRegion={setRegion}
                     regionOptions={regionOptions}
                 />
+
+                <ReportGlobalFilter {...globalFilter.props} />
 
                 <div className="overflow-x-auto shadow-md max-h-[85vh] relative border border-black">
                     {loading ? (
@@ -268,14 +290,14 @@ const RepBillOutstandingSubtotal = () => {
                                 ))}
                                 <tr className='bg-[#e9ecef] font-semibold'>
                                     <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
-                                        <strong>Total Count: {totals.totalVendorCount.toLocaleString('en-IN')}</strong>
+                                        <strong>Total Count: {shownTotals.totalVendorCount.toLocaleString('en-IN')}</strong>
                                     </td>
                                     <td colSpan={5} className='border border-black'></td>
                                     <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
-                                        <strong>Grand Total: {totals.totalSubtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                        <strong>Grand Total: {shownTotals.totalSubtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                     </td>
                                     <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
-                                        <strong>Grand Total: {totals.totalSubtotalCopAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                        <strong>Grand Total: {shownTotals.totalSubtotalCopAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                     </td>
                                     <td colSpan={1} className='border border-black'></td>
                                 </tr>

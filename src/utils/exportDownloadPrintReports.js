@@ -65,6 +65,51 @@ const formatDateForDisplay = (value) => {
     return `${dd}-${mm}-${yyyy}`;
 };
 
+/** DD-MM-YYYY, from either YYYY-MM-DD or something already formatted. */
+const criteriaDate = (d) => {
+    if (!d) return "";
+    const parts = String(d).split("-");
+    return parts.length === 3 && parts[0].length === 4
+        ? `${parts[2]}-${parts[1]}-${parts[0]}`
+        : String(d);
+};
+
+/**
+ * The selection criteria a report was run with, as { region, dates }.
+ *
+ * Two bugs lived here. The region label treated ANY array as "All"
+ * (observation N-02) - and the report pages seed their region state with the
+ * user's whole list of regions, which IS an array, so the printed header said
+ * "All" no matter what was chosen. And the download never received the
+ * criteria at all, so neither region nor date range appeared in the Excel
+ * file (observation N-03).
+ */
+export const describeReportCriteria = (filters) => {
+    if (!filters) return null;
+
+    const { region, fromDate, toDate } = filters;
+
+    let regionLabel;
+    if (region === undefined || region === null || region === "") {
+        regionLabel = "All";
+    } else if (Array.isArray(region)) {
+        const named = region.filter(Boolean).map(String);
+        // An empty list, or one that literally says ALL, is unrestricted.
+        regionLabel =
+            named.length === 0 || named.some((r) => r.toLowerCase() === "all")
+                ? "All"
+                : named.join(", ");
+    } else {
+        regionLabel = String(region).toLowerCase() === "all" ? "All" : String(region);
+    }
+
+    const dateParts = [];
+    if (fromDate) dateParts.push(`From: ${criteriaDate(fromDate)}`);
+    if (toDate) dateParts.push(`To: ${criteriaDate(toDate)}`);
+
+    return { region: regionLabel, dates: dateParts.join(", ") };
+};
+
 export const handleExportAllReports = async (
     selectedRows,
     filteredData,
@@ -146,6 +191,27 @@ export const handleExportAllReports = async (
             const timestampCell = titleRow.getCell(columnCount); // Last cell
             timestampCell.font = { italic: true, size: 12 };
             timestampCell.alignment = { horizontal: "right", vertical: "middle" };
+
+            /*
+             * The criteria the report was run with, written into the sheet
+             * itself. The download carried none at all (observation N-03), so
+             * a saved file could not be told apart from one run on different
+             * dates or a different region.
+             */
+            const criteria = describeReportCriteria(filters);
+            if (criteria) {
+                const criteriaText = criteria.dates
+                    ? `Region: ${criteria.region}   |   ${criteria.dates}`
+                    : `Region: ${criteria.region}`;
+                const criteriaValues = Array(columnCount).fill("");
+                criteriaValues[0] = criteriaText;
+                const criteriaRow = worksheet.addRow(criteriaValues);
+                if (titleSpanEndCol >= 1) {
+                    worksheet.mergeCells(`A2:${getColLetter(titleSpanEndCol)}2`);
+                }
+                criteriaRow.getCell(1).font = { italic: true, size: 12 };
+                criteriaRow.getCell(1).alignment = { horizontal: "left", vertical: "middle" };
+            }
 
             // Optionally, add spacing below
             worksheet.addRow([]);
@@ -440,14 +506,13 @@ export const handleExportAllReports = async (
                 return d;
             };
             let filterDetailsHtml = "";
-            if (filters) {
-                const regionLabel = (!filters.region || Array.isArray(filters.region) || String(filters.region).toLowerCase() === "all")
-                    ? "All"
-                    : filters.region;
-                const dateParts = [];
-                if (filters.fromDate) dateParts.push(`From: <strong>${formatFilterDate(filters.fromDate)}</strong>`);
-                if (filters.toDate) dateParts.push(`To: <strong>${formatFilterDate(filters.toDate)}</strong>`);
-                filterDetailsHtml = `<div class="report-filters"><div>Region: <strong>${regionLabel}</strong></div>${dateParts.length ? `<div>${dateParts.join(", ")}</div>` : ""}</div>`;
+            const printCriteria = describeReportCriteria(filters);
+            if (printCriteria) {
+                filterDetailsHtml =
+                    `<div class="report-filters">` +
+                    `<div>Region: <strong>${printCriteria.region}</strong></div>` +
+                    (printCriteria.dates ? `<div><strong>${printCriteria.dates}</strong></div>` : "") +
+                    `</div>`;
             }
 
             // Print the report (create a printable HTML version)

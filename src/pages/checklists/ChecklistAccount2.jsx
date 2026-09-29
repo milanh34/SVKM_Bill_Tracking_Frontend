@@ -11,7 +11,12 @@ const ITEMS_PER_PAGE = 1;
 
 const formatAmount = (amount) => {
   if (amount === null || amount === undefined || isNaN(amount) || amount === "") return amount || "";
-  return Number(amount).toLocaleString('en-IN');
+  // Always two decimals. Without these options toLocaleString trims trailing
+  // zeros, so 50564.80 printed as "50,564.8" (29.09, item 23).
+  return Number(amount).toLocaleString('en-IN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 };
 
 const ChecklistAccount = () => {
@@ -100,7 +105,13 @@ const ChecklistAccount = () => {
           }
           .header-row {
             display: flex;
-            justify-content: between;
+            /*
+             * "between" is not a CSS value - it is a Tailwind class fragment -
+             * so this declaration was dropped and the row never distributed
+             * its cells. That is the header printing out of proportion
+             * (29.09, item 24).
+             */
+            justify-content: space-between;
             border-bottom: 1px solid #000;
             min-height: 25px;
             align-items: center;
@@ -116,16 +127,22 @@ const ChecklistAccount = () => {
             border-bottom: none;
           }
           .header-cell {
+            min-width: 0;
+            overflow-wrap: anywhere;
             padding: 4px 8px;
             border-right: 1px solid #000;
             flex: 2;
           }
           .header-cell-1 {
+            min-width: 0;
+            overflow-wrap: anywhere;
             padding: 4px 8px;
             border-right: none !important;
             flex: 2;
           }
           .header-cell-2 {
+            min-width: 0;
+            overflow-wrap: anywhere;
             border-right: none;
             padding: 4px 8px;
             flex: 1;

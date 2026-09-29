@@ -113,6 +113,10 @@ const ChecklistBillJourney = () => {
             font-size: 0.875rem;
             border-bottom: 1px solid #e5e7eb;
           }
+          .grid-2 {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+          }
           .grid-3 {
             grid-template-columns: repeat(3, 1fr);
             gap: 16px;
@@ -156,10 +160,21 @@ const ChecklistBillJourney = () => {
             Nature of Work: <b>${item?.natureOfWork || item?.typeOfInv || ""}</b>
           </div>
 
-          <div class="grid-row grid-3">
-            <div>Proforma Invoice No: <b>${item?.proformaInvNo || ""}</b></div>
-            <div>Dt: <b>${formatDate(item?.proformaInvDate)}</b></div>
-            <div>Proforma Invoice Amt: <b>${formatAmount(item?.proformaInvAmt) || ""}</b></div>
+          <!--
+            The three Proforma cells merged into one, with Created By and Team
+            alongside - the layout she marked up (observation N-11).
+          -->
+          <div class="grid-row grid-2">
+            <div>Proforma Invoice no &amp; Date &amp; Amount:
+              <b>${[
+                item?.proformaInvNo || "",
+                formatDate(item?.proformaInvDate) || "",
+                item?.proformaInvAmt ? `${item?.currency || ""} ${formatAmount(item?.proformaInvAmt)}` : "",
+              ].filter(Boolean).join(" &nbsp;&nbsp; ")}</b>
+            </div>
+            <div>Created By &amp; Team:
+              <b>${[item?.createdBy || "", item?.createdByTeam || ""].filter(Boolean).join(" &nbsp;&nbsp; ")}</b>
+            </div>
           </div>
 
           <div class="grid-row grid-3">
@@ -295,10 +310,22 @@ const ChecklistBillJourney = () => {
                   </div>
 
                   <div className="p-2 border-b border-gray-300">
-                    <div className="grid grid-cols-3 gap-4 text-sm">
-                      <div>Proforma Invoice No: <span className="font-bold">{item?.proformaInvNo}</span></div>
-                      <div className="text-center">Dt: <span className="font-bold">{formatDate(item?.proformaInvDate)}</span></div>
-                      <div>Proforma Invoice Amt: <span className="font-bold">{formatAmount(item?.proformaInvAmt)}</span></div>
+                    {/*
+                      The three Proforma cells merged into one, with Created By
+                      and Team alongside - the layout she marked up
+                      (observation N-11).
+                    */}
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>Proforma Invoice no &amp; Date &amp; Amount: <span className="font-bold">
+                        {[
+                          item?.proformaInvNo || "",
+                          formatDate(item?.proformaInvDate) || "",
+                          item?.proformaInvAmt ? `${item?.currency || ""} ${formatAmount(item?.proformaInvAmt)}` : "",
+                        ].filter(Boolean).join("   ")}
+                      </span></div>
+                      <div>Created By &amp; Team: <span className="font-bold">
+                        {[item?.createdBy || "", item?.createdByTeam || ""].filter(Boolean).join("   ")}
+                      </span></div>
                     </div>
                   </div>
 

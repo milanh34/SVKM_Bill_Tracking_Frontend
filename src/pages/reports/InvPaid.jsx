@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Header from '../../components/Header';
 import Filters from "../../components/Filters";
 import ReportBtns from '../../components/ReportBtns';
+import ReportGlobalFilter from "../../components/reports/ReportGlobalFilter";
+import { useReportGlobalFilter, pickDateFields, pickAmountFields, COUNT } from "../../components/reports/useReportGlobalFilter";
 import download from "../../assets/download.svg";
 import print from "../../assets/print.svg";
 import Cookies from "js-cookie";
@@ -49,7 +51,7 @@ const InvPaid = () => {
     const handleTopDownload = async () => {
         console.log("Rep given to acc dept download clicked");
         // setSelectedRows(bills.map(bill => bill.srNo));
-        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, false);
+        const result = await handleExportAllReports(filteredBills.map(bill => bill.srNo), filteredBills, columns, visibleColumnFields, titleName, false, { region, fromDate, toDate });
         console.log("Result = " + result.message);
     };
 
@@ -58,7 +60,7 @@ const InvPaid = () => {
         // if(selectedRows.length === 0){
         //     setSelectedRows(bills.map(bill => bill.srNo));
         // }
-        const result = await handleExportAllReports(bills.map(bill => bill.srNo), bills, columns, visibleColumnFields, titleName, true, { region, fromDate, toDate });
+        const result = await handleExportAllReports(filteredBills.map(bill => bill.srNo), filteredBills, columns, visibleColumnFields, titleName, true, { region, fromDate, toDate });
         console.log("Result = " + result.message);
     }
 
@@ -81,6 +83,15 @@ const InvPaid = () => {
     const visibleColumnFields = [
         "srNo", "dateReceivedAtAccts", "dateOfPayment", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "copAmount", "payentAmt","f110Identification"
     ]
+
+    // Home-tab search and filter over the rows already fetched (29.09, item 12).
+    const globalFilter = useReportGlobalFilter(bills, {
+        dateFields: pickDateFields(columns, ["taxInvDate", "dateReceivedAtAccts", "dateOfPayment"]),
+        amountFields: pickAmountFields(columns, ["taxInvAmt", "copAmount", "payentAmt"]), // 29.09, item 14
+        searchFields: visibleColumnFields,
+        totals: { count: COUNT, grandTotalTaxAmount: "taxInvAmt", grandTotalCopAmt: "copAmount", grandTotalAmount: "payentAmt" },
+    });
+    const filteredBills = globalFilter.filteredRows;
 
     return (
         <div className='mb-[12vh]'>
@@ -116,6 +127,8 @@ const InvPaid = () => {
                     regionOptions={regionOptions}
                 />
 
+                <ReportGlobalFilter {...globalFilter.props} />
+
                 <div className="overflow-x-auto shadow-md max-h-[85vh] relative border border-black">
                     <table className='w-full border-collapse bg-white'>
                         <thead>
@@ -144,7 +157,7 @@ const InvPaid = () => {
                                 //         <td colSpan="9" className="text-center py-4">No invoices found from {fromDate.split("-")[2]}/{fromDate.split("-")[1]}/{fromDate.split("-")[0]} to {toDate.split("-")[2]}/{toDate.split("-")[1]}/{toDate.split("-")[0]}</td>
                                 //     </tr>
                                 // )
-                                : bills
+                                : filteredBills
                                     .filter(bill => !bill.isSubTotal && bill.srNo)
                                     .map((bill, index) => (
                                         <tr key={index} className="hover:bg-[#f5f5f5]">
@@ -162,24 +175,35 @@ const InvPaid = () => {
                                         </tr>
                                     ))
                             }
-                            {bills
+                            {filteredBills
                                 .filter(bill => bill.isGrandTotal)
                                 .map((bill, index) => (
                                     <tr key={index} className='bg-[#f5f5f5] font-semibold'>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-left'>
                                             <strong>Total Count: {bill.count.toLocaleString('en-IN')}</strong>
                                         </td>
-                                        <td colSpan={4} className='border border-black'></td>
+                                        {/*
+                                          The table has eleven columns: Sr No, Dt recd, Dt of payment,
+                                          Vendor No, Vendor Name, Tax Inv No, Tax Inv Date, Tax Inv Amt,
+                                          COP Amt, F110, Payment Amt.
+
+                                          The spacer was 4 wide, which put each total one column to the
+                                          LEFT of the figures it sums - the Tax Inv Amt total printed
+                                          under Tax Inv No, COP under Tax Inv Date and Payment under
+                                          Tax Inv Amt (observation S-27). It needs to be 6 wide, and
+                                          F110 sits between COP and Payment.
+                                        */}
+                                        <td colSpan={6} className='border border-black'></td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                             <strong>Grand Total: {bill.grandTotalTaxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                         </td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                             <strong>Grand Total: {bill.grandTotalCopAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                         </td>
+                                        <td className='border border-black'></td>
                                         <td className='border border-black text-[14px] py-[1.5vh] px-[1vw] text-right'>
                                             <strong>Grand Total: {bill.grandTotalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                                         </td>
-                                        <td colSpan={3} className='border border-black'></td>
                                     </tr>
                                 ))
                             }

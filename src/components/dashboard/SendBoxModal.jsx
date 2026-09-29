@@ -11,8 +11,12 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
 
     const selectedBillDetails = selectedBills.map(billId => {
         const bill = billsData.find(b => b._id === billId);
+        // An advance has no invoice amount, and `?.` on an undefined value
+        // short-circuits to undefined - which the template printed literally
+        // as "Rs. undefined" (observation N-31). Blank now reads as 0.
+        const amount = Number(bill?.taxInvAmt);
         return bill
-            ? `${bill.srNo} - ${bill.vendorName} (₹${bill.taxInvAmt?.toLocaleString('en-IN', {
+            ? `${bill.srNo} - ${bill.vendorName} (₹${(Number.isFinite(amount) ? amount : 0).toLocaleString('en-IN', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             })})`

@@ -31,7 +31,7 @@ export const getColumnsForRole = (role) => {
     { field: "advanceDate", headerName: "Advance Dt" }, // column no 29
     { field: "advanceAmt", headerName: "Advance Amt" }, // column no 30
     { field: "advancePercentage", headerName: "Advance Percentage" }, // column no 31
-    { field: "advRequestEnteredBy", headerName: "Adv request entered by" }, // column no 32
+    { field: "advRequestEnteredBy", headerName: "Advance requested by" }, // column no 32
     { field: "qualityEngineer.dateGiven", headerName: "Dt given-Quality Engineer" }, // column no 33
     { field: "qualityEngineer.name", headerName: "Name-Quality Engineer" }, // column no 34
     { field: "qsInspection.dateGiven", headerName: "Dt given-QS for measure" }, // column no 35
@@ -61,10 +61,10 @@ export const getColumnsForRole = (role) => {
     { field: "siteIncharge.dateGiven", headerName: "Dt given-Site Incharge" }, // column no 55
     { field: "siteIncharge.name", headerName: "Name-Site Incharge" }, // column no 56
     { field: "remarks", headerName: "Remarks at site" }, // column no 57
-    { field: "siteOfficeDispatch.dateGiven", headerName : "Dt given-Site Office for dispatch" }, // column no 58
-    { field: "siteOfficeDispatch.name", headerName: "Name-Site Office" }, // column no 59
+    { field: "siteOfficeDispatch.dateGiven", headerName : "Dt given-Site Approval" }, // column no 58
+    { field: "siteOfficeDispatch.name", headerName: "Name-Site office Approval" }, // column no 59
     { field: "siteStatus", headerName: "Status at Site" }, // column no 60
-    { field: "pimoMumbai.dateGiven", headerName: "Dt dispatched-PIMO" }, // column no 61
+    { field: "pimoMumbai.dateGiven", headerName: "Dt given-Site to PIMO" }, // column no 61
     { field: "pimoMumbai.namePIMO", headerName: "Name given-Site to PIMO" }, // column no 61A
     { field: "pimoMumbai.dateReceived", headerName: "Dt recd-PIMO from Site" }, // column no 62
     { field: "pimoMumbai.receivedBy", headerName: "Name recd-PIMO from Site" }, // column no 63

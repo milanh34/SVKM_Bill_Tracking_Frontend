@@ -4,7 +4,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { patchBills, importReport } from "../apis/excel.api";
 import { parseBillImportFile, openBillImportResults, hasBillResultData } from "../utils/importBillResults";
-import { parseBillUpdateFile, openBillUpdateResults, hasVendorResultData } from "../utils/vendorUpdateResults";
+import { parseBillUpdateFile, openBillUpdateResults, hasVendorResultData, checkFileReadable } from "../utils/vendorUpdateResults";
 import updateBillTemplate from "../assets/updateBill.xlsx?url";
 import importBillTemplate from "../assets/importBill.xlsx?url";
 import Cookies from "js-cookie";
@@ -82,6 +82,13 @@ export const UpdateBillModal = ({
       return;
     }
 
+    // Refuse rather than upload something unreadable (observation N-16).
+    const readable = await checkFileReadable(selectedFile);
+    if (!readable.ok) {
+      toast.error(readable.reason);
+      return;
+    }
+
     const formData = new FormData();
     formData.append("file", selectedFile);
 
@@ -95,7 +102,16 @@ export const UpdateBillModal = ({
         ? await parseBillUpdateFile(selectedFile)
         : await parseBillImportFile(selectedFile);
     } catch (parseErr) {
+      // A parse failure here used to be swallowed and the file uploaded
+      // regardless, so a workbook held open by Excel produced an unexplained
+      // server-side failure rather than a message the user could act on.
       console.error("Error parsing file:", parseErr);
+      setLoading(false);
+      toast.error(
+        "The file could not be read. If it is open in Excel, close the workbook, " +
+          "then select it again and upload."
+      );
+      return;
     }
 
     try {

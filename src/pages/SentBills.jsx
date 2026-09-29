@@ -6,10 +6,19 @@ import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
 import DataTable from "../components/DataTable";
 // import DataTable from "../components/dashboard/DataTable";
-import { Funnel, Grid3x3, Download, X, AlertTriangle, ArrowLeftFromLine, ArrowRightFromLine, RotateCcw } from "lucide-react";
+import { Funnel, Grid3x3, Download, X, AlertTriangle, ArrowLeftFromLine, ArrowRightFromLine, RotateCcw, Printer } from "lucide-react";
+import { printBills } from "../utils/printBills";
 import search from "../assets/search.svg";
 import { getColumnsForRole } from "../utils/columnView";
 import { FilterModal } from "../components/dashboard/FilterModal";
+import {
+  BILL_AMOUNT_FIELDS,
+  getFieldValue,
+  inAmountRange,
+  inDateRange,
+  pickFieldOptions,
+  sortedRegions,
+} from "../utils/rangeFilter";
 import { handleExportReport } from "../utils/exportExcelDashboard";
 import Loader from "../components/Loader";
 import Cookies from "js-cookie";
@@ -20,6 +29,8 @@ const SentBills = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [gridResetKey, setGridResetKey] = useState(0);
+  const [columnFiltersActive, setColumnFiltersActive] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
   const [selectedRegion, setSelectedRegion] = useState([]);
   const [fromDate, setFromDate] = useState("");
@@ -31,6 +42,10 @@ const SentBills = () => {
   const [selectedDateField, setSelectedDateField] = useState(
     "accountsDept.paymentDate"
   );
+  // Amount column and min/max for the global filter (29.09, item 14).
+  const [selectedAmountField, setSelectedAmountField] = useState("");
+  const [minAmount, setMinAmount] = useState("");
+  const [maxAmount, setMaxAmount] = useState("");
   const [visibleColumnFields, setVisibleColumnFields] = useState([]);
   const columnSelectorRef = useRef(null);
   const [totalFilteredItems, setTotalFilteredItems] = useState(0);
@@ -63,7 +78,7 @@ const SentBills = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedRegion, fromDate, toDate, itemsPerPage]);
+  }, [searchQuery, selectedRegion, fromDate, toDate, minAmount, maxAmount, itemsPerPage]);
 
   // Columns
   const columns = useMemo(() => {
@@ -92,6 +107,14 @@ const SentBills = () => {
     return getColumnsForRole(roleForColumns);
   }, [currentUserRole]);
 
+  // Amount columns the role's grid has, for the global filter (29.09, item 14).
+  const amountFieldOptions = useMemo(
+    () => pickFieldOptions(columns, BILL_AMOUNT_FIELDS),
+    [columns]
+  );
+  const activeAmountField = selectedAmountField || amountFieldOptions[0]?.value || "";
+  const amountActive = !!activeAmountField && (minAmount !== "" || maxAmount !== "");
+
   useEffect(() => {
     if (columns.length > 0) {
       setVisibleColumnFields(columns.slice(0, 12).map((col) => col.field));
@@ -112,21 +135,20 @@ const SentBills = () => {
       const matchesRegion =
         selectedRegion.length === 0 || selectedRegion.includes(bill.region);
 
-      let matchesDateRange = true;
-      if (fromDate || toDate) {
-        const path = selectedDateField.split(".");
-        let dateValue = bill;
-        for (const key of path) dateValue = dateValue?.[key];
-        if (dateValue) {
-          const date = new Date(dateValue);
-          if (fromDate && new Date(fromDate) > date) matchesDateRange = false;
-          if (toDate && new Date(toDate) < date) matchesDateRange = false;
-        } else {
-          matchesDateRange = false;
-        }
-      }
+      // Whole days, either bound alone; the old check compared the "to"
+      // date at midnight, which dropped bills paid later that day
+      // (29.09, item 14).
+      const matchesDateRange = inDateRange(
+        getFieldValue(bill, selectedDateField),
+        fromDate,
+        toDate
+      );
 
-      return matchesRegion && matchesDateRange;
+      const matchesAmountRange =
+        !amountActive ||
+        inAmountRange(getFieldValue(bill, activeAmountField), minAmount, maxAmount);
+
+      return matchesRegion && matchesDateRange && matchesAmountRange;
     });
   };
 
@@ -155,6 +177,10 @@ const SentBills = () => {
     fromDate,
     toDate,
     selectedDateField,
+    amountActive,
+    activeAmountField,
+    minAmount,
+    maxAmount,
     // sortConfig, // removed since backend handles it
   ]);
 
@@ -287,6 +313,42 @@ const SentBills = () => {
     }
   };
 
+  const handlePrint = () => {
+    if (selectedRows.length === 0) {
+      toast.error("Please select rows to print");
+      return;
+    }
+    printBills({
+      selectedData: filteredUnpaginatedData.filter((row) => selectedRows.includes(row._id)),
+      visibleColumns: columns.filter(
+        (col) => visibleColumnFields.includes(col.field) && col.field !== "srNoOld"
+      ),
+      role: currentUserRole,
+      title: "Forwarded Bills",
+    });
+  };
+
+  // Same rules as the Home tab (29.09, items 13 and 21).
+  const filtersActive =
+    selectedRegion.length > 0 ||
+    !!fromDate ||
+    !!toDate ||
+    amountActive ||
+    columnFiltersActive;
+
+  const handleResetView = () => {
+    setSortConfig({ key: null, direction: null });
+    setSearchQuery("");
+    setSelectedRegion([]);
+    setFromDate("");
+    setToDate("");
+    setSelectedDateField("accountsDept.paymentDate");
+    setSelectedAmountField("");
+    setMinAmount("");
+    setMaxAmount("");
+    setGridResetKey((k) => k + 1);
+  };
+
   // Reject
   const handlePaymentReject = async () => {
     try {
@@ -320,6 +382,8 @@ const SentBills = () => {
     // totalItems: paginatedData.length,
     data: filteredUnpaginatedData, // pass full filtered set so column filters work across all data
     searchQuery: searchQuery,
+    resetKey: gridResetKey,
+    onColumnFiltersActiveChange: setColumnFiltersActive,
     availableColumns: columns,
     visibleColumnFields: visibleColumnFields,
     selectedRows: selectedRows,
@@ -514,30 +578,52 @@ const SentBills = () => {
                 </div>
                 <button
                   onClick={() => setIsFilterPopupOpen(true)}
-                  className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-md transition-colors border border-gray-400"
-                  title="Filter Options"
+                  className={`p-1.5 rounded-md transition-colors border hover:cursor-pointer ${filtersActive
+                    ? "text-white bg-green-600 border-green-700 hover:bg-green-700"
+                    : "text-gray-600 border-gray-400 hover:bg-gray-100"
+                    }`}
+                  title={filtersActive ? "Filter Options (a filter is applied)" : "Filter Options"}
                 >
                   <Funnel className="w-4 h-4" />
                 </button>
                 <button
                   className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-md transition-colors border border-gray-400 hover:cursor-pointer flex items-center justify-center"
-                  onClick={() => setSortConfig({ key: null, direction: null })}
-                  title="Reset Sorting (Use Default Order)"
+                  onClick={handleResetView}
+                  title="Reset sorting, search and filters"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
               </div>
               {/* Actions */}
               <div className="flex items-center space-x-3">
-                {currentUserRole !== "director" && (
+                {/* Her order (29.09, item 5): Print, Download, Column list,
+                    then Reject Payment for Accounts only. */}
+                <button
+                  onClick={handlePrint}
+                  className="flex items-center px-3 py-1.5 text-white text-sm bg-yellow-600 border border-gray-300 rounded-md hover:bg-yellow-700 transition-colors"
+                >
+                  <Printer className="w-4 h-4 mr-1" />
+                  Print
+                </button>
+                <button
+                  onClick={handleDownloadReport}
+                  className="flex items-center px-3 py-1.5 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors"
+                >
+                  <Download className="w-4 h-4 mr-1" />
+                  Download
+                </button>
+                <div className="relative" ref={columnSelectorRef}>
                   <button
-                    onClick={handleDownloadReport}
-                    className="flex items-center px-3 py-1.5 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors"
+                    onClick={() =>
+                      setIsColumnDropdownOpen(!isColumnDropdownOpen)
+                    }
+                    className="flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded-md text-sm hover:bg-gray-50 transition-colors"
                   >
-                    <Download className="w-4 h-4 mr-1" />
-                    Download
+                    <Grid3x3 className="w-4 h-4 mr-1 text-[#F48D02]" />
+                    Column List
                   </button>
-                )}
+                  {columnSelectorDropdown}
+                </div>
                 {currentUserRole === "accounts" && (
                   <button
                     className="flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
@@ -558,18 +644,6 @@ const SentBills = () => {
                     <span>Reject Payment</span>
                   </button>
                 )}
-                <div className="relative" ref={columnSelectorRef}>
-                  <button
-                    onClick={() =>
-                      setIsColumnDropdownOpen(!isColumnDropdownOpen)
-                    }
-                    className="flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded-md text-sm hover:bg-gray-50 transition-colors"
-                  >
-                    <Grid3x3 className="w-4 h-4 mr-1" />
-                    Column List
-                  </button>
-                  {columnSelectorDropdown}
-                </div>
               </div>
             </div>
           </div>
@@ -596,12 +670,9 @@ const SentBills = () => {
         isOpen={isFilterPopupOpen}
         onClose={() => setIsFilterPopupOpen(false)}
         selectedRegion={selectedRegion}
-        uniqueRegions={[...new Set(billsData.map((bill) => bill.region))]}
-        // "All Regions" has an empty value: [""] is not the same as [], and
-        // it matched no bill at all, blanking the whole tab.
-        handleRegionChange={(e) =>
-          setSelectedRegion(e.target.value ? [e.target.value] : [])
-        }
+        // A checklist now (29.09, item 14); nothing ticked means all regions.
+        uniqueRegions={sortedRegions(billsData)}
+        setSelectedRegion={setSelectedRegion}
         selectedDateField={selectedDateField}
         setSelectedDateField={setSelectedDateField}
         dateFieldOptions={[
@@ -612,11 +683,22 @@ const SentBills = () => {
         setFromDate={setFromDate}
         toDate={toDate}
         setToDate={setToDate}
+        amountFieldOptions={amountFieldOptions}
+        selectedAmountField={activeAmountField}
+        setSelectedAmountField={setSelectedAmountField}
+        minAmount={minAmount}
+        setMinAmount={setMinAmount}
+        maxAmount={maxAmount}
+        setMaxAmount={setMaxAmount}
         handleClearFilters={() => {
           setSearchQuery("");
           setSelectedRegion([]);
           setFromDate("");
           setToDate("");
+          setSelectedDateField("accountsDept.paymentDate");
+          setSelectedAmountField("");
+          setMinAmount("");
+          setMaxAmount("");
           setIsFilterPopupOpen(false);
         }}
       />
