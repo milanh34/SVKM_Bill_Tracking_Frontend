@@ -26,6 +26,8 @@ import {
  * whose rows are all filtered away is dropped.
  *
  * Region is held as a list, and the checks live in one place (`matchesFilters`).
+ * Nature of Work is a second checklist, offered only when the report's rows
+ * carry one (1.10, item O-19).
  * Item 14 (29.09) adds a region checklist, a min/max on whichever amount
  * column the user picks, and either-bound-alone date ranges.
  */
@@ -79,8 +81,8 @@ const rowSearchText = (row, searchFields) => {
     return fields.map((field) => cellText(getField(row, field))).join(" \u0001 ").toLowerCase();
 };
 
-const matchesFilters = (row, filters, { searchFields, regionField }) => {
-    const { search, regions, dateField, fromDate, toDate, amountField, minAmount, maxAmount } = filters;
+const matchesFilters = (row, filters, { searchFields, regionField, natureField }) => {
+    const { search, regions, natures, dateField, fromDate, toDate, amountField, minAmount, maxAmount } = filters;
 
     if (search) {
         if (!rowSearchText(row, searchFields).includes(search)) return false;
@@ -89,6 +91,12 @@ const matchesFilters = (row, filters, { searchFields, regionField }) => {
     if (regions.length > 0) {
         const region = String(getField(row, regionField) ?? "").toLowerCase();
         if (!regions.some((r) => String(r).toLowerCase() === region)) return false;
+    }
+
+    // Several natures of work at once, as region (1.10, item O-19).
+    if (natures.length > 0) {
+        const nature = String(getField(row, natureField) ?? "").toLowerCase();
+        if (!natures.some((n) => String(n).toLowerCase() === nature)) return false;
     }
 
     if (dateField && (fromDate || toDate)) {
@@ -127,6 +135,8 @@ const recomputeTotal = (totalRow, dataRows, spec) => {
  *   amountFields  [{ value, label }] amount columns to offer (see pickAmountFields)
  *   searchFields  fields the search looks at; defaults to every field of the row
  *   regionField   defaults to "region"
+ *   natureField   defaults to "natureOfWork"; the checklist shows only when
+ *                 some row carries a value (1.10, item O-19)
  *   totals        { grandTotalKey: sourceField | COUNT | fn(dataRows) }
  *   subtotals     the same, for rows flagged isSubtotal
  *   extraFilter   a further check on data rows the page already applies on
@@ -141,6 +151,7 @@ export const useReportGlobalFilter = (rows, options = {}) => {
         amountFields = [],
         searchFields,
         regionField = "region",
+        natureField = "natureOfWork",
         totals,
         subtotals,
         extraFilter,
@@ -152,13 +163,14 @@ export const useReportGlobalFilter = (rows, options = {}) => {
     // of their identity so it does not rerun on every render.
     const latest = useRef({});
     latest.current = { searchFields, totals, subtotals, extraFilter };
-    const optionsKey = JSON.stringify([searchFields || null, regionField, totals || null, subtotals || null]);
+    const optionsKey = JSON.stringify([searchFields || null, regionField, natureField, totals || null, subtotals || null]);
 
     const defaultDateField = dateFields[0]?.value || "";
     const defaultAmountField = amountFields[0]?.value || "";
 
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedRegions, setSelectedRegions] = useState([]);
+    const [selectedNatures, setSelectedNatures] = useState([]);
     const [selectedDateField, setSelectedDateField] = useState(defaultDateField);
     const [fromDate, setFromDate] = useState("");
     const [toDate, setToDate] = useState("");
@@ -175,16 +187,22 @@ export const useReportGlobalFilter = (rows, options = {}) => {
         [safeRows, regionField]
     );
 
+    // Natures of work offered are the ones present in the data rows; none, no checklist.
+    const natureOptions = useMemo(
+        () => sortedRegions(safeRows.filter((row) => !isTotalRow(row)), natureField),
+        [safeRows, natureField]
+    );
+
     const search = searchQuery.trim().toLowerCase();
     const dateActive = !!selectedDateField && (!!fromDate || !!toDate);
     const amountActive = !!selectedAmountField && (minAmount !== "" || maxAmount !== "");
     // Green funnel, as on Home (29.09, items 13 and 14): region, dates or amounts set.
-    const filterActive = selectedRegions.length > 0 || dateActive || amountActive;
+    const filterActive = selectedRegions.length > 0 || selectedNatures.length > 0 || dateActive || amountActive;
     const isActive = filterActive || !!search;
 
     // Changes whenever what is shown changes, so pages can clear selections.
     const filterKey = JSON.stringify([
-        search, selectedRegions, dateActive ? selectedDateField : "", fromDate, toDate,
+        search, selectedRegions, selectedNatures, dateActive ? selectedDateField : "", fromDate, toDate,
         amountActive ? selectedAmountField : "", minAmount, maxAmount,
     ]);
 
@@ -195,6 +213,7 @@ export const useReportGlobalFilter = (rows, options = {}) => {
         const filters = {
             search,
             regions: selectedRegions,
+            natures: selectedNatures,
             dateField: selectedDateField,
             fromDate,
             toDate,
@@ -204,7 +223,7 @@ export const useReportGlobalFilter = (rows, options = {}) => {
         };
         const keep = (row) =>
             (!extraFilterActive || !extraFilter || extraFilter(row)) &&
-            matchesFilters(row, filters, { searchFields, regionField });
+            matchesFilters(row, filters, { searchFields, regionField, natureField });
 
         const result = [];
         const allKept = [];
@@ -227,13 +246,14 @@ export const useReportGlobalFilter = (rows, options = {}) => {
 
         return result;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [safeRows, isActive, extraFilterActive, extraFilterKey, search, selectedRegions, selectedDateField, fromDate, toDate, selectedAmountField, minAmount, maxAmount, regionField, optionsKey]);
+    }, [safeRows, isActive, extraFilterActive, extraFilterKey, search, selectedRegions, selectedNatures, selectedDateField, fromDate, toDate, selectedAmountField, minAmount, maxAmount, regionField, natureField, optionsKey]);
 
     const dataRows = useMemo(() => filteredRows.filter((row) => !isTotalRow(row)), [filteredRows]);
     const grandTotalRow = useMemo(() => filteredRows.find((row) => row && row.isGrandTotal) || null, [filteredRows]);
 
     const clearFilters = () => {
         setSelectedRegions([]);
+        setSelectedNatures([]);
         setSelectedDateField(defaultDateField);
         setFromDate("");
         setToDate("");
@@ -266,6 +286,9 @@ export const useReportGlobalFilter = (rows, options = {}) => {
             regionOptions,
             selectedRegions,
             setSelectedRegions,
+            natureOptions,
+            selectedNatures,
+            setSelectedNatures,
             dateFields,
             selectedDateField,
             setSelectedDateField,

@@ -1,6 +1,13 @@
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { toast } from 'react-toastify';
+import {
+    describeReportCriteria,
+    criteriaLine,
+    generatedAtText,
+    printCriteriaHtml,
+    reportFileName,
+} from './reportExportCommon';
 
 const formatCurrency = (value) => {
     if (value === undefined || value === null) return "";
@@ -65,49 +72,57 @@ const formatDateForDisplay = (value) => {
     return `${dd}-${mm}-${yyyy}`;
 };
 
-/** DD-MM-YYYY, from either YYYY-MM-DD or something already formatted. */
-const criteriaDate = (d) => {
-    if (!d) return "";
-    const parts = String(d).split("-");
-    return parts.length === 3 && parts[0].length === 4
-        ? `${parts[2]}-${parts[1]}-${parts[0]}`
-        : String(d);
+// Shared with the Outstanding exporters (1.10, items O-16a-d).
+export { describeReportCriteria };
+
+const OUTSTANDING_TITLES = ["Outstanding Bills Report as on", "Outstanding Bills Report Subtotal as on"];
+
+const isTotalRow = (row) => !!(row && (row.isGrandTotal || row.isSubtotal));
+
+const formatTotal = (n) =>
+    Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+// The sum of a column over the data rows, for a total the row does not carry.
+const sumField = (rows, field) =>
+    rows.reduce((acc, row) => acc + (Number(row[field]) || 0), 0);
+
+/*
+ * A total the row carries, or the column's own sum when it carries none.
+ * A missing key used to print "Grand Total: undefined" (Bill Kidhar's
+ * Payment Amt, 1.10 item O-16e); a zero total now prints 0.00.
+ */
+const totalOf = (row, key, dataRows, field) => {
+    const value = row[key];
+    return value === undefined || value === null || value === ""
+        ? sumField(dataRows, field)
+        : Number(value) || 0;
 };
 
 /**
- * The selection criteria a report was run with, as { region, dates }.
- *
- * Two bugs lived here. The region label treated ANY array as "All"
- * (observation N-02) - and the report pages seed their region state with the
- * user's whole list of regions, which IS an array, so the printed header said
- * "All" no matter what was chosen. And the download never received the
- * criteria at all, so neither region nor date range appeared in the Excel
- * file (observation N-03).
+ * The text of one cell of the grand-total row, the same for download and
+ * print. The count always shows: in the Count column, in Sr No, or - when a
+ * report shows neither - in its first column (1.10, items O-16e/f, O-18).
  */
-export const describeReportCriteria = (filters) => {
-    if (!filters) return null;
+const grandTotalCellText = (column, columnIndex, row, titleName, dataRows, hasCountColumn) => {
+    const field = column.field;
+    const outstanding = OUTSTANDING_TITLES.includes(titleName);
+    const count = (outstanding ? row.totalCount : row.count) ?? dataRows.length;
 
-    const { region, fromDate, toDate } = filters;
+    if (field === "count") return `Total: ${count}`;
+    if (field === "srNo" || (!hasCountColumn && columnIndex === 0)) return `Total Count: ${count}`;
+    // A row added only to carry the count has no amounts.
+    if (row.countOnly) return "";
 
-    let regionLabel;
-    if (region === undefined || region === null || region === "") {
-        regionLabel = "All";
-    } else if (Array.isArray(region)) {
-        const named = region.filter(Boolean).map(String);
-        // An empty list, or one that literally says ALL, is unrestricted.
-        regionLabel =
-            named.length === 0 || named.some((r) => r.toLowerCase() === "all")
-                ? "All"
-                : named.join(", ");
-    } else {
-        regionLabel = String(region).toLowerCase() === "all" ? "All" : String(region);
+    if (field === "taxInvAmt" || field === "invoiceAmount") {
+        return `Grand Total: ${formatTotal(totalOf(row, outstanding ? "grandTotalAmount" : "grandTotalTaxAmount", dataRows, field))}`;
     }
-
-    const dateParts = [];
-    if (fromDate) dateParts.push(`From: ${criteriaDate(fromDate)}`);
-    if (toDate) dateParts.push(`To: ${criteriaDate(toDate)}`);
-
-    return { region: regionLabel, dates: dateParts.join(", ") };
+    if (field === "copAmt" || field === "copAmount") {
+        return `Grand Total: ${formatTotal(totalOf(row, "grandTotalCopAmt", dataRows, field))}`;
+    }
+    if (field === "paymentAmt" || field === "payentAmt") {
+        return `Grand Total: ${formatTotal(totalOf(row, outstanding ? "grandTotalPaymentAmount" : "grandTotalAmount", dataRows, field))}`;
+    }
+    return "";
 };
 
 export const handleExportAllReports = async (
@@ -117,14 +132,18 @@ export const handleExportAllReports = async (
     visibleColumnFields,
     titleName,
     toPrint,
-    filters = null
+    filters = null,
+    options = {}
 ) => {
+    // rowKey: the field `selectedRows` holds. Vendor Details passes "vendorNo";
+    // matching on srNo, which vendors do not have, refused every download and
+    // print with "Select at least one row" (1.10, item O-16g).
+    const { rowKey = "srNo" } = options;
     try {
         // const dataToExport = selectedRows.length > 0
         //     ? filteredData.filter((item) => selectedRows.includes(item._id))
         //     : filteredData;
-        var dataToExport = filteredData.filter((item) => selectedRows.includes(item.srNo) || item.isGrandTotal === true);
-        console.log(dataToExport);
+        var dataToExport = filteredData.filter((item) => selectedRows.includes(item[rowKey]) || item.isGrandTotal === true);
 
         if ((dataToExport.length === 1 && dataToExport[0].isGrandTotal === true) || dataToExport.length === 0) {
             // throw new Error("Please select at least one row to download");
@@ -145,6 +164,14 @@ export const handleExportAllReports = async (
         //     "natureOfWorkSupply"
         // ];
         const allColumnsToExport = columns.filter((col) => visibleColumnFields.includes(col.field));
+        const dataRows = dataToExport.filter((row) => !isTotalRow(row));
+        const hasCountColumn = allColumnsToExport.some((col) => col.field === "count" || col.field === "srNo");
+
+        // Reports without a grand-total row (Bill Journey, Vendor Details)
+        // still end on their count (1.10, items O-16f, O-18).
+        if (!dataToExport.some((row) => row.isGrandTotal)) {
+            dataToExport = [...dataToExport, { isGrandTotal: true, countOnly: true, count: dataRows.length }];
+        }
 
         if (!toPrint) {
 
@@ -168,8 +195,8 @@ export const handleExportAllReports = async (
             };
 
             const now = new Date();
-            // Spec asks for date and time at the top right of every report.
-            const timestampText = `Report generated on: ${now.toLocaleString('en-IN')}`;
+            // Date and time at the top right of every report (1.10, item O-16b).
+            const timestampText = generatedAtText(now);
 
             // Add an empty row of correct length
             const rowValues = Array(columnCount).fill("");
@@ -199,18 +226,18 @@ export const handleExportAllReports = async (
              * dates or a different region.
              */
             const criteria = describeReportCriteria(filters);
+            let criteriaRow = null;
             if (criteria) {
-                const criteriaText = criteria.dates
-                    ? `Region: ${criteria.region}   |   ${criteria.dates}`
-                    : `Region: ${criteria.region}`;
                 const criteriaValues = Array(columnCount).fill("");
-                criteriaValues[0] = criteriaText;
-                const criteriaRow = worksheet.addRow(criteriaValues);
-                if (titleSpanEndCol >= 1) {
-                    worksheet.mergeCells(`A2:${getColLetter(titleSpanEndCol)}2`);
+                criteriaValues[0] = criteriaLine(criteria);
+                criteriaRow = worksheet.addRow(criteriaValues);
+                // Across the whole table and wrapped, so a long region list
+                // cannot widen column A (1.10, item O-16d).
+                if (columnCount >= 2) {
+                    worksheet.mergeCells(`A2:${getColLetter(columnCount)}2`);
                 }
                 criteriaRow.getCell(1).font = { italic: true, size: 12 };
-                criteriaRow.getCell(1).alignment = { horizontal: "left", vertical: "middle" };
+                criteriaRow.getCell(1).alignment = { horizontal: "left", vertical: "top", wrapText: true };
             }
 
             // Optionally, add spacing below
@@ -218,6 +245,7 @@ export const handleExportAllReports = async (
 
             // Header Row
             const headerRow = worksheet.addRow(allColumnsToExport.map(col => col.headerName));
+            const headerRowNumber = headerRow.number;
             headerRow.eachCell((cell) => {
                 cell.font = { bold: true, color: { argb: "000000" } };
                 cell.fill = {
@@ -235,8 +263,10 @@ export const handleExportAllReports = async (
             });
 
             // Data Rows
-            dataToExport.forEach((rowData, rowIndex) => {
+            let dataRowNumber = 0;
+            dataToExport.forEach((rowData) => {
                 let rowValues;
+                const rowIndex = isTotalRow(rowData) ? -1 : dataRowNumber++;
                 // console.log("Row data: ", rowData);
 
                 if (rowData.isSubtotal) {
@@ -263,51 +293,9 @@ export const handleExportAllReports = async (
                     // });
                     return;
                 } else if (rowData.isGrandTotal) {
-                    // if (rowData.isGrandTotal) {
-                    rowValues = allColumnsToExport.map((column) => {
-                        const field = column.field;
-
-                        if (titleName === "Outstanding Bills Report as on" || titleName === "Outstanding Bills Report Subtotal as on") {
-                            if (field === "srNo") {
-                                return `Total Count: ${rowData.totalCount}`
-                            }
-                            if (field === "taxInvAmt" || field === "invoiceAmount") {
-                                return `Grand Total: ${rowData.grandTotalAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
-                            }
-                            if (field === "copAmt") {
-                                return `Grand Total: ${rowData.grandTotalCopAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
-                            }
-                            if (field === "paymentAmt") {
-                                return `Grand Total: ${rowData.grandTotalPaymentAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
-                            }
-
-                            return ""; // Empty for other columns
-                        }
-
-                        else {
-                            // The five "sent/returned" reports carry Count as a
-                            // real column (Report logics, General #2).
-                            if (field === "count") {
-                                return `Total: ${rowData.count ?? ""}`;
-                            }
-                            if (field === "srNo") {
-                                return `Total Count: ${rowData.count}`
-                            }
-                            if (field === "taxInvAmt" || field === "invoiceAmount") {
-                                return `Grand Total: ${rowData.grandTotalTaxAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
-                            }
-                            if (field === "copAmount") {
-                                return `Grand Total: ${rowData.grandTotalCopAmt?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
-                            }
-                            if (field === "paymentAmt" || field === "payentAmt") {
-                                return `Grand Total: ${rowData.grandTotalAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` || 0;
-                            }
-                            return ""; // Empty for other columns
-                        }
-
-                        return ""; // Empty for other columns
-
-                    });
+                    rowValues = allColumnsToExport.map((column, columnIndex) =>
+                        grandTotalCellText(column, columnIndex, rowData, titleName, dataRows, hasCountColumn)
+                    );
                 } else {
                     // Normal data row
                     rowValues = allColumnsToExport.map((column) => {
@@ -389,16 +377,30 @@ export const handleExportAllReports = async (
             });
 
             // Auto column widths
-            worksheet.columns.forEach((column) => {
+            // The merged title and criteria never drive a width; the timestamp
+            // still sizes the last column (1.10, item O-16d).
+            worksheet.columns.forEach((column, columnIndex) => {
                 let maxLength = 0;
-                column.eachCell({ includeEmpty: true }, (cell) => {
-                    const cellLength = cell.value ? cell.value.toString().length : 10;
+                const isLastColumn = columnIndex === columnCount - 1;
+                column.eachCell({ includeEmpty: true }, (cell, rowNumber) => {
+                    if (rowNumber < headerRowNumber && !(rowNumber === titleRow.number && isLastColumn)) return;
+                    const cellLength = cell.value
+                        ? (cell.value instanceof Date ? 10 : cell.value.toString().length)
+                        : 10;
                     if (cellLength > maxLength) {
                         maxLength = cellLength;
                     }
                 });
                 column.width = Math.max(maxLength + 2, 15);
             });
+
+            // A merged cell does not grow to fit wrapped text; size the criteria row.
+            if (criteriaRow) {
+                const tableWidth = worksheet.columns.reduce((acc, col) => acc + (col.width || 10), 0);
+                const text = String(criteriaRow.getCell(1).value || "");
+                const lines = Math.max(1, Math.ceil((text.length * 1.1) / Math.max(tableWidth, 1)));
+                criteriaRow.height = Math.max(18, lines * 16);
+            }
 
             // Export as Excel file
             const buffer = await workbook.xlsx.writeBuffer();
@@ -408,16 +410,15 @@ export const handleExportAllReports = async (
 
             // const filename = `${titleName.replace(/[\/ ]/g, '_')}_${now.toLocaleDateString('en-IN')}_${now.toLocaleTimeString('en-IN', { hour12: false })}.xlsx`;        // replace '/' and 'space' with _
             // const filename = `${titleName.replace(/[\/ ]/g, '_')}_${now.getDate().toString().padStart(2, '0')}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getFullYear().toString().slice(-2)}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}.xlsx`;
-            const filename = `${now.getDate().toString().padStart(2, '0')}-${(now.getMonth() + 1)
-                .toString()
-                .padStart(2, '0')}-${now.getFullYear()}.xlsx`;
-            saveAs(blob, filename);
+            // "<report name>_DDMMYYYY.xlsx" (1.10, item O-16a).
+            saveAs(blob, reportFileName(titleName, now));
 
             return { success: true, message: "Report downloaded successfully" };
         }
 
         if (toPrint) {
 
+            let printRowNumber = 0;
             const excelData = dataToExport.map((row) => {
                 // Skip subtotal rows (return null and filter out later)
                 if (row.isSubtotal) {
@@ -430,40 +431,22 @@ export const handleExportAllReports = async (
                     return;
                 }
                 else if (row.isGrandTotal) {
-                    // Grand Total row handling
-                    allColumnsToExport.forEach((column) => {
-                        const field = column.field;
-                        if (titleName === "Outstanding Bills Report as on" || titleName === "Outstanding Bills Report Subtotal as on") {
-                            if (field === "srNo") {
-                                formattedRow[column.headerName] = `Total Count: ${row.totalCount}`;
-                            } else if (field === "taxInvAmt" || field === "invoiceAmount") {
-                                formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalAmount || 0)}`;
-                            } else if (field === "copAmt") {
-                                formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalCopAmt || 0)}`;
-                            } else if (field === "paymentAmt") {
-                                formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalPaymentAmount || 0)}`;
-                            } else {
-                                formattedRow[column.headerName] = ""; // Empty for other columns
-                            }
-                        }
-                        else {
-                            if (field === "srNo") {
-                                formattedRow[column.headerName] = `Total Count: ${row.count}`;
-                            } else if (field === "taxInvAmt" || field === "invoiceAmount") {
-                                formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalTaxAmount || 0)}`;
-                            } else if (field === "copAmt" || field === "copAmount") {
-                                formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalCopAmt || 0)}`;
-                            } else if (field === "paymentAmt" || field === "payentAmt") {
-                                formattedRow[column.headerName] = `Grand Total: ${formatCurrency(row.grandTotalAmount || 0)}`;
-                            } else {
-                                formattedRow[column.headerName] = ""; // Empty for other columns
-                            }
-                        }
+                    // The same cells as the download, count included (1.10, item O-18).
+                    allColumnsToExport.forEach((column, columnIndex) => {
+                        formattedRow[column.headerName] =
+                            grandTotalCellText(column, columnIndex, row, titleName, dataRows, hasCountColumn);
                     });
                 } else {
                     // Normal data row handling
+                    printRowNumber += 1;
                     allColumnsToExport.forEach((column) => {
                         let value;
+                        // The Count column numbers the rows, as on screen and in
+                        // the download; print left it blank (1.10, item O-18).
+                        if (column.field === "count") {
+                            formattedRow[column.headerName] = printRowNumber;
+                            return;
+                        }
                         if (column.field.includes(".")) {
                             const [parentField, childField] = column.field.split(".");
                             value = row[parentField] ? row[parentField][childField] : "";
@@ -496,24 +479,8 @@ export const handleExportAllReports = async (
                 return formattedRow;
             }).filter(row => row !== null); // Filter out null values (subtotal rows)
 
-            // Build filter details line (Region, From, To) to show below the title
-            const formatFilterDate = (d) => {
-                if (!d) return "";
-                const parts = d.split("-");
-                if (parts.length === 3) {
-                    return `${parts[2]}-${parts[1]}-${parts[0]}`; // YYYY-MM-DD -> DD-MM-YYYY
-                }
-                return d;
-            };
-            let filterDetailsHtml = "";
-            const printCriteria = describeReportCriteria(filters);
-            if (printCriteria) {
-                filterDetailsHtml =
-                    `<div class="report-filters">` +
-                    `<div>Region: <strong>${printCriteria.region}</strong></div>` +
-                    (printCriteria.dates ? `<div><strong>${printCriteria.dates}</strong></div>` : "") +
-                    `</div>`;
-            }
+            // Region, dates and the count below the title (1.10, item O-18).
+            const filterDetailsHtml = printCriteriaHtml(describeReportCriteria(filters), dataRows.length);
 
             // Print the report (create a printable HTML version)
             const printWindow = window.open("", "_blank", "width=800,height=600");
@@ -609,7 +576,7 @@ export const handleExportAllReports = async (
                   <body>
                     <div class="report-header">
                       <div class="report-title">${titleName}</div>
-                        <div class="timestamp">Report generated on: ${new Date().toLocaleString('en-IN')}</div>
+                        <div class="timestamp">${generatedAtText()}</div>
                     </div>
                     ${filterDetailsHtml}
                     <table>

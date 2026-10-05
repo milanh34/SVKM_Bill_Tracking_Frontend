@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { toast } from 'react-toastify';
+import { generatedAtText, reportFileName } from './reportExportCommon';
 
 /**
  * Email IDs and Phone No are arrays on the vendor. Handed to the sheet writer
@@ -61,7 +62,8 @@ export const handleExportVendorMaster = async (
             };
 
             const now = new Date();
-            const timestampText = `Report generated on: ${now.toLocaleDateString('en-IN')}`;
+            // Date and time (1.10, item O-16b).
+            const timestampText = generatedAtText(now);
 
             // Add an empty row of correct length
             const rowValues = Array(columnCount).fill("");
@@ -234,8 +236,8 @@ export const handleExportVendorMaster = async (
 
             // const filename = `${titleName.replace(/[\/ ]/g, '_')}_${now.toLocaleDateString('en-IN')}_${now.toLocaleTimeString('en-IN', { hour12: false })}.xlsx`;        // replace '/' and 'space' with _
             // const filename = `${titleName.replace(/[\/ ]/g, '_')}_${now.getDate().toString().padStart(2, '0')}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getFullYear().toString().slice(-2)}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}.xlsx`;
-            const filename = `${titleName.replace(/[\/ ]/g, '')}${now.getDate().toString().padStart(2, '0')}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getFullYear()}.xlsx`;
-            saveAs(blob, filename);
+            // "<report name>_DDMMYYYY.xlsx" (1.10, item O-16a).
+            saveAs(blob, reportFileName(titleName, now));
 
             return { success: true, message: "Report downloaded successfully" };
         }
@@ -392,7 +394,7 @@ export const handleExportVendorMaster = async (
                   <body>
                     <div class="report-header">
                       <div class="report-title">${titleName}</div>
-                        <div class="timestamp">Report generated on: ${new Date().toLocaleDateString('en-IN')}</div>
+                        <div class="timestamp">${generatedAtText()}</div>
                     </div>
                     <table>
                       <thead>

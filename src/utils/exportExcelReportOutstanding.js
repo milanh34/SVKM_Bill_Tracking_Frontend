@@ -1,6 +1,13 @@
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { toast } from 'react-toastify';
+import {
+    describeReportCriteria,
+    criteriaLine,
+    generatedAtText,
+    printCriteriaHtml,
+    reportFileName,
+} from './reportExportCommon';
 
 const formatCurrency = (value) => {
     if (value === undefined || value === null) return "";
@@ -139,7 +146,8 @@ export const handleExportOutstandingBillReports = async (
             };
 
             const now = new Date();
-            const timestampText = `Report generated on: ${now.toLocaleDateString('en-IN')}`;
+            // Date and time (1.10, item O-16b).
+            const timestampText = generatedAtText(now);
 
             // Add an empty row of correct length
             const rowValues = Array(columnCount).fill("");
@@ -162,11 +170,27 @@ export const handleExportOutstandingBillReports = async (
             timestampCell.font = { italic: true, size: 12 };
             timestampCell.alignment = { horizontal: "right", vertical: "middle" };
 
+            // Region and date range, as the other reports carry (1.10, item O-16c),
+            // merged across the table and wrapped (1.10, item O-16d).
+            const criteria = describeReportCriteria(filters);
+            let criteriaRow = null;
+            if (criteria) {
+                const criteriaValues = Array(columnCount).fill("");
+                criteriaValues[0] = criteriaLine(criteria);
+                criteriaRow = worksheet.addRow(criteriaValues);
+                if (columnCount >= 2) {
+                    worksheet.mergeCells(`A2:${getColLetter(columnCount)}2`);
+                }
+                criteriaRow.getCell(1).font = { italic: true, size: 12 };
+                criteriaRow.getCell(1).alignment = { horizontal: "left", vertical: "top", wrapText: true };
+            }
+
             // Optionally, add spacing below
             worksheet.addRow([]);
 
             // Header Row
             const headerRow = worksheet.addRow(allColumnsToExport.map(col => col.headerName));
+            const headerRowNumber = headerRow.number;
             headerRow.eachCell((cell) => {
                 cell.font = { bold: true, color: { argb: "000000" } };
                 cell.fill = {
@@ -288,10 +312,16 @@ export const handleExportOutstandingBillReports = async (
             });
 
             // Auto column widths
-            worksheet.columns.forEach((column) => {
+            // The merged title and criteria never drive a width; the timestamp
+            // still sizes the last column (1.10, item O-16d).
+            worksheet.columns.forEach((column, columnIndex) => {
                 let maxLength = 0;
-                column.eachCell({ includeEmpty: true }, (cell) => {
-                    const cellLength = cell.value ? cell.value.toString().length : 10;
+                const isLastColumn = columnIndex === columnCount - 1;
+                column.eachCell({ includeEmpty: true }, (cell, rowNumber) => {
+                    if (rowNumber < headerRowNumber && !(rowNumber === titleRow.number && isLastColumn)) return;
+                    const cellLength = cell.value
+                        ? (cell.value instanceof Date ? 10 : cell.value.toString().length)
+                        : 10;
                     if (cellLength > maxLength) {
                         maxLength = cellLength;
                     }
@@ -299,14 +329,22 @@ export const handleExportOutstandingBillReports = async (
                 column.width = Math.max(maxLength + 2, 15);
             });
 
+            // A merged cell does not grow to fit wrapped text; size the criteria row.
+            if (criteriaRow) {
+                const tableWidth = worksheet.columns.reduce((acc, col) => acc + (col.width || 10), 0);
+                const text = String(criteriaRow.getCell(1).value || "");
+                const lines = Math.max(1, Math.ceil((text.length * 1.1) / Math.max(tableWidth, 1)));
+                criteriaRow.height = Math.max(18, lines * 16);
+            }
+
             // Export as Excel file
             const buffer = await workbook.xlsx.writeBuffer();
             const blob = new Blob([buffer], {
                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             });
 
-            const filename = `${titleName.replace(/[\/ ]/g, '_')}_${now.getDate().toString().padStart(2, '0')}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getFullYear().toString().slice(-2)}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}.xlsx`;
-            saveAs(blob, filename);
+            // "<report name>_DDMMYYYY.xlsx" (1.10, item O-16a).
+            saveAs(blob, reportFileName("Outstanding Bills Report", now));
         }
 
         // if (toPrint) {
@@ -583,25 +621,8 @@ export const handleExportOutstandingBillReports = async (
                 return formattedRow;
             }).filter(row => row !== null); // Filter out null values (subtotal rows)
 
-            // Build filter details line (Region, From, To) to show below the title
-            const formatFilterDate = (d) => {
-                if (!d) return "";
-                const parts = d.split("-");
-                if (parts.length === 3) {
-                    return `${parts[2]}-${parts[1]}-${parts[0]}`; // YYYY-MM-DD -> DD-MM-YYYY
-                }
-                return d;
-            };
-            let filterDetailsHtml = "";
-            if (filters) {
-                const regionLabel = (!filters.region || Array.isArray(filters.region) || String(filters.region).toLowerCase() === "all")
-                    ? "All"
-                    : filters.region;
-                const dateParts = [];
-                if (filters.fromDate) dateParts.push(`From: <strong>${formatFilterDate(filters.fromDate)}</strong>`);
-                if (filters.toDate) dateParts.push(`To: <strong>${formatFilterDate(filters.toDate)}</strong>`);
-                filterDetailsHtml = `<div class="report-filters"><div>Region: <strong>${regionLabel}</strong></div>${dateParts.length ? `<div>${dateParts.join(", ")}</div>` : ""}</div>`;
-            }
+            // Region, dates and the count below the title (1.10, items O-16d, O-18).
+            const filterDetailsHtml = printCriteriaHtml(describeReportCriteria(filters), selectedDataRows.length);
 
             // Print the report (create a printable HTML version)
             const printWindow = window.open("", "_blank", "width=800,height=600");
@@ -694,7 +715,7 @@ export const handleExportOutstandingBillReports = async (
                 <body>
                     <div class="report-header">
                     <div class="report-title">${titleName}</div>
-                    <div class="timestamp">Report generated on: ${new Date().toLocaleDateString('en-IN')}</div>
+                    <div class="timestamp">${generatedAtText()}</div>
                     </div>
                     ${filterDetailsHtml}
                     <table>

@@ -12,7 +12,7 @@ import axios from 'axios';
 import { billJourney } from '../../apis/report.api';
 // import { handleExportRepBillJourney } from '../../utils/archive/exportExcelReportBillJourney';
 import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
-import ChecklistBillJourney from '../checklists/ChecklistBillJourney';
+import { printBillJourney } from '../../utils/printBillJourney';
 import Cookies from "js-cookie";
 
 const BillJourney = () => {
@@ -27,7 +27,8 @@ const BillJourney = () => {
         return `${year}-${month}-${day}`;
     };
     const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
-    const [fromDate, setFromDate] = useState("2020-01-01");
+    // Default window 01-04-2020 to today, on Dt recd at Site (1.10, item O-02).
+    const [fromDate, setFromDate] = useState("2020-04-01");
     const [toDate, setToDate] = useState(getFormattedDate());
     const [bills, setBills] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -110,10 +111,19 @@ const BillJourney = () => {
         );
     };
 
-    const handlePrintChecklist = () => {
+    /*
+     * "Print Bill Journey" (1.10, item O-17). It used to open the bill
+     * checklist page, whose step table is a fixed list of labels: only
+     * "Bill Received at Site" was ever given a value (from a key these rows
+     * do not use for it), every other date and every name cell was hard-coded
+     * blank, and its labels do not match the report's columns. The journey
+     * now prints from the rows the report already holds, one page per bill,
+     * every step with its date, name and amount.
+     */
+    const handlePrintBillJourney = () => {
         if (selectedInvoices.length === 0) return alert("Please select at least one invoice.");
-        const selectedBillsData = bills.filter(b => selectedInvoices.includes(b.srNo));
-        navigate("/checklist-bill-journey", { state: { selectedRows: selectedInvoices, bills: selectedBillsData } });
+        const selectedBillsData = filteredBills.filter(b => !b.isGrandTotal && selectedInvoices.includes(b.srNo));
+        printBillJourney(selectedBillsData);
     };
 
     const handleTopDownload = async () => {
@@ -136,7 +146,7 @@ const BillJourney = () => {
         const chosen = selectedInvoices.length
             ? filteredBills.filter(b => selectedInvoices.includes(b.srNo))
             : filteredBills;
-        const result = await handleExportAllReports(chosen.map(bill => bill.srNo), chosen, columns, visibleColumnFields, titleName, true);
+        const result = await handleExportAllReports(chosen.map(bill => bill.srNo), chosen, columns, visibleColumnFields, titleName, true, { region, fromDate, toDate });
         console.log("Result = " + result.message);
     }
 
@@ -218,9 +228,10 @@ const BillJourney = () => {
 
     // Home-tab search and filter over the rows already fetched (29.09, item 12).
     const globalFilter = useReportGlobalFilter(bills, {
+        // Bill Received at Site (col 24) first: the report's own date column (1.10, item O-02).
         dateFields: pickDateFields(columns, [
-            "invoiceDate", "proformaInvDate", "poDate", "paymentDate", "siteApprovalDate",
-            "billReceivedAtSite", "billSendForQualityCertification", "billSendToQS", "certifiedByQS",
+            "billReceivedAtSite", "invoiceDate", "proformaInvDate", "poDate", "paymentDate", "siteApprovalDate",
+            "billSendForQualityCertification", "billSendToQS", "certifiedByQS",
             "certifiedByArch", "billSendToSiteEngineer", "migoDate", "billSendToPIMOMumbai",
             "billReceivedAtPIMOMumbai", "billSendToQSCertification", "receivedFromQSWithCOP",
             "givenToITDept", "receivedBackFromITDept", "sesDate", "certifiedByProjectDirector",
@@ -244,8 +255,8 @@ const BillJourney = () => {
                 <div className="flex justify-between items-center mb-[2vh]">
                     <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Bill Journey Report</h2>
                     <div className="flex gap-[1vw] w-[50%]">
-                        <button className="w-[300px] bg-[#34915C] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#45a049]" onClick={handlePrintChecklist}>
-                            Print Checklist
+                        <button className="w-[300px] bg-[#34915C] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#45a049]" onClick={handlePrintBillJourney}>
+                            Print Bill Journey
                             <img src={print} />
                         </button>
                         <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]" onClick={handleTopPrint}>

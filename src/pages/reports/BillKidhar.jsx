@@ -27,7 +27,8 @@ const BillKidhar = () => {
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [sortBy, setSortBy] = useState("2020-01-01");
-    const [fromDate, setFromDate] = useState("2020-01-01");
+    // Default window 01-04-2020 to today, on Dt recd at Site (1.10, item O-02).
+    const [fromDate, setFromDate] = useState("2020-04-01");
     const [toDate, setToDate] = useState(getFormattedDate);
     const [regionOptions, setRegionOptions] = useState([]);
     const [region, setRegion] = useState("all");
@@ -104,7 +105,8 @@ const BillKidhar = () => {
         console.log("Result = " + result.message);
     }
 
-    const titleName = "BillKidhar";
+    // Also names the download: "Bill Kidhar_DDMMYYYY.xlsx" (1.10, item O-16a).
+    const titleName = "Bill Kidhar";
 
     const columns = [
         { field: "srNo", headerName: "Sr. No" },
@@ -128,7 +130,8 @@ const BillKidhar = () => {
 
     // Home-tab search and filter over the rows already fetched (29.09, item 12).
     const globalFilter = useReportGlobalFilter(bills, {
-        dateFields: pickDateFields(columns, ["taxInvDate", "paymentDate", "taxInvRecdAtSite", "qsMeasureGiven", "qsCopGiven", "pimoReceived", "qsMumbaiGiven", "acctsReceived"]),
+        // Dt recd at Site first: the report's own date column (1.10, item O-02).
+        dateFields: pickDateFields(columns, ["taxInvRecdAtSite", "taxInvDate", "paymentDate", "qsMeasureGiven", "qsCopGiven", "pimoReceived", "qsMumbaiGiven", "acctsReceived"]),
         amountFields: pickAmountFields(columns, ["taxInvAmt", "copAmt", "paymentAmt"]), // 29.09, item 14
         searchFields: visibleColumnFields,
         totals: { count: COUNT, grandTotalTaxAmount: "taxInvAmt" },

@@ -3,13 +3,10 @@ import Header from "../../components/Header";
 import { useLocation } from "react-router-dom";
 import print from "../../assets/print.svg";
 import logo from "../../assets/logo.png";
+// Shared two-decimal en-IN amount formatter (1.10, item O-04).
+import { formatAmount } from "../../utils/formatAmount";
 
 const ITEMS_PER_PAGE = 1;
-
-const formatAmount = (amount) => {
-  if (amount === null || amount === undefined || isNaN(amount) || amount === "") return amount || "";
-  return Number(amount).toLocaleString('en-IN');
-};
 
 const ChecklistDirectFI = () => {
   const location = useLocation();
@@ -94,6 +91,14 @@ const ChecklistDirectFI = () => {
           }
           .grid-span-2 {
             grid-column: span 2;
+          }
+          /* Long values wrap inside their own cell instead of spilling into
+             the next one; column widths above are honoured (1.10, item O-05). */
+          table { table-layout: fixed; }
+          td, th, .content-row, .grid-row, .grid-row > * {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            word-break: break-word;
           }
         }
       </style>
@@ -308,8 +313,8 @@ const ChecklistDirectFI = () => {
         {currentItems.map((item, index) => (
           <div key={index}>
             <div className="w-full max-w-[90%] mx-auto">
-              <div className="border border-gray-300 bg-white font-semibold">
-                <div className="grid grid-cols-2 bg-gray-200 items-center">
+              <div className="border border-gray-300 bg-white font-semibold [overflow-wrap:anywhere] [word-break:break-word]">
+                <div className="grid grid-cols-2 bg-gray-200 items-center [&>*]:min-w-0">
                   <div className="p-2 border-b border-gray-300 flex items-center">
                     <div className="text-sm font-semibold">
                       <img src={logo} alt="" className="h-10" />
@@ -342,7 +347,8 @@ const ChecklistDirectFI = () => {
               className="w-full max-w-[90%] mx-auto"
             >
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
+                {/* Long values wrap within their own cell (1.10, item O-05). */}
+                <table className="w-full border-collapse [overflow-wrap:anywhere] [word-break:break-word]">
                   <thead>
                     <tr>
                       <th className="border border-gray-300 p-2 bg-gray-100 w-12">

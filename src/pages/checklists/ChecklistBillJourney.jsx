@@ -1,15 +1,14 @@
 import React, { useRef, useState } from "react";
+import { JOURNEY_STEPS } from "../../utils/printBillJourney";
+import { billJourneyRow } from "../../utils/billJourneyRow";
 import Header from "../../components/Header";
 import { useLocation } from "react-router-dom";
 import print from "../../assets/print.svg";
 import logo from "../../assets/logo.png";
+// Shared two-decimal en-IN amount formatter (1.10, item O-04).
+import { formatAmount } from "../../utils/formatAmount";
 
 const ITEMS_PER_PAGE = 1;
-
-const formatAmount = (amount) => {
-  if (amount === null || amount === undefined || isNaN(amount) || amount === "") return amount || "";
-  return Number(amount).toLocaleString('en-IN');
-};
 
 const ChecklistBillJourney = () => {
   const location = useLocation();
@@ -32,32 +31,18 @@ const ChecklistBillJourney = () => {
       .replace(/\//g, "-");
   };
 
-  const rows = [
-    "Bill Received at Site",
-    "Receipt By Project Team",
-    "Received for PO",
-    "Receipt of PO",
-    "Bill send for Quality Certification",
-    "Bill send to QS",
-    "Certified by QS",
-    "Certified by Arch/PMC/SVKM",
-    "Bill send to Site Engineer/ Site Incharge",
-    "Receipt By Site Project Director",
-    "Receipt at MPTP",
-    "Certified by LPC Members",
-    "MIGO Date / MIGO No.",
-    "Bill Send to PIMO Mumbai",
-    "Bill Received at PIMO Mumbai",
-    "Bill Send to QS Certification",
-    "Received from QS With COP",
-    "Given to I.T. Dept.",
-    "Received Back from I.T.Dept.",
-    "SES Date / SES No.",
-    "Certified by Project DIRECTOR",
-    "Certified by Project ADVISOR",
-    "Certified by MC Members",
-    "Submitted to Accounts Department",
-  ];
+  /*
+   * The journey steps, shared with Print Bill Journey on the report. This
+   * page listed its own step labels with the Date and Name cells left blank -
+   * only "Bill Received at Site" read a value - so a bill printed empty
+   * however far it had travelled (1.10, item 17).
+   */
+  const rows = JOURNEY_STEPS;
+  const stepDate = (item, step) => {
+    const row = billJourneyRow(item);
+    return row[step.date] || (step.fallbackDate ? row[step.fallbackDate] : "") || "";
+  };
+  const stepName = (item, step) => (step.name ? billJourneyRow(item)[step.name] || "" : "");
 
   console.log("Bill List:", billList);
   console.log("Bills Data:", billsData);
@@ -134,6 +119,15 @@ const ChecklistBillJourney = () => {
             padding: 8px;
             padding-right: 100px;
           }
+          /* Long values wrap inside their own field/cell instead of spilling
+             into the next one (1.10, item O-05). */
+          table { table-layout: fixed; }
+          td, th, .content-row, .grid-row > *, .vend-desc > * {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+          }
+          .vend-desc { gap: 16px; }
         }
       </style>
     `;
@@ -165,14 +159,15 @@ const ChecklistBillJourney = () => {
             alongside - the layout she marked up (observation N-11).
           -->
           <div class="grid-row grid-2">
-            <div>Proforma Invoice no &amp; Date &amp; Amount:
+            <!-- Labels per client mark-up (1.10, item O-07). -->
+            <div>Proforma Inv &amp; Date &amp; Amt:
               <b>${[
                 item?.proformaInvNo || "",
                 formatDate(item?.proformaInvDate) || "",
                 item?.proformaInvAmt ? `${item?.currency || ""} ${formatAmount(item?.proformaInvAmt)}` : "",
               ].filter(Boolean).join(" &nbsp;&nbsp; ")}</b>
             </div>
-            <div>Created By &amp; Team:
+            <div>Created By:
               <b>${[item?.createdBy || "", item?.createdByTeam || ""].filter(Boolean).join(" &nbsp;&nbsp; ")}</b>
             </div>
           </div>
@@ -184,18 +179,23 @@ const ChecklistBillJourney = () => {
           </div>
 
           <div class="vend-desc">
-            <div>Vendor Description: <b>${item?.vendorName || ""}</b></div>
+            <div>Vendor: <b>${item?.vendorName || ""}</b></div>
             
-            <div>Vendor code: <b>${item?.vendorNo || ""}</b></div>
+            <div>SAP Code: <b>${item?.vendorNo || ""}</b></div>
           </div>
 
-          <div class="grid-row grid-3">
-            <div class="grid-span-2">PO Number and Date: <b>${item?.poNo || ""}</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>${formatDate(item?.poDate)}</b></div>
-            <div>PO Amt: <b>${item?.currency || ""} ${formatAmount(item?.poAmt) || ""}</b></div>
-          </div>
-
+          <!-- PO no, date and amount on one line (1.10, item O-07). -->
           <div class="content-row">
-            Additional Info: <b>${item?.department || ""}</b>
+            PO no and Date and Amt: <b>${[
+              item?.poNo || "",
+              formatDate(item?.poDate) || "",
+              formatAmount(item?.poAmt) ? `${item?.currency || "INR"} ${formatAmount(item?.poAmt)}` : "",
+            ].filter(Boolean).join(" &amp; ")}</b>
+          </div>
+
+          <!-- Was "Additional Info"; same underlying field (1.10, item O-07). -->
+          <div class="content-row">
+            Remarks: <b>${item?.department || ""}</b>
           </div>
 
           <table>
@@ -210,17 +210,11 @@ const ChecklistBillJourney = () => {
             <tbody>
               ${rows
           .map(
-            (description) => `
-                <tr class="${rows.indexOf(description) % 2 === 0
-                ? "bg-gray-50"
-                : "bg-white"
-              }">
-                  <td>${description === "Bill Received at Site"
-                ? formatDate(item?.taxInvRecdAtSite)
-                : ""
-              }</td>
-                  <td>${description}</td>
-                  <td></td>
+            (step, idx) => `
+                <tr class="${idx % 2 === 0 ? "bg-gray-50" : "bg-white"}">
+                  <td>${stepDate(item, step)}</td>
+                  <td>${step.label}</td>
+                  <td>${stepName(item, step)}</td>
                   <td></td>
                 </tr>
               `
@@ -287,14 +281,15 @@ const ChecklistBillJourney = () => {
           {currentItems.map((item, index) => (
             <div key={index}>
               <div className="w-full max-w-[90%] mx-auto">
-                <div className="border border-gray-300 bg-white font-semibold">
+                {/* Long values wrap within their own field (1.10, item O-05). */}
+                <div className="border border-gray-300 bg-white font-semibold [overflow-wrap:anywhere] [word-break:break-word] [&_.grid>*]:min-w-0">
                   <div className="grid grid-cols-4 bg-gray-200 items-center">
                     <div className="p-2 border-b col-span-2 border-gray-300 flex items-center">
                       <div className="text-sm font-semibold">
                         <img src={logo} alt="" className="h-10" />
                       </div>
                       &nbsp; &nbsp;
-                      <div className="text-sm">
+                      <div className="text-sm min-w-0">
                         Region-Project Name: <span className="font-bold">{item?.region} -{" "}
                         {item?.projectDescription}</span>
                       </div>
@@ -316,14 +311,15 @@ const ChecklistBillJourney = () => {
                       (observation N-11).
                     */}
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>Proforma Invoice no &amp; Date &amp; Amount: <span className="font-bold">
+                      {/* Labels per client mark-up (1.10, item O-07). */}
+                      <div>Proforma Inv &amp; Date &amp; Amt: <span className="font-bold">
                         {[
                           item?.proformaInvNo || "",
                           formatDate(item?.proformaInvDate) || "",
                           item?.proformaInvAmt ? `${item?.currency || ""} ${formatAmount(item?.proformaInvAmt)}` : "",
                         ].filter(Boolean).join("   ")}
                       </span></div>
-                      <div>Created By &amp; Team: <span className="font-bold">
+                      <div>Created By: <span className="font-bold">
                         {[item?.createdBy || "", item?.createdByTeam || ""].filter(Boolean).join("   ")}
                       </span></div>
                     </div>
@@ -341,27 +337,29 @@ const ChecklistBillJourney = () => {
 
                   <div className="p-2 border-b border-gray-300">
                     <div className="grid grid-cols-4 text-sm">
-                      <div className="col-span-3">Vendor Description: <span className="font-bold">{item?.vendorName}</span></div>
-                      <div>Vendor code: <span className="font-bold">{item?.vendorNo}</span></div>
+                      <div className="col-span-3">Vendor: <span className="font-bold">{item?.vendorName}</span></div>
+                      <div>SAP Code: <span className="font-bold">{item?.vendorNo}</span></div>
                     </div>
                   </div>
 
+                  {/* PO no, date and amount on one line (1.10, item O-07). */}
                   <div className="p-2 border-b border-gray-300">
-                    <div className="grid grid-cols-4 text-sm">
-                      <div className="col-span-3">
-                        PO Number and Date: <span className="font-bold">{item?.poNo}</span>{" "}
-                        &nbsp; &nbsp;
-                        <span className="font-bold">{formatDate(item?.poDate)}</span>
-                      </div>
-                      <div>
-                        PO Amt: <span className="font-bold">{item?.currency} {formatAmount(item?.poAmt)}</span>
-                      </div>
+                    <div className="text-sm">
+                      PO no and Date and Amt:{" "}
+                      <span className="font-bold">
+                        {[
+                          item?.poNo || "",
+                          formatDate(item?.poDate) || "",
+                          formatAmount(item?.poAmt) ? `${item?.currency || "INR"} ${formatAmount(item?.poAmt)}` : "",
+                        ].filter(Boolean).join(" & ")}
+                      </span>
                     </div>
                   </div>
 
                   <div className="p-2">
                     <div className="text-sm">
-                      Additional Info: <span className="font-bold">{item?.department}</span>
+                      {/* Was "Additional Info"; same underlying field (1.10, item O-07). */}
+                      Remarks: <span className="font-bold">{item?.department}</span>
                     </div>
                   </div>
                 </div>
@@ -369,7 +367,7 @@ const ChecklistBillJourney = () => {
 
               {/* Existing table code with updated margins */}
               <div className="w-full max-w-[90%] mx-auto flex flex-col gap-4">
-                <table className="min-w-full border border-gray-300 bg-white shadow-md rounded-xl">
+                <table className="min-w-full border border-gray-300 bg-white shadow-md rounded-xl [overflow-wrap:anywhere] [word-break:break-word]">
                   <thead>
                     <tr className="bg-gray-200 text-gray-700 text-sm">
                       <th className="px-4 py-2 text-left w-1/6 border-r">
@@ -385,20 +383,20 @@ const ChecklistBillJourney = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map((description, index) => (
+                    {rows.map((step, index) => (
                       <tr
                         key={index}
                         className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
                       >
                         <td className="px-4 py-2 border-t border-r border-gray-300">
-                          {description == "Bill Received at Site"
-                            ? formatDate(item?.taxInvRecdAtSite)
-                            : ""}
+                          {stepDate(item, step)}
                         </td>
                         <td className="px-4 py-2 border-t border-r border-gray-300">
-                          {description}
+                          {step.label}
                         </td>
-                        <td className="px-4 py-2 border-t border-r border-gray-300"></td>
+                        <td className="px-4 py-2 border-t border-r border-gray-300">
+                          {stepName(item, step)}
+                        </td>
                         <td className="px-4 py-2 border-t border-gray-300"></td>
                       </tr>
                     ))}
@@ -428,14 +426,14 @@ const ChecklistBillJourney = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((description, index) => (
+                  {rows.map((step, index) => (
                     <tr
                       key={index}
                       className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
                     >
                       <td className="px-4 py-2 border-t border-r border-gray-300"></td>
                       <td className="px-4 py-2 border-t border-r border-gray-300">
-                        {description}
+                        {step.label}
                       </td>
                       <td className="px-4 py-2 border-t border-r border-gray-300"></td>
                       <td className="px-4 py-2 border-t border-gray-300"></td>

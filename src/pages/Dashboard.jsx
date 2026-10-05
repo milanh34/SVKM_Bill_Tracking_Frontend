@@ -27,7 +27,7 @@ import {
   RotateCcw
 } from "lucide-react";
 import search from "../assets/search.svg";
-import { getColumnsForRole } from "../utils/columnView";
+import { getColumnsForRole, defaultVisibleFields, columnSetKey } from "../utils/columnView";
 import { FilterModal } from "../components/dashboard/FilterModal";
 import {
   BILL_AMOUNT_FIELDS,
@@ -77,6 +77,7 @@ const Dashboard = () => {
   const [minAmount, setMinAmount] = useState("");
   const [maxAmount, setMaxAmount] = useState("");
   const [visibleColumnFields, setVisibleColumnFields] = useState([]);
+  const visibleColumnsKey = `dashboard_visible_columns_v2_${currentUserRole}`;
   const columnSelectorRef = useRef(null);
   const [isSendBoxOpen, setIsSendBoxOpen] = useState(false);
   const [isWindowOpen, setIsWindowOpen] = useState(false);
@@ -158,7 +159,7 @@ const Dashboard = () => {
       { value: "ses_team", label: "SES Team" },
       { value: "it_return_team", label: "Ret to PIMO Team by IT" },
       { value: "ses_return_team", label: " Ret to PIMO Team by SES" },
-      { value: "trustee", label: "Director/Advisor/Trustee" },
+      { value: "trustee", label: "Trustee, Advisor & Director" }, // 1.10, item 12
       { value: "accounts_department", label: "Accounts Team" }
     ],
     director: [{ value: "pimo_mumbai", label: "Returned to PIMO" }],
@@ -389,9 +390,11 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (visibleColumnFields.length > 0) {
-      localStorage.setItem("dashboard_visible_columns", JSON.stringify(visibleColumnFields));
+      try {
+        localStorage.setItem(visibleColumnsKey, JSON.stringify(visibleColumnFields));
+      } catch { /* storage unavailable: the defaults apply next time */ }
     }
-  }, [visibleColumnFields]);
+  }, [visibleColumnFields, visibleColumnsKey]);
 
   const fetchAllData = async () => {
     setLoading(true);
@@ -659,21 +662,20 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (columns.length > 0) {
-      const stored = localStorage.getItem("dashboard_visible_columns");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        // Only keep columns that still exist (in case columns change)
-        const valid = parsed.filter(field => columns.some(col => col.field === field));
-        setVisibleColumnFields(valid.length > 0 ? valid : columns.slice(0, 12).map(col => col.field));
-      } else {
-        const initialColumns = columns.slice(0, 12).map((col) => col.field);
-        if (!initialColumns.includes("srNo")) {
-          initialColumns.unshift("srNo");
-        }
-        setVisibleColumnFields(initialColumns);
-      }
+      // Her default columns per team (1.10, item 1). A user's own choice is
+      // remembered per role; the old shared key is ignored, so everyone
+      // starts from the new defaults once.
+      const defaults = defaultVisibleFields(columnSetKey(currentUserRole), columns);
+      let stored = null;
+      try {
+        stored = JSON.parse(localStorage.getItem(visibleColumnsKey) || "null");
+      } catch { stored = null; }
+      const valid = Array.isArray(stored)
+        ? stored.filter((field) => columns.some((col) => col.field === field))
+        : [];
+      setVisibleColumnFields(valid.length > 0 ? valid : defaults);
     }
-  }, [columns]);
+  }, [columns, visibleColumnsKey, currentUserRole]);
 
   const toggleColumnVisibility = (field) => {
     // Prevent srNo from being toggled off
@@ -779,8 +781,15 @@ const Dashboard = () => {
     <div className="h-screen flex flex-col bg-gray-50">
       <Header />
 
-      <div className="flex-1 p-3 overflow-hidden">
-        <div className="h-full bg-white rounded-lg shadow flex flex-col">
+      {/* Incoming gets its own background so it cannot be mistaken for Home
+          (1.10, item 9). */}
+      <div className={`flex-1 p-3 overflow-hidden ${showIncomingBills ? "bg-amber-100" : ""}`}>
+        <div className={`h-full rounded-lg shadow flex flex-col ${showIncomingBills ? "bg-amber-50 ring-2 ring-amber-400" : "bg-white"}`}>
+          {showIncomingBills && (
+            <div className="px-3 py-1.5 text-sm font-semibold text-amber-900 bg-amber-200 rounded-t-lg">
+              Incoming bills - sent to you, not yet received
+            </div>
+          )}
           <div className="p-3 border-b border-gray-200">
             <div className="flex justify-between items-center flex-wrap gap-4">
               <div className="flex items-center space-x-2 flex-1 max-w-md">

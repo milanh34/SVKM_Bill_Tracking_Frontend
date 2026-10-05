@@ -35,7 +35,8 @@ const Header = () => {
       allowedRoles: ["site_officer", "site_pimo", "director", "accounts", "qs_site"],
     },
     { name: "Masters", path: "/admin", allowedRoles: ["admin"] },
-    { name: "Vendor Master", path: "/vendor-master", allowedRoles: ["accounts"]}
+    // Vendor Master removed from Accounts (1.10, item 11); admin keeps it
+    // under Masters.
   ];
 
   const filteredMenuItems = menuItems.filter((item) => {

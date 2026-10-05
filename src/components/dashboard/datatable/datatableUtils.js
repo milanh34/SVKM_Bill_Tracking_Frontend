@@ -326,6 +326,14 @@ export const compareValues = (a, b, field, direction = "asc") => {
 
   const sign = direction === "desc" ? -1 : 1;
 
+  // Sr no is numeric text: compare as a number so 7- and 8-digit serials
+  // order correctly.
+  if (field === "srNo") {
+    const an = Number(av);
+    const bn = Number(bv);
+    if (!Number.isNaN(an) && !Number.isNaN(bn)) return sign * (an - bn);
+  }
+
   if (isDateField(field)) {
     const at = new Date(av).getTime();
     const bt = new Date(bv).getTime();
@@ -379,11 +387,15 @@ export const defaultSortField = (role, tab = "home") => {
   const BY_TAB = {
     home: {
       site_officer: "taxInvRecdAtSite", // col 24
-      qs_site: "qsInspection.dateGiven", // col 35
+      // Col 40, Dt Given-QS for Prov COP, per her sorting matrix (29.09,
+      // item 19) and the server's order. This still said col 35, so the grid
+      // re-sorted QS Home away from the order the server sent.
+      qs_site: "qsCOP.dateGiven", // col 40
       site_pimo: "pimoMumbai.dateReceived", // col 62
       pimo_mumbai: "pimoMumbai.dateReceived",
       director: "taxInvRecdAtSite", // col 24
       accounts: "accountsDept.dateReceived", // col 82
+      admin: "srNo", // latest Sr no first (1.10, item 3)
     },
     incoming: {
       site_pimo: "pimoMumbai.dateGiven", // col 61

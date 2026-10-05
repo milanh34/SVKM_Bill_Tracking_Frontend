@@ -296,7 +296,12 @@ function App() {
             />
           }
         />
-        <Route path="/vendor-master" element={<VendorTablePage />} />
+        {/* Was open to anyone with the URL; Accounts no longer has the tab
+            (1.10, item 11), so it is admin only. */}
+        <Route
+          path="/vendor-master"
+          element={<ProtectedRoute element={VendorTablePage} allowedRoles={["admin"]} />}
+        />
 
         {/* Not being used */}
         <Route path="/billqs" element={<BillDetailsQS />} />

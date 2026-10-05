@@ -6,18 +6,10 @@ import logo from "../../assets/logo.png";
 import { vendors } from "../../apis/master.api";
 import axios from "axios";
 import Cookies from "js-cookie";
+// Shared two-decimal en-IN amount formatter (1.10, item O-04).
+import { formatAmount } from "../../utils/formatAmount";
 
 const ITEMS_PER_PAGE = 1;
-
-const formatAmount = (amount) => {
-  if (amount === null || amount === undefined || isNaN(amount) || amount === "") return amount || "";
-  // Always two decimals. Without these options toLocaleString trims trailing
-  // zeros, so 50564.80 printed as "50,564.8" (29.09, item 23).
-  return Number(amount).toLocaleString('en-IN', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-};
 
 const ChecklistAccount = () => {
   const location = useLocation();
@@ -80,7 +72,8 @@ const ChecklistAccount = () => {
             size: A4;
           }
           body { 
-            font-family: Arial, sans-serif;
+            /* Whole checklist in Times New Roman (1.10, item O-08). */
+            font-family: "Times New Roman", Times, serif;
             /* Raised from 14px, with more leading - the client asked for a
                larger face and more gap between lines (observations, C-04). */
             font-size: 16px;
@@ -90,6 +83,13 @@ const ChecklistAccount = () => {
             color: #000;
           }
           td, th { padding: 7px 8px; }
+          /* Long values wrap inside their own cell/field instead of spilling
+             into the next one (1.10, item O-05). */
+          td, th, .header-cell, .header-cell-1, .header-cell-2, .narrow, .duedate {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+          }
           .print-page {
             width: 100%;
             margin: 0 auto;
@@ -171,6 +171,8 @@ const ChecklistAccount = () => {
           }
           .main-table {
             width: 100%;
+            /* Honour the column widths below so a long value wraps (1.10, item O-05). */
+            table-layout: fixed;
             border-collapse: collapse;
             border: 2px solid #000;
             margin-top: 10px;
@@ -216,7 +218,7 @@ const ChecklistAccount = () => {
         }
         @media screen {
           body {
-            font-family: Arial, sans-serif;
+            font-family: "Times New Roman", Times, serif;
             background: #f5f5f5;
           }
         }
@@ -251,15 +253,16 @@ const ChecklistAccount = () => {
               
               <!-- Invoice Details Row -->
               <div class="header-row-2">
-                <div class="header-cell-2">Invoice no and Date: <b>${item?.taxInvNo || ""}</b></div>
-                <div class="header-cell-2">Dt: <b>${formatDate(item?.taxInvDate)}</b></div>
+                <!-- Invoice no and date as one value; separate "Dt:" cell removed (1.10, item O-08). -->
+                <div class="header-cell-2">Invoice no and Date: <b>${[item?.taxInvNo, formatDate(item?.taxInvDate)].filter(Boolean).join(" and ")}</b></div>
                 <div class="header-cell-2">Nature of Work: <b>${item?.natureOfWork || item?.typeOfInv || ""}</b></div>
               </div>
               
               <!-- Vendor Info Row -->
               <div class="header-row">
-                <div class="header-cell wide">Vendor Description: <b>${item?.vendorName || ""}</b></div>
-                <div class="header-cell">Vendor Code: <b>${item?.vendorNo || ""}</b></div>
+                <!-- Labels per client mark-up (1.10, item O-08). -->
+                <div class="header-cell wide">Vendor: <b>${item?.vendorName || ""}</b></div>
+                <div class="header-cell">SAP Code: <b>${item?.vendorNo || ""}</b></div>
               </div>
               
               <!-- PO Info Row -->
@@ -276,7 +279,7 @@ const ChecklistAccount = () => {
               
               <!-- Compliance Row -->
               <div class="header-row">
-                <div class="header-cell wide">Compliance u/s 206AB: <b>${item?.compliance206AB || ""}</b></div>
+                <div class="header-cell wide">206AB Compliance: <b>${item?.compliance206AB || ""}</b></div>
                 <div class="header-cell">PAN Status: <b>${item?.panStatus || ""}</b></div>
               </div>
             </div>
@@ -477,18 +480,20 @@ const ChecklistAccount = () => {
         </button>
       </div>
 
-      <div className="overflow-x-auto p-6 min-h-screen">
+      {/* Whole checklist in Times New Roman (1.10, item O-08). */}
+      <div className="overflow-x-auto p-6 min-h-screen" style={{ fontFamily: '"Times New Roman", Times, serif' }}>
         {currentItems.map((item, index) => (
           <div key={index}>
             <div className="w-full max-w-[90%] mx-auto">
-              <div className="border border-gray-300 bg-white font-semibold">
+              {/* Long values wrap within their own field (1.10, item O-05). */}
+              <div className="border border-gray-300 bg-white font-semibold [overflow-wrap:anywhere] [word-break:break-word] [&_.grid>*]:min-w-0">
                 <div className="grid grid-cols-4 bg-gray-200 items-center">
                   <div className="p-2 border-b col-span-2 border-gray-300 flex items-center">
                     <div className="text-sm font-semibold">
                       <img src={logo} alt="" className="h-10" />
                     </div>
                     &nbsp; &nbsp;
-                    <div className="text-sm">
+                    <div className="text-sm min-w-0">
                       Region-Project Name: <span className="font-bold">{item?.region} -{" "}
                       {item?.projectDescription}</span>
                     </div>
@@ -502,9 +507,14 @@ const ChecklistAccount = () => {
                 </div>
 
                 <div className="p-2 border-b border-gray-300">
-                  <div className="grid grid-cols-3 gap-4 text-sm">
-                    <div>Invoice No: <span className="font-bold">{item?.taxInvNo}</span></div>
-                    <div>Dt: <span className="font-bold">{formatDate(item?.taxInvDate)}</span></div>
+                  {/* Invoice no and date as one value; separate "Dt:" cell removed (1.10, item O-08). */}
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      Invoice no and Date:{" "}
+                      <span className="font-bold">
+                        {[item?.taxInvNo, formatDate(item?.taxInvDate)].filter(Boolean).join(" and ")}
+                      </span>
+                    </div>
                     <div>
                       Nature of Work: <span className="font-bold">{item?.natureOfWork || item?.typeOfInv}</span>
                     </div>
@@ -514,9 +524,10 @@ const ChecklistAccount = () => {
                 <div className="p-2 border-b border-gray-300">
                   <div className="grid grid-cols-4 text-sm">
                     <div className="col-span-3">
-                      Vendor Description: <span className="font-bold">{item?.vendorName}</span>
+                      {/* Labels per client mark-up (1.10, item O-08). */}
+                      Vendor: <span className="font-bold">{item?.vendorName}</span>
                     </div>
-                    <div>Vendor code: <span className="font-bold">{item?.vendorNo}</span></div>
+                    <div>SAP Code: <span className="font-bold">{item?.vendorNo}</span></div>
                   </div>
                 </div>
 
@@ -545,7 +556,7 @@ const ChecklistAccount = () => {
                 <div className="p-2 border-b border-gray-300">
                   <div className="grid grid-cols-4 text-sm">
                     <div className="col-span-3">
-                      Compliance u/s 206AB: <span className="font-bold">{item?.compliance206AB}</span>
+                      206AB Compliance: <span className="font-bold">{item?.compliance206AB}</span>
                     </div>
                     <div>Pan Status: <span className="font-bold">{item?.panStatus}</span></div>
                   </div>
@@ -557,7 +568,7 @@ const ChecklistAccount = () => {
               <div className="bg-white rounded shadow">
                 <div>
                   <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
+                    <table className="w-full border-collapse [overflow-wrap:anywhere] [word-break:break-word]">
                       <thead>
                         <tr>
                           <th className="border border-gray-300 p-2 bg-gray-100 w-1/3">

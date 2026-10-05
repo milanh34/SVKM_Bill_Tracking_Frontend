@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { generatedAtText, reportFileName } from "./reportExportCommon";
 
 const formatCurrency = (value) => {
   if (value === undefined || value === null) return "";
@@ -35,7 +36,11 @@ export const excelDaySerial = (value) => {
   return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000 + 25569;
 };
 
-export const handleExportReport = async (selectedRows, filteredData, columns, visibleColumnFields) => {
+/**
+ * `fileLabel` names the file: "<fileLabel>_DDMMYYYY.xlsx" (1.10, item O-16a).
+ * Home passes nothing; the Forwarded tab passes "Forwarded".
+ */
+export const handleExportReport = async (selectedRows, filteredData, columns, visibleColumnFields, fileLabel = "Home") => {
   try {
     const dataToExport = selectedRows.length > 0
       ? filteredData.filter((item) => selectedRows.includes(item._id))
@@ -63,8 +68,9 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
 
     // Create timestamp row
     const now = new Date();
+    // Date and time (1.10, items O-16b, O-16h).
     const timestamp = [
-      [`Report generated on: ${now.toLocaleDateString('en-IN')}`]
+      [generatedAtText(now)]
     ];
 
     // Create worksheet with data
@@ -177,6 +183,16 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
       }, 0);
     }
 
+    // Advance Amt gets its grand total too (1.10, item O-16h).
+    const advanceAmtColumn = allColumnsToExport.find(col => col.field === "advanceAmt");
+    if (advanceAmtColumn) {
+      grandTotals["advanceAmt"] = dataToExport.reduce((total, row) => {
+        const raw = row.advanceAmt;
+        const num = typeof raw === "number" ? raw : Number(String(raw ?? "").replace(/[^\d.-]/g, ""));
+        return total + (Number.isFinite(num) ? num : 0);
+      }, 0);
+    }
+
     const poAmtColumn = allColumnsToExport.find(col => col.field === "poAmt");
     if (poAmtColumn) {
       grandTotals["poAmt"] = dataToExport.reduce((total, row) => {
@@ -249,7 +265,8 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
       dateColumnIndices.forEach((colIndex) => {
         const cellAddress = XLSX.utils.encode_cell({ r: row, c: colIndex });
         if (worksheet[cellAddress] && typeof worksheet[cellAddress].v === 'number') {
-          worksheet[cellAddress].z = "dd-mm-yyyy";
+          // DD/MM/YYYY, slashes kept literal so no locale swaps them (1.10, item O-16h).
+          worksheet[cellAddress].z = "dd\\/mm\\/yyyy";
         }
       });
     }
@@ -312,13 +329,8 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
     const url = URL.createObjectURL(blob);
-    const now1 = new Date();
-    // const filename = `${now1.getDate().toString().padStart(2, '0')}${(now1.getMonth() + 1).toString().padStart(2, '0')}${now1.getFullYear().toString().slice(-2)}_${now1.getHours().toString().padStart(2, '0')}${now1.getMinutes().toString().padStart(2, '0')}${now1.getSeconds().toString().padStart(2, '0')}.xlsx`;
-    // const now = new Date();
-
-    const filename = `${now1.getDate().toString().padStart(2, '0')}-${(now1.getMonth() + 1)
-      .toString()
-      .padStart(2, '0')}-${now1.getFullYear()}.xlsx`;
+    // "<fileLabel>_DDMMYYYY.xlsx", e.g. "Home_01102026.xlsx" (1.10, item O-16a).
+    const filename = reportFileName(fileLabel || "Home", now);
 
     const link = document.createElement("a");
     link.href = url;

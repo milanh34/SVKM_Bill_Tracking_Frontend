@@ -145,7 +145,8 @@ const RepBillOutstandingSubtotal = () => {
     // which the data rows now carry, so only the subtotal rows got through.
     const handleTopDownload = async () => {
         console.log("Subtotal download clicked");
-        const result = await handleExportOutstandingSubtotalReport([], globalFilter.filteredRows, columns, visibleColumnFields, false);
+        // The criteria go into the download too (1.10, item O-16c).
+        const result = await handleExportOutstandingSubtotalReport([], globalFilter.filteredRows, columns, visibleColumnFields, false, { region, fromDate, toDate });
         console.log(result);
     }
 

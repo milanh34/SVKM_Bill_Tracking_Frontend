@@ -52,7 +52,7 @@ export const RemoveDateModal = ({
     ses_team: "SES Team",
     it_return_team: "Ret by IT Team",
     ses_return_team: "Ret by SES Team",
-    trustee: "Director/Advisor/Trustee",
+    trustee: "Trustee, Advisor & Director", // 1.10, item 12
     accounts_department: "Accounts Team",
     booking_checking: "Booking & Checking",
     qs_not_received: "Mark as not received", // N-18

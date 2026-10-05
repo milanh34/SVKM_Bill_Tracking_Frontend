@@ -1,5 +1,15 @@
 import * as XLSX from "xlsx";
 import { outstanding } from "../apis/report.api";
+import {
+    describeReportCriteria,
+    criteriaLine,
+    generatedAtText,
+    printCriteriaHtml,
+    reportFileName,
+} from "./reportExportCommon";
+
+// The file is "<report name>_DDMMYYYY.xlsx" (1.10, item O-16a).
+const REPORT_NAME = "Outstanding Bills Report Subtotal";
 
 const formatCurrency = (value) => {
     if (value === undefined || value === null) return "";
@@ -68,9 +78,13 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
 
         // Create timestamp row
         const now = new Date();
+        // Date and time (1.10, item O-16b).
         const timestamp = [
-            [`Report generated on: ${now.toLocaleDateString('en-IN')}`]
+            [generatedAtText(now)]
         ];
+        // Region and date range, as the other reports carry (1.10, item O-16c).
+        const criteria = describeReportCriteria(filters);
+        const dataRowCount = dataToExport.filter((item) => !item.isSubtotal && !item.isGrandTotal).length;
 
         // Create worksheet with data
         const excelData = [];
@@ -161,13 +175,20 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
         // Create and format worksheet
         if (!toPrint) {
 
-            const worksheet = XLSX.utils.aoa_to_sheet(timestamp);
+            // Timestamp, then the criteria merged across the table so it never
+            // sets a column's width (1.10, items O-16c/d), then the table.
+            const topRows = criteria ? [...timestamp, [criteriaLine(criteria)]] : timestamp;
+            const headerRowIndex = topRows.length; // 0-based
+            const worksheet = XLSX.utils.aoa_to_sheet(topRows);
             worksheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
-            XLSX.utils.sheet_add_json(worksheet, excelData, { origin: 'A2', skipHeader: false, cellDates: true });
+            if (criteria) {
+                worksheet["!merges"].push({ s: { r: 1, c: 0 }, e: { r: 1, c: Math.max(allColumnsToExport.length - 1, 0) } });
+            }
+            XLSX.utils.sheet_add_json(worksheet, excelData, { origin: `A${headerRowIndex + 1}`, skipHeader: false, cellDates: true });
 
             // Apply number and date formatting to data cells
             const dataRange = XLSX.utils.decode_range(worksheet["!ref"]);
-            for (let row = 2; row <= dataRange.e.r; row++) { // Start from row 2 (after timestamp + header)
+            for (let row = headerRowIndex + 1; row <= dataRange.e.r; row++) { // the rows after the header
                 // Apply date format to date columns
                 dateColumnIndices.forEach((colIndex) => {
                     const cellAddress = XLSX.utils.encode_cell({ r: row, c: colIndex });
@@ -229,7 +250,7 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                     typeof row[vendorNoHeader] === 'string' &&
                     (row[vendorNoHeader]?.startsWith("Count:") || row[vendorNoHeader]?.startsWith("Total Count:"))
                 ) {
-                    const rowIndex = idx + 2;
+                    const rowIndex = idx + headerRowIndex + 1;
                     for (let col = 0; col < Object.keys(row).length; col++) {
                         const cellRef = XLSX.utils.encode_cell({ r: rowIndex, c: col });
                         if (!worksheet[cellRef]) worksheet[cellRef] = {};
@@ -246,14 +267,15 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
             // Add worksheet to workbook
             XLSX.utils.book_append_sheet(workbook, worksheet, "Bills Report");
 
-            // Generate file and trigger download
+            // Generate file and trigger download (download only)
             const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
             const blob = new Blob([excelBuffer], {
                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             });
             const url = URL.createObjectURL(blob);
             const now1 = new Date();
-            const filename = `${titleName.replace(/[\/ ]/g, '_')}_${now1.getDate().toString().padStart(2, '0')}${(now1.getMonth() + 1).toString().padStart(2, '0')}${now1.getFullYear().toString().slice(-2)}_${now1.getHours().toString().padStart(2, '0')}${now1.getMinutes().toString().padStart(2, '0')}${now1.getSeconds().toString().padStart(2, '0')}.xlsx`;
+            // "<report name>_DDMMYYYY.xlsx" (1.10, item O-16a).
+            const filename = reportFileName(REPORT_NAME, now1);
 
             const link = document.createElement("a");
             link.href = url;
@@ -304,25 +326,8 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
         // }
 
         if (toPrint) {
-            // Build filter details line (Region, From, To) to show below the title
-            const formatFilterDate = (d) => {
-                if (!d) return "";
-                const parts = d.split("-");
-                if (parts.length === 3) {
-                    return `${parts[2]}-${parts[1]}-${parts[0]}`; // YYYY-MM-DD -> DD-MM-YYYY
-                }
-                return d;
-            };
-            let filterDetailsHtml = "";
-            if (filters) {
-                const regionLabel = (!filters.region || Array.isArray(filters.region) || String(filters.region).toLowerCase() === "all")
-                    ? "All"
-                    : filters.region;
-                const dateParts = [];
-                if (filters.fromDate) dateParts.push(`From: <strong>${formatFilterDate(filters.fromDate)}</strong>`);
-                if (filters.toDate) dateParts.push(`To: <strong>${formatFilterDate(filters.toDate)}</strong>`);
-                filterDetailsHtml = `<div class="report-filters"><div>Region: <strong>${regionLabel}</strong></div>${dateParts.length ? `<div>${dateParts.join(", ")}</div>` : ""}</div>`;
-            }
+            // Region, dates and the count below the title (1.10, items O-16d, O-18).
+            const filterDetailsHtml = printCriteriaHtml(criteria, dataRowCount);
 
             // Original excel generation and download code
             const worksheet = XLSX.utils.aoa_to_sheet(timestamp);
@@ -423,7 +428,8 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                 });
                 const url = URL.createObjectURL(blob);
                 const now1 = new Date();
-                const filename = `${titleName.replace(/[\/ ]/g, '_')}_${now1.getDate().toString().padStart(2, '0')}${(now1.getMonth() + 1).toString().padStart(2, '0')}${now1.getFullYear().toString().slice(-2)}_${now1.getHours().toString().padStart(2, '0')}${now1.getMinutes().toString().padStart(2, '0')}${now1.getSeconds().toString().padStart(2, '0')}.xlsx`;
+                // "<report name>_DDMMYYYY.xlsx" (1.10, item O-16a).
+                const filename = reportFileName(REPORT_NAME, now1);
 
                 // Trigger download
                 const link = document.createElement("a");
@@ -532,7 +538,7 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
                     // html += `<tr><td colspan="${range.e.c + 1}" class="timestamp">Outstanding Bills Report Subtotal as on\t\t${timestampValue}</td></tr>`;
                     html += `<div class="report-header">
                       <div class="report-title">Outstanding Bills Report Subtotal as on</div>
-                        <div class="timestamp">Report generated on: ${new Date().toLocaleDateString('en-IN')}</div>
+                        <div class="timestamp">${generatedAtText()}</div>
                     </div>
                     ${filterDetailsHtml}
                     <table>

@@ -9,7 +9,7 @@ import DataTable from "../components/DataTable";
 import { Funnel, Grid3x3, Download, X, AlertTriangle, ArrowLeftFromLine, ArrowRightFromLine, RotateCcw, Printer } from "lucide-react";
 import { printBills } from "../utils/printBills";
 import search from "../assets/search.svg";
-import { getColumnsForRole } from "../utils/columnView";
+import { getColumnsForRole, defaultVisibleFields, columnSetKey } from "../utils/columnView";
 import { FilterModal } from "../components/dashboard/FilterModal";
 import {
   BILL_AMOUNT_FIELDS,
@@ -117,7 +117,8 @@ const SentBills = () => {
 
   useEffect(() => {
     if (columns.length > 0) {
-      setVisibleColumnFields(columns.slice(0, 12).map((col) => col.field));
+      // Her default columns per team (1.10, item 1).
+      setVisibleColumnFields(defaultVisibleFields(columnSetKey(currentUserRole), columns));
     }
   }, [columns]);
 
@@ -287,7 +288,8 @@ const SentBills = () => {
         selectedRows,
         filteredUnpaginatedData,
         columns,
-        visibleColumnFields
+        visibleColumnFields,
+        "Forwarded" // file name Forwarded_DDMMYYYY (1.10, item 16)
       );
       if (result.success) {
         toast.success(result.message);

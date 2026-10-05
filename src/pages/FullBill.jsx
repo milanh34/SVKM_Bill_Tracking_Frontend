@@ -21,7 +21,7 @@ import { Paperclip, X } from "lucide-react";
  * individually, because Invoice received at Site/PIMO must stay open inside
  * a locked Invoice section.
  */
-const FormSection = ({ n, title, locked = false, note, children }) => (
+const FormSection = ({ n, title, hint, locked = false, note, children }) => (
   <section
     className={`mb-[4vh] rounded-xl border p-[3vh_2vw] transition-colors ${locked ? "border-dashed border-gray-300" : "border-[#4E4E4E25]"
       }`}
@@ -32,6 +32,7 @@ const FormSection = ({ n, title, locked = false, note, children }) => (
       </h2>
       {locked && note && <span className="text-sm text-gray-500">{note}</span>}
     </div>
+    {hint && <p className="-mt-[3vh] mb-[3vh] text-sm text-gray-600">{hint}</p>}
     {children}
   </section>
 );
@@ -440,6 +441,13 @@ const FullBillDetails = () => {
   const isAdvance = billFormData.natureOfWork === "Advance/LC/BG";
   const invoiceLocked = !!billFormData.natureOfWork && isAdvance;
   const advanceLocked = !isAdvance;
+  // Proforma is entered by IMD Site Team only; PIMO sees it greyed out
+  // (1.10, item 15). Advance/LC/BG locks it for everyone, as before.
+  const proformaLockedForRole = currentUserRole === "site_pimo" || currentUserRole === "pimo_mumbai";
+  const proformaLocked = invoiceLocked || proformaLockedForRole;
+  const proformaLockNote = proformaLockedForRole
+    ? "Entered by IMD Site Team only"
+    : "Not used when Nature of Work is Advance/LC/BG";
 
   const handleChange = (e) => {
     const { id, type, files, value } = e.target;
@@ -1026,103 +1034,8 @@ const FullBillDetails = () => {
               </div>
             </div>
           </FormSection>
-          <FormSection n={2} title="Proforma Invoice Details" locked={invoiceLocked} note="Not used when Nature of Work is Advance/LC/BG">
-            <div className="grid grid-cols-2 gap-[2vw]">
-              <div className="relative mb-[4vh]">
-                <label
-                  htmlFor="proformaInvNo"
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                >
-                  Proforma Invoice No
-                </label>
-                <input
-                  type="text"
-                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
-                  id="proformaInvNo"
-                  value={billFormData.proformaInvNo}
-                  onChange={handleChange}
-                  required={!invoiceLocked}
-                  disabled={invoiceLocked}
-                />
-              </div>
-              <div className="relative mb-[2.5vh]">
-                <label
-                  htmlFor="proformaInvDate"
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                >
-                  Proforma Inv Date
-                </label>
-                <input
-                  type="date"
-                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
-                  id="proformaInvDate"
-                  value={billFormData.proformaInvDate}
-                  onChange={handleChange}
-                  required={!invoiceLocked}
-                  disabled={invoiceLocked}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-[2vw]">
-              <div className="relative mb-[4vh]">
-                <label
-                  htmlFor="proformaInvAmt"
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                >
-                  Proforma Invoice Amount
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9.]*"
-                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
-                  id="proformaInvAmt"
-                  value={billFormData.proformaInvAmt}
-                  onChange={handleChange}
-                  required={!invoiceLocked}
-                  disabled={invoiceLocked}
-                />
-              </div>
-              <div className="relative mb-[4vh]">
-                <label
-                  htmlFor="proformaInvRecdAtSite"
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                >
-                  Proforma Inv Recd at Site
-                </label>
-                <input
-                  type="date"
-                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
-                  id="proformaInvRecdAtSite"
-                  value={billFormData.proformaInvRecdAtSite}
-                  onChange={handleChange}
-                  required={!invoiceLocked}
-                  disabled={invoiceLocked}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-[2vw]">
-              <div className="relative mb-[4vh]">
-                <label
-                  htmlFor="proformaInvRecdBy"
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                >
-                  Proforma Invoice Received By
-                </label>
-                <input
-                  type="text"
-                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
-                  id="proformaInvRecdBy"
-                  value={billFormData.proformaInvRecdBy}
-                  onChange={handleChange}
-                  required={!invoiceLocked}
-                  disabled={invoiceLocked}
-                />
-              </div>
-              <div></div>
-            </div>
-          </FormSection>
-          <FormSection n={3} title="Invoice Details" locked={invoiceLocked} note="Not used when Nature of Work is Advance/LC/BG. Invoice received at Site/PIMO stays open - every bill needs it.">
+          {/* Order and names per 1.10, item 15. */}
+          <FormSection n={2} title="Invoice/Hold & Ret.release Details" locked={invoiceLocked} note="Not used when Nature of Work is Advance/LC/BG. Invoice received at Site/PIMO stays open - every bill needs it.">
             <div className="grid grid-cols-2 gap-[2vw]">
               <div className="relative mb-[4vh]">
                 <label
@@ -1220,7 +1133,7 @@ const FullBillDetails = () => {
               <div></div>
             </div>
           </FormSection>
-          <FormSection n={4} title="Advance Details" locked={advanceLocked} note="Only used when Nature of Work is Advance/LC/BG">
+          <FormSection n={3} title="Advance Details" hint={'Enter only when Nature of Work selected is "Advance/LC/BG"'} locked={advanceLocked}>
             <div className="grid grid-cols-2 gap-[2vw]">
               <div className="relative mb-[4vh]">
                 <label
@@ -1294,6 +1207,102 @@ const FullBillDetails = () => {
                   disabled={advanceLocked}
                 />
               </div>
+            </div>
+          </FormSection>
+          <FormSection n={4} title="Proforma Invoice Details" hint="Enter only when Proforma Invoice is received for measurement purpose at site" locked={proformaLocked} note={proformaLockNote}>
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="proformaInvNo"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Proforma Invoice No
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="proformaInvNo"
+                  value={billFormData.proformaInvNo}
+                  onChange={handleChange}
+                  required={!proformaLocked}
+                  disabled={proformaLocked}
+                />
+              </div>
+              <div className="relative mb-[2.5vh]">
+                <label
+                  htmlFor="proformaInvDate"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Proforma Inv Date
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="proformaInvDate"
+                  value={billFormData.proformaInvDate}
+                  onChange={handleChange}
+                  required={!proformaLocked}
+                  disabled={proformaLocked}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="proformaInvAmt"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Proforma Invoice Amount
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9.]*"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="proformaInvAmt"
+                  value={billFormData.proformaInvAmt}
+                  onChange={handleChange}
+                  required={!proformaLocked}
+                  disabled={proformaLocked}
+                />
+              </div>
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="proformaInvRecdAtSite"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Proforma Inv Recd at Site
+                </label>
+                <input
+                  type="date"
+                  className="w-3/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="proformaInvRecdAtSite"
+                  value={billFormData.proformaInvRecdAtSite}
+                  onChange={handleChange}
+                  required={!proformaLocked}
+                  disabled={proformaLocked}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="proformaInvRecdBy"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Proforma Invoice Received By
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="proformaInvRecdBy"
+                  value={billFormData.proformaInvRecdBy}
+                  onChange={handleChange}
+                  required={!proformaLocked}
+                  disabled={proformaLocked}
+                />
+              </div>
+              <div></div>
             </div>
           </FormSection>
           <FormSection n={5} title="Additional Details">

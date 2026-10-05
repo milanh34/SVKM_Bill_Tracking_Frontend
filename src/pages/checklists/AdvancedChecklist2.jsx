@@ -3,33 +3,10 @@ import Header from "../../components/Header";
 import { useLocation } from "react-router-dom";
 import print from "../../assets/print.svg";
 import logo from "../../assets/logo.png";
+// Shared helpers: two-decimal en-IN amounts and words with paise (1.10, items O-04 / O-06).
+import { formatAmount, numberToWords } from "../../utils/formatAmount";
 
 const ITEMS_PER_PAGE = 1;
-
-const formatAmount = (amount) => {
-  if (amount === null || amount === undefined || isNaN(amount) || amount === "") return amount || "";
-  return Number(amount).toLocaleString('en-IN');
-};
-
-const numberToWords = (num) => {
-  if (num === null || num === undefined || isNaN(num) || num === "") return "";
-  num = Math.floor(Number(num));
-  if (num === 0) return "Zero";
-  
-  const a = ["", "One ", "Two ", "Three ", "Four ", "Five ", "Six ", "Seven ", "Eight ", "Nine ", "Ten ", "Eleven ", "Twelve ", "Thirteen ", "Fourteen ", "Fifteen ", "Sixteen ", "Seventeen ", "Eighteen ", "Nineteen "];
-  const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-
-  if ((num = num.toString()).length > 9) return "overflow";
-  const n = ("000000000" + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
-  if (!n) return ""; 
-  let str = "";
-  str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + " " + a[n[1][1]]) + "Crore " : "";
-  str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + " " + a[n[2][1]]) + "Lakh " : "";
-  str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + " " + a[n[3][1]]) + "Thousand " : "";
-  str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + " " + a[n[4][1]]) + "Hundred " : "";
-  str += (n[5] != 0) ? ((str != "") ? "and " : "") + (a[Number(n[5])] || b[n[5][0]] + " " + a[n[5][1]]) : "";
-  return str.trim() + " Only";
-};
 
 const AdvancedChecklist = (props) => {
   const location = useLocation();
@@ -68,6 +45,13 @@ const AdvancedChecklist = (props) => {
           /* Keep one checklist on one page rather than letting a stray row
              spill onto a second sheet. */
           .checklist-page, table, tr, td, th { page-break-inside: avoid; }
+          /* Long values wrap inside their own cell instead of spilling into
+             the next one (1.10, item O-05). */
+          td, th, .grid-row > * {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+          }
           body { 
             padding: 0;
             margin: 0;
@@ -353,8 +337,8 @@ const AdvancedChecklist = (props) => {
         {currentItems.map((item, index) => (
           <div key={index}>
             <div className="w-full max-w-[90%] mx-auto">
-              <div className="border border-gray-300 bg-white font-semibold">
-                <div className="grid grid-cols-3 bg-gray-200 items-center">
+              <div className="border border-gray-300 bg-white font-semibold [overflow-wrap:anywhere] [word-break:break-word]">
+                <div className="grid grid-cols-3 bg-gray-200 items-center [&>*]:min-w-0">
                   <div className="p-2 border-b border-gray-300 flex items-center">
                     <div className="text-xl font-medium">
                       <img src={logo} alt="" className="h-10" />
@@ -374,7 +358,8 @@ const AdvancedChecklist = (props) => {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
+                {/* Long values wrap within their own cell (1.10, item O-05). */}
+                <table className="w-full border-collapse [overflow-wrap:anywhere] [word-break:break-word]">
                   <tbody>
                     <tr>
                       <td className="border border-black p-2">1</td>

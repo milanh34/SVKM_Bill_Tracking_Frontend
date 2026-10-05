@@ -2,7 +2,7 @@ export const getColumnsForRole = (role) => {
   const allColumns = [
     { field: "srNo", headerName: "Sr no" }, // column no 1
     // { field: "srNoOld", headerName: "Sr no Old" }, // column no 2
-    { field: "createdBy", headerName: "Created By" }, // column no 2
+    { field: "createdByLabel", headerName: "Created By" }, // column no 2: name - team (1.10, item 10)
     { field: "natureOfWork", headerName: "Nature of Work" }, // column no 3
     { field: "region", headerName: "Region" }, // column no 4
     { field: "projectDescription", headerName: "Project Description" }, // column no 5
@@ -114,7 +114,7 @@ export const getColumnsForRole = (role) => {
   const roleSpecificFields = {
     SITE_OFFICER: [
       "srNo",
-      "createdBy",
+      "createdByLabel",
       "natureOfWork",
       "region",
       "projectDescription",
@@ -185,7 +185,7 @@ export const getColumnsForRole = (role) => {
 
     QS_TEAM: [
       "srNo",
-      "createdBy",
+      "createdByLabel",
       "natureOfWork",
       "region",
       "projectDescription",
@@ -204,6 +204,7 @@ export const getColumnsForRole = (role) => {
       "taxInvDate",
       "currency",
       "taxInvAmt",
+      "taxInvRecdAtSite", // col 24, a default column (1.10, item 1)
       "department",
       "remarksBySiteTeam",
       "attachments",
@@ -233,7 +234,7 @@ export const getColumnsForRole = (role) => {
 
     PIMO_MUMBAI_MIGO_SES: [
       "srNo",
-      "createdBy",
+      "createdByLabel",
       "natureOfWork",
       "region",
       "projectDescription",
@@ -335,7 +336,7 @@ export const getColumnsForRole = (role) => {
 
     ACCOUNTS_TEAM: [
       "srNo",
-      "createdBy",
+      "createdByLabel",
       "natureOfWork",
       "region",
       "projectDescription",
@@ -365,6 +366,7 @@ export const getColumnsForRole = (role) => {
       "advRequestEnteredBy",
       "copDetails.date",
       "copDetails.amount",
+      "qsMumbai.dateGiven", // col 64, a default column (1.10, item 1)
       "remarksByQSTeam",
       "remarks",
       "siteStatus",
@@ -396,7 +398,7 @@ export const getColumnsForRole = (role) => {
 
     DIRECTOR_TRUSTEE_ADVISOR: [
       "srNo",
-      "createdBy",
+      "createdByLabel",
       "natureOfWork",
       "region",
       "projectDescription",
@@ -418,6 +420,8 @@ export const getColumnsForRole = (role) => {
       "pimoMumbai.dateReceived",
       "qsMumbai.dateGiven",
       "pimoMumbai.dateReturnedFromQs",
+      "approvalDetails.directorApproval.dateGiven", // cols 77-78, display only (1.10, item 13)
+      "pimoMumbai.dateReturnedFromDirector", // cols 77-78, display only (1.10, item 13)
       "approvalDetails.remarksPimoMumbai",
       "accountsDept.dateGiven",
       "accountsDept.dateReceived",
@@ -437,3 +441,194 @@ export const getColumnsForRole = (role) => {
   }
   return allColumns.slice(0, 12);
 };
+
+/**
+ * Columns ticked in Column List by default, per team (1.10, item 1). Taken
+ * from her table; anything else stays available to add from Column List.
+ */
+export const DEFAULT_VISIBLE_COLUMNS = {
+  SITE_OFFICER: [
+    "srNo",
+    "natureOfWork",
+    "region",
+    "projectDescription",
+    "vendorNo",
+    "vendorName",
+    "gstNumber",
+    "poNo",
+    "poAmt",
+    "proformaInvNo",
+    "taxInvNo",
+    "taxInvDate",
+    "taxInvAmt",
+    "taxInvRecdAtSite",
+    "attachments",
+    "qualityEngineer.dateGiven",
+    "qsInspection.dateGiven",
+    "vendorFinalInv.dateGiven",
+    "qsCOP.dateGiven",
+    "copDetails.date",
+    "copDetails.amount",
+    "copDetails.dateReturned",
+    "migoDetails.dateGiven",
+    "migoDetails.no",
+    "migoDetails.date",
+    "migoDetails.amount",
+    "invReturnedToSite",
+    "siteEngineer.dateGiven",
+    "architect.dateGiven",
+    "siteIncharge.dateGiven",
+    "siteOfficeDispatch.dateGiven",
+    "siteStatus",
+    "pimoMumbai.dateGiven",
+    "pimoMumbai.dateReceived"
+  ],
+  QS_TEAM: [
+    "srNo",
+    "natureOfWork",
+    "region",
+    "projectDescription",
+    "vendorNo",
+    "vendorName",
+    "gstNumber",
+    "poNo",
+    "poAmt",
+    "taxInvNo",
+    "taxInvDate",
+    "taxInvAmt",
+    "taxInvRecdAtSite",
+    "attachments",
+    "advanceDate",
+    "advanceAmt",
+    "qsInspection.dateGiven",
+    "vendorFinalInv.dateGiven",
+    "qsCOP.dateGiven",
+    "copDetails.date",
+    "copDetails.amount",
+    "remarksByQSTeam",
+    "copDetails.dateReturned",
+    "siteStatus",
+    "qsMumbai.dateGiven",
+    "qsMumbai.name"
+  ],
+  PIMO_MUMBAI_MIGO_SES: [
+    "srNo",
+    "natureOfWork",
+    "region",
+    "projectDescription",
+    "vendorNo",
+    "vendorName",
+    "gstNumber",
+    "poNo",
+    "poAmt",
+    "taxInvNo",
+    "taxInvDate",
+    "taxInvAmt",
+    "taxInvRecdAtSite",
+    "attachments",
+    "advanceDate",
+    "advanceAmt",
+    "copDetails.date",
+    "copDetails.amount",
+    "migoDetails.dateGiven",
+    "migoDetails.no",
+    "migoDetails.date",
+    "migoDetails.amount",
+    "siteStatus",
+    "pimoMumbai.dateGiven",
+    "pimoMumbai.dateReceived",
+    "qsMumbai.dateGiven",
+    "sesDetails.no",
+    "sesDetails.amount",
+    "sesDetails.date",
+    "approvalDetails.directorApproval.dateGiven",
+    "pimoMumbai.dateReturnedFromDirector",
+    "approvalDetails.remarksPimoMumbai",
+    "accountsDept.dateGiven",
+    "accountsDept.dateReceived",
+    "accountsDept.paymentDate",
+    "accountsDept.paymentAmt",
+    "accountsDept.status"
+  ],
+  DIRECTOR_TRUSTEE_ADVISOR: [
+    "srNo",
+    "natureOfWork",
+    "region",
+    "projectDescription",
+    "vendorNo",
+    "vendorName",
+    "taxInvNo",
+    "taxInvDate",
+    "taxInvAmt",
+    "taxInvRecdAtSite",
+    "attachments",
+    "copDetails.amount",
+    "siteStatus",
+    "pimoMumbai.dateGiven",
+    "pimoMumbai.namePIMO",
+    "pimoMumbai.dateReceived",
+    "qsMumbai.dateGiven",
+    "pimoMumbai.dateReturnedFromQs",
+    "approvalDetails.remarksPimoMumbai",
+    "accountsDept.dateGiven",
+    "accountsDept.dateReceived",
+    "accountsDept.paymentDate",
+    "accountsDept.paymentAmt",
+    "accountsDept.remarksAcctsDept",
+    "accountsDept.status"
+  ],
+  ACCOUNTS_TEAM: [
+    "srNo",
+    "natureOfWork",
+    "region",
+    "projectDescription",
+    "vendorNo",
+    "vendorName",
+    "gstNumber",
+    "poNo",
+    "poAmt",
+    "taxInvNo",
+    "taxInvDate",
+    "taxInvAmt",
+    "taxInvRecdAtSite",
+    "attachments",
+    "advanceDate",
+    "advanceAmt",
+    "copDetails.date",
+    "copDetails.amount",
+    "siteStatus",
+    "pimoMumbai.dateReceived",
+    "qsMumbai.dateGiven",
+    "approvalDetails.remarksPimoMumbai",
+    "accountsDept.dateGiven",
+    "accountsDept.dateReceived",
+    "accountsDept.invBookingChecking",
+    "accountsDept.paymentInstructions",
+    "accountsDept.remarksForPayInstructions",
+    "accountsDept.f110Identification",
+    "accountsDept.paymentDate",
+    "accountsDept.hardCopy",
+    "accountsDept.accountsIdentification",
+    "accountsDept.paymentAmt",
+    "accountsDept.remarksAcctsDept",
+    "accountsDept.status"
+  ],
+};
+
+/** The default visible fields for a column-set key, limited to `columns`. */
+export const defaultVisibleFields = (roleKey, columns) => {
+  const wanted = DEFAULT_VISIBLE_COLUMNS[roleKey];
+  if (!wanted) return columns.slice(0, 12).map((c) => c.field);
+  return columns.filter((c) => wanted.includes(c.field)).map((c) => c.field);
+};
+
+/** The column-set key the grids use for a login role. */
+export const columnSetKey = (role) =>
+  ({
+    site_officer: "SITE_OFFICER",
+    qs_site: "QS_TEAM",
+    site_pimo: "PIMO_MUMBAI_MIGO_SES",
+    pimo_mumbai: "PIMO_MUMBAI_MIGO_SES",
+    accounts: "ACCOUNTS_TEAM",
+    director: "DIRECTOR_TRUSTEE_ADVISOR",
+  }[role] || "ADMIN");

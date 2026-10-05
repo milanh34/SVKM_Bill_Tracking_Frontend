@@ -4,6 +4,57 @@ import search from "../../assets/search.svg";
 import { RegionChecklist, AmountRangeFields } from "../dashboard/FilterModal";
 
 /**
+ * Nature of Work, ticked several at once like region (1.10, item O-19).
+ * Built here rather than reusing RegionChecklist, whose label says "Region".
+ */
+const NatureChecklist = ({ options, selected, onChange }) => {
+    const toggle = (value) =>
+        onChange(selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value]);
+
+    return (
+        <div>
+            <div className="flex justify-between items-center">
+                <label className="block text-sm font-medium text-gray-700">
+                    Nature of Work:{" "}
+                    <span className="font-normal text-gray-500">
+                        {selected.length === 0 ? "All" : `${selected.length} selected`}
+                    </span>
+                </label>
+                <div className="flex gap-3 text-xs">
+                    <button
+                        type="button"
+                        className="text-[#011a99] hover:underline hover:cursor-pointer"
+                        onClick={() => onChange([...options])}
+                    >
+                        Select all
+                    </button>
+                    <button
+                        type="button"
+                        className="text-[#011a99] hover:underline hover:cursor-pointer"
+                        onClick={() => onChange([])}
+                    >
+                        Clear
+                    </button>
+                </div>
+            </div>
+            <div className="mt-1 max-h-40 overflow-y-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 grid grid-cols-2 gap-x-4 gap-y-1">
+                {options.map((value) => (
+                    <label key={value} className="flex items-center gap-2 text-sm text-gray-700 hover:cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={selected.includes(value)}
+                            onChange={() => toggle(value)}
+                            className="hover:cursor-pointer"
+                        />
+                        <span className="truncate" title={value}>{value}</span>
+                    </label>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+/**
  * Search box, Funnel and Reset for a report, as on the Home tab
  * (29.09, item 12). Driven by useReportGlobalFilter: spread its `props` here.
  * The Funnel turns green while a filter is applied (29.09, item 13).
@@ -13,6 +64,9 @@ const ReportFilterModal = ({
     regionOptions,
     selectedRegions,
     setSelectedRegions,
+    natureOptions = [],
+    selectedNatures = [],
+    setSelectedNatures,
     dateFields,
     selectedDateField,
     setSelectedDateField,
@@ -47,6 +101,14 @@ const ReportFilterModal = ({
                         regions={regionOptions}
                         selected={selectedRegions}
                         onChange={setSelectedRegions}
+                    />
+                )}
+                {/* Only on reports whose rows carry a nature of work (1.10, item O-19). */}
+                {natureOptions.length > 0 && (
+                    <NatureChecklist
+                        options={natureOptions}
+                        selected={selectedNatures}
+                        onChange={setSelectedNatures}
                     />
                 )}
                 {dateFields.length > 0 && (
@@ -143,6 +205,7 @@ const ReportGlobalFilter = ({
         {/* A report with no regions, dates or amounts (Vendor Details) has only the search. */}
         {(modalProps.dateFields.length > 0 ||
             modalProps.regionOptions.length > 0 ||
+            (modalProps.natureOptions || []).length > 0 ||
             modalProps.amountFields.length > 0) && (
             <button
                 className={`p-1.5 rounded-md transition-colors border hover:cursor-pointer ${filterActive

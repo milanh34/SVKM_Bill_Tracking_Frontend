@@ -77,13 +77,15 @@ const VendorDetails = () => {
 
     const handleTopDownload = async () => {
         await handleExportAllReports(
-            filteredVendors.map((v) => v.vendorNo), filteredVendors, columns, visibleColumnFields, titleName, false
+            filteredVendors.map((v) => v.vendorNo), filteredVendors, columns, visibleColumnFields, titleName, false,
+            null, { rowKey: "vendorNo" } // vendors have no Sr No (1.10, item O-16g)
         );
     };
 
     const handleTopPrint = async () => {
         await handleExportAllReports(
-            filteredVendors.map((v) => v.vendorNo), filteredVendors, columns, visibleColumnFields, titleName, true
+            filteredVendors.map((v) => v.vendorNo), filteredVendors, columns, visibleColumnFields, titleName, true,
+            null, { rowKey: "vendorNo" } // vendors have no Sr No (1.10, item O-16g)
         );
     };
 
