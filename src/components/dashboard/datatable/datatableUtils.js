@@ -335,8 +335,15 @@ export const compareValues = (a, b, field, direction = "asc") => {
   }
 
   if (isDateField(field)) {
-    const at = new Date(av).getTime();
-    const bt = new Date(bv).getTime();
+    // Compare the calendar day, not the instant. Received and sent dates
+    // are stamped with the clock time, so two bills from the same day never
+    // tied and the Sr no tie-break never applied (6.10, item 25).
+    const day = (v) => {
+      const d = new Date(v);
+      return isNaN(d.getTime()) ? NaN : new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    };
+    const at = day(av);
+    const bt = day(bv);
     const aOk = !Number.isNaN(at);
     const bOk = !Number.isNaN(bt);
     if (aOk && bOk) return sign * (at - bt);

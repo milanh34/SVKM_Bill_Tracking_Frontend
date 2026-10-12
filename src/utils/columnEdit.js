@@ -25,6 +25,7 @@ export const getColumnsForRole = (role) => {
     { field: "currency", headerName: "Currency" }, // column no 22
     { field: "taxInvRecdAtSite", headerName: "Dt Recd at site" }, // column no 24
     { field: "taxInvRecdBy", headerName: "Tax Inv Recd by" }, // column no 25
+    { field: "eWayBill", headerName: "E-Way Bill" }, // column no 25A (9.10, item 5)
     { field: "department", headerName: "Additional Info" }, // column no 26
     { field: "remarksBySiteTeam", headerName: "Remarks related to Inv" }, // column no 27
     { field: "attachments", headerName: "Attachment" }, // column no 28
@@ -133,6 +134,7 @@ export const getColumnsForRole = (role) => {
       "taxInvAmt",
       "taxInvRecdAtSite",
       "taxInvRecdBy",
+      "eWayBill", // 25A: Site and PIMO enter and edit
       "department",
       "remarksBySiteTeam",
       "attachments",
@@ -183,6 +185,7 @@ export const getColumnsForRole = (role) => {
       "taxInvAmt",
       "taxInvRecdAtSite",
       "taxInvRecdBy",
+      "eWayBill", // 25A: Site and PIMO enter and edit
       "department",
       "remarksBySiteTeam",
       "attachments",

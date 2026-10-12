@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import Header from "../../components/Header";
 import { useLocation } from "react-router-dom";
 import print from "../../assets/print.svg";
-import logo from "../../assets/logo.png";
 // Shared two-decimal en-IN amount formatter (1.10, item O-04).
 import { formatAmount } from "../../utils/formatAmount";
 
@@ -35,24 +34,40 @@ const ChecklistDirectFI = () => {
 
     const printStyles = `
       <style>
-        @media print {
+        /* Applied on screen too, so the one-page fit check below measures
+           the page as it will print (9.10, items 1-5). */
+        @media print, screen {
           @page {
             margin: 10mm;
-            size: A4;
+            size: A4 portrait;
           }
           body { 
-            padding: 5px;
-            margin: 10px;
+            padding: 0;
+            margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
           }
           .checklist-page {
             width: 100%;
             margin: 0 auto;
-            page-break-after: always;
           }
-          .checklist-page:last-child {
-            page-break-after: avoid;
+          /* Page breaks only between bills, never a trailing blank sheet. */
+          .checklist-page + .checklist-page { break-before: page; page-break-before: always; }
+          tr { break-inside: avoid; page-break-inside: avoid; }
+          /* "SVKM" text in place of the logo, Sr no bold at the top right
+             (9.10, items 1 / 2). */
+          .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 8px;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: bold;
           }
+          .top-row .brand { font-size: 1.25rem; }
+          .top-row .sr { font-size: 1rem; }
+          /* Title bold (9.10, item 3). */
+          .title { font-weight: bold; }
           .content-row {
             padding: 8px;
             font-size: 0.875rem;
@@ -74,7 +89,6 @@ const ChecklistDirectFI = () => {
             text-align: left;
           }
           tr:nth-child(even) { background-color: #f9fafb; }
-          .logo-img { height: 40px; }
           .grid-row {
             display: grid;
             padding: 8px;
@@ -93,13 +107,33 @@ const ChecklistDirectFI = () => {
             grid-column: span 2;
           }
           /* Long values wrap inside their own cell instead of spilling into
-             the next one; column widths above are honoured (1.10, item O-05). */
+             the next one; column widths above are honoured (1.10, item O-05).
+             Header blocks (project / campus / Sr no) too (6.10, item P-27). */
           table { table-layout: fixed; }
-          td, th, .content-row, .grid-row, .grid-row > * {
+          td, th, .content-row, .grid-row, .grid-row > *, .field-row, .field-row > *,
+          .checklist-page div, .checklist-page b {
             min-width: 0;
             overflow-wrap: anywhere;
             word-break: break-word;
           }
+          /* Label + value on one line: the label never wraps and the value
+             takes the rest of the row, wrapping inside it only if very long
+             (6.10, items P-41 / P-27). */
+          .field-row {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            padding: 8px;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #e5e7eb;
+          }
+          .field-label { flex: 0 0 auto; white-space: nowrap; }
+          .field-value { flex: 1 1 auto; min-width: 0; }
+        }
+        /* Lay out at the printable A4 width (210mm - 2 x 10mm) so the fit
+           check measures the real printed height. */
+        @media screen {
+          .checklist-page { width: 190mm; }
         }
       </style>
     `;
@@ -116,23 +150,27 @@ const ChecklistDirectFI = () => {
     billsData.forEach((item) => {
       const content = `
         <div class="checklist-page">
-          <div class="content-row">
-            <img src="${logo}" alt="" class="logo-img" style="height: 40px; vertical-align: middle;" />
-            &nbsp;&nbsp;&nbsp;
-            <b>${item?.srNo || ""}</b>
+          <!-- "SVKM" replaces the logo; Sr no moved to the top right (9.10, items 1 / 2). -->
+          <div class="top-row">
+            <span class="brand">SVKM</span>
+            <span class="sr">${item?.srNo || ""}</span>
           </div>
 
-          <div class="grid-row">Check List - Direct FI entry</div>
-          <div class="grid-row">Project Name: <b>${
+          <!-- Title bold (9.10, item 3). -->
+          <div class="grid-row title">Check List - Direct FI entry</div>
+          <!-- Project Name / Campus value on the label's line (9.10, items 4 / 5). -->
+          <div class="field-row"><span class="field-label">Project Name:</span><b class="field-value">${
             item?.projectDescription || ""
-          }</b> &nbsp;&nbsp; Campus: <b>${item?.region || ""}</b></div>
+          }</b></div>
+          <div class="field-row"><span class="field-label">Campus:</span><b class="field-value">${item?.region || ""}</b></div>
           <div class="grid-row">Project ID in SAP:</div>
 
           <table>
             <thead>
               <tr>
-                <th style="width: 8%">Sr. No.</th>
-                <th style="width: 32%">Description</th>
+                <!-- Narrower Sr No column (6.10, item P-41). -->
+                <th style="width: 6%">Sr. No.</th>
+                <th style="width: 34%">Description</th>
                 <th style="width: 32%">Remarks</th>
                 <th style="width: 28%">Additional Remarks</th>
               </tr>
@@ -262,12 +300,25 @@ const ChecklistDirectFI = () => {
     win.document.write("</body></html>");
     win.document.close();
 
-    const style = document.createElement("style");
-    style.textContent = "@page { size: auto; margin: 0mm; }";
-    win.document.head.appendChild(style);
+    // The extra "@page { margin: 0 }" that used to be appended here
+    // overrode the 10mm margin above and let printers clip the edges; it is
+    // gone so the sheet prints inside a normal A4 margin (9.10).
 
     win.onload = () => {
       setTimeout(() => {
+        // Safety net for one sheet per bill: scale a bill down only if it is
+        // taller than the A4 printable height, 297mm - 2 x 10mm (9.10).
+        // 3% headroom because the printed layout can run slightly taller
+        // than the on-screen measurement.
+        try {
+          const maxHeight = 277 * (96 / 25.4) * 0.97;
+          win.document.querySelectorAll(".checklist-page").forEach((page) => {
+            const height = page.scrollHeight;
+            if (height > maxHeight) page.style.zoom = String(maxHeight / height);
+          });
+        } catch (e) {
+          console.error("Checklist fit check failed:", e);
+        }
         win.document.title = "Direct FI Checklist";
         win.focus();
         win.print();
@@ -314,27 +365,29 @@ const ChecklistDirectFI = () => {
           <div key={index}>
             <div className="w-full max-w-[90%] mx-auto">
               <div className="border border-gray-300 bg-white font-semibold [overflow-wrap:anywhere] [word-break:break-word]">
-                <div className="grid grid-cols-2 bg-gray-200 items-center [&>*]:min-w-0">
-                  <div className="p-2 border-b border-gray-300 flex items-center">
-                    <div className="text-sm font-semibold">
-                      <img src={logo} alt="" className="h-10" />
-                    </div>
-                  </div>
-                  <div className="border-gray-300">
-                    <div className="text-sm font-bold">{item?.srNo}</div>
-                  </div>
+                {/* "SVKM" replaces the logo; Sr no moved to the top right
+                    (9.10, items 1 / 2). */}
+                <div className="flex justify-between items-center gap-4 p-2 bg-gray-200 border-b border-gray-300 font-bold [&>*]:min-w-0">
+                  <div className="text-2xl">SVKM</div>
+                  <div className="text-lg text-right">{item?.srNo}</div>
                 </div>
 
-                <div className="p-2 border-b border-gray-300">
+                {/* Title bold (9.10, item 3). */}
+                <div className="p-2 border-b border-gray-300 font-bold">
                   Check List - Direct FI entry
                 </div>
 
-                <div className="p-2 border-b border-gray-300">
-                  Project Name: <span className="font-bold">{item?.projectDescription}</span>
+                {/* Label + value on one line; label never wraps, value wraps
+                    only within its own width (6.10, items P-41 / P-27;
+                    re-checked 9.10, items 4 / 5). */}
+                <div className="p-2 border-b border-gray-300 flex items-baseline gap-1.5">
+                  <span className="shrink-0 whitespace-nowrap">Project Name:</span>
+                  <span className="font-bold flex-1 min-w-0">{item?.projectDescription}</span>
                 </div>
 
-                <div className="p-2 border-b border-gray-300">
-                  Campus: <span className="font-bold">{item?.region}</span>
+                <div className="p-2 border-b border-gray-300 flex items-baseline gap-1.5">
+                  <span className="shrink-0 whitespace-nowrap">Campus:</span>
+                  <span className="font-bold flex-1 min-w-0">{item?.region}</span>
                 </div>
 
                 <div className="p-2 border-b border-gray-300">
@@ -348,19 +401,21 @@ const ChecklistDirectFI = () => {
             >
               <div className="overflow-x-auto">
                 {/* Long values wrap within their own cell (1.10, item O-05). */}
-                <table className="w-full border-collapse [overflow-wrap:anywhere] [word-break:break-word]">
+                {/* Fixed layout so the narrower Sr No width is honoured
+                    (6.10, item P-41). */}
+                <table className="w-full table-fixed border-collapse [overflow-wrap:anywhere] [word-break:break-word]">
                   <thead>
                     <tr>
-                      <th className="border border-gray-300 p-2 bg-gray-100 w-12">
+                      <th className="border border-gray-300 p-2 bg-gray-100 w-[5%]">
                         Sr. No.
                       </th>
-                      <th className="border border-gray-300 p-2 bg-gray-100 w-1/3">
+                      <th className="border border-gray-300 p-2 bg-gray-100 w-[35%]">
                         Description
                       </th>
-                      <th className="border border-gray-300 p-2 bg-gray-100 w-1/3">
+                      <th className="border border-gray-300 p-2 bg-gray-100 w-[32%]">
                         Remarks
                       </th>
-                      <th className="border border-gray-300 p-2 bg-gray-100 w-1/4">
+                      <th className="border border-gray-300 p-2 bg-gray-100 w-[28%]">
                         Additional Remarks
                       </th>
                     </tr>

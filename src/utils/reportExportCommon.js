@@ -92,19 +92,70 @@ export const describeReportCriteria = (filters) => {
     return { region: regionLabel, dates: dateParts.join(", ") };
 };
 
+export const SELECTION_CRITERIA_PREFIX = "Selection Criteria - ";
+
 /** One line of criteria text, for a sheet cell. */
 export const criteriaLine = (criteria) =>
     !criteria
         ? ""
         : criteria.dates
-            ? `Region: ${criteria.region}   |   ${criteria.dates}`
-            : `Region: ${criteria.region}`;
+            ? `${SELECTION_CRITERIA_PREFIX}Region: ${criteria.region}   |   ${criteria.dates}`
+            : `${SELECTION_CRITERIA_PREFIX}Region: ${criteria.region}`;
+
+/**
+ * The criteria as separate sheet rows - "Selection Criteria - Region: ..."
+ * then "From: ... To: ..." (6.10, items 14, 15). One merged line was cut off
+ * by its row height in the downloads.
+ */
+export const criteriaRowTexts = (criteria) => {
+    if (!criteria) return [];
+    const rows = [`${SELECTION_CRITERIA_PREFIX}Region: ${criteria.region}`];
+    if (criteria.dates) rows.push(criteria.dates.replace(/,\s*/g, "   "));
+    return rows;
+};
+
+/** Points for a wrapped cell of `text` across `widthChars` (Excel width units). */
+export const wrappedRowHeight = (text, widthChars, fontSize = 12) => {
+    // Italic 12pt runs about 1.25 width units a character; leave a margin.
+    const charsPerLine = Math.max(1, Math.floor(Math.max(widthChars, 1) / ((fontSize / 11) * 1.15)));
+    const lines = String(text || "")
+        .split(/\r?\n/)
+        .reduce((n, part) => n + Math.max(1, Math.ceil(part.length / charsPerLine)), 0);
+    return Math.max(20, lines * Math.ceil(fontSize * 1.6));
+};
+
+/**
+ * ExcelJS: one row per criteria line, merged across the table and wrapped.
+ * Returns the rows; call fitCriteriaRows once the column widths are set.
+ */
+export const addCriteriaRows = (worksheet, criteria, columnCount) =>
+    criteriaRowTexts(criteria).map((text) => {
+        const values = Array(Math.max(columnCount, 1)).fill("");
+        values[0] = text;
+        const row = worksheet.addRow(values);
+        if (columnCount >= 2) worksheet.mergeCells(row.number, 1, row.number, columnCount);
+        row.getCell(1).font = { italic: true, size: 12 };
+        row.getCell(1).alignment = { horizontal: "left", vertical: "top", wrapText: true };
+        return row;
+    });
+
+/** A merged cell never grows to fit wrapped text, so size each criteria row. */
+export const fitCriteriaRows = (worksheet, rows, columnCount) => {
+    if (!rows || rows.length === 0) return;
+    const widths = worksheet.columns || [];
+    const tableWidth = widths
+        .slice(0, Math.max(columnCount, 1))
+        .reduce((acc, col) => acc + (col?.width || 10), 0);
+    rows.forEach((row) => {
+        row.height = wrappedRowHeight(row.getCell(1).value, tableWidth, 12);
+    });
+};
 
 /** The criteria block for a printed report, count included (1.10, item O-18). */
 export const printCriteriaHtml = (criteria, count) => {
     const parts = [];
     if (criteria) {
-        parts.push(`<div>Region: <strong>${criteria.region}</strong></div>`);
+        parts.push(`<div>${SELECTION_CRITERIA_PREFIX}Region: <strong>${criteria.region}</strong></div>`); // 6.10, item 14
         if (criteria.dates) parts.push(`<div><strong>${criteria.dates}</strong></div>`);
     }
     if (count !== undefined && count !== null) {

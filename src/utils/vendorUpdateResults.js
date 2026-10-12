@@ -101,6 +101,23 @@ export const checkFileReadable = async (file) => {
     }
 };
 
+/*
+ * A date typed in Excel arrives as a Date object, and String(date) printed
+ * "Mon Oct 05 2026 05:30:00 GMT+0530 (India Standard Time)" in the results -
+ * the odd message she saw after uploading dd-mm-yyyy dates (6.10, item 19).
+ * The upload itself was always fine; only this display was wrong.
+ */
+const displayCell = (value) => {
+    if (value instanceof Date && !isNaN(value.getTime())) {
+        // SheetJS dates can sit a few seconds before midnight; nudge forward
+        // so the local calendar day is the one typed.
+        const d = new Date(value.getTime() + 60 * 1000);
+        const p = (n) => String(n).padStart(2, '0');
+        return `${p(d.getDate())}-${p(d.getMonth() + 1)}-${d.getFullYear()}`;
+    }
+    return value ?? '';
+};
+
 const parseVendorFile = async (file) => {
     const buf = await file.arrayBuffer();
     // cellDates keeps dates as Date objects rather than Excel serial numbers.
@@ -116,7 +133,7 @@ const parseVendorFile = async (file) => {
         // Skip fully empty rows
         if (r.every((c) => c === '' || c === null || c === undefined)) continue;
         const cells = {};
-        headers.forEach((h, idx) => { cells[h] = r[idx] ?? ''; });
+        headers.forEach((h, idx) => { cells[h] = displayCell(r[idx]); });
         dataRows.push({ excelRow: i + 1, cells }); // 1-indexed Excel row (header = row 1)
     }
     return dataRows;

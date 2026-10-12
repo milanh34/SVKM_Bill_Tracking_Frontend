@@ -1,4 +1,6 @@
 import { getNestedValue } from "../components/dashboard/datatable/datatableUtils";
+// DD/MM/YYYY HH:mm on Home and Forwarded prints (6.10, items 34-35).
+import { formatGeneratedAt } from "./reportExportCommon";
 
 /**
  * Print the selected bills as a landscape table with a grand-total row.
@@ -120,7 +122,7 @@ export const printBills = ({ selectedData, visibleColumns, role, title = "Bills 
     <body>
       <div class="header">${title}</div>
       <div class="print-info">
-        <strong>Print Date:</strong> ${new Date().toLocaleDateString()}<br>
+        <strong>Print Date:</strong> ${formatGeneratedAt(new Date())}<br>
         <strong>Total Records:</strong> ${selectedData.length}<br>
         <strong>User Role:</strong> ${role}
       </div>

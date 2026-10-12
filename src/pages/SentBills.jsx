@@ -10,7 +10,7 @@ import { Funnel, Grid3x3, Download, X, AlertTriangle, ArrowLeftFromLine, ArrowRi
 import { printBills } from "../utils/printBills";
 import search from "../assets/search.svg";
 import { getColumnsForRole, defaultVisibleFields, columnSetKey } from "../utils/columnView";
-import { FilterModal } from "../components/dashboard/FilterModal";
+import { FilterModal, sortedNatures } from "../components/dashboard/FilterModal";
 import {
   BILL_AMOUNT_FIELDS,
   getFieldValue,
@@ -33,6 +33,7 @@ const SentBills = () => {
   const [columnFiltersActive, setColumnFiltersActive] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
   const [selectedRegion, setSelectedRegion] = useState([]);
+  const [selectedNatures, setSelectedNatures] = useState([]); // 6.10, item 40
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [selectAll, setSelectAll] = useState(false);
@@ -78,7 +79,7 @@ const SentBills = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedRegion, fromDate, toDate, minAmount, maxAmount, itemsPerPage]);
+  }, [searchQuery, selectedRegion, selectedNatures, fromDate, toDate, minAmount, maxAmount, itemsPerPage]);
 
   // Columns
   const columns = useMemo(() => {
@@ -134,7 +135,8 @@ const SentBills = () => {
   const getFilteredData = () => {
     return billsData.filter((bill) => {
       const matchesRegion =
-        selectedRegion.length === 0 || selectedRegion.includes(bill.region);
+        (selectedRegion.length === 0 || selectedRegion.includes(bill.region)) &&
+        (selectedNatures.length === 0 || selectedNatures.includes(bill.natureOfWork));
 
       // Whole days, either bound alone; the old check compared the "to"
       // date at midnight, which dropped bills paid later that day
@@ -175,6 +177,7 @@ const SentBills = () => {
   }, [
     billsData,
     selectedRegion,
+    selectedNatures,
     fromDate,
     toDate,
     selectedDateField,
@@ -333,6 +336,7 @@ const SentBills = () => {
   // Same rules as the Home tab (29.09, items 13 and 21).
   const filtersActive =
     selectedRegion.length > 0 ||
+    selectedNatures.length > 0 ||
     !!fromDate ||
     !!toDate ||
     amountActive ||
@@ -342,6 +346,7 @@ const SentBills = () => {
     setSortConfig({ key: null, direction: null });
     setSearchQuery("");
     setSelectedRegion([]);
+    setSelectedNatures([]);
     setFromDate("");
     setToDate("");
     setSelectedDateField("accountsDept.paymentDate");
@@ -674,6 +679,9 @@ const SentBills = () => {
         selectedRegion={selectedRegion}
         // A checklist now (29.09, item 14); nothing ticked means all regions.
         uniqueRegions={sortedRegions(billsData)}
+        natureOptions={sortedNatures(billsData)}
+        selectedNatures={selectedNatures}
+        setSelectedNatures={setSelectedNatures}
         setSelectedRegion={setSelectedRegion}
         selectedDateField={selectedDateField}
         setSelectedDateField={setSelectedDateField}
@@ -695,6 +703,8 @@ const SentBills = () => {
         handleClearFilters={() => {
           setSearchQuery("");
           setSelectedRegion([]);
+          setSelectedNatures([]);
+    setSelectedNatures([]);
           setFromDate("");
           setToDate("");
           setSelectedDateField("accountsDept.paymentDate");

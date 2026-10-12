@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import axios from "axios";
-import { getFilteredBills, bills, receiveBills, notReceivedPimo, notReceivedAccounts } from "../apis/bills.api";
+import { getFilteredBills, bills, receiveBills, notReceivedPimo, notReceivedAccounts, deleteDate } from "../apis/bills.api";
 import {
   natureOfWorks,
   currencies,
@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import search from "../assets/search.svg";
 import { getColumnsForRole, defaultVisibleFields, columnSetKey } from "../utils/columnView";
-import { FilterModal } from "../components/dashboard/FilterModal";
+import { FilterModal, sortedNatures } from "../components/dashboard/FilterModal";
 import {
   BILL_AMOUNT_FIELDS,
   getFieldValue,
@@ -64,6 +64,7 @@ const Dashboard = () => {
   const [gridResetKey, setGridResetKey] = useState(0);
   const [columnFiltersActive, setColumnFiltersActive] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState([]);
+  const [selectedNatures, setSelectedNatures] = useState([]); // 6.10, item 40
   const [sortBy, setSortBy] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -150,7 +151,7 @@ const Dashboard = () => {
     ],
     qs_site: [
       { value: "measure", label: "Ret to Site Team aft measure" },
-      { value: "site_cop", label: "Ret to Site Team aft COP" },
+      { value: "site_cop", label: "Ret to Site Team aft Prov COP" }, // 6.10, item 39
       { value: "pimo_cop", label: "Ret to PIMO Team aft COP" },
     ],
     site_pimo: [
@@ -310,6 +311,43 @@ const Dashboard = () => {
       toast.error(
         error.response?.data?.message || "Failed to mark bills as received"
       );
+    }
+  };
+
+  /*
+   * The option lists the QS modals SHOW, from the same rule Send uses
+   * (29.09 item 20, re-raised 6.10 item 26). The three modals still carried
+   * the old column-64 test inline, so the buttons she saw never changed.
+   */
+  const qsRolesForSelection = () => {
+    const selectedBills = billsData.filter((bill) => selectedRows.includes(bill._id));
+    const shared = qsOptionsForSelection(selectedBills);
+    return roleWorkflow.qs_site.filter((r) => shared.includes(r.value));
+  };
+
+  /*
+   * QS "Mark as not received", now on Send/Unreceive (6.10, item 20). The
+   * server steps each bill back through whichever receipt happened: columns
+   * 64/65, or 40/41 when those are blank.
+   */
+  const handleQsNotReceived = async () => {
+    if (selectedRows.length === 0) {
+      toast.error("Please select bills to mark as not received");
+      return;
+    }
+    try {
+      const token = Cookies.get("token");
+      const res = await axios.post(
+        deleteDate,
+        { teamName: "QS Team", sendTo: "Mark as not received", billId: selectedRows },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(res.data?.message || "Bills marked as not received");
+      setIsSendBoxOpen(false);
+      await fetchAllData();
+      setSelectedRows([]);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to mark bills as not received");
     }
   };
 
@@ -553,6 +591,9 @@ const Dashboard = () => {
     if (selectedRegion.length > 0) {
       result = result.filter((row) => selectedRegion.includes(row.region));
     }
+    if (selectedNatures.length > 0) {
+      result = result.filter((row) => selectedNatures.includes(row.natureOfWork));
+    }
     result = result.filter(isWithinDateRange);
     if (amountActive) {
       result = result.filter((row) =>
@@ -570,6 +611,7 @@ const Dashboard = () => {
   }, [
     billsData,
     selectedRegion,
+    selectedNatures,
     isWithinDateRange,
     amountActive,
     activeAmountField,
@@ -627,6 +669,7 @@ const Dashboard = () => {
   // (29.09, item 13), so a filtered screen cannot pass for the whole list.
   const filtersActive =
     selectedRegion.length > 0 ||
+    selectedNatures.length > 0 ||
     !!fromDate ||
     !!toDate ||
     amountActive ||
@@ -638,6 +681,7 @@ const Dashboard = () => {
     setSortConfig({ key: null, direction: null });
     setSearchQuery("");
     setSelectedRegion([]);
+    setSelectedNatures([]);
     setFromDate("");
     setToDate("");
     setSelectedDateField("taxInvDate");
@@ -650,6 +694,7 @@ const Dashboard = () => {
   const handleClearFilters = () => {
     setSearchQuery("");
     setSelectedRegion([]);
+    setSelectedNatures([]);
     setSortBy("");
     setFromDate("");
     setToDate("");
@@ -1232,6 +1277,9 @@ const Dashboard = () => {
         onClose={() => setIsFilterPopupOpen(false)}
         selectedRegion={selectedRegion}
         uniqueRegions={uniqueRegions}
+        natureOptions={sortedNatures(billsData)}
+        selectedNatures={selectedNatures}
+        setSelectedNatures={setSelectedNatures}
         setSelectedRegion={setSelectedRegion}
         selectedDateField={selectedDateField}
         setSelectedDateField={setSelectedDateField}
@@ -1254,18 +1302,13 @@ const Dashboard = () => {
         isOpen={isSendBoxOpen}
         onClose={() => setIsSendBoxOpen(false)}
         availableRoles={currentUserRole === "qs_site"
-          ? roleWorkflow[currentUserRole].filter(role => {
-            const selectedBills = billsData.filter(bill => selectedRows.includes(bill._id));
-            const qsMumbaiDateFilled = selectedBills.some(bill => bill.qsMumbai?.dateGiven);
-            return qsMumbaiDateFilled
-              ? role.value === "pimo_cop"
-              : ["measure", "site_cop"].includes(role.value);
-          })
+          ? qsRolesForSelection()
           : roleWorkflow[currentUserRole] || []
         }
         handleSendToRole={handleSendToRole}
         role={currentUserRole}
         handleNotReceiveBills={handleNotReceiveBills}
+        handleQsNotReceived={handleQsNotReceived}
         countOfSelectedBills={selectedRows.length}
       />
 
@@ -1273,13 +1316,7 @@ const Dashboard = () => {
         isOpen={isRemoveDateOpen}
         onClose={() => setIsRemoveDateOpen(false)}
         availableRoles={currentUserRole === "qs_site"
-          ? roleWorkflow[currentUserRole].filter(role => {
-            const selectedBills = billsData.filter(bill => selectedRows.includes(bill._id));
-            const qsMumbaiDateFilled = selectedBills.some(bill => bill.qsMumbai?.dateGiven);
-            return qsMumbaiDateFilled
-              ? role.value === "pimo_cop"
-              : ["measure", "site_cop"].includes(role.value);
-          })
+          ? qsRolesForSelection()
           : roleWorkflow[currentUserRole] || []
         }
         role={currentUserRole}
@@ -1304,13 +1341,7 @@ const Dashboard = () => {
             singleRole={selectedRole}
             fetchAllData={fetchAllData}
             availableRoles={currentUserRole === "qs_site"
-              ? roleWorkflow[currentUserRole].filter(role => {
-                const selectedBills = billsData.filter(bill => selectedRows.includes(bill._id));
-                const qsMumbaiDateFilled = selectedBills.some(bill => bill.qsMumbai?.dateGiven);
-                return qsMumbaiDateFilled
-                  ? role.value === "pimo_cop"
-                  : ["measure", "site_cop"].includes(role.value);
-              })
+              ? qsRolesForSelection()
               : roleWorkflow[currentUserRole] || []
             }
             countOfSelectedBills={countOfSelectedBills}

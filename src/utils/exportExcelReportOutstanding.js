@@ -3,7 +3,8 @@ import { saveAs } from "file-saver";
 import { toast } from 'react-toastify';
 import {
     describeReportCriteria,
-    criteriaLine,
+    addCriteriaRows,
+    fitCriteriaRows,
     generatedAtText,
     printCriteriaHtml,
     reportFileName,
@@ -172,18 +173,8 @@ export const handleExportOutstandingBillReports = async (
 
             // Region and date range, as the other reports carry (1.10, item O-16c),
             // merged across the table and wrapped (1.10, item O-16d).
-            const criteria = describeReportCriteria(filters);
-            let criteriaRow = null;
-            if (criteria) {
-                const criteriaValues = Array(columnCount).fill("");
-                criteriaValues[0] = criteriaLine(criteria);
-                criteriaRow = worksheet.addRow(criteriaValues);
-                if (columnCount >= 2) {
-                    worksheet.mergeCells(`A2:${getColLetter(columnCount)}2`);
-                }
-                criteriaRow.getCell(1).font = { italic: true, size: 12 };
-                criteriaRow.getCell(1).alignment = { horizontal: "left", vertical: "top", wrapText: true };
-            }
+            // One row per line, "Selection Criteria - " first (6.10, items 14, 15).
+            const criteriaRows = addCriteriaRows(worksheet, describeReportCriteria(filters), columnCount);
 
             // Optionally, add spacing below
             worksheet.addRow([]);
@@ -329,13 +320,8 @@ export const handleExportOutstandingBillReports = async (
                 column.width = Math.max(maxLength + 2, 15);
             });
 
-            // A merged cell does not grow to fit wrapped text; size the criteria row.
-            if (criteriaRow) {
-                const tableWidth = worksheet.columns.reduce((acc, col) => acc + (col.width || 10), 0);
-                const text = String(criteriaRow.getCell(1).value || "");
-                const lines = Math.max(1, Math.ceil((text.length * 1.1) / Math.max(tableWidth, 1)));
-                criteriaRow.height = Math.max(18, lines * 16);
-            }
+            // A merged cell does not grow to fit wrapped text; size the criteria rows.
+            fitCriteriaRows(worksheet, criteriaRows, columnCount);
 
             // Export as Excel file
             const buffer = await workbook.xlsx.writeBuffer();

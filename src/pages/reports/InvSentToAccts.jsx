@@ -71,7 +71,7 @@ const InvSentToAccts = () => {
         console.log("Result = " + result.message);
     }
 
-    const titleName = "Invoices sent to Accounts Team";
+    const titleName = "Invoices sent to Accounts Team"; // heading read "Account Department" (6.10, item 29)
 
     const columns = [
         { field: "count", headerName: "Count" },
@@ -104,7 +104,7 @@ const InvSentToAccts = () => {
 
             <div className="p-[2vh_2vw] mx-auto font-sans h-[100vh] bg-white text-black">
                 <div className="flex justify-between items-center mb-[2vh]">
-                    <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>Invoices Sent to Account Department</h2>
+                    <h2 className='text-[1.9vw] font-semibold text-[#333] m-0 w-[77%]'>{titleName}</h2>
                     <div className="flex gap-[1vw] w-[50%]">
                         <button className="w-[300px] bg-[#208AF0] flex gap-[5px] justify-center items-center text-white text-[18px] font-medium py-[0.8vh] px-[1.5vw] rounded-[1vw] transition-colors duration-200 hover:bg-[#1a6fbf]" onClick={handleTopPrint}>
                             Print

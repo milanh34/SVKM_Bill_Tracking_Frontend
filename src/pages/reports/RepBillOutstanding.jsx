@@ -135,7 +135,7 @@ const RepBillOutstanding = () => {
         { field: "dateRecdInAcctsDept", headerName: "Dt Recd in Accts Dept" },
         { field: "copAmt", headerName: "COP Amt" },
         { field: "paymentInstructions", headerName: "Payment Instructions" },
-        { field: "remarksForPaymentInstructions", headerName: "Remarks For Payment Instructions" }
+        { field: "remarksForPaymentInstructions", headerName: "Remarks for payments" } // col 87 (6.10, item 11)
     ]
 
     const visibleColumnFields = [
@@ -287,7 +287,7 @@ const RepBillOutstanding = () => {
                                     <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt Recd in Accounts Dept.</th>
                                     <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>COP Amt</th>
                                     <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Payment Instructions</th>
-                                    <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Remarks for Payment Instructions</th>
+                                    <th className='sticky top-0 z-1 border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Remarks for payments</th>
                                 </tr>
                             </thead>
                             <tbody>

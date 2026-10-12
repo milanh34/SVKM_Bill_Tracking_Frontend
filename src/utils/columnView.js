@@ -26,6 +26,7 @@ export const getColumnsForRole = (role) => {
     { field: "currency", headerName: "Currency" }, // column no 22
     { field: "taxInvRecdAtSite", headerName: "Dt Recd at site" }, // column no 24
     { field: "taxInvRecdBy", headerName: "Tax Inv Recd by" }, // column no 25
+    { field: "eWayBill", headerName: "E-Way Bill" }, // column no 25A (9.10, item 5)
     { field: "department", headerName: "Additional Info" }, // column no 26
     { field: "remarksBySiteTeam", headerName: "Remarks related to Inv" }, // column no 27
     { field: "attachments", headerName: "Attachment" }, // column no 28
@@ -138,6 +139,7 @@ export const getColumnsForRole = (role) => {
       "taxInvAmt",
       "taxInvRecdAtSite",
       "taxInvRecdBy",
+      "eWayBill", // 25A
       "department",
       "remarksBySiteTeam",
       "attachments",
@@ -205,6 +207,7 @@ export const getColumnsForRole = (role) => {
       "currency",
       "taxInvAmt",
       "taxInvRecdAtSite", // col 24, a default column (1.10, item 1)
+      "eWayBill", // 25A, display (9.10, item 5)
       "department",
       "remarksBySiteTeam",
       "attachments",
@@ -258,6 +261,7 @@ export const getColumnsForRole = (role) => {
       "taxInvAmt",
       "taxInvRecdAtSite",
       "taxInvRecdBy",
+      "eWayBill", // 25A
       "department",
       "remarksBySiteTeam",
       "attachments",
@@ -357,6 +361,7 @@ export const getColumnsForRole = (role) => {
       "taxInvAmt",
       "taxInvRecdAtSite",
       "taxInvRecdBy",
+      "eWayBill", // 25A
       "department",
       "remarksBySiteTeam",
       "attachments",
@@ -410,6 +415,7 @@ export const getColumnsForRole = (role) => {
       "taxInvAmt",
       "taxInvRecdAtSite",
       "taxInvRecdBy",
+      "eWayBill", // 25A
       "department",
       "remarksBySiteTeam",
       "attachments",
@@ -462,6 +468,7 @@ export const DEFAULT_VISIBLE_COLUMNS = {
     "taxInvDate",
     "taxInvAmt",
     "taxInvRecdAtSite",
+    "eWayBill",
     "attachments",
     "qualityEngineer.dateGiven",
     "qsInspection.dateGiven",
@@ -497,6 +504,7 @@ export const DEFAULT_VISIBLE_COLUMNS = {
     "taxInvDate",
     "taxInvAmt",
     "taxInvRecdAtSite",
+    "eWayBill",
     "attachments",
     "advanceDate",
     "advanceAmt",
@@ -525,6 +533,7 @@ export const DEFAULT_VISIBLE_COLUMNS = {
     "taxInvDate",
     "taxInvAmt",
     "taxInvRecdAtSite",
+    "eWayBill",
     "attachments",
     "advanceDate",
     "advanceAmt",

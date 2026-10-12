@@ -153,70 +153,102 @@ const BillJourney = () => {
     const titleName = "Bill Journey";
 
     /*
-     * Ordered as the client's own "Bill Journey report.xlsx" lays the sheet
-     * out: the header block, then each journey step with the Name and Amount
-     * her layout puts beside it. Those Name and Amount columns were missing
-     * altogether, which is most of what "columns filled are not fetched"
-     * meant (observation N-10).
+     * Exactly the list and order of her mail of 6 October (6.10, item 3);
+     * the trailing comment is the column-register number. COP Amt and
+     * "Received from QS With COP - Amount" are dropped. Pairs the report
+     * used to merge (35/40, 51/55) are separate columns. Headings are kept
+     * unique because the print exporter keys each cell by its heading, so
+     * the col 40/41 pair carries "(Prov COP)" and 51/52 vs 55/56 name the
+     * Site Engineer and Site Incharge columns they read.
      */
     const columns = [
-        { field: "srNo", headerName: "Sr. No" },
-        { field: "region", headerName: "Region" },
-        { field: "projectDescription", headerName: "Project Description" },
-        { field: "natureOfWork", headerName: "Nature of Work" },
-        { field: "vendorNo", headerName: "Vendor Code" },
-        { field: "vendorName", headerName: "Vendor Name" },
-        { field: "taxInvNo", headerName: "Invoice No" },
-        { field: "invoiceDate", headerName: "Invoice Date" },
-        { field: "invoiceAmount", headerName: "Invoice Amount" },
-        { field: "proformaInvNo", headerName: "Proforma Invoice No" },
-        { field: "proformaInvDate", headerName: "Proforma Invoice Dt" },
-        { field: "proformaInvAmt", headerName: "Proforma Invoice Amt" },
-        { field: "poNo", headerName: "PO No" },
-        { field: "poDate", headerName: "PO Dt" },
-        { field: "poAmt", headerName: "PO Amt" },
-        { field: "copAmt", headerName: "COP Amt" },
-        { field: "paymentAmt", headerName: "Payment Amt" },
-        { field: "paymentDate", headerName: "Date of Payment" },
-        { field: "status", headerName: "Payment Status" },
+        { field: "srNo", headerName: "Sr. No" },                                                    // 1
+        { field: "createdBy", headerName: "Created by" },                                           // 2
+        { field: "natureOfWork", headerName: "Nature of Work" },                                    // 3
+        { field: "region", headerName: "Region" },                                                  // 4
+        { field: "projectDescription", headerName: "Project Description" },                         // 5
+        { field: "vendorNo", headerName: "Vendor Code" },                                           // 6
+        { field: "vendorName", headerName: "Vendor Name" },                                         // 7
+        { field: "gstNumber", headerName: "GST No" },                                               // 8
+        { field: "compliance206AB", headerName: "206AB Compliance" },                               // 9
+        { field: "panStatus", headerName: "PAN Status" },                                           // 10
+        { field: "poNo", headerName: "PO No" },                                                     // 12
+        { field: "poDate", headerName: "PO Dt" },                                                   // 13
+        { field: "poAmt", headerName: "PO Amt" },                                                   // 14
+        { field: "proformaInvNo", headerName: "Proforma Invoice No" },                              // 15
+        { field: "proformaInvDate", headerName: "Proforma Invoice Dt" },                            // 16
+        { field: "proformaInvAmt", headerName: "Proforma Invoice Amt" },                            // 17
+        { field: "proformaInvRecdAtSite", headerName: "Proforma Inv Recd at site" },                // 18
+        { field: "taxInvNo", headerName: "Invoice No" },                                            // 20
+        { field: "invoiceDate", headerName: "Invoice Date" },                                       // 21
+        { field: "currency", headerName: "Currency" },                                              // 22
+        { field: "invoiceAmount", headerName: "Invoice Amount" },                                   // 23
+        { field: "billReceivedAtSite", headerName: "Bill Received at Site" },                       // 24
+        { field: "billReceivedAtSiteName", headerName: "Bill Received at Site - Name" },             // 25
+        { field: "advanceDate", headerName: "Advance Dt" },                                         // 29
+        { field: "advanceAmt", headerName: "Advance Amt" },                                         // 30
+        { field: "billSendForQualityCertification", headerName: "Bill send for Quality Certification" }, // 33
+        { field: "billSendForQualityCertificationName", headerName: "Quality Certification - Name" }, // 34
+        { field: "qsMeasureGivenDate", headerName: "Bill send to QS" },                             // 35
+        { field: "qsMeasureGivenName", headerName: "Bill send to QS - Name" },                      // 36
+        { field: "qsMeasureCheckedDate", headerName: "Dt Checked by QS with Measure" },              // 37
+        { field: "qsMeasureReturnedDate", headerName: "Dt ret-QS aft measure" },                    // 38
+        { field: "qsProvCopGivenDate", headerName: "Bill send to QS (Prov COP)" },                  // 40
+        { field: "qsProvCopGivenName", headerName: "Bill send to QS - Name (Prov COP)" },           // 41
+        { field: "certifiedByQS", headerName: "Certified by QS" },                                  // 42
+        { field: "certifiedByQSAmount", headerName: "Certified by QS - Amount" },                   // 43
+        { field: "qsProvCopReturnedDate", headerName: "Dt ret-QS aft Prov COP" },                   // 44A
+        { field: "migoGivenDate", headerName: "Dt given-MIGO" },                                    // 45
+        { field: "migoNo", headerName: "MIGO no" },                                                 // 46
+        { field: "migoDate", headerName: "MIGO Date" },                                             // 47
+        { field: "migoAmount", headerName: "MIGO Amt" },                                            // 48
+        { field: "migoDoneBy", headerName: "MIGO done by" },                                        // 49
+        { field: "invReturnedToSiteDate", headerName: "Dt-ret aft MIGO to Site" },                  // 50
+        { field: "siteEngineerGivenDate", headerName: "Bill send to Site Engineer" },               // 51
+        { field: "siteEngineerGivenName", headerName: "Site Engineer - Name" },                     // 52
+        { field: "certifiedByArch", headerName: "Certified by Arch/PMC/SVKM" },                      // 53
+        { field: "certifiedByArchName", headerName: "Certified by Arch/PMC/SVKM - Name" },           // 54
+        { field: "siteInchargeGivenDate", headerName: "Bill send to Site Incharge" },               // 55
+        { field: "siteInchargeGivenName", headerName: "Site Incharge - Name" },                     // 56
+        { field: "remarksAtSite", headerName: "Remarks at site" },                                  // 57
+        { field: "siteApprovalDate", headerName: "Site Trustee/LPC" },                              // 58, was "Dt given-Site Approval"
+        { field: "siteStatus", headerName: "Status at Site" },                                      // 60
+        { field: "billSendToPIMOMumbai", headerName: "Bill Send to PIMO Mumbai" },                  // 61
+        { field: "billReceivedAtPIMOMumbai", headerName: "Bill Received at PIMO Mumbai" },          // 62
+        { field: "billReceivedAtPIMOMumbaiName", headerName: "Received at PIMO Mumbai - Name" },     // 63
+        { field: "billSendToQSCertification", headerName: "Bill Send to QS Certification" },        // 64
+        { field: "billSendToQSCertificationName", headerName: "QS Certification - Name" },          // 65
+        { field: "receivedFromQSWithCOP", headerName: "Received from QS With COP" },                // 66
+        { field: "receivedFromQSWithCOPName", headerName: "Received from QS With COP - Name" },     // 67
+        { field: "givenToITDept", headerName: "Given to I.T. Dept." },                              // 68
+        { field: "givenToITDeptName", headerName: "Given to I.T. Dept. - Name" },                   // 69
+        { field: "sesGivenDate", headerName: "Dt given-PIMO for SES" },                             // 70
+        { field: "sesNo", headerName: "SES no" },                                                   // 72
+        { field: "sesAmount", headerName: "SES Amt" },                                              // 73
+        { field: "sesDate", headerName: "SES Date" },                                               // 74
+        { field: "sesDoneBy", headerName: "SES done by" },                                          // 74A
+        { field: "receivedBackFromITDept", headerName: "Dt ret-IT Dept aft SES" },                  // 75
+        { field: "pimoReturnedAfterSesDate", headerName: "Dt ret-PIMO aft SES" },                   // 76
+        { field: "trusteeApprovalDate", headerName: "Certified by Trustee, Adviser & Director" },   // 77
+        { field: "certifiedByProjectDirector", headerName: "Dt ret-PIMO aft approval" },            // 78
+        { field: "submittedToAccountsDepartment", headerName: "Submitted to Accounts Department" }, // 80
+        { field: "submittedToAccountsDepartmentName", headerName: "Submitted to Accounts - Name" }, // 81
+        { field: "receivedInAccountsDepartment", headerName: "Received in Accounts Department" },   // 82
+        { field: "receivedInAccountsDepartmentName", headerName: "Received in Accounts - Name" },   // 82A
+        { field: "acctsReturnedToPimoDate", headerName: "Dt ret-PIMO by Accts" },                   // 83
+        { field: "acctsReceivedBackDate", headerName: "Dt recd back in Accts" },                    // 84
+        { field: "bookingGivenDate", headerName: "Dt given-booking" },                              // 85
+        { field: "paymentInstructions", headerName: "Payment instructions" },                       // 86
+        { field: "f110Identification", headerName: "F110" },                                        // 88
+        { field: "paymentDate", headerName: "Date of Payment" },                                    // 89
+        { field: "accountsIdentification", headerName: "Accts Identification" },                    // 90
+        { field: "paymentAmt", headerName: "Payment Amt" },                                         // 91
+        { field: "status", headerName: "Payment Status" },                                          // 93
+        { field: "miroNo", headerName: "MIRO no" },                                                 // 94
+        { field: "miroDate", headerName: "MIRO Dt" },                                               // 95
+        { field: "miroAmount", headerName: "MIRO Amt" },                                            // 96
 
-        { field: "siteApprovalDate", headerName: "Dt given-Site Approval" },
-        { field: "billReceivedAtSite", headerName: "Bill Received at Site" },
-        { field: "billReceivedAtSiteName", headerName: "Bill Received at Site - Name" },
-        { field: "billSendForQualityCertification", headerName: "Bill send for Quality Certification" },
-        { field: "billSendForQualityCertificationName", headerName: "Quality Certification - Name" },
-        { field: "billSendToQS", headerName: "Bill send to QS" },
-        { field: "billSendToQSName", headerName: "Bill send to QS - Name" },
-        { field: "certifiedByQS", headerName: "Certified by QS" },
-        { field: "certifiedByQSAmount", headerName: "Certified by QS - Amount" },
-        { field: "certifiedByArch", headerName: "Certified by Arch/PMC/SVKM" },
-        { field: "certifiedByArchName", headerName: "Certified by Arch/PMC/SVKM - Name" },
-        { field: "billSendToSiteEngineer", headerName: "Bill send to Site Engineer/ Site Incharge" },
-        { field: "billSendToSiteEngineerName", headerName: "Site Engineer/ Site Incharge - Name" },
-        { field: "migoDate", headerName: "MIGO Date" },
-        { field: "migoDoneBy", headerName: "MIGO done by" },
-        { field: "migoAmount", headerName: "MIGO Amt" },
-        { field: "billSendToPIMOMumbai", headerName: "Bill Send to PIMO Mumbai" },
-        { field: "billReceivedAtPIMOMumbai", headerName: "Bill Received at PIMO Mumbai" },
-        { field: "billReceivedAtPIMOMumbaiName", headerName: "Received at PIMO Mumbai - Name" },
-        { field: "billSendToQSCertification", headerName: "Bill Send to QS Certification" },
-        { field: "billSendToQSCertificationName", headerName: "QS Certification - Name" },
-        { field: "receivedFromQSWithCOP", headerName: "Received from QS With COP" },
-        { field: "receivedFromQSWithCOPName", headerName: "Received from QS With COP - Name" },
-        { field: "receivedFromQSWithCOPAmount", headerName: "Received from QS With COP - Amount" },
-        { field: "givenToITDept", headerName: "Given to I.T. Dept." },
-        { field: "givenToITDeptName", headerName: "Given to I.T. Dept. - Name" },
-        { field: "receivedBackFromITDept", headerName: "Received Back from I.T.Dept." },
-        { field: "receivedBackFromITDeptName", headerName: "Received Back from I.T.Dept. - Name" },
-        { field: "sesDate", headerName: "SES Date" },
-        { field: "sesDoneBy", headerName: "SES done by" },
-        { field: "sesAmount", headerName: "SES Amt" },
-        { field: "certifiedByProjectDirector", headerName: "Certified by Trustee, Adviser & Director" },
-        { field: "submittedToAccountsDepartment", headerName: "Submitted to Accounts Department" },
-        { field: "submittedToAccountsDepartmentName", headerName: "Submitted to Accounts - Name" },
-        { field: "receivedInAccountsDepartment", headerName: "Received in Accounts Department" },
-        { field: "receivedInAccountsDepartmentName", headerName: "Received in Accounts - Name" },
-
+        // Formula columns, computed by the server (6.10, item 3).
         { field: "delay_for_receiving_invoice", headerName: "Delay for Receiving Invoice" },
         { field: "no_of_Days_Site", headerName: "No. of Days Site" },
         { field: "no_of_Days_at_Mumbai", headerName: "No. of Days at Mumbai" },
@@ -230,14 +262,19 @@ const BillJourney = () => {
     const globalFilter = useReportGlobalFilter(bills, {
         // Bill Received at Site (col 24) first: the report's own date column (1.10, item O-02).
         dateFields: pickDateFields(columns, [
-            "billReceivedAtSite", "invoiceDate", "proformaInvDate", "poDate", "paymentDate", "siteApprovalDate",
-            "billSendForQualityCertification", "billSendToQS", "certifiedByQS",
-            "certifiedByArch", "billSendToSiteEngineer", "migoDate", "billSendToPIMOMumbai",
+            "billReceivedAtSite", "invoiceDate", "proformaInvDate", "poDate", "paymentDate",
+            "proformaInvRecdAtSite", "advanceDate", "billSendForQualityCertification",
+            "qsMeasureGivenDate", "qsMeasureCheckedDate", "qsMeasureReturnedDate",
+            "qsProvCopGivenDate", "certifiedByQS", "qsProvCopReturnedDate", "migoGivenDate",
+            "migoDate", "invReturnedToSiteDate", "siteEngineerGivenDate", "certifiedByArch",
+            "siteInchargeGivenDate", "siteApprovalDate", "billSendToPIMOMumbai",
             "billReceivedAtPIMOMumbai", "billSendToQSCertification", "receivedFromQSWithCOP",
-            "givenToITDept", "receivedBackFromITDept", "sesDate", "certifiedByProjectDirector",
+            "givenToITDept", "sesGivenDate", "sesDate", "receivedBackFromITDept",
+            "pimoReturnedAfterSesDate", "trusteeApprovalDate", "certifiedByProjectDirector",
             "submittedToAccountsDepartment", "receivedInAccountsDepartment",
+            "acctsReturnedToPimoDate", "acctsReceivedBackDate", "bookingGivenDate", "miroDate",
         ]),
-        amountFields: pickAmountFields(columns, ["invoiceAmount", "proformaInvAmt", "poAmt", "copAmt", "paymentAmt", "certifiedByQSAmount", "migoAmount", "receivedFromQSWithCOPAmount", "sesAmount"]), // 29.09, item 14
+        amountFields: pickAmountFields(columns, ["invoiceAmount", "proformaInvAmt", "poAmt", "advanceAmt", "certifiedByQSAmount", "migoAmount", "sesAmount", "paymentAmt", "miroAmount"]), // 29.09, item 14
         searchFields: visibleColumnFields,
     });
     const filteredBills = globalFilter.filteredRows;
@@ -291,7 +328,8 @@ const BillJourney = () => {
                     <table className='w-full border-collapse bg-white whitespace'>
                         <thead>
                             <tr>
-                                <th className='sticky left-0 top-0 z-[50] w-12 bg-[#f8f9fa] px-1.5 py-2.5 border border-black'>
+                                {/* Checkbox and Sr No stay put when scrolling right (6.10, item 4). */}
+                                <th className='sticky left-0 top-0 z-[50] w-[3.5rem] min-w-[3.5rem] max-w-[3.5rem] bg-[#f8f9fa] px-1.5 py-2.5 border border-black'>
                                     <div className="relative z-10 flex flex-col items-center">
                                         <input
                                             type="checkbox"
@@ -307,7 +345,7 @@ const BillJourney = () => {
                                     </div>
                                 </th>
                                 {columns.map((col, idx) => (
-                                    <th key={idx} className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>
+                                    <th key={idx} className={`sticky top-0 ${col.field === 'srNo' ? 'left-[3.5rem] z-[50] shadow-[1px_0_0_#000]' : 'z-[1]'} border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left`}>
                                         {col.headerName}
                                     </th>
                                 ))}
@@ -328,7 +366,7 @@ const BillJourney = () => {
                                 </tr>
                             ) : filteredBills.map((bill, index) => (
                                 <tr key={index} className="hover:bg-[#f5f5f5]">
-                                    <td className={`sticky left-0 z-[20] whitespace-nowrap px-3 py-3 text-center border border-black ${selectedInvoices.includes(bill.srNo) ? 'bg-blue-50' : 'bg-white'}`}>
+                                    <td className={`sticky left-0 z-[20] w-[3.5rem] min-w-[3.5rem] max-w-[3.5rem] whitespace-nowrap px-3 py-3 text-center border border-black ${selectedInvoices.includes(bill.srNo) ? 'bg-blue-50' : 'bg-white'}`}>
                                         <div className="relative z-10">
                                             <input
                                                 type="checkbox"
@@ -339,7 +377,7 @@ const BillJourney = () => {
                                         </div>
                                     </td>
                                     {visibleColumnFields.map((field, idx) => (
-                                        <td key={idx} className={`border border-black text-[14px] py-[0.75vh] px-[0.65vw] ${['invoiceAmount', 'delay_for_receiving_invoice', 'no_of_Days_Site', 'no_of_Days_at_Mumbai', 'no_of_Days_at_AC', 'days_for_payment'].includes(field) ? 'text-right' : 'text-left'}`}>
+                                        <td key={idx} className={`border border-black text-[14px] py-[0.75vh] px-[0.65vw] ${field === 'srNo' ? `sticky left-[3.5rem] z-[20] shadow-[1px_0_0_#000] ${selectedInvoices.includes(bill.srNo) ? 'bg-blue-50' : 'bg-white'}` : ''} ${['invoiceAmount', 'delay_for_receiving_invoice', 'no_of_Days_Site', 'no_of_Days_at_Mumbai', 'no_of_Days_at_AC', 'days_for_payment'].includes(field) ? 'text-right' : 'text-left'}`}>
                                             {field === 'invoiceAmount' ? bill[field]?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : bill[field]}
                                         </td>
                                     ))}

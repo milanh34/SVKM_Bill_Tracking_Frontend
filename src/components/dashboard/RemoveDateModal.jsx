@@ -131,22 +131,7 @@ export const RemoveDateModal = ({
               No roles available
             </div>
           )}
-          {/*
-            "Mark as not received" for QS (observation N-18). It steps back
-            through whichever receipt actually happened - columns 64 and 65,
-            or 40 and 41 when those are already blank - which the server
-            decides per bill.
-          */}
-          {role === "qs_site" && (
-            <button
-              className="w-full flex items-center space-x-2 px-4 py-2 bg-red-700 text-white rounded-md hover:bg-red-800 transition-colors hover:cursor-pointer disabled:opacity-50 border-2 border-red-900"
-              onClick={() => handleRemoveDateClick({ value: "qs_not_received", label: "Mark as not received" })}
-              disabled={loading}
-            >
-              <Trash2 className="w-4 h-4" />
-              <span>Mark as not received</span>
-            </button>
-          )}
+          {/* QS "Mark as not received" moved to Send/Unreceive (6.10, item 20). */}
 
           {availableRoles.map((r) => (
             <button

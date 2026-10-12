@@ -14,7 +14,7 @@ import { courieredMumbai, invReturnQsMeasurement } from '../../apis/report.api';
 import { handleExportAllReports } from '../../utils/exportDownloadPrintReports';
 import { getTodayDateString } from '../../utils/dateHelpers';
 
-const InvReturnQsAfterProvCOP = () => {
+const InvReturnQsAfterMeasurement = () => {
 
     const availableRegions = JSON.parse(Cookies.get('availableRegions') || '[]');
 
@@ -216,4 +216,4 @@ const InvReturnQsAfterProvCOP = () => {
     )
 }
 
-export default InvReturnQsAfterProvCOP;
+export default InvReturnQsAfterMeasurement;

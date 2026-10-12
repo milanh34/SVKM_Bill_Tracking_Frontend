@@ -1,8 +1,9 @@
-import * as XLSX from "xlsx";
-import { outstanding } from "../apis/report.api";
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 import {
     describeReportCriteria,
-    criteriaLine,
+    addCriteriaRows,
+    fitCriteriaRows,
     generatedAtText,
     printCriteriaHtml,
     reportFileName,
@@ -10,15 +11,28 @@ import {
 
 // The file is "<report name>_DDMMYYYY.xlsx" (1.10, item O-16a).
 const REPORT_NAME = "Outstanding Bills Report Subtotal";
+// The heading on the page, the sheet and the print.
+const REPORT_TITLE = "Outstanding Bills Report Subtotal as on";
+
+const DATE_FIELD = /date|Date|Dt|dt|Booking|booking|RecdAtSite|receivedBack|invReturnedToSite|returnedToPimo/i;
+const isDateField = (field) => DATE_FIELD.test(field);
+const isNumberField = (field) =>
+    field.includes("amount") || field.includes("Amount") || field.endsWith("Amt") || field.endsWith("amt");
 
 const formatCurrency = (value) => {
-    if (value === undefined || value === null) return "";
+    if (value === undefined || value === null || value === "") return "";
     return new Intl.NumberFormat("en-IN", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
         useGrouping: true,
     }).format(value);
 };
+
+const escapeHtml = (value) =>
+    String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
 
 /**
  * Parses a date value (DD-MM-YYYY string, ISO string, or Date object)
@@ -61,10 +75,240 @@ const parseDateValue = (value) => {
     return new Date(Date.UTC(year, month - 1, day));
 };
 
-export const handleExportOutstandingSubtotalReport = async (selectedRows, filteredData, columns, visibleColumnFields, toPrint, filters = null) => {
-    const titleName = 'Report Outstanding Subtotal';
-    try {
+/** DD-MM-YYYY for the print. */
+const formatDateForDisplay = (value) => {
+    const d = parseDateValue(value);
+    if (!(d instanceof Date)) return "";
+    const dd = String(d.getUTCDate()).padStart(2, "0");
+    const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+    return `${dd}-${mm}-${d.getUTCFullYear()}`;
+};
 
+const toNumber = (value) => {
+    if (value === null || value === undefined || value === "") return 0;
+    const num = Number(String(value).replace(/[^\d.-]/g, ""));
+    return !isNaN(num) ? num : 0;
+};
+
+const fieldValue = (item, field) => {
+    if (field.includes(".")) {
+        const [parentField, childField] = field.split(".");
+        return item[parentField] ? item[parentField][childField] : "";
+    }
+    return item[field];
+};
+
+/**
+ * One row of cell values per item, as { kind, values } where kind is
+ * "data", "subtotal" or "total". Dates are Date objects and amounts numbers,
+ * so the same rows serve the download and (formatted) the print.
+ */
+const buildRows = (dataToExport, columnsToExport) =>
+    dataToExport.map((item) => {
+        if (item.isSubtotal) {
+            return {
+                kind: "subtotal",
+                values: columnsToExport.map(({ field }) => {
+                    if (field === "vendorNo") return `Count: ${item.count}`;
+                    if (field === "vendorName") return item.vendorName ?? "";
+                    if (isNumberField(field)) {
+                        if (field === "taxInvAmt" || field === "invoiceAmount") return toNumber(item.subtotalAmount);
+                        if (field === "copAmt") return toNumber(item.subtotalCopAmt);
+                        if (field === "paymentAmt") return toNumber(item.subtotalPaymentAmount);
+                        return "";
+                    }
+                    return "";
+                }),
+            };
+        }
+        if (item.isGrandTotal) {
+            return {
+                kind: "total",
+                values: columnsToExport.map(({ field }) => {
+                    if (field === "vendorNo") return `Total Count: ${item.totalCount}`;
+                    if (isNumberField(field)) {
+                        if (field === "taxInvAmt" || field === "invoiceAmount") return toNumber(item.grandTotalAmount);
+                        if (field === "copAmt") return toNumber(item.grandTotalCopAmt);
+                        if (field === "paymentAmt") return toNumber(item.grandTotalPaymentAmount);
+                        return "";
+                    }
+                    return "";
+                }),
+            };
+        }
+        return {
+            kind: "data",
+            values: columnsToExport.map(({ field }) => {
+                const value = fieldValue(item, field);
+                if (isDateField(field)) return parseDateValue(value);
+                if (isNumberField(field)) return toNumber(value);
+                return value !== undefined && value !== null && value !== "N/A" ? value : "";
+            }),
+        };
+    });
+
+/**
+ * Download, as the other report downloads are built: title and date/time,
+ * the selection criteria, a blank row, then the column headings and the rows.
+ *
+ * It was written with SheetJS, which drops cell styles, and opened straight
+ * on the timestamp - there was no title or styled heading row (6.10, item 18).
+ */
+const downloadWorkbook = async (rows, columnsToExport, criteria) => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Bills Report");
+    const columnCount = columnsToExport.length;
+    const now = new Date();
+
+    const titleValues = Array(columnCount).fill("");
+    titleValues[0] = REPORT_TITLE;
+    titleValues[columnCount - 1] = generatedAtText(now);
+    const titleRow = worksheet.addRow(titleValues);
+    if (columnCount >= 3) worksheet.mergeCells(1, 1, 1, columnCount - 1);
+    titleRow.getCell(1).font = { bold: true, size: 24 };
+    titleRow.getCell(1).alignment = { horizontal: "left", vertical: "middle" };
+    const timestampCell = titleRow.getCell(columnCount);
+    timestampCell.font = { italic: true, size: 12 };
+    timestampCell.alignment = { horizontal: "right", vertical: "middle" };
+
+    // "Selection Criteria - ", one row per line (6.10, items 14, 15).
+    const criteriaRows = addCriteriaRows(worksheet, criteria, columnCount);
+
+    worksheet.addRow([]);
+
+    const headerRow = worksheet.addRow(columnsToExport.map((col) => col.headerName));
+    const headerRowNumber = headerRow.number;
+    headerRow.eachCell((cell) => {
+        cell.font = { bold: true, color: { argb: "000000" } };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "f8f9fa" } };
+        cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+        cell.border = {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" },
+        };
+    });
+
+    rows.forEach(({ kind, values }) => {
+        const newRow = worksheet.addRow(values);
+        newRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+            const field = columnsToExport[colNumber - 1]?.field || "";
+            if (kind !== "data") {
+                cell.font = { bold: true };
+                cell.fill = {
+                    type: "pattern",
+                    pattern: "solid",
+                    fgColor: { argb: kind === "total" ? "FFE9ECEF" : "FFF8F9FA" },
+                };
+            }
+            if (isDateField(field) && cell.value instanceof Date) {
+                cell.numFmt = "DD-MM-YYYY";
+            }
+            if (isNumberField(field) && typeof cell.value === "number") {
+                cell.numFmt = "#,##0.00";
+                cell.alignment = { horizontal: "right" };
+            }
+        });
+    });
+
+    // Widths from the heading and the rows; the merged title and criteria never
+    // drive one, the timestamp still sizes the last column.
+    worksheet.columns.forEach((column, columnIndex) => {
+        let maxLength = 0;
+        const isLastColumn = columnIndex === columnCount - 1;
+        column.eachCell({ includeEmpty: true }, (cell, rowNumber) => {
+            if (rowNumber < headerRowNumber && !(rowNumber === titleRow.number && isLastColumn)) return;
+            const length = cell.value
+                ? (cell.value instanceof Date ? 10 : cell.value.toString().length)
+                : 10;
+            if (length > maxLength) maxLength = length;
+        });
+        column.width = Math.max(maxLength + 2, 15);
+    });
+
+    fitCriteriaRows(worksheet, criteriaRows, columnCount);
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    // "<report name>_DDMMYYYY.xlsx" (1.10, item O-16a).
+    saveAs(blob, reportFileName(REPORT_NAME, now));
+};
+
+/**
+ * Print only. It used to build the workbook, DOWNLOAD it, and then print an
+ * HTML copy - so the save window opened before the print (6.10, items 17, 33).
+ */
+const printReport = (rows, columnsToExport, criteria, dataRowCount) => {
+    const filterDetailsHtml = printCriteriaHtml(criteria, dataRowCount);
+
+    const headHtml = columnsToExport.map((col) => `<th>${escapeHtml(col.headerName)}</th>`).join("");
+    const bodyHtml = rows
+        .map(({ kind, values }) => {
+            const rowClass = kind === "subtotal" ? "count-row" : kind === "total" ? "total-row" : "";
+            const cells = values
+                .map((value, i) => {
+                    const field = columnsToExport[i].field;
+                    if (isDateField(field) && value instanceof Date) {
+                        return `<td class="date">${formatDateForDisplay(value)}</td>`;
+                    }
+                    if (isNumberField(field) && typeof value === "number") {
+                        return `<td class="amount-column">${formatCurrency(value)}</td>`;
+                    }
+                    return `<td>${escapeHtml(value)}</td>`;
+                })
+                .join("");
+            return `<tr class="${rowClass}">${cells}</tr>`;
+        })
+        .join("");
+
+    const html = `<html><head><title>${REPORT_TITLE}</title><style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background-color: #f8f9fa; color: #000000; font-size: 14px; font-weight: bold; text-align: center; padding: 8px; border: 1px solid #ddd; }
+        td { padding: 8px; font-size: 10.5px; border: 1px solid #ddd; text-align: left; }
+        .amount-column { text-align: right; }
+        .date { white-space: nowrap; }
+        .timestamp { font-style: italic; padding: 15px; padding-right: 4px; }
+        .count-row { background-color: #F8F9FA; font-weight: bold; }
+        .total-row { background-color: #E9ECEF; font-weight: bold; }
+        .report-header { background-color: #D3D3D3; margin-bottom: 0px; display: flex; justify-content: space-between; }
+        .report-title { font-size: 24px; font-weight: bold; text-align: left; padding: 15px; }
+        .report-filters { font-size: 14px; font-weight: normal; text-align: left; padding: 6px 15px 12px 15px; line-height: 1.5; }
+        @media print {
+            thead { display: table-header-group; }
+            tfoot { display: table-footer-group; }
+            @page { margin: 0.5cm; }
+        }
+    </style></head><body>
+        <div class="report-header">
+            <div class="report-title">${REPORT_TITLE}</div>
+            <div class="timestamp">${generatedAtText()}</div>
+        </div>
+        ${filterDetailsHtml}
+        <table><thead><tr>${headHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>
+    </body></html>`;
+
+    // A standard window, to avoid the 0x0 iframe viewport layout bugs.
+    const printWindow = window.open("", "_blank", "width=800,height=600");
+    if (!printWindow) {
+        alert("Please allow pop-ups to enable printing");
+        return;
+    }
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.onafterprint = function () {
+        printWindow.close();
+    };
+};
+
+export const handleExportOutstandingSubtotalReport = async (selectedRows, filteredData, columns, visibleColumnFields, toPrint, filters = null) => {
+    try {
         const dataToExport = selectedRows.length > 0
             ? filteredData.filter((item) => selectedRows.includes(item._id))
             : filteredData;
@@ -73,546 +317,18 @@ export const handleExportOutstandingSubtotalReport = async (selectedRows, filter
             throw new Error("Please select at least one row to download");
         }
 
-        const allColumnsToExport = columns.filter((col) => visibleColumnFields.includes(col.field));
-        const workbook = XLSX.utils.book_new();
-
-        // Create timestamp row
-        const now = new Date();
-        // Date and time (1.10, item O-16b).
-        const timestamp = [
-            [generatedAtText(now)]
-        ];
+        const columnsToExport = columns.filter((col) => visibleColumnFields.includes(col.field));
         // Region and date range, as the other reports carry (1.10, item O-16c).
         const criteria = describeReportCriteria(filters);
         const dataRowCount = dataToExport.filter((item) => !item.isSubtotal && !item.isGrandTotal).length;
-
-        // Create worksheet with data
-        const excelData = [];
-
-        // Dynamically determine date and number column indices based on selected columns
-        const dateColumnIndices = [];
-        const numberColumnIndices = [];
-        allColumnsToExport.forEach((col, idx) => {
-            const isDateField = /date|Date|Dt|dt|Booking|booking|RecdAtSite|receivedBack|invReturnedToSite|returnedToPimo/i.test(col.field);
-            const isNumberField = col.field.includes("amount") || col.field.includes("Amount") || col.field.endsWith("Amt") || col.field.endsWith("amt");
-            if (isDateField) dateColumnIndices.push(idx);
-            if (isNumberField) numberColumnIndices.push(idx);
-        });
-        const numberFormat = '#,##0.00';
-        const dateFormat = 'DD-MM-YYYY';
-
-        dataToExport.forEach((item) => {
-            if (!item.isSubtotal && !item.isGrandTotal) {
-                const row = {};
-                allColumnsToExport.forEach((col) => {
-                    let value;
-                    if (col.field.includes(".")) {
-                        const [parentField, childField] = col.field.split(".");
-                        value = item[parentField] ? item[parentField][childField] : "";
-                    } else {
-                        value = item[col.field];
-                    }
-
-                    const isDateField = /date|Date|Dt|dt|Booking|booking|RecdAtSite|receivedBack|invReturnedToSite|returnedToPimo/i.test(col.field);
-                    const isNumberField = col.field.includes("amount") || col.field.includes("Amount") || col.field.endsWith("Amt") || col.field.endsWith("amt");
-
-                    if (isDateField) {
-                        const d = parseDateValue(value);
-                        row[col.headerName] = (d instanceof Date && !isNaN(d.getTime())) ? d : "";
-                    } else if (isNumberField) {
-                        const num = (value !== null && value !== undefined && value !== "") 
-                            ? Number(String(value).replace(/[^\d.-]/g, "")) : 0;
-                        row[col.headerName] = !isNaN(num) ? num : 0;
-                    } else {
-                        row[col.headerName] = (value !== undefined && value !== null && value !== 'N/A') ? value : "";
-                    }
-                });
-                excelData.push(row);
-            } else if (item.isSubtotal) {
-                const row = {};
-                allColumnsToExport.forEach((col) => {
-                    const isNumberField = col.field.includes("amount") || col.field.includes("Amount") || col.field.endsWith("Amt") || col.field.endsWith("amt");
-                    if (col.field === "vendorNo") {
-                        row[col.headerName] = `Count: ${item.count}`;
-                    } else if (col.field === "vendorName") {
-                        row[col.headerName] = item.vendorName;
-                    } else if (isNumberField) {
-                        // Try to get subtotal values
-                        let val = 0;
-                        if (col.field === "taxInvAmt" || col.field === "invoiceAmount") val = item.subtotalAmount || 0;
-                        else if (col.field === "copAmt") val = item.subtotalCopAmt || 0;
-                        else if (col.field === "paymentAmt") val = item.subtotalPaymentAmount || 0;
-                        const num = (val !== null && val !== undefined && val !== "") 
-                            ? Number(String(val).replace(/[^\d.-]/g, "")) : 0;
-                        row[col.headerName] = !isNaN(num) ? num : 0;
-                    } else {
-                        row[col.headerName] = "";
-                    }
-                });
-                excelData.push(row);
-            } else if (item.isGrandTotal) {
-                const row = {};
-                allColumnsToExport.forEach((col) => {
-                    const isNumberField = col.field.includes("amount") || col.field.includes("Amount") || col.field.endsWith("Amt") || col.field.endsWith("amt");
-                    if (col.field === "vendorNo") {
-                        row[col.headerName] = `Total Count: ${item.totalCount}`;
-                    } else if (isNumberField) {
-                        let val = 0;
-                        if (col.field === "taxInvAmt" || col.field === "invoiceAmount") val = item.grandTotalAmount || 0;
-                        else if (col.field === "copAmt") val = item.grandTotalCopAmt || 0;
-                        else if (col.field === "paymentAmt") val = item.grandTotalPaymentAmount || 0;
-                        const num = (val !== null && val !== undefined && val !== "") 
-                            ? Number(String(val).replace(/[^\d.-]/g, "")) : 0;
-                        row[col.headerName] = !isNaN(num) ? num : 0;
-                    } else {
-                        row[col.headerName] = "";
-                    }
-                });
-                excelData.push(row);
-            }
-        });
-
-        // Create and format worksheet
-        if (!toPrint) {
-
-            // Timestamp, then the criteria merged across the table so it never
-            // sets a column's width (1.10, items O-16c/d), then the table.
-            const topRows = criteria ? [...timestamp, [criteriaLine(criteria)]] : timestamp;
-            const headerRowIndex = topRows.length; // 0-based
-            const worksheet = XLSX.utils.aoa_to_sheet(topRows);
-            worksheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
-            if (criteria) {
-                worksheet["!merges"].push({ s: { r: 1, c: 0 }, e: { r: 1, c: Math.max(allColumnsToExport.length - 1, 0) } });
-            }
-            XLSX.utils.sheet_add_json(worksheet, excelData, { origin: `A${headerRowIndex + 1}`, skipHeader: false, cellDates: true });
-
-            // Apply number and date formatting to data cells
-            const dataRange = XLSX.utils.decode_range(worksheet["!ref"]);
-            for (let row = headerRowIndex + 1; row <= dataRange.e.r; row++) { // the rows after the header
-                // Apply date format to date columns
-                dateColumnIndices.forEach((colIndex) => {
-                    const cellAddress = XLSX.utils.encode_cell({ r: row, c: colIndex });
-                    if (worksheet[cellAddress] && worksheet[cellAddress].v instanceof Date) {
-                        worksheet[cellAddress].t = 'd';
-                        worksheet[cellAddress].z = dateFormat;
-                    }
-                });
-                // Apply number format to number columns
-                numberColumnIndices.forEach((colIndex) => {
-                    const cellAddress = XLSX.utils.encode_cell({ r: row, c: colIndex });
-                    if (worksheet[cellAddress] && typeof worksheet[cellAddress].v === 'number') {
-                        worksheet[cellAddress].z = numberFormat;
-                    }
-                });
-            }
-
-            // Style the worksheet
-            const range = XLSX.utils.decode_range(worksheet["!ref"]);
-            const colWidths = {};
-            Object.keys(excelData[0] || {}).forEach((key, index) => {
-                colWidths[index] = Math.max(key.length * 1.5, 15);
-            });
-            worksheet["!cols"] = Object.keys(colWidths).map((col) => ({
-                wch: colWidths[col],
-            }));
-
-            // Style header cells
-            for (let col = range.s.c; col <= range.e.c; col++) {
-                const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-                if (!worksheet[cellAddress]) continue;
-                worksheet[cellAddress].s = {
-                    font: { bold: true, color: { rgb: "FFFFFF" }, sz: 12 },
-                    fill: { fgColor: { rgb: "0172C2" } },
-                    alignment: { horizontal: "center", vertical: "center", wrapText: true },
-                    border: {
-                        top: { style: "medium", color: { rgb: "000000" } },
-                        bottom: { style: "medium", color: { rgb: "000000" } },
-                        left: { style: "thin", color: { rgb: "000000" } },
-                        right: { style: "thin", color: { rgb: "000000" } },
-                    },
-                };
-            }
-
-            // Style timestamp row
-            const timestampCell = worksheet['A1'];
-            if (timestampCell) {
-                timestampCell.s = {
-                    font: { bold: true, color: { rgb: "000000" }, sz: 12 },
-                    alignment: { horizontal: "left" }
-                };
-            }
-
-            const vendorNoCol = allColumnsToExport.find(c => c.field === "vendorNo");
-            const vendorNoHeader = vendorNoCol ? vendorNoCol.headerName : null;
-            excelData.forEach((row, idx) => {
-                if (
-                    vendorNoHeader &&
-                    typeof row[vendorNoHeader] === 'string' &&
-                    (row[vendorNoHeader]?.startsWith("Count:") || row[vendorNoHeader]?.startsWith("Total Count:"))
-                ) {
-                    const rowIndex = idx + headerRowIndex + 1;
-                    for (let col = 0; col < Object.keys(row).length; col++) {
-                        const cellRef = XLSX.utils.encode_cell({ r: rowIndex, c: col });
-                        if (!worksheet[cellRef]) worksheet[cellRef] = {};
-                        worksheet[cellRef].s = {
-                            font: { bold: true },
-                            fill: {
-                                fgColor: { rgb: row[vendorNoHeader].startsWith("Total Count:") ? "E9ECEF" : "F8F9FA" }
-                            }
-                        };
-                    }
-                }
-            });
-
-            // Add worksheet to workbook
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Bills Report");
-
-            // Generate file and trigger download (download only)
-            const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-            const blob = new Blob([excelBuffer], {
-                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            });
-            const url = URL.createObjectURL(blob);
-            const now1 = new Date();
-            // "<report name>_DDMMYYYY.xlsx" (1.10, item O-16a).
-            const filename = reportFileName(REPORT_NAME, now1);
-
-            const link = document.createElement("a");
-            link.href = url;
-            link.setAttribute("download", filename);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // if (toPrint) {
-
-        //     // Print the report (create a printable HTML version)
-        //     const printWindow = window.open("", "_blank", "width=800,height=600");
-        //     printWindow.document.write("<html><head><title>Outstanding Report Subtotal as on:</title></head><body>");
-        //     // printWindow.document.write("<h2>Outstanding Report</h2>");
-        //     printWindow.document.write("<table border='1' cellpadding='5' style='border-collapse: collapse;'>");
-
-        //     // Add the header row
-        //     printWindow.document.write("<thead><tr>");
-        //     printWindow.document.write(`<tr><th colSpan='1'></th>`);
-        //     printWindow.document.write(`<th>Outstanding Report Subtotal as on:</th>`);
-        //     printWindow.document.write(`<th colSpan='2'></th>`);
-        //     printWindow.document.write(`<th>${timestamp}</th>`);
-        //     printWindow.document.write(`</tr>`);
-        //     // printWindow.document.write(`<th>Outstanding Report</th>`);
-        //     allColumnsToExport.forEach((column) => {
-        //         printWindow.document.write(`<th>${column.headerName}</th>`);
-        //     });
-        //     printWindow.document.write("</tr></thead>");
-
-        //     // Add the data rows
-        //     printWindow.document.write("<tbody>");
-        //     excelData.forEach((row) => {
-        //         printWindow.document.write("<tr>");
-        //         allColumnsToExport.forEach((column) => {
-        //             printWindow.document.write(`<td>${row[column.headerName]}</td>`);
-        //         });
-        //         printWindow.document.write("</tr>");
-        //     });
-        //     printWindow.document.write("</tbody>");
-        //     printWindow.document.write("</table>");
-        //     printWindow.document.write("</body></html>");
-        //     printWindow.document.close();
-        //     printWindow.print();  // Trigger print dialog
-        //     printWindow.onafterprint = function () {
-        //         printWindow.close();  // Close the print window after printing
-        //     };
-        // }
+        const rows = buildRows(dataToExport, columnsToExport);
 
         if (toPrint) {
-            // Region, dates and the count below the title (1.10, items O-16d, O-18).
-            const filterDetailsHtml = printCriteriaHtml(criteria, dataRowCount);
-
-            // Original excel generation and download code
-            const worksheet = XLSX.utils.aoa_to_sheet(timestamp);
-            // const worksheet = XLSX.utils.aoa_to_sheet(`Outstanding Bills Report Subtotal as on\t\t${timestamp}`);
-            worksheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
-            XLSX.utils.sheet_add_json(worksheet, excelData, { origin: 'A2', skipHeader: false, cellDates: true });
-
-            // Apply number and date formatting to data cells
-            const dataRange2 = XLSX.utils.decode_range(worksheet["!ref"]);
-            for (let row = 2; row <= dataRange2.e.r; row++) {
-                dateColumnIndices.forEach((colIndex) => {
-                    const cellAddress = XLSX.utils.encode_cell({ r: row, c: colIndex });
-                    if (worksheet[cellAddress] && worksheet[cellAddress].v instanceof Date) {
-                        worksheet[cellAddress].t = 'd';
-                        worksheet[cellAddress].z = dateFormat;
-                    }
-                });
-                numberColumnIndices.forEach((colIndex) => {
-                    const cellAddress = XLSX.utils.encode_cell({ r: row, c: colIndex });
-                    if (worksheet[cellAddress] && typeof worksheet[cellAddress].v === 'number') {
-                        worksheet[cellAddress].z = numberFormat;
-                    }
-                });
-            }
-
-            // Style the worksheet
-            const range = XLSX.utils.decode_range(worksheet["!ref"]);
-            const colWidths = {};
-            Object.keys(excelData[0] || {}).forEach((key, index) => {
-                colWidths[index] = Math.max(key.length * 1.5, 15);
-            });
-            worksheet["!cols"] = Object.keys(colWidths).map((col) => ({
-                wch: colWidths[col],
-            }));
-
-            // Style header cells
-            for (let col = range.s.c; col <= range.e.c; col++) {
-                const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-                if (!worksheet[cellAddress]) continue;
-                worksheet[cellAddress].s = {
-                    font: { bold: true, color: { rgb: "FFFFFF" }, sz: 12 },
-                    fill: {
-                        type: "pattern",
-                        pattern: "solid",
-                        fgColor: { argb: "f8f9fa" }, // light grey
-                    },
-                    alignment: { horizontal: "center", vertical: "middle", wrapText: true },
-                    border: {
-                        top: { style: "thin" },
-                        bottom: { style: "thin" },
-                        left: { style: "thin" },
-                        right: { style: "thin" },
-                    },
-                };
-            }
-
-            // Style timestamp row
-            const timestampCell = worksheet['A1'];
-            if (timestampCell) {
-                timestampCell.s = {
-                    font: { bold: true, color: { rgb: "000000" }, sz: 12 },
-                    alignment: { horizontal: "left" }
-                };
-            }
-
-            const vendorNoCol2 = allColumnsToExport.find(c => c.field === "vendorNo");
-            const vendorNoHeader2 = vendorNoCol2 ? vendorNoCol2.headerName : null;
-            excelData.forEach((row, idx) => {
-                console.log(row);
-                if (
-                    vendorNoHeader2 &&
-                    typeof row[vendorNoHeader2] === 'string' &&
-                    (row[vendorNoHeader2]?.startsWith("Count:") || row[vendorNoHeader2]?.startsWith("Total Count:"))
-                ) {
-                    const rowIndex = idx + 2;
-                    for (let col = 0; col < Object.keys(row).length; col++) {
-                        const cellRef = XLSX.utils.encode_cell({ r: rowIndex, c: col });
-                        if (!worksheet[cellRef]) worksheet[cellRef] = {};
-                        worksheet[cellRef].s = {
-                            font: { bold: true },
-                            fill: {
-                                fgColor: { rgb: row[vendorNoHeader2].startsWith("Total Count:") ? "E9ECEF" : "F8F9FA" }
-                            }
-                        };
-                    }
-                }
-            });
-
-            // Add worksheet to workbook
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Bills Report");
-
-            // APPROACH 1: Download file and prompt user to print
-            const downloadAndPrintExcel = () => {
-                // Generate file for download
-                const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-                const blob = new Blob([excelBuffer], {
-                    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                });
-                const url = URL.createObjectURL(blob);
-                const now1 = new Date();
-                // "<report name>_DDMMYYYY.xlsx" (1.10, item O-16a).
-                const filename = reportFileName(REPORT_NAME, now1);
-
-                // Trigger download
-                const link = document.createElement("a");
-                link.href = url;
-                link.setAttribute("download", filename);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                // Generate HTML version for printing
-                const htmlVersion = generateHTMLFromExcel(workbook);
-                printHTMLContent(htmlVersion, filename);
-            };
-
-            // APPROACH 2: Convert Excel to HTML for printing
-            const generateHTMLFromExcel = (workbook) => {
-                // Convert Excel to HTML format
-                const htmlOptions = {
-                    header: `<html><head><style>
-                      body {
-                        font-family: Arial, sans-serif;
-                        margin: 20px;
-                      }
-                      table {
-                        width: 100%;
-                        border-collapse: collapse;
-                      }
-                      thead {
-                        background-color: #f2f2f2;
-                      }
-                      th {
-                        background-color: #f8f9fa;
-                        color: #000000;
-                        font-size: 14px;
-                        font-weight: bold;
-                        text-align: center;
-                        padding: 8px;
-                        border: 1px solid #ddd;
-                      }
-                      td {
-                        padding: 8px;
-                        font-size: 10.5px;
-                        border: 1px solid #ddd;
-                        text-align: left;
-                      }
-                      .timestamp { 
-                        font-weight: bold; 
-                        font-style: italic; 
-                        padding: 15px; 
-                        padding-right: 4px;
-                      } 
-                      .count-row { 
-                        background-color: #F8F9FA; 
-                        font-weight: bold; 
-                      } 
-                      .total-row { 
-                        background-color: #E9ECEF; 
-                        font-weight: bold;
-                      } 
-                      .report-header { 
-                        background-color: #D3D3D3;
-                        margin-bottom: 0px; 
-                        display: flex; 
-                        justify-content: space-between; 
-                      } 
-                      .report-title {
-                        font-size: 24px;
-                        font-weight: bold;
-                        text-align: left;
-                        padding: 15px;
-                      }
-                      .report-filters {
-                        font-size: 14px;
-                        font-weight: normal;
-                        text-align: left;
-                        padding: 6px 15px 12px 15px;
-                        line-height: 1.5;
-                      }
-                      /* Add page break control for printing */
-                      @media print {
-                        thead {
-                          display: table-header-group;
-                        }
-                        tfoot {
-                          display: table-footer-group;
-                        }
-                        @page {
-                          margin: 0.5cm;
-                        }
-                      }
-                    </style></head><body>`,
-                    footer: "</body></html>"
-                };
-
-                // Create HTML table from worksheet data
-                // let html = "<table>";
-
-                // Get the worksheet
-                const ws = workbook.Sheets["Bills Report"];
-                const range = XLSX.utils.decode_range(ws["!ref"]);
-
-                // Add timestamp row (if present)
-                let html = "";
-                if (ws['A1']) {
-                    const timestampValue = ws['A1'].v || '';
-                    // html += `<tr><td colspan="${range.e.c + 1}" class="timestamp">Outstanding Bills Report Subtotal as on\t\t${timestampValue}</td></tr>`;
-                    html += `<div class="report-header">
-                      <div class="report-title">Outstanding Bills Report Subtotal as on</div>
-                        <div class="timestamp">${generatedAtText()}</div>
-                    </div>
-                    ${filterDetailsHtml}
-                    <table>
-                      <thead>
-                        <tr>`
-                }
-
-                // Add header row
-                // html += "<tr>";
-                for (let col = range.s.c; col <= range.e.c; col++) {
-                    const cellAddress = XLSX.utils.encode_cell({ r: 1, c: col });
-                    const cellValue = ws[cellAddress] ? ws[cellAddress].v || '' : '';
-                    html += `<th>${cellValue}</th>`;
-                }
-                html += "</tr></thead><tbody>";
-
-                // Add data rows
-                const vendorNoColIdx = allColumnsToExport.findIndex(c => c.field === "vendorNo");
-                for (let row = 2; row <= range.e.r; row++) {
-                    // Check if this is a count or total row
-                    let rowClass = '';
-                    if (vendorNoColIdx >= 0) {
-                        const firstCellAddress = XLSX.utils.encode_cell({ r: row, c: vendorNoColIdx });
-                        if (ws[firstCellAddress] &&
-                            typeof ws[firstCellAddress].v === 'string' &&
-                            ws[firstCellAddress].v.startsWith('Count:')) {
-                            rowClass = 'count-row';
-                        } else if (ws[firstCellAddress] &&
-                            typeof ws[firstCellAddress].v === 'string' &&
-                            ws[firstCellAddress].v.startsWith('Total Count:')) {
-                            rowClass = 'total-row';
-                        }
-                    }
-
-                    html += `<tr class="${rowClass}">`;
-                    for (let col = range.s.c; col <= range.e.c; col++) {
-                        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-                        const cellValue = ws[cellAddress] ? ws[cellAddress].v || '' : '';
-                        html += `<td>${cellValue}</td>`;
-                    }
-                    html += "</tr>";
-                }
-
-                html += "</tbody></table>";
-                return htmlOptions.header + html + htmlOptions.footer;
-            };
-
-            // Function to print HTML content
-            const printHTMLContent = (htmlContent, filename) => {
-                // Open a standard print window to avoid 0x0 iframe viewport layout bugs
-                const printWindow = window.open("", "_blank", "width=800,height=600");
-                if (!printWindow) {
-                    alert("Please allow pop-ups to enable printing");
-                    return;
-                }
-
-                printWindow.document.open();
-                printWindow.document.write(htmlContent);
-                printWindow.document.close();
-
-                // Focus and print
-                printWindow.focus();
-                printWindow.print();
-
-                // Close the window after print dialog is closed
-                printWindow.onafterprint = function () {
-                    printWindow.close();
-                };
-            };
-
-            // Call the function to download and print
-            downloadAndPrintExcel();
+            printReport(rows, columnsToExport, criteria, dataRowCount);
+            return { success: true, message: "Report sent to print" };
         }
 
+        await downloadWorkbook(rows, columnsToExport, criteria);
         return { success: true, message: "Report downloaded successfully" };
     } catch (error) {
         console.error(error);

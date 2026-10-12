@@ -1,15 +1,253 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Header from "../../components/Header";
 import { useLocation } from "react-router-dom";
 import print from "../../assets/print.svg";
-import logo from "../../assets/logo.png";
-import { vendors } from "../../apis/master.api";
-import axios from "axios";
-import Cookies from "js-cookie";
 // Shared two-decimal en-IN amount formatter (1.10, item O-04).
 import { formatAmount } from "../../utils/formatAmount";
 
 const ITEMS_PER_PAGE = 1;
+
+// ---------------------------------------------------------------------------
+// Accounts checklist laid out exactly like the client's Excel sheet
+// "09102026_FI checklist" (9.10, item 1 - "We need this font"):
+// Times New Roman, header and body 13pt, column headings 12pt bold, amounts
+// and Sr no 15pt bold, column widths 38.86 / 37.57 / 52.29 Excel chars,
+// row heights 21.75pt (33pt for the two-line rows).
+// The same row model drives the on-screen table (JSX) and the print window
+// (HTML string), so the two can never drift apart.
+// ---------------------------------------------------------------------------
+
+// Sheet geometry in pt (9.10, item 1). The Excel widths (204 / 197.25 /
+// 274.5pt) are widened ~2% because several of her lines fill their column
+// almost exactly in Times New Roman 13pt ("Invoice Approved By Project
+// Incharge", "Yes - Works Contract E-way bill avbl", "No - inter state; amt
+// < 50,000/No-Mat hand delivery") and would otherwise wrap in a browser. The
+// print is scaled to the page anyway, so only the proportions matter.
+const COL_PT = [208, 203, 281];
+const SHEET_WIDTH_PT = COL_PT[0] + COL_PT[1] + COL_PT[2];
+
+// Styles shared by screen and print, scoped to .acc-sheet (9.10, item 1).
+const SHEET_CSS = `
+  .acc-sheet {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: ${SHEET_WIDTH_PT}pt;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 13pt;
+    color: #000;
+    background: #fff;
+  }
+  .acc-sheet col.c-a { width: ${COL_PT[0]}pt; }
+  .acc-sheet col.c-b { width: ${COL_PT[1]}pt; }
+  .acc-sheet col.c-c { width: ${COL_PT[2]}pt; }
+  .acc-sheet tr { height: 21.75pt; }
+  .acc-sheet tr.r-first { height: 19.5pt; }
+  .acc-sheet tr.r-heading { height: 16.5pt; }
+  .acc-sheet tr.r-tall { height: 33pt; }
+  .acc-sheet td, .acc-sheet th {
+    border: 1px solid #000;
+    padding: 0 2pt;
+    margin: 0;
+    vertical-align: middle;
+    text-align: left;
+    font-weight: normal;
+    font-size: 13pt;
+    line-height: 1.15;
+    /* Keep the sheet's own spacing (e.g. "Network:          Activity:")
+       and let a long value wrap inside its own cell. */
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .acc-sheet th { font-size: 12pt; font-weight: bold; text-align: center; }
+  .acc-sheet .b { font-weight: bold; }
+  .acc-sheet .big { font-size: 15pt; font-weight: bold; }
+  .acc-sheet td.amt { font-size: 15pt; font-weight: bold; }
+  .acc-sheet td.right { text-align: right; }
+  /* Cells the sheet shows without a line beneath them
+     (VP / JKB ... -> Shirpur/Dhule, HS / HC ... -> Member -LMC,
+     Bill for Material ... -> Total Material Purchases). */
+  .acc-sheet td.open { border-bottom-style: hidden; }
+`;
+
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
+  return date
+    .toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+    .replace(/\//g, "-");
+};
+
+const joinAnd = (...parts) => parts.filter(Boolean).join(" and ");
+
+// Escape a value for the print window's HTML string.
+const esc = (value) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+// Header block: six rows, each "left (spans cols A-B) | right (col C)".
+// A part is { t: text, cls: "b" | "big" }; data values are bold as in the
+// sheet's rich text (9.10, item 1).
+const buildHeader = (item) => {
+  const project = [item?.region, item?.projectDescription].filter(Boolean).join("-");
+  const poAmt = formatAmount(item?.poAmt);
+  return [
+    {
+      cls: "r-first",
+      rightCls: "right",
+      left: [{ t: "SVKM", cls: "b" }, { t: "  Project: " }, { t: project, cls: "b" }],
+      right: [{ t: item?.srNo || "", cls: "big" }, { t: "            Due Date:__/__/____" }],
+    },
+    {
+      left: [{ t: "Invoice no and Date: " }, { t: joinAnd(item?.taxInvNo, formatDate(item?.taxInvDate)), cls: "b" }],
+      right: [{ t: "Nature of Work: " }, { t: item?.natureOfWork || item?.typeOfInv || "", cls: "b" }],
+    },
+    {
+      left: [{ t: "Vendor: " }, { t: item?.vendorName || "", cls: "b" }],
+      right: [{ t: "SAP Code: " }, { t: item?.vendorNo || "", cls: "b" }],
+    },
+    {
+      left: [{ t: "PO No and Date: " }, { t: joinAnd(item?.poNo, formatDate(item?.poDate)), cls: "b" }],
+      right: [{ t: "PO Amt: " }, { t: poAmt ? [item?.currency, poAmt].filter(Boolean).join(" ") : "", cls: "b" }],
+    },
+    {
+      left: [{ t: "Vendor GST No as per SAP: " }, { t: item?.gstNumber || "", cls: "b" }],
+      right: [{ t: "LC exist in vendor A/c: Yes / No" }],
+    },
+    {
+      left: [{ t: "206AB Compliance: " }, { t: item?.compliance206AB || "", cls: "b" }],
+      right: [{ t: "PAN Status: " }, { t: item?.panStatus || "", cls: "b" }],
+    },
+  ];
+};
+
+// Body rows 8-41 of the sheet. A cell is a string or
+// { t, rs (row span), cls ("amt" | "open") }. Rows the sheet makes 33pt
+// tall carry tall: true (9.10, item 1).
+const buildBody = (item) => {
+  const invAmt = formatAmount(item?.taxInvAmt);
+  // Gleed's Certification Amount = COP amount.
+  const copAmt = formatAmount(item?.copDetails?.amount);
+  return [
+    { cells: ["Vendor Original Tax Invoice attached", "Yes / No", "SAP doc no. 17/"] },
+    { cells: [{ t: "Invoice Approved By Project Incharge", rs: 2 }, { t: "VP / JKB / RB / DG / PP /", cls: "open" }, "Same bill no. in vendor ledger: Yes / No"] },
+    { cells: ["Shirpur/Dhule", "Is MIGO entry done: Yes / No"] },
+    { cells: [{ t: "Invoice Approved By Trustee", rs: 2 }, { t: "HS / HC / JP / JK / BP / RB /", cls: "open" }, "IS PO no mentioned on Bill? Yes / No"] },
+    { cells: ["Member -LMC", "IS PO no mentioned is correct? Yes / No"] },
+    { cells: [{ t: "Invoice Amount", rs: 2 }, { t: invAmt ? `${item?.currency || "INR"} ${invAmt}` : "", rs: 2, cls: "amt" }, { t: "Bill for Material / services / material + services", cls: "open" }] },
+    { cells: ["Total Material Purchases - < 50 lacs / > 50 lacs"] },
+    { tall: true, cells: ["TDS u/s 194C / 194J / 194I or 194Q + TDS deducted- cement/steel,etc.", "Rs.", "Net amount : Rs."] },
+    { cells: ["Is GST charged in bill", "Yes / No / RCM (consult Mr Mekap)", "SVKM GST no mentioned on bill? Yes / No"] },
+    { cells: [{ t: "Vendor Original Delivery Challan", rs: 2 }, "Yes - with Stamp", "No - with Stamp on bill / No - Services"] },
+    { cells: ["Yes - w/o Stamp", "No - w/o Stamp on bill"] },
+    { cells: [{ t: "E Way bill attached", rs: 3 }, "Yes - Part A avbl & Part B avbl", "No - distance < 50 kms / No- Mat couriered"] },
+    { cells: ["Yes - bill to ship to E-Way bill avbl", "No - inter state; amt < 50,000/No-Mat hand delivery"] },
+    { cells: ["Yes - Works Contract E-way bill avbl", "No - intra state; amt < 1,00,000 /No -Services"] },
+    { cells: [{ t: "Loading / Unloading / Debris / Debit Note - by SVKM or Vendor", rs: 2 }, { t: "Rs.", rs: 2 }, "G L account: 480"] },
+    { cells: ["Network:                             Activity:"] },
+    { cells: ["Purchase Order Copy attached", "Yes / No", "Is PO signed by authorised? Yes/No"] },
+    { tall: true, cells: ["Vendor GST No as per Invoice", "Same / different (If diff, check Vendor PAN & RTGS details)", "Vendor GST validity: Yes / No"] },
+    { cells: [{ t: "Gleed's Certification Amount", rs: 2 }, { t: copAmt ? `INR ${copAmt}` : "", cls: "amt" }, "Is certificate signed & stamped? Yes / No"] },
+    { cells: ["N.A. for Mumbai; amt < 50,000", "Is PO no correct? Yes / No"] },
+    { cells: [{ t: "Retention Amount", rs: 2 }, { t: "Rs.", rs: 2 }, "Gleeds COP amt: Rs."] },
+    { cells: ["SAP doc no: 35/"] },
+    { cells: [{ t: "This bill hold amount", rs: 2 }, { t: "Rs.", rs: 2 }, "SAP doc no: 10/"] },
+    { cells: ["SAP doc no: 10/"] },
+    { tall: true, cells: ["Earlier bill hold/retention release amt", "Rs.", ""] },
+    { cells: [{ t: "Measurment Sheet/Drawings", rs: 2 }, { t: "Yes / No", rs: 2 }, "PO no on measurement sheet same?"] },
+    { cells: ["Yes / No / Not mentioned"] },
+    { cells: [{ t: "Others", rs: 2 }, { t: "", rs: 2 }, "Declaration for no TDS : u/s 194 C (6) received/"] },
+    { cells: ["under notification 21/dated 13.06.12 received"] },
+    { cells: ["Advance in Vendor Account", "Rs.", "In various POs as on"] },
+    { cells: ["Advance adj. agst this invoice", "Rs.", ""] },
+    { cells: ["Net Payable", "Rs.", ""] },
+    { cells: [{ t: "Project / Campus on Bill, PO and Certificate", rs: 2 }, { t: "Same / different", rs: 2 }, "Not for payment since adjusted against advance."] },
+    { cells: ["Email sent?_______ / Entered in Access ________"] },
+  ];
+};
+
+const asCell = (c) => (typeof c === "string" ? { t: c } : c);
+
+// ---------- print (HTML string) ----------
+const partsHtml = (parts) =>
+  parts.map((p) => (p.cls ? `<span class="${p.cls}">${esc(p.t)}</span>` : esc(p.t))).join("");
+
+const sheetHtml = (item) => {
+  const header = buildHeader(item)
+    .map(
+      (r) =>
+        `<tr${r.cls ? ` class="${r.cls}"` : ""}><td colspan="2">${partsHtml(r.left)}</td><td${
+          r.rightCls ? ` class="${r.rightCls}"` : ""
+        }>${partsHtml(r.right)}</td></tr>`
+    )
+    .join("");
+  const body = buildBody(item)
+    .map(
+      (r) =>
+        `<tr${r.tall ? ' class="r-tall"' : ""}>${r.cells
+          .map(asCell)
+          .map((c) => `<td${c.rs ? ` rowspan="${c.rs}"` : ""}${c.cls ? ` class="${c.cls}"` : ""}>${esc(c.t)}</td>`)
+          .join("")}</tr>`
+    )
+    .join("");
+  return `<table class="acc-sheet"><colgroup><col class="c-a"/><col class="c-b"/><col class="c-c"/></colgroup><tbody>${header}<tr class="r-heading"><th>Description</th><th>Remarks</th><th>Additional remarks</th></tr>${body}</tbody></table>`;
+};
+
+// ---------- screen (JSX) ----------
+const Parts = ({ parts }) =>
+  parts.map((p, i) =>
+    p.cls ? (
+      <span key={i} className={p.cls}>
+        {p.t}
+      </span>
+    ) : (
+      <React.Fragment key={i}>{p.t}</React.Fragment>
+    )
+  );
+
+const AccountSheet = ({ item }) => (
+  <table className="acc-sheet">
+    <colgroup>
+      <col className="c-a" />
+      <col className="c-b" />
+      <col className="c-c" />
+    </colgroup>
+    <tbody>
+      {buildHeader(item).map((r, i) => (
+        <tr key={`h${i}`} className={r.cls}>
+          <td colSpan={2}>
+            <Parts parts={r.left} />
+          </td>
+          <td className={r.rightCls}>
+            <Parts parts={r.right} />
+          </td>
+        </tr>
+      ))}
+      <tr className="r-heading">
+        <th>Description</th>
+        <th>Remarks</th>
+        <th>Additional remarks</th>
+      </tr>
+      {buildBody(item).map((r, i) => (
+        <tr key={`b${i}`} className={r.tall ? "r-tall" : undefined}>
+          {r.cells.map(asCell).map((c, j) => (
+            <td key={j} rowSpan={c.rs} className={c.cls}>
+              {c.t}
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+);
 
 const ChecklistAccount = () => {
   const location = useLocation();
@@ -17,427 +255,73 @@ const ChecklistAccount = () => {
   const billsData = location.state?.bills || [];
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(billList.length / ITEMS_PER_PAGE);
-  const [vendorPANMap, setVendorPANMap] = useState({});
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "";
-    return date
-      .toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      })
-      .replace(/\//g, "-");
-  };
-
-  useEffect(() => {
-    const fetchVendors = async () => {
-      try {
-        const response = await axios.get(vendors, {
-          headers: { Authorization: `Bearer ${Cookies.get("token")}` },
-        });
-        console.log("Vendors data:", response.data);
-
-        const panMap = {};
-        response.data.forEach((vendor) => {
-          if (vendor.vendorNo && vendor.PAN) {
-            panMap[vendor.vendorNo] = vendor.PAN;
-          }
-        });
-        setVendorPANMap(panMap);
-      } catch (error) {
-        console.error("Error fetching vendors:", error);
-      }
-    };
-    fetchVendors();
-  }, []);
 
   console.log("Bills Data:", billsData[0]);
 
   const handlePrint = () => {
     const printWindow = window.open("", "_blank");
-    
+
     if (!printWindow) {
       alert("Please allow pop-ups to enable printing");
       return;
     }
 
+    // One A4 sheet per bill (9.10, item 1). The sheet is laid out at the
+    // Excel sheet's own size (~692pt wide, ~918pt tall) and then scaled to
+    // the printable area, exactly as Excel prints it (the client's sheet is
+    // set to 76%). With 10mm margins that is ~0.78, i.e. the 13pt text
+    // prints at ~10pt - the same look as her printout.
     const printStyles = `
       <style>
+        ${SHEET_CSS}
+        @page { size: A4 portrait; margin: 10mm; }
+        html, body { margin: 0; padding: 0; background: #fff; }
+        .print-page { width: max-content; }
+        .print-page + .print-page { break-before: page; page-break-before: always; }
+        .acc-sheet tr { break-inside: avoid; page-break-inside: avoid; }
         @media print {
-          @page {
-            margin: 10mm;
-            size: A4;
-          }
-          body { 
-            /* Whole checklist in Times New Roman (1.10, item O-08). */
-            font-family: "Times New Roman", Times, serif;
-            /* Raised from 14px, with more leading - the client asked for a
-               larger face and more gap between lines (observations, C-04). */
-            font-size: 16px;
-            line-height: 1.55;
-            margin: 0;
-            padding: 10px;
-            color: #000;
-          }
-          td, th { padding: 7px 8px; }
-          /* Long values wrap inside their own cell/field instead of spilling
-             into the next one (1.10, item O-05). */
-          td, th, .header-cell, .header-cell-1, .header-cell-2, .narrow, .duedate {
-            min-width: 0;
-            overflow-wrap: anywhere;
-            word-break: break-word;
-          }
-          .print-page {
-            width: 100%;
-            margin: 0 auto;
-            page-break-after: always;
-            background: white;
-          }
-          .print-page:last-child {
-            page-break-after: avoid;
-          }
-          .header-section {
-            border: 2px solid #000;
-            margin-bottom: 10px;
-          }
-          .header-row {
-            display: flex;
-            /*
-             * "between" is not a CSS value - it is a Tailwind class fragment -
-             * so this declaration was dropped and the row never distributed
-             * its cells. That is the header printing out of proportion
-             * (29.09, item 24).
-             */
-            justify-content: space-between;
-            border-bottom: 1px solid #000;
-            min-height: 25px;
-            align-items: center;
-          }
-          .header-row-2 {
-            display: flex;
-            border-bottom: 1px solid #000;
-            min-height: 25px;
-            align-items: center;
-            background-color: #bdbdbdff;
-          }
-          .header-row:last-child {
-            border-bottom: none;
-          }
-          .header-cell {
-            min-width: 0;
-            overflow-wrap: anywhere;
-            padding: 4px 8px;
-            border-right: 1px solid #000;
-            flex: 2;
-          }
-          .header-cell-1 {
-            min-width: 0;
-            overflow-wrap: anywhere;
-            padding: 4px 8px;
-            border-right: none !important;
-            flex: 2;
-          }
-          .header-cell-2 {
-            min-width: 0;
-            overflow-wrap: anywhere;
-            border-right: none;
-            padding: 4px 8px;
-            flex: 1;
-          }
-          .header-cell:last-child {
-            border-right: none;
-          }
-          .header-cell.wide {
-            flex: 2.5;
-          }
-          .narrow {
-            flex: 0.5;
-          }
-          .duedate {
-            width: fit-content;
-          }
-          .logo-section {
-            display: flex;
-            align-items: center;
-            font-weight: bold;
-            background-color: #f0f0f0;
-          }
-          .logo {
-            height: 30px;
-            margin-right: 10px;
-          }
-          .main-table {
-            width: 100%;
-            /* Honour the column widths below so a long value wraps (1.10, item O-05). */
-            table-layout: fixed;
-            border-collapse: collapse;
-            border: 2px solid #000;
-            margin-top: 10px;
-          }
-          .main-table th,
-          .main-table td {
-            border: 1px solid #000;
-            padding: 6px 8px;
-            text-align: left;
-            vertical-align: top;
-            font-size: 11px;
-            
-          }
-          .main-table th {
-            background-color: #f0f0f0;
-            font-weight: bold;
-            text-align: center;
-          }
-          .main-table .desc-col {
-            width: 30%;
-          }
-          .main-table .remarks-col {
-            width: 31%;
-          }
-          .main-table .additional-col {
-            width: 39%;
-          }
-          .row-data {
-            font-weight: normal;
-          }
-          .small-text {
-            font-size: 10px;
-          }
-          .amt {
-            font-size: 18px !important;
-            font-weight: 400;
-            margin-bottom: 2px !important;
-          }
-          .na-mum {
-            font-size: 12px !important;
-            font-weight: 200;
-          }
-        }
-        @media screen {
-          body {
-            font-family: "Times New Roman", Times, serif;
-            background: #f5f5f5;
-          }
+          /* Fallback if the fit script below cannot run:
+             190mm printable width / ~692pt sheet width. */
+          .print-page { zoom: 0.77; }
         }
       </style>
     `;
 
-    let printContent = `
-      <html>
-        <head>
-          <title>Account Checklist</title>
-          ${printStyles}
-        </head>
-        <body>
-    `;
-
-    // Process each bill
-    if (billsData) {
-      billsData.forEach((item, index) => {
-        printContent += `
-          <div class="print-page">
-            <!-- Header Section -->
-            <div class="header-section">
-              <!-- Logo and Project Info Row -->
-              <div class="header-row logo-section">
-                <div class="header-cell-1 wide">
-                  <strong>SVKM</strong> &nbsp;&nbsp;&nbsp;
-                  Project name: <b>${item?.region || ""}- ${item?.projectDescription || ""}</b>
-                </div>
-                <div class="narrow"><b>${item?.srNo || ""}</b></div>
-                <div class="duedate">Due Date:__/__/____</div>
-              </div>
-              
-              <!-- Invoice Details Row -->
-              <div class="header-row-2">
-                <!-- Invoice no and date as one value; separate "Dt:" cell removed (1.10, item O-08). -->
-                <div class="header-cell-2">Invoice no and Date: <b>${[item?.taxInvNo, formatDate(item?.taxInvDate)].filter(Boolean).join(" and ")}</b></div>
-                <div class="header-cell-2">Nature of Work: <b>${item?.natureOfWork || item?.typeOfInv || ""}</b></div>
-              </div>
-              
-              <!-- Vendor Info Row -->
-              <div class="header-row">
-                <!-- Labels per client mark-up (1.10, item O-08). -->
-                <div class="header-cell wide">Vendor: <b>${item?.vendorName || ""}</b></div>
-                <div class="header-cell">SAP Code: <b>${item?.vendorNo || ""}</b></div>
-              </div>
-              
-              <!-- PO Info Row -->
-              <div class="header-row">
-                <div class="header-cell wide">PO No and Date: <b>${item?.poNo || ""}</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>${formatDate(item?.poDate)}</b></div>
-                <div class="header-cell">PO Amt: <b>${item?.currency || ""} ${formatAmount(item?.poAmt) || ""}</b></div>
-              </div>
-              
-              <!-- GST and PAN Row -->
-              <div class="header-row">
-                <div class="header-cell wide">Vendor GST No as per SAP: <b>${item?.gstNumber || ""}</b></div>
-                <div class="header-cell">LC exist in vendor A/c: Yes / No</div>
-              </div>
-              
-              <!-- Compliance Row -->
-              <div class="header-row">
-                <div class="header-cell wide">206AB Compliance: <b>${item?.compliance206AB || ""}</b></div>
-                <div class="header-cell">PAN Status: <b>${item?.panStatus || ""}</b></div>
-              </div>
-            </div>
-
-            <!-- Main Checklist Table -->
-            <table class="main-table">
-              <thead>
-                <tr>
-                  <th class="desc-col">Description</th>
-                  <th class="remarks-col">Remarks</th>
-                  <th class="additional-col">Additional remarks</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="row-data">Vendor Original Tax Invoice attached</td>
-                  <td class="row-data">Yes / No</td>
-                  <td class="row-data">SAP doc no. 17/</td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">Invoice Approved By Project Incharge</td>
-                  <td class="row-data">VP / JKB / RB / DG / PP /<br/>Shirpur/Dhule</td>
-                  <td class="row-data">Same bill no. in vendor ledger: Yes / No<br/>Is MIGO entry done: Yes / No</td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">Invoice Approved By Trustee</td>
-                  <td class="row-data">HS / HC / JP / JK / BP / RB /<br/>Member -LMC</td>
-                  <td class="row-data">IS PO no mentioned on Bill? Yes / No<br/>IS PO no mentioned is correct? Yes / No</td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">Invoice Amount</td>
-                  <td class="row-data amt"><b>${item?.currency || "INR"} ${formatAmount(item?.taxInvAmt) || ""}</b></td>
-                  <td class="row-data">Bill for Material / services / material + services<br/>Total Material Purchases - < 50 lacs / > 50 lacs</td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">TDS u/s 194C / 194J / 194I or 194Q<br/>+ TDS deducted- cement/steel,etc.</td>
-                  <td class="row-data">Rs.</td>
-                  <td class="row-data">Net amount : Rs.</td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">Is GST charged in bill</td>
-                  <td class="row-data">Yes / No / RCM (consult Mr Mekap)</td>
-                  <td class="row-data">SVKM GST no mentioned on bill? Yes / No</td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">Vendor Original Delivery Challan</td>
-                  <td class="row-data">Yes - with Stamp<br/>Yes - w/o Stamp</td>
-                  <td class="row-data">No - with Stamp on bill / No - Services<br/>No - w/o Stamp on bill</td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">E Way bill attached</td>
-                  <td class="row-data">Yes - Part A avbl & Part B avbl<br/>Yes - bill to ship to E-Way bill avbl<br/>Yes - Works Contract E-way bill avbl</td>
-                  <td class="row-data">No - distance < 50 kms / No- Mat couriered<br/>No - inter state; amt < 50,000/No-Mat hand delivery<br/>No - intra state; amt < 1,00,000 /No -Services</td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">Loading / Unloading / Debris /<br/>Debit Note - by SVKM or Vendor</td>
-                  <td class="row-data">Rs.</td>
-                  <td class="row-data">G L account: 480<br/>Network: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Activity:</td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">Purchase Order Copy attached</td>
-                  <td class="row-data">Yes / No</td>
-                  <td class="row-data">Is PO signed by authorised? Yes/No</td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">Vendor GST No as per Invoice</td>
-                  <td class="row-data">Same / different<br/>If diff, check Venor PAN & RTGS details</td>
-                  <td class="row-data">Vendor GST validity: Yes / No</td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">Gleed's Certification Amount</td>
-                  <td class="amt"><b>INR ${formatAmount(item?.copDetails?.amount) || ""}</b>
-                  <p class="na-mum">N.A. for Mumbai; amt < 50,000 </p>
-                  </td>
-                  <td class="row-data">Is certificate signed & stamped? Yes / No<br/>Is PO no correct? Yes / No</td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">Retention Amount</td>
-                  <td class="row-data">Rs.</td>
-                  <td class="row-data">Gleeds COP amt: <br/>Rs.SAP doc no: 35/</td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">This bill hold amount</td>
-                  <td class="row-data">Rs.</td>
-                  <td class="row-data">SAP doc no: 10/<br/>SAP doc no: 10/</td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">Earlier bill hold/retention release amount</td>
-                  <td class="row-data">Rs.</td>
-                  <td class="row-data"></td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">Measurment Sheet/Drawings</td>
-                  <td class="row-data">Yes / No</td>
-                  <td class="row-data">PO no on measurement sheet same?<br/>Yes / No / Not mentioned</td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">Others</td>
-                  <td class="row-data"></td>
-                  <td class="row-data">Declaration for no TDS : u/s 194 C (6) received/<br/>under notification 21/dated 13.06.12 received</td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">Advance in Vendor Account</td>
-                  <td class="row-data">Rs.</td>
-                  <td class="row-data">In various POs as on</td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">Advance adj. agst this invoice</td>
-                  <td class="row-data">Rs.</td>
-                  <td class="row-data"></td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">Net Payable</td>
-                  <td class="row-data">Rs.</td>
-                  <td class="row-data"></td>
-                </tr>
-                
-                <tr>
-                  <td class="row-data">Project / Campus on Bill, PO and Certificate</td>
-                  <td class="row-data">Same / different</td>
-                  <td class="row-data">Not for payment since adjusted against advance.<br/>Email sent?_______ / Entered in Access ___</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        `;
-      });
-    }
-
-    printContent += `
-        </body>
-      </html>
-    `;
+    let printContent = `<html><head><title>Account Checklist</title>${printStyles}</head><body>`;
+    billsData.forEach((item) => {
+      printContent += `<div class="print-page">${sheetHtml(item)}</div>`;
+    });
+    printContent += `</body></html>`;
 
     printWindow.document.write(printContent);
     printWindow.document.close();
 
     // Wait for content to load then print
     setTimeout(() => {
+      // Scale each bill so it fills, but never exceeds, one A4 printable
+      // area (210 x 297mm less 10mm margins) - width is normally the limit;
+      // a very long vendor / project name can make height the limit instead
+      // (9.10, item 1; 6.10, item P-28).
+      try {
+        const pxPerMm = 96 / 25.4;
+        const maxWidth = 190 * pxPerMm - 2;
+        // 3% headroom on height: the printed layout can run slightly taller
+        // than the on-screen measurement.
+        const maxHeight = 277 * pxPerMm * 0.97;
+        printWindow.document.querySelectorAll(".print-page").forEach((page) => {
+          page.style.zoom = "1";
+          const sheet = page.firstElementChild;
+          const width = sheet.offsetWidth;
+          const height = sheet.offsetHeight;
+          if (width && height) {
+            page.style.zoom = String(Math.min(1, maxWidth / width, maxHeight / height));
+          } else {
+            page.style.zoom = "";
+          }
+        });
+      } catch (e) {
+        console.error("Checklist fit check failed:", e);
+      }
       printWindow.focus();
       printWindow.print();
       // Don't close immediately to allow user to see print dialog
@@ -461,6 +345,7 @@ const ChecklistAccount = () => {
   return (
     <>
       <Header />
+      <style>{SHEET_CSS}</style>
 
       <div className="flex items-center justify-between px-20 mt-5">
         <button
@@ -480,448 +365,12 @@ const ChecklistAccount = () => {
         </button>
       </div>
 
-      {/* Whole checklist in Times New Roman (1.10, item O-08). */}
-      <div className="overflow-x-auto p-6 min-h-screen" style={{ fontFamily: '"Times New Roman", Times, serif' }}>
+      {/* Same sheet as the printout, at the Excel sheet's own size
+          (9.10, item 1); scrolls sideways on narrow screens. */}
+      <div className="overflow-x-auto p-6 min-h-screen">
         {currentItems.map((item, index) => (
-          <div key={index}>
-            <div className="w-full max-w-[90%] mx-auto">
-              {/* Long values wrap within their own field (1.10, item O-05). */}
-              <div className="border border-gray-300 bg-white font-semibold [overflow-wrap:anywhere] [word-break:break-word] [&_.grid>*]:min-w-0">
-                <div className="grid grid-cols-4 bg-gray-200 items-center">
-                  <div className="p-2 border-b col-span-2 border-gray-300 flex items-center">
-                    <div className="text-sm font-semibold">
-                      <img src={logo} alt="" className="h-10" />
-                    </div>
-                    &nbsp; &nbsp;
-                    <div className="text-sm min-w-0">
-                      Region-Project Name: <span className="font-bold">{item?.region} -{" "}
-                      {item?.projectDescription}</span>
-                    </div>
-                  </div>
-                  <div className="border-gray-300">
-                    <div className="text-sm text-center font-bold">{item?.srNo}</div>
-                  </div>
-                  <div className="border-gray-300">
-                    <div className="text-sm text-center">Due Date:</div>
-                  </div>
-                </div>
-
-                <div className="p-2 border-b border-gray-300">
-                  {/* Invoice no and date as one value; separate "Dt:" cell removed (1.10, item O-08). */}
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      Invoice no and Date:{" "}
-                      <span className="font-bold">
-                        {[item?.taxInvNo, formatDate(item?.taxInvDate)].filter(Boolean).join(" and ")}
-                      </span>
-                    </div>
-                    <div>
-                      Nature of Work: <span className="font-bold">{item?.natureOfWork || item?.typeOfInv}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-2 border-b border-gray-300">
-                  <div className="grid grid-cols-4 text-sm">
-                    <div className="col-span-3">
-                      {/* Labels per client mark-up (1.10, item O-08). */}
-                      Vendor: <span className="font-bold">{item?.vendorName}</span>
-                    </div>
-                    <div>SAP Code: <span className="font-bold">{item?.vendorNo}</span></div>
-                  </div>
-                </div>
-
-                <div className="p-2 border-b border-gray-300">
-                  <div className="grid grid-cols-4 text-sm">
-                    <div className="col-span-3">
-                      PO Number and Date: <span className="font-bold">{item?.poNo}</span> &nbsp; &nbsp;
-                      <span className="font-bold">{formatDate(item?.poDate)}</span>
-                    </div>
-                    <div>
-                      PO Amt: <span className="font-bold">{item?.currency} {formatAmount(item?.poAmt)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-2 border-b border-gray-300">
-                  <div className="grid grid-cols-4 text-sm">
-                    <div className="col-span-3">
-                      Vendor GST No & PAN as per SAP: <span className="font-bold">{item?.gstNumber || ""} /{" "}
-                      {vendorPANMap[item?.vendorNo] || ""}</span>
-                    </div>
-                    <div>LC exists in vendor A/c: &nbsp; Yes / No</div>
-                  </div>
-                </div>
-
-                <div className="p-2 border-b border-gray-300">
-                  <div className="grid grid-cols-4 text-sm">
-                    <div className="col-span-3">
-                      206AB Compliance: <span className="font-bold">{item?.compliance206AB}</span>
-                    </div>
-                    <div>Pan Status: <span className="font-bold">{item?.panStatus}</span></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="w-full max-w-[90%] mx-auto flex flex-col gap-4">
-              <div className="bg-white rounded shadow">
-                <div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse [overflow-wrap:anywhere] [word-break:break-word]">
-                      <thead>
-                        <tr>
-                          <th className="border border-gray-300 p-2 bg-gray-100 w-1/3">
-                            Description
-                          </th>
-                          <th className="border border-gray-300 p-2 bg-gray-100 w-1/3">
-                            Remarks
-                          </th>
-                          <th className="border border-gray-300 p-2 bg-gray-100 w-1/3">
-                            Additional remarks
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {/* Row 1 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Vendor Original Tax Invoice attached
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            <div className="flex gap-2">
-                              <div>Yes</div>
-                              <div>/</div>
-                              <div>No</div>
-                            </div>
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            <div className="flex flex-col gap-1">
-                              <span>SAP doc no.</span>
-                            </div>
-                          </td>
-                        </tr>
-
-                        {/* Row 2 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Invoice Approved By Project Incharge
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            <div className="flex flex-col gap-2">
-                              <div>VP / JKB / RB / DG / PP /</div>
-                              <div>Shirpur/Dhule</div>
-                            </div>
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            <div className="flex flex-col gap-2">
-                              <div>
-                                Same bill no.in vendor ledger: &nbsp; Yes &nbsp;
-                                / &nbsp; No
-                              </div>
-                              <div>
-                                Is Migo Entry done: &nbsp; Yes &nbsp; / &nbsp;
-                                No
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-
-                        {/* Row 3 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Invoice Approved By Trustee
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            <div>HS / HC / JP / JK / BP / RB / Member -LMC</div>
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            <div className="flex flex-col gap-2">
-                              <div>
-                                IS PO no mentioned on Bill? &nbsp; Yes &nbsp; /
-                                &nbsp; No
-                              </div>
-                              <div>
-                                IS PO no mentioned is correct? &nbsp; Yes &nbsp;
-                                / &nbsp; No
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-
-                        {/* Row 4 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Invoice Amount
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            <div className="font-bold">
-                              {item?.currency} {formatAmount(item?.taxInvAmt)}
-                            </div>
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            <div className="flex flex-col gap-1">
-                              <div>
-                                {" "}
-                                Bill for Material / services / material +
-                                services
-                              </div>
-                              <div>
-                                Total Material Purchases -&lt;50lacs / &gt;50
-                                lacs
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-
-                        {/* Row 5 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium flex-col">
-                            <div>
-                              TDS u/s 194C / 194J/194I or 194Q + TDS
-                              deducted-cement/steel,etc
-                            </div>
-                            <div>TDS deducted on cement/steel,etc.</div>
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            <div>Rs.</div>
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            Net Amount: Rs.
-                          </td>
-                        </tr>
-
-                        {/* Row 7 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Is GST charged in bill
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            Yes / No / RCM(Consult Mr Mekap)
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            SVKM GST no mentioned on bill ? Yes &nbsp; / &nbsp;
-                            No
-                          </td>
-                        </tr>
-
-                        {/* Row 8 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Vendor Original Delivery Challan
-                          </td>
-                          <td className="border-0 border-gray-300 p-2 flex justify-between  w-full">
-                            <div>Yes - with stamp</div>
-                            <div>Yes - w/o stamp</div>
-                          </td>
-                          <td className="border border-gray-300 p-2 flex-col">
-                            <div>
-                              No- with stamp on bill &nbsp; / No-Services{" "}
-                            </div>
-                            <div>No - w/o stamp on bill</div>
-                          </td>
-                        </tr>
-
-                        {/* Row 9 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            E-Way bill attached
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            <div className="flex flex-col gap-1">
-                              <div>Yes - Part A avbl & Part B avbl</div>
-                              <div>Yes - bill to ship to E-Way bill avbl</div>
-                              <div>Yes - Works Contract E-way bill avbl</div>
-                            </div>
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            <div className="flex flex-col gap-1">
-                              <div>
-                                No - distance &lt; 50 kms / No- Mat couriered
-                              </div>
-                              <div>
-                                No - inter state; amt &lt; 50,000/No-Mat hand
-                                delivery
-                              </div>
-                              <div>
-                                No - intra state; amt &lt; 1,00,000 /No
-                                -Services
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-
-                        {/* Row 10 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Loading/Unloading/Debris/Debit Note - by SVKM or
-                            Vendor
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            <div className="flex items-center">
-                              <span className="mr-2">Rs.</span>
-                            </div>
-                          </td>
-                          <td className="border border-gray-300 p-2 flex-col">
-                            <div>G L Account:480</div>
-                            <div className="grid grid-cols-2">
-                              <div>Network:</div>
-                              <div>Activity:</div>
-                            </div>
-                          </td>
-                        </tr>
-
-                        {/* Row 11 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Purchase Order Copy attached
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            Yes &nbsp; / &nbsp; No
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            Is PO signed by authorised? Yes &nbsp; / &nbsp; No
-                          </td>
-                        </tr>
-
-                        {/* Row 12 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Vendor GST No as per Invoice
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            Same &nbsp; / &nbsp; different
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            <div className="flex flex-col gap-1">
-                              <div>Venor GST Validity : Yes / No</div>
-                            </div>
-                          </td>
-                        </tr>
-
-                        {/* Row 14 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Gleed's Certification Amount
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            <div className="font-bold">INR {formatAmount(item?.copDetails?.amount)}</div>
-                            <div>N.A. for Mumbai; amt &lt; 50,000</div>
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            <div>Is certificate signed & stamped? Yes / No</div>
-                            <div>Is PO no correct? Yes / No</div>
-                          </td>
-                        </tr>
-
-                        {/* Row 15 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Retention Amount
-                          </td>
-                          <td className="border border-gray-300 p-2">Rs.</td>
-                          <td className="border border-gray-300 p-2">
-                            <div>Gleeds COP amt : Rs.</div>
-                            <div>SAP Doc no : 35/</div>
-                            <div>Rs.</div>
-                          </td>
-                        </tr>
-
-                        {/* Row 16 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            This bill hold amount
-                          </td>
-                          <td className="border border-gray-300 p-2">Rs.</td>
-                          <td className="border border-gray-300 p-2">
-                            <div>SAP Doc no : 35/</div>
-                            <div>Rs.</div>
-                          </td>
-                        </tr>
-
-                        {/* Row 17 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Earlier bill hold release amount
-                          </td>
-                          <td className="border border-gray-300 p-2">Rs.</td>
-                          <td className="border border-gray-300 p-2"></td>
-                        </tr>
-
-                        {/* Row 18 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Measurment Sheet/Drawings
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            Yes / No
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            <div>PO no on measurement sheet same?</div>
-                            <div>Yes / No / Not mentioned</div>
-                          </td>
-                        </tr>
-
-                        {/* Row 19 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Others
-                          </td>
-                          <td className="border border-gray-300 p-2"></td>
-                          <td className="border border-gray-300 p-2">
-                            Declaration for no TDS :u/s 194 © received/ under
-                            notification 21/dated 13.06.12 received
-                          </td>
-                        </tr>
-
-                        {/* Row 20 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Advance in Vendor Account
-                          </td>
-                          <td className="border border-gray-300 p-2">Rs.</td>
-                          <td className="border border-gray-300 p-2">
-                            In various POs as on
-                          </td>
-                        </tr>
-
-                        {/* Row 21 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Advance adj. agst this Invoice
-                          </td>
-                          <td className="border border-gray-300 p-2">Rs.</td>
-                          <td className="border border-gray-300 p-2"></td>
-                        </tr>
-
-                        {/* Row 22 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Net Payable
-                          </td>
-                          <td className="border border-gray-300 p-2">Rs.</td>
-                          <td className="border border-gray-300 p-2"></td>
-                        </tr>
-
-                        {/* Row 23 */}
-                        <tr>
-                          <td className="border border-gray-300 p-2 font-medium">
-                            Project/Campus on Bill,PO and Certificate
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            Same / different
-                          </td>
-                          <td className="border border-gray-300 p-2">
-                            Not for payment since adjusted against advance.
-                            Email sent ? ________ /Entered in Access ___________
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div key={index} className="w-fit mx-auto bg-white shadow">
+            <AccountSheet item={item} />
           </div>
         ))}
 

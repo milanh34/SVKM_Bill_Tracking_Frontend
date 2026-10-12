@@ -1,10 +1,9 @@
 import React, { useRef, useState } from "react";
-import { JOURNEY_STEPS } from "../../utils/printBillJourney";
+import { JOURNEY_STEPS, journeyStepDate, journeyStepName } from "../../utils/printBillJourney";
 import { billJourneyRow } from "../../utils/billJourneyRow";
 import Header from "../../components/Header";
 import { useLocation } from "react-router-dom";
 import print from "../../assets/print.svg";
-import logo from "../../assets/logo.png";
 // Shared two-decimal en-IN amount formatter (1.10, item O-04).
 import { formatAmount } from "../../utils/formatAmount";
 
@@ -38,11 +37,15 @@ const ChecklistBillJourney = () => {
    * however far it had travelled (1.10, item 17).
    */
   const rows = JOURNEY_STEPS;
-  const stepDate = (item, step) => {
-    const row = billJourneyRow(item);
-    return row[step.date] || (step.fallbackDate ? row[step.fallbackDate] : "") || "";
-  };
-  const stepName = (item, step) => (step.name ? billJourneyRow(item)[step.name] || "" : "");
+  const stepDate = (item, step) => journeyStepDate(billJourneyRow(item), step);
+  const stepName = (item, step) => journeyStepName(billJourneyRow(item), step);
+  // Proforma no, date and amount joined by "&" (9.10, item 1).
+  const proformaText = (item) =>
+    [
+      item?.proformaInvNo || "",
+      formatDate(item?.proformaInvDate) || "",
+      item?.proformaInvAmt ? `${item?.currency || ""} ${formatAmount(item?.proformaInvAmt)}`.trim() : "",
+    ].filter(Boolean);
 
   console.log("Bill List:", billList);
   console.log("Bills Data:", billsData);
@@ -128,6 +131,34 @@ const ChecklistBillJourney = () => {
             word-break: break-word;
           }
           .vend-desc { gap: 16px; }
+          /* Header as a grid so a long Project description wraps inside its
+             own cell (6.10, P-27); "SVKM" in place of the logo (6.10, item 1 iv). */
+          .head-row {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto auto;
+            gap: 16px;
+            align-items: center;
+            padding: 8px;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #e5e7eb;
+            background-color: #e5e7eb;
+          }
+          .head-row > * { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+          .brand { font-size: 1rem; font-weight: 700; letter-spacing: 1px; }
+          /* Created By kept to the right so the left field has the room
+             (6.10, item 1 v). */
+          .split-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 16px;
+            padding: 8px;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #e5e7eb;
+          }
+          .split-row > * { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+          .split-row .right { text-align: right; max-width: 45ch; }
+          .vend-desc { padding-right: 8px; }
+          .vend-desc > :first-child { flex: 1 1 auto; }
         }
       </style>
     `;
@@ -144,30 +175,23 @@ const ChecklistBillJourney = () => {
     billsData.forEach((item) => {
       const content = `
         <div class="checklist-page">
-          <div class="content-row">
-            <img src="${logo}" alt="" class="logo-img" style="height: 40px; vertical-align: middle;" />
-            &nbsp;&nbsp;&nbsp;
-            Region-Project Name: <b>${item?.region || ""} - ${item?.projectDescription || ""}</b>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          <div class="head-row">
+            <span class="brand">SVKM</span>
+            <div>Region-Project Name: <b>${item?.region || ""} - ${item?.projectDescription || ""}</b></div>
             <b>${item?.srNo || ""}</b>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            Nature of Work: <b>${item?.natureOfWork || item?.typeOfInv || ""}</b>
+            <div>Nature of Work: <b>${item?.natureOfWork || item?.typeOfInv || ""}</b></div>
           </div>
 
           <!--
             The three Proforma cells merged into one, with Created By and Team
             alongside - the layout she marked up (observation N-11).
           -->
-          <div class="grid-row grid-2">
+          <div class="split-row">
             <!-- Labels per client mark-up (1.10, item O-07). -->
             <div>Proforma Inv &amp; Date &amp; Amt:
-              <b>${[
-                item?.proformaInvNo || "",
-                formatDate(item?.proformaInvDate) || "",
-                item?.proformaInvAmt ? `${item?.currency || ""} ${formatAmount(item?.proformaInvAmt)}` : "",
-              ].filter(Boolean).join(" &nbsp;&nbsp; ")}</b>
+              <b>${proformaText(item).join(" &amp; ")}</b>
             </div>
-            <div>Created By:
+            <div class="right">Created By:
               <b>${[item?.createdBy || "", item?.createdByTeam || ""].filter(Boolean).join(" &nbsp;&nbsp; ")}</b>
             </div>
           </div>
@@ -193,9 +217,15 @@ const ChecklistBillJourney = () => {
             ].filter(Boolean).join(" &amp; ")}</b>
           </div>
 
-          <!-- Was "Additional Info"; same underlying field (1.10, item O-07). -->
+          <!-- Remarks = col 27, Additional Info = col 26, E-Way Bill = col 25A (9.10, item 1). -->
           <div class="content-row">
-            Remarks: <b>${item?.department || ""}</b>
+            Remarks: <b>${item?.remarksBySiteTeam || ""}</b>
+          </div>
+          <div class="content-row">
+            Additional Info: <b>${item?.department || ""}</b>
+          </div>
+          <div class="content-row">
+            E-Way Bill: <b>${item?.eWayBill || ""}</b>
           </div>
 
           <table>
@@ -283,13 +313,14 @@ const ChecklistBillJourney = () => {
               <div className="w-full max-w-[90%] mx-auto">
                 {/* Long values wrap within their own field (1.10, item O-05). */}
                 <div className="border border-gray-300 bg-white font-semibold [overflow-wrap:anywhere] [word-break:break-word] [&_.grid>*]:min-w-0">
+                  {/* "SVKM" in place of the logo (6.10, item 1 iv); a long
+                      Project description wraps within its own cell (6.10, P-27). */}
                   <div className="grid grid-cols-4 bg-gray-200 items-center">
-                    <div className="p-2 border-b col-span-2 border-gray-300 flex items-center">
-                      <div className="text-sm font-semibold">
-                        <img src={logo} alt="" className="h-10" />
+                    <div className="p-2 border-b col-span-2 border-gray-300 flex items-center gap-3 min-w-0">
+                      <div className="text-base font-bold tracking-wider shrink-0">
+                        SVKM
                       </div>
-                      &nbsp; &nbsp;
-                      <div className="text-sm min-w-0">
+                      <div className="text-sm min-w-0 flex-1 break-words [overflow-wrap:anywhere]">
                         Region-Project Name: <span className="font-bold">{item?.region} -{" "}
                         {item?.projectDescription}</span>
                       </div>
@@ -310,16 +341,13 @@ const ChecklistBillJourney = () => {
                       and Team alongside - the layout she marked up
                       (observation N-11).
                     */}
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    {/* Created By on the right, the left field takes the room (6.10, item 1 v). */}
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 text-sm">
                       {/* Labels per client mark-up (1.10, item O-07). */}
                       <div>Proforma Inv &amp; Date &amp; Amt: <span className="font-bold">
-                        {[
-                          item?.proformaInvNo || "",
-                          formatDate(item?.proformaInvDate) || "",
-                          item?.proformaInvAmt ? `${item?.currency || ""} ${formatAmount(item?.proformaInvAmt)}` : "",
-                        ].filter(Boolean).join("   ")}
+                        {proformaText(item).join(" & ")}
                       </span></div>
-                      <div>Created By: <span className="font-bold">
+                      <div className="text-right max-w-[45ch]">Created By: <span className="font-bold">
                         {[item?.createdBy || "", item?.createdByTeam || ""].filter(Boolean).join("   ")}
                       </span></div>
                     </div>
@@ -337,7 +365,7 @@ const ChecklistBillJourney = () => {
 
                   <div className="p-2 border-b border-gray-300">
                     <div className="grid grid-cols-4 text-sm">
-                      <div className="col-span-3">Vendor: <span className="font-bold">{item?.vendorName}</span></div>
+                      <div className="col-span-3 min-w-0 break-words [overflow-wrap:anywhere]">Vendor: <span className="font-bold">{item?.vendorName}</span></div>
                       <div>SAP Code: <span className="font-bold">{item?.vendorNo}</span></div>
                     </div>
                   </div>
@@ -356,10 +384,20 @@ const ChecklistBillJourney = () => {
                     </div>
                   </div>
 
+                  {/* Remarks = col 27, Additional Info = col 26, E-Way Bill = col 25A (9.10, item 1). */}
+                  <div className="p-2 border-b border-gray-300">
+                    <div className="text-sm">
+                      Remarks: <span className="font-bold">{item?.remarksBySiteTeam}</span>
+                    </div>
+                  </div>
+                  <div className="p-2 border-b border-gray-300">
+                    <div className="text-sm">
+                      Additional Info: <span className="font-bold">{item?.department}</span>
+                    </div>
+                  </div>
                   <div className="p-2">
                     <div className="text-sm">
-                      {/* Was "Additional Info"; same underlying field (1.10, item O-07). */}
-                      Remarks: <span className="font-bold">{item?.department}</span>
+                      E-Way Bill: <span className="font-bold">{item?.eWayBill}</span>
                     </div>
                   </div>
                 </div>

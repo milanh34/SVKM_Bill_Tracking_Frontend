@@ -8,6 +8,7 @@ export const SendToModal = ({
   handleSendToRole,
   role,
   handleNotReceiveBills,
+  handleQsNotReceived,
   countOfSelectedBills
 }) => {
   if (!isOpen) return null;
@@ -49,6 +50,16 @@ export const SendToModal = ({
             >
               <X className="w-4 h-4" />
               <span>Mark as Not Received</span>
+            </button>
+          ) : null}
+          {/* QS "Mark as not received" belongs on Send/Unreceive (6.10, item 20). */}
+          {role === "qs_site" && handleQsNotReceived ? (
+            <button
+              className="w-full flex items-center space-x-2 px-4 py-2 bg-red-700 text-white rounded-md hover:bg-red-800 transition-colors hover:cursor-pointer border-2 border-red-900"
+              onClick={() => handleQsNotReceived()}
+            >
+              <X className="w-4 h-4" />
+              <span>Mark as not received</span>
             </button>
           ) : null}
         </div>

@@ -19,6 +19,11 @@ const Filters = ({
     taxInvNo,
     setTaxInvNo
 }) => {
+    // Alphabetical, whatever order the regions cookie holds (6.10, item 16).
+    const sortedRegionOptions = [...(regionOptions || [])]
+        .filter((r) => r !== undefined && r !== null && String(r).trim() !== "")
+        .sort((a, b) => String(a).localeCompare(String(b)));
+
     return (
         <div className="flex justify-between mb-3 items-center bg-transparent md:flex-nowrap md:gap-[2vh] md:pl-8">
             {(searchQuery !== undefined || vendorName !== undefined || taxInvNo !== undefined || sortBy !== undefined) ? (
@@ -98,7 +103,7 @@ const Filters = ({
                     <option value="all">
                         All Regions
                     </option>
-                    {regionOptions?.map((r, i) => (
+                    {sortedRegionOptions.map((r, i) => (
                         <option key={i} value={r}>
                             {r}
                         </option>

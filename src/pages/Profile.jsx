@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { user, updatePassword } from "../apis/user.apis";
-import { User, Mail, Building2, MapPin, Clock, Calendar } from "lucide-react";
+import { User, Mail, Building2, MapPin, Clock, Calendar, Eye, EyeOff } from "lucide-react";
 import Loader from "../components/Loader";
 
 const Profile = () => {
@@ -13,6 +13,8 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  // Show/hide on each password field (6.10, item 38).
+  const [showPw, setShowPw] = useState({});
   const [passwords, setPasswords] = useState({
     currentPassword: "",
     newPassword: "",
@@ -235,35 +237,57 @@ const Profile = () => {
                       <label htmlFor="currentPassword" className="block text-sm text-gray-600 mb-1">
                         Current password
                       </label>
-                      <input
-                        id="currentPassword"
-                        type="password"
-                        autoComplete="current-password"
-                        value={passwords.currentPassword}
-                        onChange={(e) =>
-                          setPasswords((p) => ({ ...p, currentPassword: e.target.value }))
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#011a99]"
-                        required
-                      />
+                      <div className="relative">
+                        <input
+                          id="currentPassword"
+                          type={showPw.currentPassword ? "text" : "password"}
+                          autoComplete="current-password"
+                          value={passwords.currentPassword}
+                          onChange={(e) =>
+                            setPasswords((p) => ({ ...p, currentPassword: e.target.value }))
+                          }
+                          className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#011a99]"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPw((v) => ({ ...v, currentPassword: !v.currentPassword }))}
+                          className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700"
+                          aria-label={showPw.currentPassword ? "Hide password" : "Show password"}
+                          title={showPw.currentPassword ? "Hide password" : "Show password"}
+                        >
+                          {showPw.currentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
                     </div>
 
                     <div>
                       <label htmlFor="newPassword" className="block text-sm text-gray-600 mb-1">
                         New password
                       </label>
-                      <input
-                        id="newPassword"
-                        type="password"
-                        autoComplete="new-password"
-                        minLength={6}
-                        value={passwords.newPassword}
-                        onChange={(e) =>
-                          setPasswords((p) => ({ ...p, newPassword: e.target.value }))
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#011a99]"
-                        required
-                      />
+                      <div className="relative">
+                        <input
+                          id="newPassword"
+                          type={showPw.newPassword ? "text" : "password"}
+                          autoComplete="new-password"
+                          minLength={6}
+                          value={passwords.newPassword}
+                          onChange={(e) =>
+                            setPasswords((p) => ({ ...p, newPassword: e.target.value }))
+                          }
+                          className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#011a99]"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPw((v) => ({ ...v, newPassword: !v.newPassword }))}
+                          className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700"
+                          aria-label={showPw.newPassword ? "Hide password" : "Show password"}
+                          title={showPw.newPassword ? "Hide password" : "Show password"}
+                        >
+                          {showPw.newPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
                       <p className="text-xs text-gray-500 mt-1">At least 6 characters.</p>
                     </div>
 
@@ -271,17 +295,28 @@ const Profile = () => {
                       <label htmlFor="confirmPassword" className="block text-sm text-gray-600 mb-1">
                         Confirm new password
                       </label>
-                      <input
-                        id="confirmPassword"
-                        type="password"
-                        autoComplete="new-password"
-                        value={passwords.confirmPassword}
-                        onChange={(e) =>
-                          setPasswords((p) => ({ ...p, confirmPassword: e.target.value }))
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#011a99]"
-                        required
-                      />
+                      <div className="relative">
+                        <input
+                          id="confirmPassword"
+                          type={showPw.confirmPassword ? "text" : "password"}
+                          autoComplete="new-password"
+                          value={passwords.confirmPassword}
+                          onChange={(e) =>
+                            setPasswords((p) => ({ ...p, confirmPassword: e.target.value }))
+                          }
+                          className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#011a99]"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPw((v) => ({ ...v, confirmPassword: !v.confirmPassword }))}
+                          className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700"
+                          aria-label={showPw.confirmPassword ? "Hide password" : "Show password"}
+                          title={showPw.confirmPassword ? "Hide password" : "Show password"}
+                        >
+                          {showPw.confirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
                     </div>
 
                     <div className="flex gap-2 pt-1">

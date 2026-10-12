@@ -127,6 +127,46 @@ export const AmountRangeFields = ({
   </>
 );
 
+/** Nature of Work, several at once like region (6.10, item 40). */
+export const NatureChecklist = ({ options, selected, onChange }) => {
+  const toggle = (value) =>
+    onChange(selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value]);
+  return (
+    <div>
+      <div className="flex justify-between items-center">
+        <label className="block text-sm font-medium text-gray-700">
+          Nature of Work:{" "}
+          <span className="font-normal text-gray-500">
+            {selected.length === 0 ? "All" : `${selected.length} selected`}
+          </span>
+        </label>
+        <div className="flex gap-3 text-xs">
+          <button type="button" className="text-[#011a99] hover:underline hover:cursor-pointer" onClick={() => onChange([...options])}>
+            Select all
+          </button>
+          <button type="button" className="text-[#011a99] hover:underline hover:cursor-pointer" onClick={() => onChange([])}>
+            Clear
+          </button>
+        </div>
+      </div>
+      <div className="mt-1 max-h-40 overflow-y-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 grid grid-cols-2 gap-x-4 gap-y-1">
+        {options.map((value) => (
+          <label key={value} className="flex items-center gap-2 text-sm text-gray-700 hover:cursor-pointer">
+            <input type="checkbox" checked={selected.includes(value)} onChange={() => toggle(value)} className="hover:cursor-pointer" />
+            <span className="truncate" title={value}>{value}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/** Distinct Nature of Work values in the rows, A-Z. */
+export const sortedNatures = (rows) =>
+  [...new Set((rows || []).map((r) => r?.natureOfWork).filter(Boolean))].sort((a, b) =>
+    String(a).localeCompare(String(b))
+  );
+
 export const FilterModal = ({
   isOpen,
   onClose,
@@ -148,6 +188,9 @@ export const FilterModal = ({
   maxAmount,
   setMaxAmount,
   handleClearFilters,
+  natureOptions = [],
+  selectedNatures = [],
+  setSelectedNatures,
 }) => {
   if (!isOpen) return null;
 
@@ -171,6 +214,13 @@ export const FilterModal = ({
             selected={selectedRegion}
             onChange={setSelectedRegion}
           />
+          {setSelectedNatures && natureOptions.length > 0 && (
+            <NatureChecklist
+              options={natureOptions}
+              selected={selectedNatures}
+              onChange={setSelectedNatures}
+            />
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Filter by Date Field:

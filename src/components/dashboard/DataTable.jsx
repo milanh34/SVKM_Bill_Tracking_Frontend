@@ -28,6 +28,21 @@ import { renderFilterPopup } from "./datatable/FilterPopup";
 import { RenderCell } from "./datatable/RenderCell";
 import { FileImage, FileText, File, FileVideo, FileAudio, Plus, Trash2, X } from "lucide-react";
 
+/*
+ * A bill with QS that has not come back turns its Home-tab row yellow
+ * (9.10, items 2-3): for IMD Site, column 40 filled and 44A blank; for PIMO,
+ * column 64 filled and 66 blank. Neither filled, or both, stays normal.
+ */
+const isAwaitingQsReturn = (row, role) => {
+  if (role === "site_officer") {
+    return !!row?.qsCOP?.dateGiven && !row?.copDetails?.dateReturned;
+  }
+  if (role === "site_pimo" || role === "pimo_mumbai") {
+    return !!row?.qsMumbai?.dateGiven && !row?.pimoMumbai?.dateReturnedFromQs;
+  }
+  return false;
+};
+
 const DataTable = ({
   data,
   availableColumns,
@@ -950,9 +965,13 @@ const DataTable = ({
             <tbody className="divide-y divide-gray-200 bg-white">
               {displayData.map((row) => {
                 const isSelected = selectedRows.includes(row._id);
+                const awaiting = activeTab === "home" && isAwaitingQsReturn(row, currentUserRole);
                 const bgColor = isSelected
                   ? "bg-blue-50"
-                  : "bg-white hover:bg-gray-50";
+                  : awaiting
+                    ? "bg-yellow-100 hover:bg-yellow-200"
+                    : "bg-white hover:bg-gray-50";
+                const stickyBg = isSelected ? "bg-blue-50" : awaiting ? "bg-yellow-100" : "bg-white";
 
                 return (
                   <tr
@@ -961,8 +980,7 @@ const DataTable = ({
                   >
                     <td className="sticky left-0 z-20 whitespace-nowrap px-3 py-3 text-center">
                       <div
-                        className={`absolute inset-0 ${isSelected ? "bg-blue-50" : "bg-white"
-                          } border-r border-blue-200`}
+                        className={`absolute inset-0 ${stickyBg} border-r border-blue-200`}
                         style={{ bottom: "-1px", top: "-1px" }}
                       ></div>
                       <div className="relative z-10">
@@ -980,7 +998,7 @@ const DataTable = ({
                       return (
                         <td
                           key={column.field}
-                          className={`${column.field === "srNo" ? "sticky left-10 bg-[#fff] z-20" : ""} whitespace-nowrap px-1.5 py-2.5 text-sm ${column.field.includes("amount") ||
+                          className={`${column.field === "srNo" ? `sticky left-10 ${stickyBg} z-20` : ""} whitespace-nowrap px-1.5 py-2.5 text-sm ${column.field.includes("amount") ||
                             column.field.includes("Amount")
                             ? "text-right"
                             : "text-gray-900"
@@ -1075,8 +1093,7 @@ const DataTable = ({
                     {showActions && (
                       <td className="sticky right-0 z-20 whitespace-nowrap px-1.5 py-2.5 text-center">
                         <div
-                          className={`absolute inset-0 ${isSelected ? "bg-blue-50" : "bg-white"
-                            } border-l border-blue-200`}
+                          className={`absolute inset-0 ${stickyBg} border-l border-blue-200`}
                           style={{ bottom: "-1px", top: "-1px" }}
                         ></div>
                         <div className="relative z-10 flex items-center gap-1">

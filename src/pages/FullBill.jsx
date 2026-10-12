@@ -66,6 +66,7 @@ const FullBillDetails = () => {
     taxInvAmt: "",
     taxInvRecdAtSite: today,
     taxInvRecdBy: "",
+    eWayBill: "",
     currency: "INR",
     department: "",
     remarks: "",
@@ -493,7 +494,7 @@ const FullBillDetails = () => {
             ? {
               proformaInvNo: "", proformaInvDate: "", proformaInvAmt: "",
               proformaInvRecdAtSite: "", proformaInvRecdBy: "",
-              taxInvNo: "", taxInvDate: "", taxInvAmt: "", taxInvRecdBy: "",
+              taxInvNo: "", taxInvDate: "", taxInvAmt: "", taxInvRecdBy: "", eWayBill: "",
             }
             : {
               advanceDate: "", advanceAmt: "", advancePercentage: "",
@@ -687,6 +688,7 @@ const FullBillDetails = () => {
       taxInvAmt: "",
       taxInvRecdAtSite: today,
       taxInvRecdBy: "",
+    eWayBill: "",
       currency: "INR",
       department: "",
       remarks: "",
@@ -1130,7 +1132,23 @@ const FullBillDetails = () => {
                   disabled={invoiceLocked}
                 />
               </div>
-              <div></div>
+              {/* Column 25A, E-Way Bill (9.10, items 5-6). Optional. */}
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="eWayBill"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  E-Way Bill
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id="eWayBill"
+                  value={billFormData.eWayBill}
+                  onChange={handleChange}
+                  disabled={invoiceLocked}
+                />
+              </div>
             </div>
           </FormSection>
           <FormSection n={3} title="Advance Details" hint={'Enter only when Nature of Work selected is "Advance/LC/BG"'} locked={advanceLocked}>

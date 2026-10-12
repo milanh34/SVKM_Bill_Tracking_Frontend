@@ -17,7 +17,9 @@ const fmt = (value) => {
 const dateAndNo = (date, no) => (date ? `${fmt(date)} / ${no || ""}` : "");
 
 export const billJourneyRow = (bill = {}) => ({
-  siteApprovalDate: fmt(bill.siteOfficeDispatch?.dateGiven), // 58
+  eWayBill: bill.eWayBill || "", // 25A "E-Way Bill:" header line (9.10, item 1)
+  siteApprovalDate: fmt(bill.siteOfficeDispatch?.dateGiven), // 58 "Site Trustee/LPC"
+  siteApprovalName: bill.siteOfficeDispatch?.name || "", // 59 (6.10, items 1-2)
   billReceivedAtSite: fmt(bill.taxInvRecdAtSite), // 24
   billReceivedAtSiteName: bill.taxInvRecdBy || "", // 25
   billSendForQualityCertification: fmt(bill.qualityEngineer?.dateGiven), // 33
@@ -26,6 +28,11 @@ export const billJourneyRow = (bill = {}) => ({
   billSendToQSName: bill.qsInspection?.dateGiven
     ? bill.qsInspection?.name || "" // 36
     : bill.qsCOP?.name || "", // 41
+  // 35/36 and 40/41 as steps of their own (6.10, item 2).
+  qsMeasureGivenDate: fmt(bill.qsInspection?.dateGiven), // 35
+  qsMeasureGivenName: bill.qsInspection?.name || "", // 36
+  qsProvCopGivenDate: fmt(bill.qsCOP?.dateGiven), // 40
+  qsProvCopGivenName: bill.qsCOP?.name || "", // 41
   certifiedByQS: fmt(bill.copDetails?.date), // 42
   certifiedByQSAmount: bill.copDetails?.amount ?? "", // 43
   certifiedByArch: fmt(bill.architect?.dateGiven), // 53
@@ -34,11 +41,17 @@ export const billJourneyRow = (bill = {}) => ({
   billSendToSiteEngineerName: bill.siteEngineer?.dateGiven
     ? bill.siteEngineer?.name || "" // 52
     : bill.siteIncharge?.name || "", // 56
+  // 51/52 and 55/56 as steps of their own (6.10, item 2).
+  siteEngineerGivenDate: fmt(bill.siteEngineer?.dateGiven), // 51
+  siteEngineerGivenName: bill.siteEngineer?.name || "", // 52
+  siteInchargeGivenDate: fmt(bill.siteIncharge?.dateGiven), // 55
+  siteInchargeGivenName: bill.siteIncharge?.name || "", // 56
   migoDateNo: dateAndNo(bill.migoDetails?.date, bill.migoDetails?.no), // 47 / 46
   migoDate: fmt(bill.migoDetails?.date),
   migoDoneBy: bill.migoDetails?.doneBy || "", // 49
   migoAmount: bill.migoDetails?.amount ?? "", // 48
   billSendToPIMOMumbai: fmt(bill.pimoMumbai?.dateGiven), // 61
+  billSendToPIMOMumbaiName: bill.pimoMumbai?.namePIMO || "", // 61A
   billReceivedAtPIMOMumbai: fmt(bill.pimoMumbai?.dateReceived), // 62
   billReceivedAtPIMOMumbaiName: bill.pimoMumbai?.receivedBy || "", // 63
   billSendToQSCertification: fmt(bill.qsMumbai?.dateGiven), // 64

@@ -202,10 +202,15 @@ export const handleExportReport = async (selectedRows, filteredData, columns, vi
     }
 
     // Create grand total row
+    // The count goes in the Sr no column, or the first column when Sr no is
+    // not exported (6.10, items 36-37).
+    const labelField = allColumnsToExport.some((c) => c.field === "srNo")
+      ? "srNo"
+      : allColumnsToExport[0]?.field;
     const grandTotalRow = {};
     allColumnsToExport.forEach((column) => {
-      if (column.field === "srNo") {
-        grandTotalRow[column.headerName] = "Grand Total";
+      if (column.field === labelField) {
+        grandTotalRow[column.headerName] = `Grand Total - Count: ${dataToExport.length}`;
       } else if (grandTotals.hasOwnProperty(column.field)) {
         // Keep grand total as number for number fields
         if (isNumberColumn(column.field)) {
