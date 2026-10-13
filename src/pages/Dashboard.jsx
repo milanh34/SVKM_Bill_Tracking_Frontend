@@ -78,7 +78,10 @@ const Dashboard = () => {
   const [minAmount, setMinAmount] = useState("");
   const [maxAmount, setMaxAmount] = useState("");
   const [visibleColumnFields, setVisibleColumnFields] = useState([]);
-  const visibleColumnsKey = `dashboard_visible_columns_v2_${currentUserRole}`;
+  // v3 (12.10, item 4): resets every saved column choice once, so each team
+  // starts again from her default lists - PIMO was still showing Created by
+  // from a choice saved during earlier testing.
+  const visibleColumnsKey = `dashboard_visible_columns_v3_${currentUserRole}`;
   const columnSelectorRef = useRef(null);
   const [isSendBoxOpen, setIsSendBoxOpen] = useState(false);
   const [isWindowOpen, setIsWindowOpen] = useState(false);

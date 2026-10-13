@@ -137,7 +137,8 @@ const buildBody = (item) => {
   // Gleed's Certification Amount = COP amount.
   const copAmt = formatAmount(item?.copDetails?.amount);
   return [
-    { cells: ["Vendor Original Tax Invoice attached", "Yes / No", "SAP doc no. 17/"] },
+    // Taller: amounts and doc nos are written here by hand (12.10, item 2).
+    { tall: true, cells: ["Vendor Original Tax Invoice attached", "Yes / No", "SAP doc no. 17/"] },
     { cells: [{ t: "Invoice Approved By Project Incharge", rs: 2 }, { t: "VP / JKB / RB / DG / PP /", cls: "open" }, "Same bill no. in vendor ledger: Yes / No"] },
     { cells: ["Shirpur/Dhule", "Is MIGO entry done: Yes / No"] },
     { cells: [{ t: "Invoice Approved By Trustee", rs: 2 }, { t: "HS / HC / JP / JK / BP / RB /", cls: "open" }, "IS PO no mentioned on Bill? Yes / No"] },
@@ -166,9 +167,9 @@ const buildBody = (item) => {
     { cells: ["Yes / No / Not mentioned"] },
     { cells: [{ t: "Others", rs: 2 }, { t: "", rs: 2 }, "Declaration for no TDS : u/s 194 C (6) received/"] },
     { cells: ["under notification 21/dated 13.06.12 received"] },
-    { cells: ["Advance in Vendor Account", "Rs.", "In various POs as on"] },
-    { cells: ["Advance adj. agst this invoice", "Rs.", ""] },
-    { cells: ["Net Payable", "Rs.", ""] },
+    { tall: true, cells: ["Advance in Vendor Account", "Rs.", "In various POs as on"] }, // 12.10, item 2
+    { tall: true, cells: ["Advance adj. agst this invoice", "Rs.", ""] }, // 12.10, item 2
+    { tall: true, cells: ["Net Payable", "Rs.", ""] }, // 12.10, item 2
     { cells: [{ t: "Project / Campus on Bill, PO and Certificate", rs: 2 }, { t: "Same / different", rs: 2 }, "Not for payment since adjusted against advance."] },
     { cells: ["Email sent?_______ / Entered in Access ________"] },
   ];

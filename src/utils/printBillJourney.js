@@ -41,8 +41,9 @@ export const JOURNEY_STEPS = [
     // Column 74 only - the SES no is gone from label and value (6.10, item 2 ii).
     { label: "SES Date", date: "sesDate", name: "sesDoneBy", amount: "sesAmount" },                      // 74 / 74A / 73
     { label: "Certified by Trustee, Adviser & Director", date: "certifiedByProjectDirector" },
-    { label: "Submitted to Accounts Department", date: "submittedToAccountsDepartment", name: "submittedToAccountsDepartmentName" },
-    { label: "Received in Accounts Department", date: "receivedInAccountsDepartment", name: "receivedInAccountsDepartmentName" },
+    // Shorter labels (12.10, item 1 iii).
+    { label: "Submitted to Accts Dept", date: "submittedToAccountsDepartment", name: "submittedToAccountsDepartmentName" },
+    { label: "Received in Accts Dept", date: "receivedInAccountsDepartment", name: "receivedInAccountsDepartmentName" },
     { label: "Date of Payment", date: "paymentDate", amount: "paymentAmt" },
 ];
 
@@ -147,10 +148,12 @@ const billPage = (bill) => {
         <table>
             <thead>
                 <tr>
-                    <th style="width: 14%">Date</th>
-                    <th style="width: 34%">Description</th>
+                    <!-- Date and Description narrower so Amt fits 99,12,10,256.12 on
+                         one line (12.10, item 1 i-ii). -->
+                    <th style="width: 12%">Date</th>
+                    <th style="width: 29%">Description</th>
                     <th style="width: 36%">Name</th>
-                    <th>Amount</th>
+                    <th style="width: 23%">Amt</th>
                 </tr>
             </thead>
             <tbody>${stepRows}</tbody>
@@ -204,7 +207,7 @@ export const printBillJourney = (bills) => {
                 table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
                 th, td { border: 1px solid #d1d5db; padding: 5px 7px; text-align: left; overflow-wrap: anywhere; }
                 th { background: #f3f4f6; }
-                td.amount { text-align: right; }
+                td.amount { text-align: right; white-space: nowrap; overflow-wrap: normal; }
                 td.nowrap { white-space: nowrap; }
             </style>
         </head>
