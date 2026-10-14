@@ -208,7 +208,7 @@ const AdvancedChecklist = () => {
           grid-template-columns: 1fr 2fr 1fr;
           align-items: center;
           padding: 2px 0 4px;
-          border-bottom: 1px solid #e5e7eb;
+          border-bottom: 1.5px solid #000;
           font-weight: bold;
         }
         .brand { font-size: 12pt; }
@@ -219,10 +219,11 @@ const AdvancedChecklist = () => {
           width: 100%;
           table-layout: fixed;
           border-collapse: collapse;
-          border: 1px solid #e5e7eb;
+          /* All lines and borders bold - solid black (13.10, item 1). */
+          border: 2px solid #000;
         }
         td {
-          border: 1px solid #e5e7eb;
+          border: 1.5px solid #000;
           padding: 2px 6px;
           vertical-align: middle;
         }
@@ -301,7 +302,8 @@ const AdvancedChecklist = () => {
         {currentItems.map((item, index) => (
           <div key={index}>
             <div className="w-full max-w-[90%] mx-auto">
-              <div className="border border-gray-300 bg-white [overflow-wrap:anywhere] [word-break:break-word]">
+              {/* All lines and borders bold - solid black (13.10, item 1). */}
+              <div className="border-2 border-black bg-white [overflow-wrap:anywhere] [word-break:break-word]">
                 {/* "SVKM" text in place of the logo, title bold, Sr no bold at
                     the top right (9.10, items 1 / 2 / 3). */}
                 <div className="grid grid-cols-[1fr_2fr_1fr] bg-gray-200 items-center p-2 font-bold [&>*]:min-w-0">
@@ -310,14 +312,14 @@ const AdvancedChecklist = () => {
                   <div className="text-xl text-right">{item?.srNo}</div>
                 </div>
                 {/* Heading relabelled (9.10, item 4). */}
-                <div className="p-2 border-t border-gray-300 bg-gray-200 text-xl font-bold">
+                <div className="p-2 border-t-[1.5px] border-black bg-gray-200 text-xl font-bold">
                   {requestedByText(item)}
                 </div>
               </div>
 
               <div className="overflow-x-auto">
                 {/* Long values wrap within their own cell (1.10, item O-05). */}
-                <table className="w-full table-fixed border-collapse [overflow-wrap:anywhere] [word-break:break-word]">
+                <table className="w-full table-fixed border-collapse border-2 border-black [overflow-wrap:anywhere] [word-break:break-word]">
                   <colgroup>
                     <col className="w-[5%]" />
                     <col className="w-[42%]" />
@@ -327,15 +329,15 @@ const AdvancedChecklist = () => {
                     {numberRows(buildRows(item)).map((r, i) =>
                       r.section ? (
                         <tr key={i} className="font-bold text-xl">
-                          <td className="bg-gray-200 p-2 border-l border-black"></td>
+                          <td className="bg-gray-200 p-2 border-l-[1.5px] border-black"></td>
                           <td className="bg-gray-200 p-2 text-center">Accounts Department</td>
-                          <td className="bg-gray-200 p-2 border-r border-black text-center">Date______</td>
+                          <td className="bg-gray-200 p-2 border-r-[1.5px] border-black text-center">Date______</td>
                         </tr>
                       ) : (
                         <tr key={i}>
-                          <td className="border border-black p-2">{r.no}</td>
-                          <td className="border border-black p-2">{r.label}</td>
-                          <td className="border border-black p-2">
+                          <td className="border-[1.5px] border-black p-2">{r.no}</td>
+                          <td className="border-[1.5px] border-black p-2">{r.label}</td>
+                          <td className="border-[1.5px] border-black p-2">
                             <Value value={r.value} />
                           </td>
                         </tr>

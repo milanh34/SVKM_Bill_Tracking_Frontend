@@ -189,8 +189,8 @@ const BillJourney = () => {
         { field: "advanceAmt", headerName: "Advance Amt" },                                         // 30
         { field: "billSendForQualityCertification", headerName: "Bill send for Quality Certification" }, // 33
         { field: "billSendForQualityCertificationName", headerName: "Quality Certification - Name" }, // 34
-        { field: "qsMeasureGivenDate", headerName: "Bill send to QS" },                             // 35
-        { field: "qsMeasureGivenName", headerName: "Bill send to QS - Name" },                      // 36
+        { field: "qsMeasureGivenDate", headerName: "Bill send to QS (Measure)" }, // 13.10, item 5                             // 35
+        { field: "qsMeasureGivenName", headerName: "Bill send to QS- Name (Measure)" }, // 13.10, item 5                      // 36
         { field: "qsMeasureCheckedDate", headerName: "Dt Checked by QS with Measure" },              // 37
         { field: "qsMeasureReturnedDate", headerName: "Dt ret-QS aft measure" },                    // 38
         { field: "qsProvCopGivenDate", headerName: "Bill send to QS (Prov COP)" },                  // 40

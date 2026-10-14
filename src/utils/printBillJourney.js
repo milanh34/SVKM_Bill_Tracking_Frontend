@@ -47,6 +47,21 @@ export const JOURNEY_STEPS = [
     { label: "Date of Payment", date: "paymentDate", amount: "paymentAmt" },
 ];
 
+/*
+ * Day counts printed after "Date of Payment" (13.10, item 2): label in the
+ * Description column, value in the Name column, Date and Amt blank. Print
+ * only - the keys are the Bill Journey report's day columns (getBillJourney
+ * in report-controller.js), which the raw bills on the Home-tab checklist do
+ * not carry, so they are kept out of JOURNEY_STEPS.
+ */
+const JOURNEY_DAY_ROWS = [
+    { label: "Delay in Receiving Invoice", key: "delay_for_receiving_invoice" },
+    { label: "Days at Site", key: "no_of_Days_Site" },
+    { label: "Days at PIMO", key: "no_of_Days_at_Mumbai" },
+    { label: "Days at Accts", key: "no_of_Days_at_AC" },
+    { label: "Days for Payment after receipt", key: "days_for_payment" },
+];
+
 /** A step's date / name from a report row, falling back where the step names a second column. */
 const firstFilled = (row, ...keys) => keys.reduce((found, key) => found || (key ? row?.[key] : "") || "", "");
 export const journeyStepDate = (row, step) => firstFilled(row, step.date, step.fallbackDate);
@@ -99,6 +114,14 @@ const billPage = (bill) => {
             <td class="amount">${amount}</td>
         </tr>`;
     }).join("");
+
+    // Whole days or "" from the report; 0 prints as 0 (13.10, item 2).
+    const dayRows = JOURNEY_DAY_ROWS.map(({ label, key }) => `<tr>
+            <td></td>
+            <td>${escapeHtml(label)}</td>
+            <td>${escapeHtml(bill[key] ?? "")}</td>
+            <td></td>
+        </tr>`).join("");
 
     return `<div class="journey-page">
         <div class="generated">${generatedAtText()}</div>
@@ -156,7 +179,7 @@ const billPage = (bill) => {
                     <th style="width: 23%">Amt</th>
                 </tr>
             </thead>
-            <tbody>${stepRows}</tbody>
+            <tbody>${stepRows}${dayRows}</tbody>
         </table>
     </div>`;
 };
@@ -184,7 +207,7 @@ export const printBillJourney = (bills) => {
             <style>
                 @page { size: A4; margin: 0; }
                 html, body { margin: 0; padding: 0; }
-                body { font-family: Arial, sans-serif; font-size: 12px; }
+                body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.25; }
                 .journey-page {
                     padding: 10mm 12mm;
                     box-decoration-break: clone;
@@ -192,10 +215,13 @@ export const printBillJourney = (bills) => {
                     page-break-after: always;
                 }
                 .journey-page:last-child { page-break-after: avoid; }
-                .generated { text-align: right; font-style: italic; margin-bottom: 6px; }
-                .row { padding: 6px 8px; border-bottom: 1px solid #e5e7eb; overflow-wrap: anywhere; }
+                .generated { text-align: right; font-style: italic; margin-bottom: 4px; }
+                /* All lines and borders bold - solid black, thicker (13.10, item 1). */
+                .row { padding: 4px 8px; border-bottom: 1.5px solid #000; overflow-wrap: anywhere; }
                 .head { display: flex; align-items: center; gap: 16px; background: #e5e7eb; }
                 .head > * { min-width: 0; }
+                /* "SVKM" and the Sr no never split mid-word on a long project name. */
+                .head > b { flex: 0 0 auto; white-space: nowrap; }
                 .head .grow { flex: 1 1 auto; }
                 .brand { font-size: 16px; letter-spacing: 1px; }
                 .split { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; }
@@ -204,8 +230,14 @@ export const printBillJourney = (bills) => {
                 .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
                 .grid-2 > *, .grid-3 > * { min-width: 0; }
                 .span-2 { grid-column: span 2; }
-                table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
-                th, td { border: 1px solid #d1d5db; padding: 5px 7px; text-align: left; overflow-wrap: anywhere; }
+                /* One bill, with the five day rows, on one A4 sheet (13.10,
+                   item 2): the table printed at 16px - with no doctype it does
+                   not inherit the body's size - so it is set to 13px here, with
+                   tighter rows. Black 2px outer border, 1.5px cell lines
+                   (13.10, item 1). */
+                table { width: 100%; border-collapse: collapse; margin-top: 6px; table-layout: fixed; border: 2px solid #000;
+                        font-size: 13px; line-height: 1.25; }
+                th, td { border: 1.5px solid #000; padding: 3px 6px; text-align: left; overflow-wrap: anywhere; }
                 th { background: #f3f4f6; }
                 td.amount { text-align: right; white-space: nowrap; overflow-wrap: normal; }
                 td.nowrap { white-space: nowrap; }

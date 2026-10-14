@@ -55,6 +55,8 @@ const ChecklistBillJourney = () => {
 
     const printStyles = `
       <style>
+        /* All lines and borders bold - solid black, 1.5px, table outline
+           2px (13.10, item 1). */
         @media print {
           @page {
             margin: 10mm;
@@ -76,16 +78,16 @@ const ChecklistBillJourney = () => {
           .content-row {
             padding: 8px;
             font-size: 0.875rem;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1.5px solid #000;
           }
           table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 12px;
-            border: 1px solid #e5e7eb;
+            border: 2px solid #000;
           }
           th, td {
-            border: 1px solid #e5e7eb;
+            border: 1.5px solid #000;
             padding: 6px 8px;
             font-size: 0.875rem;
           }
@@ -99,7 +101,7 @@ const ChecklistBillJourney = () => {
             display: grid;
             padding: 8px;
             font-size: 0.875rem;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1.5px solid #000;
           }
           .grid-2 {
             grid-template-columns: repeat(2, 1fr);
@@ -121,6 +123,7 @@ const ChecklistBillJourney = () => {
             justify-content: space-between;
             padding: 8px;
             padding-right: 100px;
+            border-bottom: 1.5px solid #000;
           }
           /* Long values wrap inside their own field/cell instead of spilling
              into the next one (1.10, item O-05). */
@@ -140,7 +143,7 @@ const ChecklistBillJourney = () => {
             align-items: center;
             padding: 8px;
             font-size: 0.875rem;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1.5px solid #000;
             background-color: #e5e7eb;
           }
           .head-row > * { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
@@ -153,7 +156,7 @@ const ChecklistBillJourney = () => {
             gap: 16px;
             padding: 8px;
             font-size: 0.875rem;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1.5px solid #000;
           }
           .split-row > * { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
           .split-row .right { text-align: right; max-width: 45ch; }
@@ -312,11 +315,12 @@ const ChecklistBillJourney = () => {
             <div key={index}>
               <div className="w-full max-w-[90%] mx-auto">
                 {/* Long values wrap within their own field (1.10, item O-05). */}
-                <div className="border border-gray-300 bg-white font-semibold [overflow-wrap:anywhere] [word-break:break-word] [&_.grid>*]:min-w-0">
+                {/* All lines and borders bold - solid black (13.10, item 1). */}
+                <div className="border-2 border-black bg-white font-semibold [overflow-wrap:anywhere] [word-break:break-word] [&_.grid>*]:min-w-0">
                   {/* "SVKM" in place of the logo (6.10, item 1 iv); a long
                       Project description wraps within its own cell (6.10, P-27). */}
-                  <div className="grid grid-cols-4 bg-gray-200 items-center">
-                    <div className="p-2 border-b col-span-2 border-gray-300 flex items-center gap-3 min-w-0">
+                  <div className="grid grid-cols-4 bg-gray-200 items-center border-b-[1.5px] border-black">
+                    <div className="p-2 col-span-2 flex items-center gap-3 min-w-0">
                       <div className="text-base font-bold tracking-wider shrink-0">
                         SVKM
                       </div>
@@ -335,7 +339,7 @@ const ChecklistBillJourney = () => {
                     </div>
                   </div>
 
-                  <div className="p-2 border-b border-gray-300">
+                  <div className="p-2 border-b-[1.5px] border-black">
                     {/*
                       The three Proforma cells merged into one, with Created By
                       and Team alongside - the layout she marked up
@@ -353,7 +357,7 @@ const ChecklistBillJourney = () => {
                     </div>
                   </div>
 
-                  <div className="p-2 border-b border-gray-300">
+                  <div className="p-2 border-b-[1.5px] border-black">
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       <div>Invoice No: <span className="font-bold">{item?.taxInvNo}</span></div>
                       <div className="text-center">Dt: <span className="font-bold">{formatDate(item?.taxInvDate)}</span></div>
@@ -363,7 +367,7 @@ const ChecklistBillJourney = () => {
                     </div>
                   </div>
 
-                  <div className="p-2 border-b border-gray-300">
+                  <div className="p-2 border-b-[1.5px] border-black">
                     <div className="grid grid-cols-4 text-sm">
                       <div className="col-span-3 min-w-0 break-words [overflow-wrap:anywhere]">Vendor: <span className="font-bold">{item?.vendorName}</span></div>
                       <div>SAP Code: <span className="font-bold">{item?.vendorNo}</span></div>
@@ -371,7 +375,7 @@ const ChecklistBillJourney = () => {
                   </div>
 
                   {/* PO no, date and amount on one line (1.10, item O-07). */}
-                  <div className="p-2 border-b border-gray-300">
+                  <div className="p-2 border-b-[1.5px] border-black">
                     <div className="text-sm">
                       PO no and Date and Amt:{" "}
                       <span className="font-bold">
@@ -385,12 +389,12 @@ const ChecklistBillJourney = () => {
                   </div>
 
                   {/* Remarks = col 27, Additional Info = col 26, E-Way Bill = col 25A (9.10, item 1). */}
-                  <div className="p-2 border-b border-gray-300">
+                  <div className="p-2 border-b-[1.5px] border-black">
                     <div className="text-sm">
                       Remarks: <span className="font-bold">{item?.remarksBySiteTeam}</span>
                     </div>
                   </div>
-                  <div className="p-2 border-b border-gray-300">
+                  <div className="p-2 border-b-[1.5px] border-black">
                     <div className="text-sm">
                       Additional Info: <span className="font-bold">{item?.department}</span>
                     </div>
@@ -405,16 +409,16 @@ const ChecklistBillJourney = () => {
 
               {/* Existing table code with updated margins */}
               <div className="w-full max-w-[90%] mx-auto flex flex-col gap-4">
-                <table className="min-w-full border border-gray-300 bg-white shadow-md rounded-xl [overflow-wrap:anywhere] [word-break:break-word]">
+                <table className="min-w-full border-2 border-black bg-white shadow-md rounded-xl [overflow-wrap:anywhere] [word-break:break-word]">
                   <thead>
                     <tr className="bg-gray-200 text-gray-700 text-sm">
-                      <th className="px-4 py-2 text-left w-1/6 border-r">
+                      <th className="px-4 py-2 text-left w-1/6 border-r-[1.5px] border-black">
                         Date
                       </th>
-                      <th className="px-4 py-2 text-left w-2/5 border-r">
+                      <th className="px-4 py-2 text-left w-2/5 border-r-[1.5px] border-black">
                         Description
                       </th>
-                      <th className="px-4 py-2 text-left w-1/4 border-r">
+                      <th className="px-4 py-2 text-left w-1/4 border-r-[1.5px] border-black">
                         Name
                       </th>
                       <th className="px-4 py-2 text-left">Signature</th>
@@ -426,16 +430,16 @@ const ChecklistBillJourney = () => {
                         key={index}
                         className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
                       >
-                        <td className="px-4 py-2 border-t border-r border-gray-300">
+                        <td className="px-4 py-2 border-t-[1.5px] border-r-[1.5px] border-black">
                           {stepDate(item, step)}
                         </td>
-                        <td className="px-4 py-2 border-t border-r border-gray-300">
+                        <td className="px-4 py-2 border-t-[1.5px] border-r-[1.5px] border-black">
                           {step.label}
                         </td>
-                        <td className="px-4 py-2 border-t border-r border-gray-300">
+                        <td className="px-4 py-2 border-t-[1.5px] border-r-[1.5px] border-black">
                           {stepName(item, step)}
                         </td>
-                        <td className="px-4 py-2 border-t border-gray-300"></td>
+                        <td className="px-4 py-2 border-t-[1.5px] border-black"></td>
                       </tr>
                     ))}
                   </tbody>
@@ -452,14 +456,14 @@ const ChecklistBillJourney = () => {
               <h1 className="text-2xl font-semibold mb-4 text-left text-blue-800">
                 Bill Journey Checklist
               </h1>
-              <table className="min-w-full border border-gray-300 bg-white shadow-md rounded-xl">
+              <table className="min-w-full border-2 border-black bg-white shadow-md rounded-xl">
                 <thead>
                   <tr className="bg-gray-200 text-gray-700 text-sm">
-                    <th className="px-4 py-2 text-left w-1/6 border-r">Date</th>
-                    <th className="px-4 py-2 text-left w-2/5 border-r">
+                    <th className="px-4 py-2 text-left w-1/6 border-r-[1.5px] border-black">Date</th>
+                    <th className="px-4 py-2 text-left w-2/5 border-r-[1.5px] border-black">
                       Description
                     </th>
-                    <th className="px-4 py-2 text-left w-1/4 border-r">Name</th>
+                    <th className="px-4 py-2 text-left w-1/4 border-r-[1.5px] border-black">Name</th>
                     <th className="px-4 py-2 text-left">Signature</th>
                   </tr>
                 </thead>
@@ -469,12 +473,12 @@ const ChecklistBillJourney = () => {
                       key={index}
                       className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
                     >
-                      <td className="px-4 py-2 border-t border-r border-gray-300"></td>
-                      <td className="px-4 py-2 border-t border-r border-gray-300">
+                      <td className="px-4 py-2 border-t-[1.5px] border-r-[1.5px] border-black"></td>
+                      <td className="px-4 py-2 border-t-[1.5px] border-r-[1.5px] border-black">
                         {step.label}
                       </td>
-                      <td className="px-4 py-2 border-t border-r border-gray-300"></td>
-                      <td className="px-4 py-2 border-t border-gray-300"></td>
+                      <td className="px-4 py-2 border-t-[1.5px] border-r-[1.5px] border-black"></td>
+                      <td className="px-4 py-2 border-t-[1.5px] border-black"></td>
                     </tr>
                   ))}
                 </tbody>

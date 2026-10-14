@@ -122,9 +122,9 @@ const BillKidhar = () => {
         { field: "taxInvRecdAtSite", headerName: "Dt Recd at Site" },
         { field: "qsMeasureGiven", headerName: "Dt given QS Measure" },
         { field: "qsCopGiven", headerName: "Dt given QS Prov COP" },
-        { field: "pimoReceived", headerName: "Dt recd PIMO" },
+        { field: "pimoReceived", headerName: "Dt Recd at PIMO" },
         { field: "qsMumbaiGiven", headerName: "Dt given QS Mumbai" },
-        { field: "acctsReceived", headerName: "Dt recd Accts" },
+        { field: "acctsReceived", headerName: "Dt Recd at Accts" },
     ]
     const visibleColumnFields = ["srNo", "region", "vendorNo", "vendorName", "taxInvNo", "taxInvDate", "taxInvAmt", "copAmt", "paymentAmt", "paymentDate", "taxInvRecdAtSite", "qsMeasureGiven", "qsCopGiven", "pimoReceived", "qsMumbaiGiven", "acctsReceived"]
 
@@ -195,9 +195,9 @@ const BillKidhar = () => {
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt Recd at Site</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt given QS Measure</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt given QS Prov COP</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt recd PIMO</th>
+                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt Recd at PIMO</th>
                                 <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt given QS Mumbai</th>
-                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt recd Accts</th>
+                                <th className='sticky top-0 z-[1] border border-black bg-[#f8f9fa] font-bold text-[#333] text-[16px] py-[1.5vh] px-[1vw] text-left'>Dt Recd at Accts</th>
                             </tr>
                         </thead>
                         <tbody>

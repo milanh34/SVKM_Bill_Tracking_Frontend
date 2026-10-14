@@ -35,7 +35,8 @@ const ChecklistDirectFI = () => {
     const printStyles = `
       <style>
         /* Applied on screen too, so the one-page fit check below measures
-           the page as it will print (9.10, items 1-5). */
+           the page as it will print (9.10, items 1-5). All lines and borders
+           bold - solid black, 1.5px, table outline 2px (13.10, item 1). */
         @media print, screen {
           @page {
             margin: 10mm;
@@ -61,7 +62,7 @@ const ChecklistDirectFI = () => {
             align-items: center;
             gap: 16px;
             padding: 8px;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1.5px solid #000;
             font-weight: bold;
           }
           .top-row .brand { font-size: 1.25rem; }
@@ -71,16 +72,16 @@ const ChecklistDirectFI = () => {
           .content-row {
             padding: 8px;
             font-size: 0.875rem;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1.5px solid #000;
           }
           table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 12px;
-            border: 1px solid #e5e7eb;
+            border: 2px solid #000;
           }
           th, td {
-            border: 1px solid #e5e7eb;
+            border: 1.5px solid #000;
             padding: 6px 8px;
             font-size: 0.875rem;
           }
@@ -93,7 +94,7 @@ const ChecklistDirectFI = () => {
             display: grid;
             padding: 8px;
             font-size: 0.875rem;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1.5px solid #000;
           }
           .grid-3 {
             grid-template-columns: repeat(3, 1fr);
@@ -125,7 +126,7 @@ const ChecklistDirectFI = () => {
             gap: 6px;
             padding: 8px;
             font-size: 0.875rem;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1.5px solid #000;
           }
           .field-label { flex: 0 0 auto; white-space: nowrap; }
           .field-value { flex: 1 1 auto; min-width: 0; }
@@ -364,33 +365,34 @@ const ChecklistDirectFI = () => {
         {currentItems.map((item, index) => (
           <div key={index}>
             <div className="w-full max-w-[90%] mx-auto">
-              <div className="border border-gray-300 bg-white font-semibold [overflow-wrap:anywhere] [word-break:break-word]">
+              {/* All lines and borders bold - solid black (13.10, item 1). */}
+              <div className="border-2 border-black bg-white font-semibold [overflow-wrap:anywhere] [word-break:break-word]">
                 {/* "SVKM" replaces the logo; Sr no moved to the top right
                     (9.10, items 1 / 2). */}
-                <div className="flex justify-between items-center gap-4 p-2 bg-gray-200 border-b border-gray-300 font-bold [&>*]:min-w-0">
+                <div className="flex justify-between items-center gap-4 p-2 bg-gray-200 border-b-[1.5px] border-black font-bold [&>*]:min-w-0">
                   <div className="text-2xl">SVKM</div>
                   <div className="text-lg text-right">{item?.srNo}</div>
                 </div>
 
                 {/* Title bold (9.10, item 3). */}
-                <div className="p-2 border-b border-gray-300 font-bold">
+                <div className="p-2 border-b-[1.5px] border-black font-bold">
                   Check List - Direct FI entry
                 </div>
 
                 {/* Label + value on one line; label never wraps, value wraps
                     only within its own width (6.10, items P-41 / P-27;
                     re-checked 9.10, items 4 / 5). */}
-                <div className="p-2 border-b border-gray-300 flex items-baseline gap-1.5">
+                <div className="p-2 border-b-[1.5px] border-black flex items-baseline gap-1.5">
                   <span className="shrink-0 whitespace-nowrap">Project Name:</span>
                   <span className="font-bold flex-1 min-w-0">{item?.projectDescription}</span>
                 </div>
 
-                <div className="p-2 border-b border-gray-300 flex items-baseline gap-1.5">
+                <div className="p-2 border-b-[1.5px] border-black flex items-baseline gap-1.5">
                   <span className="shrink-0 whitespace-nowrap">Campus:</span>
                   <span className="font-bold flex-1 min-w-0">{item?.region}</span>
                 </div>
 
-                <div className="p-2 border-b border-gray-300">
+                <div className="p-2 border-b-[1.5px] border-black">
                   Project ID in SAP:
                 </div>
               </div>
@@ -403,19 +405,19 @@ const ChecklistDirectFI = () => {
                 {/* Long values wrap within their own cell (1.10, item O-05). */}
                 {/* Fixed layout so the narrower Sr No width is honoured
                     (6.10, item P-41). */}
-                <table className="w-full table-fixed border-collapse [overflow-wrap:anywhere] [word-break:break-word]">
+                <table className="w-full table-fixed border-collapse border-2 border-black [overflow-wrap:anywhere] [word-break:break-word]">
                   <thead>
                     <tr>
-                      <th className="border border-gray-300 p-2 bg-gray-100 w-[5%]">
+                      <th className="border-[1.5px] border-black p-2 bg-gray-100 w-[5%]">
                         Sr. No.
                       </th>
-                      <th className="border border-gray-300 p-2 bg-gray-100 w-[35%]">
+                      <th className="border-[1.5px] border-black p-2 bg-gray-100 w-[35%]">
                         Description
                       </th>
-                      <th className="border border-gray-300 p-2 bg-gray-100 w-[32%]">
+                      <th className="border-[1.5px] border-black p-2 bg-gray-100 w-[32%]">
                         Remarks
                       </th>
-                      <th className="border border-gray-300 p-2 bg-gray-100 w-[28%]">
+                      <th className="border-[1.5px] border-black p-2 bg-gray-100 w-[28%]">
                         Additional Remarks
                       </th>
                     </tr>
@@ -423,172 +425,172 @@ const ChecklistDirectFI = () => {
                   <tbody>
                     {/* Project Dept Section */}
                     <tr>
-                      <td className="border border-gray-300 p-2"></td>
-                      <td className="border border-gray-300 p-2 underline font-medium">
+                      <td className="border-[1.5px] border-black p-2"></td>
+                      <td className="border-[1.5px] border-black p-2 underline font-medium">
                         To be filled in by Project Dept:
                       </td>
-                      <td className="border border-gray-300 p-2"></td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">1</td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">1</td>
+                      <td className="border-[1.5px] border-black p-2">
                         SAP Code & Vendor Name
                       </td>
-                      <td className="border border-gray-300 p-2 font-bold">
+                      <td className="border-[1.5px] border-black p-2 font-bold">
                         {item?.vendorNo} &nbsp; &nbsp; {item?.vendorName}
                       </td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">2</td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">2</td>
+                      <td className="border-[1.5px] border-black p-2">
                         Purpose of expenses
                       </td>
-                      <td className="border border-gray-300 p-2"></td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">3</td>
-                      <td className="border border-gray-300 p-2">Amount</td>
-                      <td className="border border-gray-300 p-2 font-bold">
+                      <td className="border-[1.5px] border-black p-2">3</td>
+                      <td className="border-[1.5px] border-black p-2">Amount</td>
+                      <td className="border-[1.5px] border-black p-2 font-bold">
                         {formatAmount(item?.taxInvAmt)}
                       </td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">4</td>
-                      <td className="border border-gray-300 p-2">WBS No.</td>
-                      <td className="border border-gray-300 p-2"></td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2">4</td>
+                      <td className="border-[1.5px] border-black p-2">WBS No.</td>
+                      <td className="border-[1.5px] border-black p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">5</td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">5</td>
+                      <td className="border-[1.5px] border-black p-2">
                         Network & Activity No
                       </td>
-                      <td className="border border-gray-300 p-2"></td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">6</td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">6</td>
+                      <td className="border-[1.5px] border-black p-2">
                         Cost Element
                       </td>
-                      <td className="border border-gray-300 p-2"></td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">7</td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">7</td>
+                      <td className="border-[1.5px] border-black p-2">
                         Is Budget available
                       </td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">
                         Yes &nbsp; / &nbsp; No
                       </td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">8</td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">8</td>
+                      <td className="border-[1.5px] border-black p-2">
                         Approved by
                       </td>
-                      <td className="border border-gray-300 p-2"></td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">9</td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">9</td>
+                      <td className="border-[1.5px] border-black p-2">
                         Submitted by
                       </td>
-                      <td className="border border-gray-300 p-2"></td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">10</td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">10</td>
+                      <td className="border-[1.5px] border-black p-2">
                         Original invoice/intimation/etc attached
                       </td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">
                         Yes &nbsp; / &nbsp; No
                       </td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">11</td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">11</td>
+                      <td className="border-[1.5px] border-black p-2">
                         Whether exp of SVKM to be recovered from contractor
                       </td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">
                         Expenses of SVKM/to be recovered from contractor
                       </td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">12</td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">12</td>
+                      <td className="border-[1.5px] border-black p-2">
                         Compliances
                       </td>
-                      <td className="border border-gray-300 p-2 font-bold">
+                      <td className="border-[1.5px] border-black p-2 font-bold">
                         {item?.compliance206AB}
                       </td>
-                      <td className="border border-gray-300 p-2 font-bold">
+                      <td className="border-[1.5px] border-black p-2 font-bold">
                         {item?.panStatus}
                       </td>
                     </tr>
 
                     {/* Accounts Dept Section */}
                     <tr>
-                      <td className="border border-gray-300 p-2"></td>
-                      <td className="border border-gray-300 p-2 underline font-medium">
+                      <td className="border-[1.5px] border-black p-2"></td>
+                      <td className="border-[1.5px] border-black p-2 underline font-medium">
                         To be filled in by Accounts Dept:
                       </td>
-                      <td className="border border-gray-300 p-2"></td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">1</td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">1</td>
+                      <td className="border-[1.5px] border-black p-2">
                         Is GST charged in invoice
                       </td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">
                         Yes &nbsp; / &nbsp; No
                       </td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">2</td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">2</td>
+                      <td className="border-[1.5px] border-black p-2">
                         Is RCM applicable
                       </td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">
                         Yes &nbsp; / &nbsp; No
                       </td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">3</td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">3</td>
+                      <td className="border-[1.5px] border-black p-2">
                         Approved by
                       </td>
-                      <td className="border border-gray-300 p-2"></td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">4</td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">4</td>
+                      <td className="border-[1.5px] border-black p-2">
                         Document no in SAP
                       </td>
-                      <td className="border border-gray-300 p-2"></td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 p-2">5</td>
-                      <td className="border border-gray-300 p-2">
+                      <td className="border-[1.5px] border-black p-2">5</td>
+                      <td className="border-[1.5px] border-black p-2">
                         Posting date in SAP
                       </td>
-                      <td className="border border-gray-300 p-2"></td>
-                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
+                      <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                   </tbody>
                 </table>
