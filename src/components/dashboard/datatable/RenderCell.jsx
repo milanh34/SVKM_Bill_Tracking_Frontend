@@ -4,6 +4,7 @@ import {
   getEditableFields,
   formatCellValue,
 } from "./datatableUtils";
+import { useBillCategoryOptions } from "./useBillCategoryOptions";
 
 const neverEditableFields = [
   "gstNumber",
@@ -47,6 +48,10 @@ export function RenderCell({
   ).includes(column.field);
   const isForceDisabled = neverEditableFields.includes(column.field);
   const editedValue = editedValues[row._id]?.[column.field];
+  // Loaded only while a Bill Category cell is open for edit (16.10, items 3-4).
+  const billCategoryOptions = useBillCategoryOptions(
+    column.field === "billCategory" && isEditing && isEditable
+  );
 
   const prevEditingRef = React.useRef(false);
   const [initialVendorValue, setInitialVendorValue] = useState("");
@@ -214,6 +219,35 @@ export function RenderCell({
           {natureOfWorkOptions.map((option) => (
             <option key={option._id} value={option.natureOfWork}>
               {option.natureOfWork}
+            </option>
+          ))}
+        </select>
+      );
+    }
+
+    // A drop-down from the Category Master, like Nature of Work; optional,
+    // so it can be set back to blank (16.10, items 3-4).
+    if (column.field === "billCategory") {
+      const current = editedValue !== undefined ? editedValue : value || "";
+      return (
+        <select
+          autoComplete="off"
+          value={current}
+          onChange={(e) =>
+            handleCellEdit(column.field, e.target.value, row._id, setEditedValues)
+          }
+          className={`w-full px-2 py-1 bg-blue-50 border border-blue-200 rounded focus:outline-none${
+            isForceDisabled ? " cursor-not-allowed" : ""
+          }`}
+          disabled={isForceDisabled}
+        >
+          <option value="">Select Bill Category</option>
+          {current && !billCategoryOptions.some((o) => o.name === current) && (
+            <option value={current}>{current}</option>
+          )}
+          {billCategoryOptions.map((option) => (
+            <option key={option._id} value={option.name}>
+              {option.name}
             </option>
           ))}
         </select>

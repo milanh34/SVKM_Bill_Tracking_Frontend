@@ -7,3 +7,5 @@ export const panstatus = `${SERVER_API}/master/panstatus`;
 export const regions = `${SERVER_API}/master/regions`;
 export const natureOfWorks = `${SERVER_API}/master/nature-of-works`;
 export const currencies = `${SERVER_API}/master/currencies`;
+// Bill Category master (16.10, item 2)
+export const billCategories = `${SERVER_API}/master/bill-categories`;

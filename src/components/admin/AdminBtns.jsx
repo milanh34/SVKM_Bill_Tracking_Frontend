@@ -7,6 +7,7 @@ const AdminBtns = ({ activeTable, setActiveTable }) => {
         { id: 'panstatus', label: 'PAN Status Master' },
         { id: 'regions', label: 'Region Master' },
         { id: 'nature-of-works', label: 'Nature of Work Master' },
+        { id: 'bill-categories', label: 'Category Master' }, // 16.10, item 2
         { id: 'users', label: 'User Master' },
         { id: 'currencies', label: 'Currency Master' }
     ];

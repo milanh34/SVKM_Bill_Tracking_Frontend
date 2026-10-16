@@ -165,6 +165,7 @@ const BillJourney = () => {
         { field: "srNo", headerName: "Sr. No" },                                                    // 1
         { field: "createdBy", headerName: "Created by" },                                           // 2
         { field: "natureOfWork", headerName: "Nature of Work" },                                    // 3
+        { field: "billCategory", headerName: "Bill Category" },                                     // 16.10, item 7
         { field: "region", headerName: "Region" },                                                  // 4
         { field: "projectDescription", headerName: "Project Description" },                         // 5
         { field: "vendorNo", headerName: "Vendor Code" },                                           // 6
@@ -183,6 +184,7 @@ const BillJourney = () => {
         { field: "invoiceDate", headerName: "Invoice Date" },                                       // 21
         { field: "currency", headerName: "Currency" },                                              // 22
         { field: "invoiceAmount", headerName: "Invoice Amount" },                                   // 23
+        { field: "eWayBill", headerName: "E-Way Bill" },                                            // 25A (16.10, item 7)
         { field: "billReceivedAtSite", headerName: "Bill Received at Site" },                       // 24
         { field: "billReceivedAtSiteName", headerName: "Bill Received at Site - Name" },             // 25
         { field: "advanceDate", headerName: "Advance Dt" },                                         // 29

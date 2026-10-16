@@ -8,6 +8,7 @@ import ComplianceTable from "../components/admin/ComplianceTable";
 import PanStatusTable from "../components/admin/PanStatusTable";
 import RegionTable from "../components/admin/RegionTable";
 import NatureOfWorkTable from "../components/admin/NatureOfWorkTable";
+import BillCategoryTable from "../components/admin/BillCategoryTable";
 import UserTable from "../components/admin/UserTable";
 import CurrencyTable from "../components/admin/CurrencyTable";
 import { UpdateBillModal } from "../components/UpdateBillModal";
@@ -46,6 +47,8 @@ const Admin = () => {
         return <RegionTable />;
       case "nature-of-works":
         return <NatureOfWorkTable />;
+      case "bill-categories": // Category Master (16.10, item 2)
+        return <BillCategoryTable />;
       case "currencies":
         return <CurrencyTable />;
       default:

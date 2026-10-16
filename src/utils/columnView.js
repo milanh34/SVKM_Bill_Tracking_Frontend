@@ -4,6 +4,7 @@ export const getColumnsForRole = (role) => {
     // { field: "srNoOld", headerName: "Sr no Old" }, // column no 2
     { field: "createdByLabel", headerName: "Created By" }, // column no 2: name - team (1.10, item 10)
     { field: "natureOfWork", headerName: "Nature of Work" }, // column no 3
+    { field: "billCategory", headerName: "Bill Category" }, // every team, not a default column (16.10, items 3-4)
     { field: "region", headerName: "Region" }, // column no 4
     { field: "projectDescription", headerName: "Project Description" }, // column no 5
     { field: "vendorNo", headerName: "Vendor no" }, // column no 6
@@ -117,6 +118,7 @@ export const getColumnsForRole = (role) => {
       "srNo",
       "createdByLabel",
       "natureOfWork",
+      "billCategory", // 16.10, items 3-4
       "region",
       "projectDescription",
       "vendorNo",
@@ -189,6 +191,7 @@ export const getColumnsForRole = (role) => {
       "srNo",
       "createdByLabel",
       "natureOfWork",
+      "billCategory", // 16.10, items 3-4
       "region",
       "projectDescription",
       "vendorNo",
@@ -239,6 +242,7 @@ export const getColumnsForRole = (role) => {
       "srNo",
       "createdByLabel",
       "natureOfWork",
+      "billCategory", // 16.10, items 3-4
       "region",
       "projectDescription",
       "vendorNo",
@@ -342,6 +346,7 @@ export const getColumnsForRole = (role) => {
       "srNo",
       "createdByLabel",
       "natureOfWork",
+      "billCategory", // 16.10, items 3-4
       "region",
       "projectDescription",
       "vendorNo",
@@ -405,6 +410,7 @@ export const getColumnsForRole = (role) => {
       "srNo",
       "createdByLabel",
       "natureOfWork",
+      "billCategory", // 16.10, items 3-4
       "region",
       "projectDescription",
       "vendorNo",

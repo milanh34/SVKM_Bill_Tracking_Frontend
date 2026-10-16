@@ -35,7 +35,12 @@ import { FileImage, FileText, File, FileVideo, FileAudio, Plus, Trash2, X } from
  */
 const isAwaitingQsReturn = (row, role) => {
   if (role === "site_officer") {
-    return !!row?.qsCOP?.dateGiven && !row?.copDetails?.dateReturned;
+    // With QS for Prov COP (40 filled, 44A blank), or - added 16.10, item 9 -
+    // with QS for measurement (35 filled, 38 blank).
+    return (
+      (!!row?.qsCOP?.dateGiven && !row?.copDetails?.dateReturned) ||
+      (!!row?.qsInspection?.dateGiven && !row?.vendorFinalInv?.dateGiven)
+    );
   }
   if (role === "site_pimo" || role === "pimo_mumbai") {
     return !!row?.qsMumbai?.dateGiven && !row?.pimoMumbai?.dateReturnedFromQs;
@@ -439,14 +444,10 @@ const DataTable = ({
           formData.append('accountsDept.status', 'Paid');
         }
 
-        if (
-          editedFieldsForRow.siteStatus &&
-          ["reject", "proforma"].includes(editedFieldsForRow.siteStatus)
-        ) {
-          formData.append("pimoMumbai.dateReceived", new Date().toISOString());
-          formData.append("accountsDept.paymentDate", new Date().toISOString());
-          formData.append("accountsDept.status", "Paid");
-        }
+        // Proforma / Reject no longer stamp columns 62 and 89 (16.10, item 11):
+        // the bill keeps Payment Status "-" and stays on the Site and QS
+        // Forwarded tabs only - Site Home lists Hold bills alone, and the
+        // Forwarded rules already take Proforma and Reject by status.
 
         filesForThisRow.forEach((file) => formData.append("files", file));
         try {
@@ -473,16 +474,10 @@ const DataTable = ({
           payload['accountsDept.status'] = 'Paid';
         }
 
-        if (
-          payload.siteStatus &&
-          ["reject", "proforma"].includes(payload.siteStatus)
-        ) {
-          // Reject / Proforma stamps col 62 and col 89 so the bill leaves the
-          // Site home tab, per the Send-to sheet.
-          payload['pimoMumbai.dateReceived'] = new Date().toISOString();
-          payload['accountsDept.paymentDate'] = new Date().toISOString();
-          payload['accountsDept.status'] = 'Paid';
-        }
+        // Proforma / Reject no longer stamp columns 62 and 89 (16.10, item 11):
+        // the bill keeps Payment Status "-" and stays on the Site and QS
+        // Forwarded tabs only - Site Home lists Hold bills alone, and the
+        // Forwarded rules already take Proforma and Reject by status.
 
         if (Object.keys(payload).length > 0) {
           try {

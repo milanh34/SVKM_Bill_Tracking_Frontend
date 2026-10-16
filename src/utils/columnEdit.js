@@ -3,6 +3,7 @@ export const getColumnsForRole = (role) => {
     { field: "srNo", headerName: "Sr no" }, // column no 1
     // { field: "srNoOld", headerName: "Sr no Old" }, // column no 2
     { field: "natureOfWork", headerName: "Nature of Work" }, // column no 3
+    { field: "billCategory", headerName: "Bill Category" }, // editable where Nature of Work is (16.10, items 3-4)
     { field: "region", headerName: "Region" }, // column no 4
     { field: "projectDescription", headerName: "Project Description" }, // column no 5
     { field: "vendorNo", headerName: "Vendor no" }, // column no 6
@@ -115,6 +116,7 @@ export const getColumnsForRole = (role) => {
     SITE_OFFICER: [
       "srNo",
       "natureOfWork",
+      "billCategory", // 16.10, items 3-4
       "region",
       "projectDescription",
       "vendorNo",
@@ -166,6 +168,7 @@ export const getColumnsForRole = (role) => {
     PIMO_MUMBAI_MIGO_SES: [
       "srNo",
       "natureOfWork",
+      "billCategory", // 16.10, items 3-4
       "region",
       "projectDescription",
       "vendorNo",

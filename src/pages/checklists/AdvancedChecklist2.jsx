@@ -68,7 +68,7 @@ const buildRows = (item) => {
     },
     { label: "If PO not raised, reason and other details", value: [] },
     { label: "GST No of Vendor", value: [line(bold(item?.gstNumber || item?.vendor?.GSTNumber || ""))] },
-    { label: "Payment is towards", value: [line("Material / Services / Material + Services/Work Contract/Cement/Steel")] },
+    { label: "Payment is towards", value: [line("Material / Services / Material + Services/Work Contract/Cement/Steel/Concrete/Aluminium")] },
     // Former rows 9 "PAN Status" and 10 "Compliance u/s 206 AB" merged into
     // one row (9.10, items 6 / 7); the rows below are renumbered (item 14).
     {

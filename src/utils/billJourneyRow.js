@@ -17,6 +17,11 @@ const fmt = (value) => {
 const dateAndNo = (date, no) => (date ? `${fmt(date)} / ${no || ""}` : "");
 
 export const billJourneyRow = (bill = {}) => ({
+  // Header: Bill Category where Nature of Work was; Nature of Work moves to
+  // the E-Way Bill line (16.10, item 5). A Home-tab bill carries the category
+  // as its name; a populated reference is read through too.
+  billCategory: bill.billCategory?.name || bill.billCategory || "",
+  natureOfWork: bill.natureOfWork?.natureOfWork || bill.natureOfWork || bill.typeOfInv || "",
   eWayBill: bill.eWayBill || "", // 25A "E-Way Bill:" header line (9.10, item 1)
   siteApprovalDate: fmt(bill.siteOfficeDispatch?.dateGiven), // 58 "Site Trustee/LPC"
   siteApprovalName: bill.siteOfficeDispatch?.name || "", // 59 (6.10, items 1-2)

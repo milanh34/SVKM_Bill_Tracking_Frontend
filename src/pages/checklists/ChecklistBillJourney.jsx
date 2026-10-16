@@ -182,7 +182,8 @@ const ChecklistBillJourney = () => {
             <span class="brand">SVKM</span>
             <div>Region-Project Name: <b>${item?.region || ""} - ${item?.projectDescription || ""}</b></div>
             <b>${item?.srNo || ""}</b>
-            <div>Nature of Work: <b>${item?.natureOfWork || item?.typeOfInv || ""}</b></div>
+            <!-- Bill Category in Nature of Work's place (16.10, item 5). -->
+            <div>Bill Category: <b>${billJourneyRow(item).billCategory}</b></div>
           </div>
 
           <!--
@@ -227,8 +228,10 @@ const ChecklistBillJourney = () => {
           <div class="content-row">
             Additional Info: <b>${item?.department || ""}</b>
           </div>
-          <div class="content-row">
-            E-Way Bill: <b>${item?.eWayBill || ""}</b>
+          <!-- Nature of Work moved onto the E-Way Bill line, on the right (16.10, item 5). -->
+          <div class="split-row">
+            <div>E-Way Bill: <b>${item?.eWayBill || ""}</b></div>
+            <div class="right">Nature of Work: <b>${billJourneyRow(item).natureOfWork}</b></div>
           </div>
 
           <table>
@@ -333,8 +336,9 @@ const ChecklistBillJourney = () => {
                       <div className="text-sm text-center font-bold">{item?.srNo}</div>
                     </div>
                     <div className="border-gray-300">
+                      {/* Bill Category in Nature of Work's place (16.10, item 5). */}
                       <div className="text-sm text-center">
-                        Nature of Work: <span className="font-bold">{item?.natureOfWork || item?.typeOfInv}</span>
+                        Bill Category: <span className="font-bold">{billJourneyRow(item).billCategory}</span>
                       </div>
                     </div>
                   </div>
@@ -399,9 +403,13 @@ const ChecklistBillJourney = () => {
                       Additional Info: <span className="font-bold">{item?.department}</span>
                     </div>
                   </div>
+                  {/* Nature of Work moved onto the E-Way Bill line, on the right (16.10, item 5). */}
                   <div className="p-2">
-                    <div className="text-sm">
-                      E-Way Bill: <span className="font-bold">{item?.eWayBill}</span>
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 text-sm">
+                      <div>E-Way Bill: <span className="font-bold">{item?.eWayBill}</span></div>
+                      <div className="text-right max-w-[45ch]">
+                        Nature of Work: <span className="font-bold">{billJourneyRow(item).natureOfWork}</span>
+                      </div>
                     </div>
                   </div>
                 </div>

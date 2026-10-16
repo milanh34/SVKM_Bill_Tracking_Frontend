@@ -5,7 +5,8 @@ import {
   natureOfWorks,
   vendors,
   currencies,
-  regions
+  regions,
+  billCategories
 } from "../apis/master.api";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -52,7 +53,7 @@ const FullBillDetails = () => {
     vendorNo: "",
     compliance206AB: "",
     panStatus: "",
-    poCreated: "No",
+    poCreated: "Yes", // default Yes (16.10, item 8)
     poNo: "",
     poDate: "",
     poAmt: "",
@@ -73,6 +74,7 @@ const FullBillDetails = () => {
     remarksBySiteTeam: "",
     attachment: "",
     natureOfWork: "",
+    billCategory: "", // optional (16.10, item 1)
     vendor: null,
     billDate: "",
     amount: "",
@@ -83,6 +85,7 @@ const FullBillDetails = () => {
   });
   const [vendorsData, setVendorsData] = useState([]);
   const [natureOfWorkOptions, setNatureOfWorkOptions] = useState([]);
+  const [billCategoryOptions, setBillCategoryOptions] = useState([]);
   const [regionOptions, setRegionOptions] = useState([]);
   const [currencyOptions, setCurrencyOptions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -193,6 +196,22 @@ const FullBillDetails = () => {
     };
 
     fetchDropdownData();
+  }, []);
+
+  // Bill Category drop-down from the Category Master (16.10, item 1). Kept
+  // apart from the call above so an empty or failing master never blocks
+  // the other drop-downs - the field is optional.
+  useEffect(() => {
+    axios
+      .get(billCategories, { headers: { Authorization: `Bearer ${Cookies.get("token")}` } })
+      .then((res) =>
+        setBillCategoryOptions(
+          (res.data || []).slice().sort((a, b) =>
+            String(a.name).localeCompare(String(b.name), undefined, { sensitivity: "base" })
+          )
+        )
+      )
+      .catch((error) => console.error("Error fetching bill categories:", error));
   }, []);
 
   const validateVendorNo = (x) => /^[0-9]{6}$/.test(x);
@@ -674,7 +693,7 @@ const FullBillDetails = () => {
       vendorNo: "",
       compliance206AB: "",
       panStatus: "",
-      poCreated: "No",
+      poCreated: "Yes", // default Yes (16.10, item 8)
       poNo: "",
       poDate: "",
       poAmt: "",
@@ -695,6 +714,7 @@ const FullBillDetails = () => {
       remarksBySiteTeam: "",
       attachment: "",
       natureOfWork: "",
+      billCategory: "", // 16.10, item 1
       advDate: "",
       advAmt: "",
       advPercent: "",
@@ -749,7 +769,32 @@ const FullBillDetails = () => {
           Bill Details
         </h1>
           <FormSection n={1} title="Particulars">
+            {/* Her order, left to right (16.10, item 1): Bill Category, Nature of Work,
+                Project Description, Region, Vendor Name, Vendor No, 206AB, PAN Status,
+                Is PO already Created, GST Number; the PO rows follow as before. */}
             <div className="grid grid-cols-2 gap-[2vw]">
+              {/* Bill Category, from the Category Master; optional (16.10, item 1). */}
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="billCategory"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Bill Category
+                </label>
+                <select
+                  id="billCategory"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
+                  value={billFormData.billCategory}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Bill Category</option>
+                  {billCategoryOptions.map((category) => (
+                    <option key={category._id} value={category.name}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="relative mb-[4vh]">
                 <label
                   htmlFor="natureOfWork"
@@ -774,6 +819,24 @@ const FullBillDetails = () => {
                   ))}
                 </select>
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor="projectDescription"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Project Description *
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="projectDescription"
+                  value={billFormData.projectDescription}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
               <div className="relative mb-[2.5vh]">
                 <label
                   htmlFor="region"
@@ -797,39 +860,6 @@ const FullBillDetails = () => {
                     </option>
                   ))}
                 </select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-[2vw]">
-              <div className="relative mb-[4vh]">
-                <label
-                  htmlFor="projectDescription"
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                >
-                  Project Description *
-                </label>
-                <input
-                  type="text"
-                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                  id="projectDescription"
-                  value={billFormData.projectDescription}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="relative mb-[2.5vh]">
-                <label
-                  htmlFor="gstNumber"
-                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                >
-                  GST Number
-                </label>
-                <input
-                  type="text"
-                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-gray-50 cursor-not-allowed shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                  id="gstNumber"
-                  value={billFormData.gstNumber}
-                  readOnly
-                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-[2vw]">
@@ -936,7 +966,21 @@ const FullBillDetails = () => {
                   <option value="Yes">Yes</option>
                 </select>
               </div>
-              <div></div>
+              <div className="relative mb-[2.5vh]">
+                <label
+                  htmlFor="gstNumber"
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  GST Number
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-gray-50 cursor-not-allowed shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
+                  id="gstNumber"
+                  value={billFormData.gstNumber}
+                  readOnly
+                />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-[2vw]">
               <div className="relative mb-[4vh]">

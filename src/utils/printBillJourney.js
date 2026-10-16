@@ -130,7 +130,8 @@ const billPage = (bill) => {
             <!-- "Name" struck out of the label (9.10, item 1). -->
             <span class="grow">Region-Project: <b>${escapeHtml(bill.region)} - ${escapeHtml(bill.projectDescription)}</b></span>
             <b>${escapeHtml(bill.srNo)}</b>
-            <span>Nature of Work: <b>${escapeHtml(bill.natureOfWork || bill.typeOfInv || "")}</b></span>
+            <!-- Bill Category in Nature of Work's place (16.10, item 6). -->
+            <span>Bill Category: <b>${escapeHtml(bill.billCategory || "")}</b></span>
         </div>
         <!--
             The right-hand column lines up Created by, Invoice Amt, SAP Code and
@@ -166,7 +167,11 @@ const billPage = (bill) => {
         <!-- Remarks = col 27, Additional Info = col 26, E-Way Bill = col 25A (9.10, item 1). -->
         <div class="row">Remarks: <b>${escapeHtml(bill.remarksBySiteTeam)}</b></div>
         <div class="row">Additional Info: <b>${escapeHtml(bill.department)}</b></div>
-        <div class="row">E-Way Bill: <b>${escapeHtml(bill.eWayBill)}</b></div>
+        <!-- Nature of Work moved onto the E-Way Bill line, on the right (16.10, item 6). -->
+        <div class="row split">
+            <div>E-Way Bill: <b>${escapeHtml(bill.eWayBill)}</b></div>
+            <div class="right">Nature of Work: <b>${escapeHtml(bill.natureOfWork || bill.typeOfInv || "")}</b></div>
+        </div>
         <!-- No Signature column (6.10, item 2 vi); Name column widened (9.10, item 1). -->
         <table>
             <thead>
