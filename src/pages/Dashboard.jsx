@@ -680,7 +680,14 @@ const Dashboard = () => {
 
   // Reset puts the screen back as it opens: sort, search, global filter and
   // column filters all cleared (29.09, item 21).
+  // The team's default columns from her list (1.10, item 1).
+  const restoreDefaultColumns = () =>
+    setVisibleColumnFields(defaultVisibleFields(columnSetKey(currentUserRole), columns));
+
+  // Reset also puts the columns back to the defaults, so "Select All" can be
+  // undone without logging out (16.10, item 12).
   const handleResetView = () => {
+    restoreDefaultColumns();
     setSortConfig({ key: null, direction: null });
     setSearchQuery("");
     setSelectedRegion([]);
@@ -864,7 +871,7 @@ const Dashboard = () => {
                 <button
                   className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-md transition-colors border border-gray-400 hover:cursor-pointer"
                   onClick={handleResetView}
-                  title="Reset sorting, search and filters"
+                  title="Reset sorting, search, filters and columns"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
@@ -977,6 +984,14 @@ const Dashboard = () => {
                           />
                           <span className="text-sm">Select All</span>
                         </div>
+                        {/* Back to the team's default columns (16.10, item 12). */}
+                        <button
+                          type="button"
+                          className="mt-1 text-xs text-[#011a99] hover:underline hover:cursor-pointer"
+                          onClick={restoreDefaultColumns}
+                        >
+                          Default columns
+                        </button>
                       </div>
                       <div className="overflow-y-auto p-2 space-y-2">
                         {columns

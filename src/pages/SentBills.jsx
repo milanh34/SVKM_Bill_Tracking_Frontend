@@ -342,7 +342,14 @@ const SentBills = () => {
     amountActive ||
     columnFiltersActive;
 
+  // The team's default columns from her list (1.10, item 1).
+  const restoreDefaultColumns = () =>
+    setVisibleColumnFields(defaultVisibleFields(columnSetKey(currentUserRole), columns));
+
+  // Reset also puts the columns back to the defaults, so "Select All" can be
+  // undone without logging out (16.10, item 12).
   const handleResetView = () => {
+    restoreDefaultColumns();
     setSortConfig({ key: null, direction: null });
     setSearchQuery("");
     setSelectedRegion([]);
@@ -532,6 +539,14 @@ const SentBills = () => {
           />
           <span className="text-sm">Select All</span>
         </div>
+        {/* Back to the team's default columns (16.10, item 12). */}
+        <button
+          type="button"
+          className="mt-1 text-xs text-[#011a99] hover:underline hover:cursor-pointer"
+          onClick={restoreDefaultColumns}
+        >
+          Default columns
+        </button>
       </div>
       <div className="overflow-y-auto p-2 space-y-2">
         {columns
@@ -596,7 +611,7 @@ const SentBills = () => {
                 <button
                   className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-md transition-colors border border-gray-400 hover:cursor-pointer flex items-center justify-center"
                   onClick={handleResetView}
-                  title="Reset sorting, search and filters"
+                  title="Reset sorting, search, filters and columns"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
