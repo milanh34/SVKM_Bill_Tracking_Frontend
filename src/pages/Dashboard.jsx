@@ -199,11 +199,33 @@ const Dashboard = () => {
     return allowed;
   };
 
+  /**
+   * Which QS sends can be UNDONE, for one bill - her Unsend rule (19.10,
+   * for 17.10 item 14): a send is offered once the column it wrote is filled.
+   *
+   *   col 38 filled,  Status Hold    -> Ret to Site Team aft measure
+   *   col 44A filled, Status Hold    -> Ret to Site Team aft COP
+   *   col 66 filled,  Status Accept  -> Ret to PIMO Team aft COP
+   *
+   * Unsend used to reuse the Send rule, which offers a send only while its
+   * column is still blank - so a bill already returned to Site (26000224,
+   * 44A filled) had nothing to unsend: "not at the same stage".
+   */
+  const qsUnsendOptionsFor = (bill) => {
+    const allowed = [];
+    const hold = bill?.siteStatus === "hold";
+    const accepted = bill?.siteStatus === "accept";
+    if (hold && bill?.vendorFinalInv?.dateGiven) allowed.push("measure"); // 38
+    if (hold && bill?.copDetails?.dateReturned) allowed.push("site_cop"); // 44A
+    if (accepted && bill?.pimoMumbai?.dateReturnedFromQs) allowed.push("pimo_cop"); // 66
+    return allowed;
+  };
+
   /** The options common to every selected bill. */
-  const qsOptionsForSelection = (selectedBills) => {
+  const qsOptionsForSelection = (selectedBills, optionsFor = qsOptionsFor) => {
     if (selectedBills.length === 0) return [];
     return selectedBills
-      .map(qsOptionsFor)
+      .map(optionsFor)
       .reduce((shared, next) => shared.filter((v) => next.includes(v)));
   };
 
@@ -322,16 +344,16 @@ const Dashboard = () => {
    * (29.09 item 20, re-raised 6.10 item 26). The three modals still carried
    * the old column-64 test inline, so the buttons she saw never changed.
    */
-  const qsRolesForSelection = () => {
+  const qsRolesForSelection = (optionsFor = qsOptionsFor) => {
     const selectedBills = billsData.filter((bill) => selectedRows.includes(bill._id));
-    const shared = qsOptionsForSelection(selectedBills);
+    const shared = qsOptionsForSelection(selectedBills, optionsFor);
     return roleWorkflow.qs_site.filter((r) => shared.includes(r.value));
   };
 
   /*
    * QS "Mark as not received", now on Send/Unreceive (6.10, item 20). The
    * server steps each bill back through whichever receipt happened: columns
-   * 64/65, or 40/41 when those are blank.
+   * 64/65, else 40/41, else 35/36 (18.10).
    */
   const handleQsNotReceived = async () => {
     if (selectedRows.length === 0) {
@@ -560,8 +582,9 @@ const Dashboard = () => {
    * the same test the server does (utils/tab-predicates.js), or a bill lands
    * on both tabs or neither:
    *
-   *   PIMO      Incoming = col 61 filled AND col 62 blank
-   *   Accounts  Incoming = col 80 filled AND col 82 blank
+   *   PIMO      Incoming = col 61 filled AND col 62 blank AND Hold
+   *   Accounts  Incoming = col 80 filled AND col 82 blank AND Accept
+   *                        (status added per the 18.10 tab table)
    *
    * The old test for PIMO Home was
    *   (markReceived === true && dateReceived) || siteStatus === "accept"
@@ -572,10 +595,12 @@ const Dashboard = () => {
    */
   const isIncomingFor = (bill, role) => {
     if (role === "site_pimo" || role === "pimo_mumbai") {
-      return Boolean(bill.pimoMumbai?.dateGiven) && !bill.pimoMumbai?.dateReceived;
+      return Boolean(bill.pimoMumbai?.dateGiven) && !bill.pimoMumbai?.dateReceived &&
+        bill.siteStatus === "hold";
     }
     if (role === "accounts") {
-      return Boolean(bill.accountsDept?.dateGiven) && !bill.accountsDept?.dateReceived;
+      return Boolean(bill.accountsDept?.dateGiven) && !bill.accountsDept?.dateReceived &&
+        bill.siteStatus === "accept";
     }
     return false;
   };
@@ -1104,14 +1129,16 @@ const Dashboard = () => {
                           }
 
                           if (currentUserRole === "qs_site") {
-                            // Unsend offers whatever Send offered, so the two
-                            // cannot disagree about what stage a bill is at.
+                            // Unsend offers the sends already done on every
+                            // selected bill (17.10, item 14).
                             const selectedBills = billsData.filter(bill => selectedRows.includes(bill._id));
-                            const shared = qsOptionsForSelection(selectedBills);
+                            const shared = qsOptionsForSelection(selectedBills, qsUnsendOptionsFor);
 
                             if (shared.length === 0) {
                               toast.error(
-                                "These bills are not at the same stage, so there is nothing common to unsend."
+                                selectedBills.length > 1
+                                  ? "These bills have no send in common to unsend. Select bills returned the same way."
+                                  : "This bill has not been returned by QS yet, so there is nothing to unsend."
                               );
                               return;
                             }
@@ -1334,7 +1361,7 @@ const Dashboard = () => {
         isOpen={isRemoveDateOpen}
         onClose={() => setIsRemoveDateOpen(false)}
         availableRoles={currentUserRole === "qs_site"
-          ? qsRolesForSelection()
+          ? qsRolesForSelection(qsUnsendOptionsFor)
           : roleWorkflow[currentUserRole] || []
         }
         role={currentUserRole}

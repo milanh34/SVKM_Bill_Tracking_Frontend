@@ -74,7 +74,7 @@ const FullBillDetails = () => {
     remarksBySiteTeam: "",
     attachment: "",
     natureOfWork: "",
-    billCategory: "", // optional (16.10, item 1)
+    billCategory: "", // mandatory once the master has any (17.10, item 1)
     vendor: null,
     billDate: "",
     amount: "",
@@ -583,6 +583,9 @@ const FullBillDetails = () => {
         // "department",
       ];
 
+      // Bill Category is mandatory (17.10, item 1) once the master has any.
+      if (billCategoryOptions.length > 0) requiredFields.push("billCategory");
+
       const missingFields = requiredFields.filter(
         (field) => !billFormData[field]
       );
@@ -773,19 +776,21 @@ const FullBillDetails = () => {
                 Project Description, Region, Vendor Name, Vendor No, 206AB, PAN Status,
                 Is PO already Created, GST Number; the PO rows follow as before. */}
             <div className="grid grid-cols-2 gap-[2vw]">
-              {/* Bill Category, from the Category Master; optional (16.10, item 1). */}
+              {/* Bill Category, from the Category Master (16.10, item 1); mandatory
+                  once the master has any (17.10, item 1). */}
               <div className="relative mb-[4vh]">
                 <label
                   htmlFor="billCategory"
                   className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
                 >
-                  Bill Category
+                  Bill Category{billCategoryOptions.length > 0 ? " *" : ""}
                 </label>
                 <select
                   id="billCategory"
                   className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] cursor-pointer"
                   value={billFormData.billCategory}
                   onChange={handleChange}
+                  required={billCategoryOptions.length > 0}
                 >
                   <option value="">Select Bill Category</option>
                   {billCategoryOptions.map((category) => (

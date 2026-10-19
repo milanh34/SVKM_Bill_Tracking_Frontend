@@ -1189,10 +1189,9 @@ const DataTable = ({
           formData.append('accountsDept.status', 'Paid');
         }
 
-        // Proforma / Reject no longer stamp columns 62 and 89 (16.10, item 11):
-        // the bill keeps Payment Status "-" and stays on the Site and QS
-        // Forwarded tabs only - Site Home lists Hold bills alone, and the
-        // Forwarded rules already take Proforma and Reject by status.
+        // Proforma / Reject: the server fills column 62 (not 89) when the
+        // status changes (18.10), so the bill moves to Site Forwarded and
+        // keeps Payment Status "-".
 
         filesForThisRow.forEach((file) => formData.append("files", file));
         try {
@@ -1225,10 +1224,9 @@ const DataTable = ({
           payload['accountsDept.status'] = 'Paid';
         }
 
-        // Proforma / Reject no longer stamp columns 62 and 89 (16.10, item 11):
-        // the bill keeps Payment Status "-" and stays on the Site and QS
-        // Forwarded tabs only - Site Home lists Hold bills alone, and the
-        // Forwarded rules already take Proforma and Reject by status.
+        // Proforma / Reject: the server fills column 62 (not 89) when the
+        // status changes (18.10), so the bill moves to Site Forwarded and
+        // keeps Payment Status "-".
 
         if (Object.keys(payload).length > 0) {
           try {
