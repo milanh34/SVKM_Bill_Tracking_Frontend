@@ -10,6 +10,7 @@ import { getColumnsForRole } from "../../utils/columnEdit";
 import { bills, deleteAttachments } from "../../apis/bills.api";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { openAttachment } from "../../utils/openAttachment"; // private bucket (21.10)
 import {
   getNestedValue,
   isDateField,
@@ -769,8 +770,7 @@ const DataTable = ({
                       )}
                       <a
                         href={file.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        onClick={(e) => { e.preventDefault(); openAttachment(file.url); }}
                         className="flex flex-col items-center group space-y-2"
                         title={getDisplayFileName(file.name, file.url)}
                       >

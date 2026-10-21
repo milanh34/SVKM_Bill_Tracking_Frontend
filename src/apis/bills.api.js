@@ -11,5 +11,6 @@ export const rejectPayment = `${SERVER_API}/bill/reject-payment`;
 export const paymentInstructions = `${SERVER_API}/bill/payment-instructions`;
 export const sentBills = `${SERVER_API}/sentBills`;
 export const deleteAttachments = `${SERVER_API}/bill/attachment`;
+export const attachmentUrl = `${SERVER_API}/bill/attachment/url`; // signed link, private bucket
 export const importExcel = `${SERVER_API}/excel`;
 export const deleteDate = `${SERVER_API}/bill/delete-date`;

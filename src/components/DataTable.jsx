@@ -23,6 +23,7 @@ import {
 import { bills, deleteAttachments } from "../apis/bills.api";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { openAttachment } from "../utils/openAttachment"; // private bucket (21.10)
 
 const DataTable = ({
   data,
@@ -1400,8 +1401,7 @@ const DataTable = ({
                     )}
                     <a
                       href={file.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      onClick={(e) => { e.preventDefault(); openAttachment(file.url); }}
                       className="flex flex-col items-center group space-y-2"
                       title={getDisplayFileName(file.name, file.url)}
                     >
