@@ -99,6 +99,7 @@ export const getColumnsForRole = (role) => {
     { field: "accountsDept.returnedToPimo", headerName: "Dt ret-PIMO by Accts" }, // column no 83
     { field: "accountsDept.receivedBack", headerName: "Dt recd back in Accts" }, // column no 84
     { field: "accountsDept.invBookingChecking", headerName: "Dt given-booking" }, // column no 85
+    { field: "accountsDept.nameGivenBooking", headerName: "Name given-booking" }, // column no 85A (31.10, item 5)
     { field: "accountsDept.paymentInstructions", headerName: "Payment instructions" }, // column no 86
     { field: "accountsDept.remarksForPayInstructions", headerName: "Remarks for payments" }, // column no 87
     { field: "accountsDept.f110Identification", headerName: "F110" }, // column no 88
@@ -110,7 +111,15 @@ export const getColumnsForRole = (role) => {
     { field: "accountsDept.status", headerName: "Payment Status" }, // column no 93
     { field: "miroDetails.number", headerName: "MIRO no" }, // column no 94
     { field: "miroDetails.date", headerName: "MIRO Dt" }, // column no 95
-    { field: "miroDetails.amount", headerName: "MIRO Amt" } // column no 96
+    { field: "miroDetails.amount", headerName: "MIRO Amt" }, // column no 96
+    // Reject Bill (27.10, N-01): view only, auto-filled, not a default column
+    { field: "rejection.date", headerName: "Dt-Rejection" }, // column no 97
+    { field: "rejection.by", headerName: "Name Rejected by" }, // column no 98
+    // Direct FI Entry details (27.10, item 3) - entered in Create Bill section 5
+    { field: "wbsNo", headerName: "WBS No" }, // column no 99A
+    { field: "networkNo", headerName: "Network No" }, // column no 99B (network, 7 digits)
+    { field: "activityNo", headerName: "Activity No" }, // column no 99B (activity, up to 4 digits)
+    { field: "costElement", headerName: "Cost Element" }, // column no 99C
   ];
 
   const roleSpecificFields = {
@@ -185,6 +194,15 @@ export const getColumnsForRole = (role) => {
       "pimoMumbai.namePIMO",
       "pimoMumbai.dateReceived",
       "pimoMumbai.receivedBy",
+      "accountsDept.invBookingChecking", // 85-85A (31.10, item 6)
+      "accountsDept.nameGivenBooking",
+      "miroDetails.number", // 94-96 (31.10, item 7)
+      "miroDetails.date",
+      "miroDetails.amount",
+      "wbsNo", // 99A-C, display (27.10, item 3)
+      "networkNo",
+      "activityNo",
+      "costElement",
     ],
 
     QS_TEAM: [
@@ -236,6 +254,8 @@ export const getColumnsForRole = (role) => {
       "qsMumbai.name",
       "pimoMumbai.dateReturnedFromQs",
       "pimoMumbai.nameReturnedFromQs",
+      "rejection.date", // 97-98, display (27.10, N-01)
+      "rejection.by",
     ],
 
     PIMO_MUMBAI_MIGO_SES: [
@@ -340,6 +360,14 @@ export const getColumnsForRole = (role) => {
       "accountsDept.paymentAmt",
       "accountsDept.remarksAcctsDept",
       "accountsDept.status",
+      "accountsDept.invBookingChecking", // 85-85A (31.10, item 6)
+      "accountsDept.nameGivenBooking",
+      "rejection.date", // 97-98, display (27.10, N-01)
+      "rejection.by",
+      "wbsNo", // 99A-C, display (27.10, item 3)
+      "networkNo",
+      "activityNo",
+      "costElement",
     ],
 
     ACCOUNTS_TEAM: [
@@ -392,6 +420,7 @@ export const getColumnsForRole = (role) => {
       "accountsDept.returnedToPimo",
       "accountsDept.receivedBack",
       "accountsDept.invBookingChecking",
+      "accountsDept.nameGivenBooking", // 85A (31.10, item 5)
       "accountsDept.paymentInstructions",
       "accountsDept.remarksForPayInstructions",
       "accountsDept.f110Identification",
@@ -404,6 +433,12 @@ export const getColumnsForRole = (role) => {
       "miroDetails.number",
       "miroDetails.date",
       "miroDetails.amount",
+      "rejection.date", // 97-98, display (27.10, N-01)
+      "rejection.by",
+      "wbsNo", // 99A-C, display (27.10, item 3)
+      "networkNo",
+      "activityNo",
+      "costElement",
     ],
 
     DIRECTOR_TRUSTEE_ADVISOR: [
@@ -426,6 +461,8 @@ export const getColumnsForRole = (role) => {
       "remarksBySiteTeam",
       "attachments",
       "copDetails.amount",
+      "remarksByQSTeam", // col 44 (31.10, item 9)
+      "remarks", // col 57 (31.10, item 9)
       "siteStatus",
       "pimoMumbai.dateGiven",
       "pimoMumbai.namePIMO",
@@ -441,8 +478,11 @@ export const getColumnsForRole = (role) => {
       "accountsDept.paymentAmt",
       "accountsDept.remarksAcctsDept",
       "accountsDept.status",
+      "rejection.date", // 97-98, display (27.10, N-01)
+      "rejection.by",
     ],
 
+    // Admin Home sees every column, 97-98 included (27.10, N-01).
     ADMIN: allColumns.map((col) => col.field),
   };
 
@@ -578,6 +618,8 @@ export const DEFAULT_VISIBLE_COLUMNS = {
     "taxInvRecdAtSite",
     "attachments",
     "copDetails.amount",
+    "remarksByQSTeam", // 44, default (31.10, item 9)
+    "remarks", // 57, default (31.10, item 9)
     "siteStatus",
     "pimoMumbai.dateGiven",
     "pimoMumbai.namePIMO",
@@ -618,6 +660,7 @@ export const DEFAULT_VISIBLE_COLUMNS = {
     "accountsDept.dateGiven",
     "accountsDept.dateReceived",
     "accountsDept.invBookingChecking",
+    "accountsDept.nameGivenBooking", // 85A, default (31.10, item 6)
     "accountsDept.paymentInstructions",
     "accountsDept.remarksForPayInstructions",
     "accountsDept.f110Identification",

@@ -4,10 +4,16 @@ import { workflowUpdate } from "../../apis/workflow.api";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from 'react-toastify';
+import { REJECT_BILL_OPTION, rejectRemarksLabel } from "../../utils/rejectBill";
 
 export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole, fetchAllData, countOfSelectedBills }) => {
     const [recipientName, setRecipientName] = useState('');
     const [loading, setLoading] = useState(false);
+
+    // Reject Bill (27.10, N-01): the same pop-up, with the "Send To" box
+    // relabelled as the team's remarks - required, and sent as `remarks`.
+    const isRejectBill = singleRole?.value === REJECT_BILL_OPTION.value;
+    const boxLabel = isRejectBill ? rejectRemarksLabel(Cookies.get("userRole")) : "Send To";
 
     const selectedBillDetails = selectedBills.map(billId => {
         const bill = billsData.find(b => b._id === billId);
@@ -28,7 +34,7 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!recipientName.trim()) {
-            toast.error("Please enter recipient name");
+            toast.error(isRejectBill ? `Please enter ${boxLabel}` : "Please enter recipient name");
             return;
         }
 
@@ -66,7 +72,8 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
 
             const toUser = {
                 id: "",
-                name: recipientName,
+                // Reject Bill has no recipient; the box holds the remarks.
+                name: isRejectBill ? REJECT_BILL_OPTION.label : recipientName,
                 role: singleRole.value
             };
             console.log(fromUser, toUser);
@@ -75,9 +82,18 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
                 fromUser,
                 toUser,
                 billIds: selectedBills,
-                action: "forward",
-                remarks: ""
+                action: isRejectBill ? "reject" : "forward",
+                // Col 79 (PIMO) / col 92 (Accounts) for Reject Bill (27.10, N-01).
+                remarks: isRejectBill ? recipientName.trim() : ""
             });
+
+            // The server re-checks Reject Bill per bill; name any it refused.
+            if (isRejectBill) {
+                (res.data?.data?.failed || []).forEach((failure) => {
+                    const bill = billsData.find((b) => b._id === failure.billId);
+                    toast.error(`Bill ${bill?.srNo || failure.billId}: ${failure.message}`);
+                });
+            }
 
             if (res.data.success) {
                 // The name and date columns are written by POST /workflow/changeState.
@@ -132,10 +148,10 @@ export const SendBoxModal = ({ closeWindow, selectedBills, billsData, singleRole
                 <form className="flex flex-col gap-4 mt-2.5" onSubmit={handleSubmit}>
                     <p className="flex gap-[10px]"> Sending To: <p style={{ fontWeight: '600' }}> {singleRole.label} </p> </p>
                     <div className="flex flex-col gap-2">
-                        <label className="text-base font-medium text-gray-700">Send To:</label>
+                        <label className="text-base font-medium text-gray-700">{boxLabel}:</label>
                         <input
                             type="text"
-                            placeholder="Enter recipient name"
+                            placeholder={isRejectBill ? "Enter remarks" : "Enter recipient name"}
                             value={recipientName}
                             onChange={(e) => setRecipientName(e.target.value)}
                             className="w-full p-3 bg-white border border-gray-300 rounded text-base focus:outline-none focus:border-gray-400"

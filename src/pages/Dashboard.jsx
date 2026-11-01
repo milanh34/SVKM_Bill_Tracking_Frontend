@@ -45,6 +45,7 @@ import Cookies from "js-cookie";
 import { handleExportReport } from "../utils/exportExcelDashboard";
 import { printBills } from "../utils/printBills";
 import { RemoveDateModal } from "../components/dashboard/RemoveDateModal";
+import { withRejectBillOption } from "../utils/rejectBill"; // 27.10, N-01
 
 /** Teams that have an Incoming tab. Mirrors ROLES_WITH_INCOMING on the server. */
 const ROLES_WITH_INCOMING = ["site_pimo", "pimo_mumbai", "accounts"];
@@ -80,8 +81,10 @@ const Dashboard = () => {
   const [visibleColumnFields, setVisibleColumnFields] = useState([]);
   // v3 (12.10, item 4): resets every saved column choice once, so each team
   // starts again from her default lists - PIMO was still showing Created by
-  // from a choice saved during earlier testing.
-  const visibleColumnsKey = `dashboard_visible_columns_v3_${currentUserRole}`;
+  // from a choice saved during earlier testing. v4 (31.10, items 6 and 9):
+  // again, so the new default columns (85A for Accounts, 44 and 57 for the
+  // Trustee) appear for users who had saved a choice.
+  const visibleColumnsKey = `dashboard_visible_columns_v4_${currentUserRole}`;
   const columnSelectorRef = useRef(null);
   const [isSendBoxOpen, setIsSendBoxOpen] = useState(false);
   const [isWindowOpen, setIsWindowOpen] = useState(false);
@@ -150,6 +153,7 @@ const Dashboard = () => {
       { value: "migo_entry", label: "MIGO Team" },
       { value: "migo_entry_return", label: "Ret to Site Team aft MIGO" },
       { value: "site_dispatch_team", label: "Site Trustee/LPC" }, // 29.09 item 17 - label only
+      { value: "booking_checking", label: "Booking & Checking" }, // cols 85-85A (31.10, item 6)
       { value: "pimo_mumbai", label: "PIMO Team" },
     ],
     qs_site: [
@@ -159,6 +163,7 @@ const Dashboard = () => {
     ],
     site_pimo: [
       { value: "qs_mumbai", label: "QS Mumbai for COP" },
+      { value: "migo_entry", label: "MIGO Team" }, // cols 45-45A (31.10, item 11)
       { value: "it_team", label: "IT Team" },
       { value: "ses_team", label: "SES Team" },
       { value: "it_return_team", label: "Ret to PIMO Team by IT" },
@@ -1348,7 +1353,12 @@ const Dashboard = () => {
         onClose={() => setIsSendBoxOpen(false)}
         availableRoles={currentUserRole === "qs_site"
           ? qsRolesForSelection()
-          : roleWorkflow[currentUserRole] || []
+          // Reject Bill only when every selected bill qualifies (27.10, N-01).
+          : withRejectBillOption(
+              roleWorkflow[currentUserRole] || [],
+              billsData.filter((bill) => selectedRows.includes(bill._id)),
+              currentUserRole
+            )
         }
         handleSendToRole={handleSendToRole}
         role={currentUserRole}

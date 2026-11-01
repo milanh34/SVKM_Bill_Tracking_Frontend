@@ -23,6 +23,11 @@ export const billJourneyRow = (bill = {}) => ({
   billCategory: bill.billCategory?.name || bill.billCategory || "",
   natureOfWork: bill.natureOfWork?.natureOfWork || bill.natureOfWork || bill.typeOfInv || "",
   eWayBill: bill.eWayBill || "", // 25A "E-Way Bill:" header line (9.10, item 1)
+  // Printed after E-Way Bill (31.10, item 10).
+  remarksAtSite: bill.remarks || "", // 57
+  remarksByQSTeam: bill.remarksByQSTeam || "", // 44
+  remarksPimoMumbai: bill.approvalDetails?.remarksPimoMumbai || "", // 79
+  remarksAccts: bill.accountsDept?.remarksAcctsDept || "", // 92
   siteApprovalDate: fmt(bill.siteOfficeDispatch?.dateGiven), // 58 "Site Trustee/LPC"
   siteApprovalName: bill.siteOfficeDispatch?.name || "", // 59 (6.10, items 1-2)
   billReceivedAtSite: fmt(bill.taxInvRecdAtSite), // 24

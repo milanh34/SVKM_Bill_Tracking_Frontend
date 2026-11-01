@@ -56,6 +56,7 @@ export const RemoveDateModal = ({
     accounts_department: "Accounts Team",
     booking_checking: "Booking & Checking",
     qs_not_received: "Mark as not received", // N-18
+    reject_bill: "Reject Bill", // undo clears cols 97, 98 (27.10, N-01)
   };
 
   const teamName = teamNameMap[role] || "Site Team";

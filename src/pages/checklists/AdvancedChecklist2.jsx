@@ -114,6 +114,10 @@ const numberRows = (rows) => {
 // 29.09 item 10).
 const requestedByText = (item) => `Project Incharge/Advance requested by - ${item?.advRequestEnteredBy || ""}`;
 
+// Bill Category (col 3A) on the right of that line (27.10, item 2). A Home
+// row carries the category as its name; a populated reference is read too.
+const billCategoryText = (item) => `Bill Category: ${item?.billCategory?.name || item?.billCategory || ""}`;
+
 // ---------- print (HTML string) ----------
 const valueHtml = (value) =>
   value
@@ -135,7 +139,9 @@ const pageHtml = (item) => {
         <div class="title">Check List For - Advance/LC/BG</div>
         <div class="sr">${esc(item?.srNo || "")}</div>
       </div>
-      <div class="requested-by">${esc(requestedByText(item))}</div>
+      <div class="requested-by" style="display:flex;justify-content:space-between;gap:12px">
+        <span>${esc(requestedByText(item))}</span><span>${esc(billCategoryText(item))}</span>
+      </div>
       <table>
         <colgroup><col style="width:5%"/><col style="width:42%"/><col style="width:53%"/></colgroup>
         <tbody>${rows}</tbody>
@@ -312,8 +318,9 @@ const AdvancedChecklist = () => {
                   <div className="text-xl text-right">{item?.srNo}</div>
                 </div>
                 {/* Heading relabelled (9.10, item 4). */}
-                <div className="p-2 border-t-[1.5px] border-black bg-gray-200 text-xl font-bold">
-                  {requestedByText(item)}
+                <div className="p-2 border-t-[1.5px] border-black bg-gray-200 text-xl font-bold flex justify-between gap-4">
+                  <span>{requestedByText(item)}</span>
+                  <span>{billCategoryText(item)}</span>
                 </div>
               </div>
 

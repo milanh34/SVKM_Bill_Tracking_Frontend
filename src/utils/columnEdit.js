@@ -98,6 +98,7 @@ export const getColumnsForRole = (role) => {
     { field: "accountsDept.returnedToPimo", headerName: "Dt ret-PIMO by Accts" }, // column no 83
     { field: "accountsDept.receivedBack", headerName: "Dt recd back in Accts" }, // column no 84
     { field: "accountsDept.invBookingChecking", headerName: "Dt given-booking" }, // column no 85
+    { field: "accountsDept.nameGivenBooking", headerName: "Name given-booking" }, // column no 85A (31.10, item 5)
     { field: "accountsDept.paymentInstructions", headerName: "Payment instructions" }, // column no 86
     { field: "accountsDept.remarksForPayInstructions", headerName: "Remarks for payments" }, // column no 87
     { field: "accountsDept.f110Identification", headerName: "F110" }, // column no 88
@@ -109,7 +110,12 @@ export const getColumnsForRole = (role) => {
     { field: "accountsDept.status", headerName: "Payment Status" }, // column no 93
     { field: "miroDetails.number", headerName: "MIRO no" }, // column no 94
     { field: "miroDetails.date", headerName: "MIRO Dt" }, // column no 95
-    { field: "miroDetails.amount", headerName: "MIRO Amt" } // column no 96
+    { field: "miroDetails.amount", headerName: "MIRO Amt" }, // column no 96
+    // Direct FI Entry details (27.10, item 3) - entered in Create Bill section 5
+    { field: "wbsNo", headerName: "WBS No" }, // column no 99A
+    { field: "networkNo", headerName: "Network No" }, // column no 99B (network, 7 digits)
+    { field: "activityNo", headerName: "Activity No" }, // column no 99B (activity, up to 4 digits)
+    { field: "costElement", headerName: "Cost Element" }, // column no 99C
   ];
 
   const roleSpecificEditFields = {
@@ -151,6 +157,13 @@ export const getColumnsForRole = (role) => {
       // "invReturnedToSite",
       // "invReturnedToSiteName",
       "remarks",
+      "miroDetails.number", // 94-96: Site edits too (31.10, item 7)
+      "miroDetails.date",
+      "miroDetails.amount",
+      "wbsNo", // 99A-C: pencil edit for Site and PIMO (her answers, 1.11)
+      "networkNo",
+      "activityNo",
+      "costElement",
       // "siteOfficeDispatch.dateGiven",
       // col 59 - filled by "Send to Site Dispatch Team", not by pencil edit
       // "siteOfficeDispatch.name",
@@ -208,6 +221,10 @@ export const getColumnsForRole = (role) => {
       "sesDetails.doneBy",
       "approvalDetails.remarksPimoMumbai",
       // "accountsDept.givenBy",
+      "wbsNo", // 99A-C: pencil edit for Site and PIMO (her answers, 1.11)
+      "networkNo",
+      "activityNo",
+      "costElement",
     ],
 
     ACCOUNTS_TEAM: [

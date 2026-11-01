@@ -18,7 +18,7 @@ import { formsList, formsUpload, formDownload, formDelete } from '../../apis/for
  * Every team sees the list and can download. Admin also gets the upload form
  * and delete buttons; uploading under an existing title replaces that form.
  */
-const ACCEPT = ".doc,.docx,.pdf";
+const ACCEPT = ".doc,.docx,.pdf,.xls,.xlsx"; // Excel added 31.10, item 4
 const MAX_BYTES = 5 * 1024 * 1024; // mirrors utils/multer.js on the server
 
 const formatSize = (bytes) => {
@@ -101,7 +101,7 @@ const Forms = () => {
         if (!file) return toast.error("Choose a file to upload");
         const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
         if (!ACCEPT.split(",").includes(ext)) {
-            return toast.error("Only Word (.doc, .docx) or PDF files are accepted");
+            return toast.error("Only Word (.doc, .docx), Excel (.xls, .xlsx) or PDF files are accepted");
         }
         if (file.size > MAX_BYTES) return toast.error("File must be 5 MB or smaller");
 
@@ -191,7 +191,7 @@ const Forms = () => {
                             {uploading ? "Uploading…" : "Upload"}
                         </button>
                         <span className="text-[14px] text-[#666]">
-                            Word or PDF, up to 5 MB. Uploading under an existing title replaces that form.
+                            Word, Excel or PDF, up to 5 MB. Uploading under an existing title replaces that form.
                         </span>
                     </form>
                 )}

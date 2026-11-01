@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import Header from "../components/Header";
 import axios from "axios";
-import { sentBills, rejectPayment } from "../apis/bills.api";
+import { sentBills, rejectPayment, deleteDate } from "../apis/bills.api";
 import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
 import DataTable from "../components/DataTable";
@@ -22,6 +22,7 @@ import {
 import { handleExportReport } from "../utils/exportExcelDashboard";
 import Loader from "../components/Loader";
 import Cookies from "js-cookie";
+import { canUndoRejectBill } from "../utils/rejectBill";
 
 const SentBills = () => {
   const currentUserRole = Cookies.get("userRole");
@@ -55,6 +56,11 @@ const SentBills = () => {
   const rowsPerPageOptions = [10, 20, 30, 50, 100];
   const [columnSearchQuery, setColumnSearchQuery] = useState("");
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  // "Undo Rejection" (her reply to N-01): a rejected bill is on Forwarded,
+  // not Home, so the undo is a button here, like Reject Payment. It clears
+  // cols 97 and 98; the remarks stay.
+  const [isUndoRejectOpen, setIsUndoRejectOpen] = useState(false);
+  const canUndoReject = ["site_pimo", "accounts"].includes(currentUserRole);
 
   // Fetch
   const fetchBills = async () => {
@@ -383,6 +389,21 @@ const SentBills = () => {
     }
   };
 
+  const handleUndoRejection = async () => {
+    try {
+      const res = await axios.post(deleteDate, {
+        teamName: currentUserRole === "accounts" ? "Accounts Team" : "PIMO Team",
+        sendTo: "Reject Bill",
+        billId: selectedRows,
+      });
+      toast.success(res.data?.message || "Rejection undone for selected bills");
+      await fetchBills();
+      setSelectedRows([]);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to undo the rejection");
+    }
+  };
+
   // DataTable Props
   const dataTableProps = {
     // data: filteredData,
@@ -666,6 +687,29 @@ const SentBills = () => {
                     <span>Reject Payment</span>
                   </button>
                 )}
+                {/* Undo Rejection - only for bills this team rejected (col 97
+                    filled), all of the selection (her reply to N-01). */}
+                {canUndoReject && (
+                  <button
+                    className="flex items-center hover:cursor-pointer space-x-2 px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                    onClick={() => {
+                      if (selectedRows.length === 0) {
+                        toast.error("Please select bills to undo the rejection");
+                        return;
+                      }
+                      const selected = billsData.filter((bill) => selectedRows.includes(bill._id));
+                      if (!selected.every((bill) => canUndoRejectBill(bill, currentUserRole))) {
+                        toast.error("Only bills rejected by your team (Dt-Rejection filled) can be undone.");
+                        return;
+                      }
+                      setIsUndoRejectOpen(true);
+                    }}
+                    title="Undo Rejection"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span>Undo Rejection</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -729,6 +773,42 @@ const SentBills = () => {
           setIsFilterPopupOpen(false);
         }}
       />
+
+      {isUndoRejectOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl">
+            <div className="flex items-start space-x-3 mb-4">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mt-1">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">Undo Rejection</h3>
+                <p className="text-sm text-gray-500 mt-2">
+                  Undo the rejection of the selected <span className="font-semibold">{selectedRows.length}</span> bill(s)?
+                  Dt-Rejection and Name Rejected by are cleared and the bill returns to your Home tab. The remarks stay.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                onClick={() => setIsUndoRejectOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700"
+                onClick={() => {
+                  handleUndoRejection();
+                  setIsUndoRejectOpen(false);
+                }}
+              >
+                Confirm Undo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isRejectModalOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">

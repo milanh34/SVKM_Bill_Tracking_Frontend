@@ -72,6 +72,10 @@ const FullBillDetails = () => {
     department: "",
     remarks: "",
     remarksBySiteTeam: "",
+    wbsNo: "", // 99A-C, Direct FI Entry only (27.10, item 3)
+    networkNo: "",
+    activityNo: "",
+    costElement: "",
     attachment: "",
     natureOfWork: "",
     billCategory: "", // mandatory once the master has any (17.10, item 1)
@@ -461,6 +465,12 @@ const FullBillDetails = () => {
   const isAdvance = billFormData.natureOfWork === "Advance/LC/BG";
   const invoiceLocked = !!billFormData.natureOfWork && isAdvance;
   const advanceLocked = !isAdvance;
+  // Section 5, Direct FI Entry Details, opens only for that Nature of Work
+  // (27.10, item 3). For these bills it also takes Purpose of Expenses (col 27,
+  // the Remarks box) and Additional Info (col 26), so section 6 greys out; the
+  // whole box is mandatory (her answers, 1.11).
+  const isDirectFI = billFormData.natureOfWork === "Direct FI Entry";
+  const directFiLocked = !isDirectFI;
   // Proforma is entered by IMD Site Team only; PIMO sees it greyed out
   // (1.10, item 15). Advance/LC/BG locks it for everyone, as before.
   const proformaLockedForRole = currentUserRole === "site_pimo" || currentUserRole === "pimo_mumbai";
@@ -479,6 +489,9 @@ const FullBillDetails = () => {
         ...prevData,
         attachment: files[0].name,
       }));
+    } else if (["networkNo", "activityNo", "costElement"].includes(id)) {
+      // Digits only: Network 7, Activity up to 4, Cost Element 6 (1.11).
+      setBillFormData((prev) => ({ ...prev, [id]: value.replace(/[^0-9]/g, "") }));
     } else {
       if (id === "vendorNo") {
         const numericValue = value.replace(/[^0-9]/g, "");
@@ -605,6 +618,12 @@ const FullBillDetails = () => {
         currency: billFormData.currency || "INR",
         natureOfWork: billFormData.natureOfWork,
       };
+      if (!isDirectFI) {
+        delete updatedFormData.wbsNo;
+        delete updatedFormData.networkNo;
+        delete updatedFormData.activityNo;
+        delete updatedFormData.costElement;
+      }
 
       setBillFormData(updatedFormData);
 
@@ -715,6 +734,10 @@ const FullBillDetails = () => {
       department: "",
       remarks: "",
       remarksBySiteTeam: "",
+      wbsNo: "",
+      networkNo: "",
+      activityNo: "",
+      costElement: "",
       attachment: "",
       natureOfWork: "",
       billCategory: "", // 16.10, item 1
@@ -1372,38 +1395,163 @@ const FullBillDetails = () => {
               <div></div>
             </div>
           </FormSection>
-          <FormSection n={5} title="Additional Details">
+          {/* Direct FI Entry Details, section 5 (27.10, item 3; her answers of
+              1.11): cols 99A-C, Purpose of Expenses (col 27) and Additional Info
+              (col 26). All mandatory; open only for Direct FI Entry. */}
+          <FormSection n={5} title="Direct FI Entry Details" hint={'Enter only when Nature of Work selected is "Direct FI Entry"'} locked={directFiLocked}>
+            <div className="grid grid-cols-2 gap-[2vw]">
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor={isDirectFI ? "wbsNo" : "wbsNoS5"}
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  WBS No *
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id={isDirectFI ? "wbsNo" : "wbsNoS5"}
+                  value={isDirectFI ? billFormData.wbsNo : ""}
+                  onChange={handleChange}
+                  disabled={directFiLocked}
+                  required={!directFiLocked}
+                />
+              </div>
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor={isDirectFI ? "networkNo" : "networkNoS5"}
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Network No *
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id={isDirectFI ? "networkNo" : "networkNoS5"}
+                  value={isDirectFI ? billFormData.networkNo : ""}
+                  onChange={handleChange}
+                  disabled={directFiLocked}
+                  required={!directFiLocked}
+                  inputMode="numeric"
+                  maxLength={7}
+                  pattern="\d{7}"
+                  title="7 digits"
+                />
+              </div>
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor={isDirectFI ? "activityNo" : "activityNoS5"}
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Activity No *
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id={isDirectFI ? "activityNo" : "activityNoS5"}
+                  value={isDirectFI ? billFormData.activityNo : ""}
+                  onChange={handleChange}
+                  disabled={directFiLocked}
+                  required={!directFiLocked}
+                  inputMode="numeric"
+                  maxLength={4}
+                  pattern="\d{1,4}"
+                  title="up to 4 digits"
+                />
+              </div>
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor={isDirectFI ? "costElement" : "costElementS5"}
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Cost Element *
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id={isDirectFI ? "costElement" : "costElementS5"}
+                  value={isDirectFI ? billFormData.costElement : ""}
+                  onChange={handleChange}
+                  disabled={directFiLocked}
+                  required={!directFiLocked}
+                  inputMode="numeric"
+                  maxLength={6}
+                  pattern="\d{6}"
+                  title="6 digits"
+                />
+              </div>
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor={isDirectFI ? "remarksBySiteTeam" : "remarksBySiteTeamS5"}
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Purpose of Expenses *
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id={isDirectFI ? "remarksBySiteTeam" : "remarksBySiteTeamS5"}
+                  value={isDirectFI ? billFormData.remarksBySiteTeam : ""}
+                  onChange={handleChange}
+                  disabled={directFiLocked}
+                  required={!directFiLocked}
+                />
+              </div>
+              <div className="relative mb-[4vh]">
+                <label
+                  htmlFor={isDirectFI ? "department" : "departmentS5"}
+                  className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
+                >
+                  Additional Info *
+                </label>
+                <input
+                  type="text"
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id={isDirectFI ? "department" : "departmentS5"}
+                  value={isDirectFI ? billFormData.department : ""}
+                  onChange={handleChange}
+                  disabled={directFiLocked}
+                  required={!directFiLocked}
+                />
+              </div>
+            </div>
+          </FormSection>
+          {/* Greyed out for a Direct FI bill: its Remarks and Additional Info are
+              entered in section 5 (1.11). */}
+          <FormSection n={6} title="Additional Details" locked={isDirectFI} note="Entered in section 5 for a Direct FI Entry bill.">
             <div className="grid grid-cols-2 gap-[2vw]">
               <div className="relative mb-[4vh]">
                 <label
                   className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="remarksBySiteTeam"
+                  htmlFor={isDirectFI ? "remarksBySiteTeamS6" : "remarksBySiteTeam"}
                 >
                   Remarks
                 </label>
                 <input
                   type="text"
-                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                  id="remarksBySiteTeam"
-                  value={billFormData.remarksBySiteTeam}
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id={isDirectFI ? "remarksBySiteTeamS6" : "remarksBySiteTeam"}
+                  value={isDirectFI ? "" : billFormData.remarksBySiteTeam}
                   onChange={handleChange}
-                  required
+                  disabled={isDirectFI}
+                  required={!isDirectFI}
                 />
               </div>
               <div className="relative mb-[4vh]">
                 <label
                   className="absolute left-[1vw] -top-[2vh] px-[0.3vw] text-[15px] font-semibold bg-[rgba(254,247,255,1)] text-[#01073F] pointer-events-none"
-                  htmlFor="department"
+                  htmlFor={isDirectFI ? "departmentS6" : "department"}
                 >
                   Additional Info
                 </label>
                 <input
                   type="text"
-                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)]"
-                  id="department"
-                  value={billFormData.department}
+                  className="w-5/6 p-[2.2vh_1vw] border border-[#ccc] rounded-[0.4vw] text-[1vw] outline-none transition-colors duration-200 bg-white shadow-[0px_4px_5px_0px_rgba(0,0,0,0.04)] disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                  id={isDirectFI ? "departmentS6" : "department"}
+                  value={isDirectFI ? "" : billFormData.department}
                   onChange={handleChange}
-                  required
+                  disabled={isDirectFI}
+                  required={!isDirectFI}
                 />
               </div>
             </div>

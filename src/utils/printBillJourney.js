@@ -172,6 +172,11 @@ const billPage = (bill) => {
             <div>E-Way Bill: <b>${escapeHtml(bill.eWayBill)}</b></div>
             <div class="right">Nature of Work: <b>${escapeHtml(bill.natureOfWork || bill.typeOfInv || "")}</b></div>
         </div>
+        <!-- Cols 57, 44, 79 and 92, after E-Way Bill (31.10, item 10). -->
+        <div class="row">Remarks at site: <b>${escapeHtml(bill.remarksAtSite)}</b></div>
+        <div class="row">Remarks by QS Team: <b>${escapeHtml(bill.remarksByQSTeam)}</b></div>
+        <div class="row">Remarks PIMO Mumbai: <b>${escapeHtml(bill.remarksPimoMumbai)}</b></div>
+        <div class="row">Remarks Accts: <b>${escapeHtml(bill.remarksAccts)}</b></div>
         <!-- No Signature column (6.10, item 2 vi); Name column widened (9.10, item 1). -->
         <table>
             <thead>
