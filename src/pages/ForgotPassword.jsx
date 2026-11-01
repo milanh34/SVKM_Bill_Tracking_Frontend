@@ -10,6 +10,17 @@ import eyeIcon from "../assets/eye.svg";
 import otpIcon from "../assets/otpIcon.svg";
 import LoginHeader from "../components/login/LoginHeader";
 
+/**
+ * The server's own reason - "User not found", "Failed to send email: ...",
+ * "Invalid or expired code". toast.error(err) showed only "Request failed with
+ * status code 500", so a failure could not be told apart (1.11).
+ */
+const serverMessage = (err) => {
+    const d = err?.response?.data;
+    const msg = d?.message || "Something went wrong, please try again";
+    return d?.error && d.error !== msg ? `${msg}: ${d.error}` : msg;
+};
+
 const ForgotPassword = () => {
     // State for the multi-step form
     const [step, setStep] = useState(1); // 1: Email, 2: OTP, 3: New Password
@@ -93,7 +104,7 @@ const ForgotPassword = () => {
         }
         catch (err) {
             console.error(err);
-            toast.error(err);
+            toast.error(serverMessage(err));
         }
     };
 
@@ -130,7 +141,7 @@ const ForgotPassword = () => {
         }
         catch (err) {
             console.error(err);
-            toast.error(err);
+            toast.error(serverMessage(err));
         }
 
     };
@@ -174,7 +185,7 @@ const ForgotPassword = () => {
         }
         catch (err) {
             console.error(err);
-            toast.error(err);
+            toast.error(serverMessage(err));
         }
     }
 
@@ -217,7 +228,7 @@ const ForgotPassword = () => {
         }
         catch (err) {
             console.error(err);
-            toast.error(err);
+            toast.error(serverMessage(err));
         }
 
     };
