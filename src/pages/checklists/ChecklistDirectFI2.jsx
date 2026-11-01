@@ -7,6 +7,17 @@ import { formatAmount } from "../../utils/formatAmount";
 
 const ITEMS_PER_PAGE = 1;
 
+/*
+ * Rows 2, 4, 5 and 6 filled from Create Bill section 5 (1.11): Purpose of
+ * expenses (col 27), WBS No (99A), Network / Activity (99B, e.g.
+ * 5014789/1250) and Cost Element (99C).
+ */
+const networkActivityText = (item) =>
+  [item?.networkNo, item?.activityNo].filter(Boolean).join("/");
+
+const escHtml = (v) =>
+  String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 const ChecklistDirectFI = () => {
   const location = useLocation();
   const billList = location.state?.selectedRows || [];
@@ -192,7 +203,7 @@ const ChecklistDirectFI = () => {
               <tr>
                 <td>2</td>
                 <td>Purpose of expenses</td>
-                <td></td>
+                <td><b>${escHtml(item?.remarksBySiteTeam)}</b></td>
                 <td></td>
               </tr>
               <tr>
@@ -204,19 +215,19 @@ const ChecklistDirectFI = () => {
               <tr>
                 <td>4</td>
                 <td>WBS No.</td>
-                <td></td>
+                <td><b>${escHtml(item?.wbsNo)}</b></td>
                 <td></td>
               </tr>
               <tr>
                 <td>5</td>
                 <td>Network & Activity No</td>
-                <td></td>
+                <td><b>${escHtml(networkActivityText(item))}</b></td>
                 <td></td>
               </tr>
               <tr>
                 <td>6</td>
                 <td>Cost Element</td>
-                <td></td>
+                <td><b>${escHtml(item?.costElement)}</b></td>
                 <td></td>
               </tr>
               <tr>
@@ -447,7 +458,7 @@ const ChecklistDirectFI = () => {
                       <td className="border-[1.5px] border-black p-2">
                         Purpose of expenses
                       </td>
-                      <td className="border-[1.5px] border-black p-2"></td>
+                      <td className="border-[1.5px] border-black p-2 font-bold">{item?.remarksBySiteTeam}</td>
                       <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
@@ -461,7 +472,7 @@ const ChecklistDirectFI = () => {
                     <tr>
                       <td className="border-[1.5px] border-black p-2">4</td>
                       <td className="border-[1.5px] border-black p-2">WBS No.</td>
-                      <td className="border-[1.5px] border-black p-2"></td>
+                      <td className="border-[1.5px] border-black p-2 font-bold">{item?.wbsNo}</td>
                       <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
@@ -469,7 +480,7 @@ const ChecklistDirectFI = () => {
                       <td className="border-[1.5px] border-black p-2">
                         Network & Activity No
                       </td>
-                      <td className="border-[1.5px] border-black p-2"></td>
+                      <td className="border-[1.5px] border-black p-2 font-bold">{networkActivityText(item)}</td>
                       <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>
@@ -477,7 +488,7 @@ const ChecklistDirectFI = () => {
                       <td className="border-[1.5px] border-black p-2">
                         Cost Element
                       </td>
-                      <td className="border-[1.5px] border-black p-2"></td>
+                      <td className="border-[1.5px] border-black p-2 font-bold">{item?.costElement}</td>
                       <td className="border-[1.5px] border-black p-2"></td>
                     </tr>
                     <tr>

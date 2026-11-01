@@ -515,6 +515,16 @@ const FullBillDetails = () => {
         toast.error('Tax Invoice Number should be 16 digits');
         return;
       }
+      if (id === "poCreated") {
+        // "No" greys out PO No / Date / Amount - and clears them, so a PO
+        // entered before the answer changed cannot stay on the bill (1.11).
+        setBillFormData((prevData) => ({
+          ...prevData,
+          poCreated: value,
+          ...(value === "No" ? { poNo: "", poDate: "", poAmt: "" } : {}),
+        }));
+        return;
+      }
       if (id === "natureOfWork") {
         // Clear whatever the new nature locks, so a greyed-out field cannot
         // carry a value typed before the switch into the bill.
@@ -1109,7 +1119,8 @@ const FullBillDetails = () => {
             </div>
           </FormSection>
           {/* Order and names per 1.10, item 15. */}
-          <FormSection n={2} title="Invoice/Hold & Ret.release Details" locked={invoiceLocked} note="Not used when Nature of Work is Advance/LC/BG. Invoice received at Site/PIMO stays open - every bill needs it.">
+          {/* No note beside the title when greyed out (1.11). */}
+          <FormSection n={2} title="Invoice/Hold & Ret.release Details" locked={invoiceLocked}>
             <div className="grid grid-cols-2 gap-[2vw]">
               <div className="relative mb-[4vh]">
                 <label
