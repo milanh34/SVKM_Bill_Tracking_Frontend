@@ -225,8 +225,9 @@ export function RenderCell({
       );
     }
 
-    // A drop-down from the Category Master, like Nature of Work; optional,
-    // so it can be set back to blank (16.10, items 3-4).
+    // A drop-down from the Category Master, like Nature of Work (16.10, items
+    // 3-4). Mandatory like Nature of Work (3.11): the placeholder cannot be
+    // picked, so a category cannot be set back to blank.
     if (column.field === "billCategory") {
       const current = editedValue !== undefined ? editedValue : value || "";
       return (
@@ -241,7 +242,9 @@ export function RenderCell({
           }`}
           disabled={isForceDisabled}
         >
-          <option value="">Select Bill Category</option>
+          <option value="" disabled>
+            Select Bill Category
+          </option>
           {current && !billCategoryOptions.some((o) => o.name === current) && (
             <option value={current}>{current}</option>
           )}
