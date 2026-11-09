@@ -244,7 +244,8 @@ function App() {
           element={
             <ProtectedRoute
               element={ChecklistAccount2}
-              allowedRoles={["accounts"]}
+              // The Site team prints it too, before sending to Accounts (8.11).
+              allowedRoles={["accounts", "site_officer"]}
             />
           }
         />

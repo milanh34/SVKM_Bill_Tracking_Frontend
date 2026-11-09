@@ -142,6 +142,37 @@ const Dashboard = () => {
     });
   };
 
+  /*
+   * "Accts Checklist" for the Site team (8.11): Shirpur prints the Accounts
+   * checklist before sending bills to Accounts. The same checklist Accounts
+   * gets on receipt, for the bills selected on Site Home; Advance and Direct
+   * FI bills have their own checklists, so they are set aside as there.
+   */
+  const handleAcctsChecklist = () => {
+    if (selectedRows.length === 0) {
+      toast.error("Please select bills to proceed");
+      return;
+    }
+    const selectedBills = billsData.filter((bill) => selectedRows.includes(bill._id));
+    const NO_ACCOUNTS_CHECKLIST = ["Advance/LC/BG", "Direct FI Entry"];
+    const forChecklist = selectedBills.filter(
+      (bill) => !NO_ACCOUNTS_CHECKLIST.includes(bill.natureOfWork)
+    );
+    if (forChecklist.length === 0) {
+      toast.error("Advance/LC/BG and Direct FI Entry bills have their own checklists - use Checklist for them.");
+      return;
+    }
+    if (forChecklist.length < selectedBills.length) {
+      toast.info(`${selectedBills.length - forChecklist.length} Advance/LC/BG or Direct FI Entry bill(s) left out - they have their own checklists.`);
+    }
+    navigate("/checklist-account2", {
+      state: {
+        selectedRows: forChecklist.map((bill) => bill._id),
+        bills: forChecklist,
+      },
+    });
+  };
+
   const roleWorkflow = {
     site_officer: [
       { value: "quality_engineer", label: "Quality Engineer" },
@@ -939,6 +970,16 @@ const Dashboard = () => {
                       <span>Checklist</span>
                     </button>
                   )}
+
+                {currentUserRole === "site_officer" && !showIncomingBills && (
+                  <button
+                    className="flex items-center hover:cursor-pointer space-x-1 px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    onClick={handleAcctsChecklist}
+                  >
+                    <CheckSquare className="w-4 h-4" />
+                    <span>Accts Checklist</span>
+                  </button>
+                )}
 
                 {!showIncomingBills && currentUserRole !== "director" && (
                   <button
